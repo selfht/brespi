@@ -1,39 +1,25 @@
-import { serve } from "bun";
-import index from "./website/index.html";
+import { ServerRegistry } from "./ServerRegistry";
+import { Config } from "./Config";
+import { mkdir } from "fs/promises";
+import { Server } from "./Server";
+import { CleanupService } from "./services/CleanupService";
 
-const server = serve({
-  routes: {
-    // Serve index.html for all unmatched routes.
-    "/*": index,
+/**
+ * Create the artifacts directory
+ */
+await mkdir(Config.artifactsRoot(), { recursive: true });
 
-    "/api/hello": {
-      async GET(req) {
-        return Response.json({
-          message: "Hello, world!",
-          method: "GET",
-        });
-      },
-      async PUT(req) {
-        return Response.json({
-          message: "Hello, world!",
-          method: "PUT",
-        });
-      },
-    },
+/**
+ * Set up the registry
+ */
+const registry = await ServerRegistry.bootstrap();
 
-    "/api/hello/:name": async (req) => {
-      const name = req.params.name;
-      return Response.json({
-        message: `Hello, ${name}!`,
-      });
-    },
-  },
+/**
+ * Periodically clean up
+ */
+registry.get(CleanupService).periodicallyKeepThingsClean();
 
-  development: process.env.NODE_ENV !== "production" && {
-    // Enable browser hot reloading in development
-    hmr: true,
-
-    // Echo console logs from the browser to the server
-    console: true,
-  },
-});
+/**
+ * Listen for incoming requests
+ */
+registry.get(Server).listen();

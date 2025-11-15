@@ -1,18 +1,19 @@
-import { ErrorLike, serve } from "bun";
 import { Config } from "@/Config";
-import index from "@/website/index.html";
-import { ZodError } from "zod/v4";
-import { WebError } from "@/errors/WebError";
 import { ServiceError } from "@/errors/ServiceError";
+import { WebError } from "@/errors/WebError";
+import index from "@/website/index.html";
+import { ErrorLike, serve } from "bun";
+import { ZodError } from "zod/v4";
+import { Pipeline } from "./models/Pipeline";
+import { PipelineStep } from "./models/PipelineStep";
+import { PipelineService } from "./services/PipelineService";
 
 export class Server {
-  public constructor() {
-    this.listenForIncomingRequests();
-  }
+  public constructor(private readonly pipelineService: PipelineService) {}
 
-  private listenForIncomingRequests() {
+  public listen() {
     const server = serve({
-      development: Config.O_BACNREESE_STAGE === "development",
+      development: Config.O_BRESPI_STAGE === "development",
       routes: {
         /**
          * Defaults
@@ -28,7 +29,7 @@ export class Server {
         "/api/config": {
           GET: async () => {
             const response = Object.entries(Config)
-              .filter(([key]) => key.startsWith("O_BACNREESE_" satisfies Config.PublicPrefix))
+              .filter(([key]) => key.startsWith("O_BRESPI_" satisfies Config.PublicPrefix))
               .map(([key, value]) => ({ [key]: value }))
               .reduce((kv1, kv2) => Object.assign({}, kv1, kv2), {});
             return Response.json(response as Config.Public);
@@ -36,33 +37,76 @@ export class Server {
         },
 
         /**
-         * Generated
+         * Temporary
          */
-        "/api/hello": {
-          async GET(req) {
-            return Response.json({
-              message: "Hello, world!",
-              method: "GET",
-            });
-          },
-          async PUT(req) {
-            return Response.json({
-              message: "Hello, world!",
-              method: "PUT",
-            });
+        "/api/backup": {
+          POST: async () => {
+            const pipeline: Pipeline = {
+              name: "My Pipeline",
+              steps: [
+                {
+                  type: PipelineStep.Type.postgres_backup,
+                  databases: {
+                    selection: "all",
+                  },
+                },
+                {
+                  type: PipelineStep.Type.compression,
+                  algorithm: "targzip",
+                  targzip: {
+                    level: 9,
+                  },
+                },
+                {
+                  type: PipelineStep.Type.encryption,
+                  algorithm: "aes256",
+                  keyReference: "CUSTOM_KEY",
+                },
+                {
+                  type: PipelineStep.Type.s3_upload,
+                  accessKeyReference: "ACCESS_KEY",
+                  secretKeyReference: "SECRET_KEY",
+                  folder: "some-random-parent-folder",
+                },
+              ],
+            };
+            const result = await this.pipelineService.execute(pipeline);
+            return Response.json(result);
           },
         },
-        "/api/hello/:name": async (req) => {
-          const name = req.params.name;
-          return Response.json({
-            message: `Hello, ${name}!`,
-          });
+        "/api/restore": {
+          POST: async () => {
+            const pipeline: Pipeline = {
+              name: "My Pipeline 2",
+              steps: [
+                {
+                  type: PipelineStep.Type.s3_download,
+                  folder: "some-random-parent-folder",
+                  name: "bakingworld",
+                  selection: "latest",
+                  accessKeyReference: "ACCESS_KEY",
+                  secretKeyReference: "SECRET_KEY",
+                },
+                {
+                  type: PipelineStep.Type.decryption,
+                  algorithm: "aes256",
+                  keyReference: "CUSTOM_KEY",
+                },
+                {
+                  type: PipelineStep.Type.decompression,
+                  algorithm: "targzip",
+                },
+              ],
+            };
+            const result = await this.pipelineService.execute(pipeline);
+            return Response.json(result);
+          },
         },
-        /**
-         * Error handling
-         */
-        error: (e) => this.handleError(e),
       },
+      /**
+       * Error handling
+       */
+      error: (e) => this.handleError(e),
     });
     console.log(`🚀 Server running at ${server.url}`);
   }
