@@ -1,0 +1,15 @@
+.joint-paper {
+    cursor: grab;
+}
+
+.joint-paper.joint-theme-default .joint-element {
+    cursor: pointer !important;
+}
+
+.joint-paper.joint-theme-default .joint-element * {
+    cursor: pointer !important;
+}
+
+.joint-paper.joint-theme-default .joint-link {
+    cursor: default;
+}
