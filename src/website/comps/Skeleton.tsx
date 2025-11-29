@@ -32,7 +32,7 @@ export namespace Skeleton {
     ];
 
     return (
-      <Paper className="u-root-grid-minus-gutters">
+      <Paper className="u-root-grid-minus-gutters mt-10">
         <nav className="flex">
           {navigationLinks.map(({ title, link, rounding }, index, { length }) => (
             <Link
@@ -45,9 +45,9 @@ export namespace Skeleton {
                 "ml-auto": index + 1 === length,
               })}
             >
-              <span className="relative">
+              <span className="relative text-lg">
                 {title}
-                {index + 1 === length && <div className="absolute rounded-full size-3 bg-c-error -right-2 -top-2" />}
+                {index + 1 === length && <div className="absolute rounded-full size-2 bg-c-error -right-2 -top-1" />}
               </span>
             </Link>
           ))}
@@ -57,15 +57,11 @@ export namespace Skeleton {
   }
 
   export function Main(props: Props) {
-    return <main {...props} className={clsx("u-root-grid-minus-gutters u-subgrid py-4", props.className)} />;
+    return <main {...props} className={clsx("u-root-grid-minus-gutters u-subgrid mt-12", props.className)} />;
   }
 
   export function Footer() {
     const currentDate = Temporal.Now.plainDateISO();
-    return (
-      <footer className="u-root-grid-minus-gutters u-subgrid">
-        <div className="opacity-30 py-10 text-right col-start-2 col-span-9 ">Brespi • {currentDate.year}</div>
-      </footer>
-    );
+    return <footer className="u-root-grid-minus-gutters my-12 text-center text-4xl font-extrabold italic text-c-dark">Brespi</footer>;
   }
 }
