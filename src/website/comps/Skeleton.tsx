@@ -1,6 +1,9 @@
 import { Temporal } from "@js-temporal/polyfill";
 import clsx from "clsx";
 import { JSX } from "react";
+import { Paper } from "./Paper";
+import { Link } from "react-router";
+import { useLocation } from "react-router";
 
 type Props = JSX.IntrinsicElements["main"];
 export function Skeleton(props: Props) {
@@ -14,11 +17,42 @@ export function Skeleton(props: Props) {
 }
 
 export namespace Skeleton {
+  type NavigationLink = {
+    title: string;
+    link: string;
+    rounding: "left" | "right" | undefined;
+  };
+
   export function Header() {
+    const { pathname } = useLocation();
+    const navigationLinks: NavigationLink[] = [
+      { title: "Pipelines", link: "", rounding: "left" },
+      { title: "Schedules", link: "schedules", rounding: undefined },
+      { title: "Configuration", link: "configuration", rounding: "right" },
+    ];
+
     return (
-      <header className="u-root-grid-minus-gutters u-subgrid py-8">
-        <h1 className="col-span-full text-center">Brespi</h1>
-      </header>
+      <Paper className="u-root-grid-minus-gutters">
+        <nav className="flex">
+          {navigationLinks.map(({ title, link, rounding }, index, { length }) => (
+            <Link
+              key={title}
+              to={link}
+              className={clsx("p-6 hover:bg-c-dim/30", {
+                "rounded-l-2xl": rounding === "left",
+                "rounded-r-2xl": rounding === "right",
+                "bg-c-dim/20": pathname === link || pathname === `${link}/`,
+                "ml-auto": index + 1 === length,
+              })}
+            >
+              <span className="relative">
+                {title}
+                {index + 1 === length && <div className="absolute rounded-full size-3 bg-c-error -right-2 -top-2" />}
+              </span>
+            </Link>
+          ))}
+        </nav>
+      </Paper>
     );
   }
 
