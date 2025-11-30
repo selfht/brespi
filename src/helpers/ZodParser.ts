@@ -6,16 +6,16 @@ type ParserFactory<T, U> =
   MustMatch<T, U> extends never
     ? never
     : {
-        ensureTypeEquivalence: () => {
+        ensureTypeMatchesSchema: () => {
           (json: unknown): T;
           SCHEMA: z.ZodType<T>;
         };
       };
 
-export namespace Parser {
+export namespace ZodParser {
   export function forType<T>() {
     return {
-      withSchema<U extends z.ZodType<T>>(schema: U): ParserFactory<T, z.infer<U>> {
+      ensureSchemaMatchesType<U extends z.ZodType<T>>(schema: U): ParserFactory<T, z.infer<U>> {
         function parseFn(json: unknown): T {
           try {
             return schema.parse(json);
@@ -30,7 +30,7 @@ export namespace Parser {
         parseFn.SCHEMA = schema;
         // @ts-ignore
         return {
-          ensureTypeEquivalence() {
+          ensureTypeMatchesSchema() {
             return parseFn;
           },
         };

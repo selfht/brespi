@@ -1,4 +1,4 @@
-import { Parser } from "@/helpers/Parser";
+import { ZodParser } from "@/helpers/ZodParser";
 import z from "zod/v4";
 import { Step } from "./Step";
 
@@ -9,13 +9,13 @@ export type Pipeline = {
 };
 
 export namespace Pipeline {
-  export const parse = Parser.forType<Pipeline>()
-    .withSchema(
+  export const parse = ZodParser.forType<Pipeline>()
+    .ensureSchemaMatchesType(
       z.object({
         id: z.string(),
         name: z.string(),
         steps: z.array(Step.parse.SCHEMA),
       }),
     )
-    .ensureTypeEquivalence();
+    .ensureTypeMatchesSchema();
 }

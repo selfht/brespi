@@ -1,4 +1,4 @@
-import { Parser } from "@/helpers/Parser";
+import { ZodParser } from "@/helpers/ZodParser";
 import z from "zod/v4";
 
 export type Step =
@@ -117,8 +117,8 @@ export namespace Step {
   }
 
   type SubSchema<T extends Step> = Record<keyof T, z.ZodType>;
-  export const parse = Parser.forType<Step>()
-    .withSchema(
+  export const parse = ZodParser.forType<Step>()
+    .ensureSchemaMatchesType(
       z.discriminatedUnion("type", [
         z.object({
           id: z.string(),
@@ -203,5 +203,5 @@ export namespace Step {
         } satisfies SubSchema<Step.S3Download>),
       ]),
     )
-    .ensureTypeEquivalence();
+    .ensureTypeMatchesSchema();
 }

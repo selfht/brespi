@@ -1,4 +1,4 @@
-import { Parser } from "@/helpers/Parser";
+import { ZodParser } from "@/helpers/ZodParser";
 import { Temporal } from "@js-temporal/polyfill";
 import { z } from "zod/v4";
 
@@ -15,8 +15,8 @@ export namespace Execution {
     error = "error",
   }
 
-  export const parse = Parser.forType<Execution>()
-    .withSchema(
+  export const parse = ZodParser.forType<Execution>()
+    .ensureSchemaMatchesType(
       z.object({
         outcome: z.enum(Outcome),
         duration: z.string().transform(Temporal.Duration.from),
@@ -24,5 +24,5 @@ export namespace Execution {
         completedAt: z.string().transform((x) => Temporal.PlainDateTime.from(x)),
       }),
     )
-    .ensureTypeEquivalence();
+    .ensureTypeMatchesSchema();
 }

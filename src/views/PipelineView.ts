@@ -1,6 +1,6 @@
 import { Execution } from "@/models/Execution";
 import { Pipeline } from "@/models/Pipeline";
-import { Parser } from "@/helpers/Parser";
+import { ZodParser } from "@/helpers/ZodParser";
 import z from "zod/v4";
 
 export type PipelineView = Pipeline & {
@@ -8,13 +8,13 @@ export type PipelineView = Pipeline & {
 };
 
 export namespace PipelineView {
-  export const parse = Parser.forType<PipelineView>()
-    .withSchema(
+  export const parse = ZodParser.forType<PipelineView>()
+    .ensureSchemaMatchesType(
       Pipeline.parse.SCHEMA.and(
         z.object({
           executions: z.array(Execution.parse.SCHEMA),
         }),
       ),
     )
-    .ensureTypeEquivalence();
+    .ensureTypeMatchesSchema();
 }
