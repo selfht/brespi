@@ -103,7 +103,6 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksChange, className }: 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
-        console.log({ width, height });
         paper.setDimensions(width, height);
       }
     });

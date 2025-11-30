@@ -117,95 +117,91 @@ export namespace Step {
   }
 
   type SubSchema<T extends Step> = Record<keyof T, z.ZodType>;
-  const schema = z.discriminatedUnion("type", [
-    z.object({
-      id: z.string(),
-      previousStepId: z.string().optional(),
-      type: z.literal(Type.fs_read),
-      path: z.string(),
-      itemizeDirectoryContents: z.boolean(),
-    } satisfies SubSchema<Step.FsRead>),
+  export const parse = Parser.forType<Step>()
+    .withSchema(
+      z.discriminatedUnion("type", [
+        z.object({
+          id: z.string(),
+          previousStepId: z.string().optional(),
+          type: z.literal(Type.fs_read),
+          path: z.string(),
+          itemizeDirectoryContents: z.boolean(),
+        } satisfies SubSchema<Step.FsRead>),
 
-    z.object({
-      id: z.string(),
-      previousStepId: z.string().optional(),
-      type: z.literal(Type.fs_write),
-      path: z.string(),
-    } satisfies SubSchema<Step.FsWrite>),
+        z.object({
+          id: z.string(),
+          previousStepId: z.string().optional(),
+          type: z.literal(Type.fs_write),
+          path: z.string(),
+        } satisfies SubSchema<Step.FsWrite>),
 
-    z.object({
-      id: z.string(),
-      previousStepId: z.string().optional(),
-      type: z.literal(Type.postgres_backup),
-      databases: z.union([
-        z.object({ selection: z.literal("all") }),
-        z.object({ selection: z.literal("include"), include: z.array(z.string()) }),
-        z.object({ selection: z.literal("exclude"), exclude: z.array(z.string()) }),
+        z.object({
+          id: z.string(),
+          previousStepId: z.string().optional(),
+          type: z.literal(Type.postgres_backup),
+          databases: z.union([
+            z.object({ selection: z.literal("all") }),
+            z.object({ selection: z.literal("include"), include: z.array(z.string()) }),
+            z.object({ selection: z.literal("exclude"), exclude: z.array(z.string()) }),
+          ]),
+        } satisfies SubSchema<Step.PostgresBackup>),
+
+        z.object({
+          id: z.string(),
+          previousStepId: z.string().optional(),
+          type: z.literal(Type.compression),
+          algorithm: z.literal("targzip"),
+          targzip: z.object({
+            level: z.number().min(1).max(9),
+          }),
+        } satisfies SubSchema<Step.Compression>),
+
+        z.object({
+          id: z.string(),
+          previousStepId: z.string().optional(),
+          type: z.literal(Type.decompression),
+          algorithm: z.literal("targzip"),
+        } satisfies SubSchema<Step.Decompression>),
+
+        z.object({
+          id: z.string(),
+          previousStepId: z.string().optional(),
+          type: z.literal(Type.encryption),
+          algorithm: z.literal("aes256cbc"),
+          keyReference: z.string(),
+        } satisfies SubSchema<Step.Encryption>),
+
+        z.object({
+          id: z.string(),
+          previousStepId: z.string().optional(),
+          type: z.literal(Type.decryption),
+          algorithm: z.literal("aes256cbc"),
+          keyReference: z.string(),
+        } satisfies SubSchema<Step.Decryption>),
+
+        z.object({
+          id: z.string(),
+          previousStepId: z.string().optional(),
+          type: z.literal(Type.s3_upload),
+          accessKeyReference: z.string(),
+          secretKeyReference: z.string(),
+          namespace: z.string(),
+        } satisfies SubSchema<Step.S3Upload>),
+
+        z.object({
+          id: z.string(),
+          previousStepId: z.string().optional(),
+          type: z.literal(Type.s3_download),
+          accessKeyReference: z.string(),
+          secretKeyReference: z.string(),
+          namespace: z.string(),
+          artifact: z.string(),
+          selection: z.union([
+            z.object({ strategy: z.literal("latest") }),
+            z.object({ strategy: z.literal("version"), version: z.string() }),
+          ]),
+        } satisfies SubSchema<Step.S3Download>),
       ]),
-    } satisfies SubSchema<Step.PostgresBackup>),
-
-    z.object({
-      id: z.string(),
-      previousStepId: z.string().optional(),
-      type: z.literal(Type.compression),
-      algorithm: z.literal("targzip"),
-      targzip: z.object({
-        level: z.number().min(1).max(9),
-      }),
-    } satisfies SubSchema<Step.Compression>),
-
-    z.object({
-      id: z.string(),
-      previousStepId: z.string().optional(),
-      type: z.literal(Type.decompression),
-      algorithm: z.literal("targzip"),
-    } satisfies SubSchema<Step.Decompression>),
-
-    z.object({
-      id: z.string(),
-      previousStepId: z.string().optional(),
-      type: z.literal(Type.encryption),
-      algorithm: z.literal("aes256cbc"),
-      keyReference: z.string(),
-    } satisfies SubSchema<Step.Encryption>),
-
-    z.object({
-      id: z.string(),
-      previousStepId: z.string().optional(),
-      type: z.literal(Type.decryption),
-      algorithm: z.literal("aes256cbc"),
-      keyReference: z.string(),
-    } satisfies SubSchema<Step.Decryption>),
-
-    z.object({
-      id: z.string(),
-      previousStepId: z.string().optional(),
-      type: z.literal(Type.s3_upload),
-      accessKeyReference: z.string(),
-      secretKeyReference: z.string(),
-      namespace: z.string(),
-    } satisfies SubSchema<Step.S3Upload>),
-
-    z.object({
-      id: z.string(),
-      previousStepId: z.string().optional(),
-      type: z.literal(Type.s3_download),
-      accessKeyReference: z.string(),
-      secretKeyReference: z.string(),
-      namespace: z.string(),
-      artifact: z.string(),
-      selection: z.union([z.object({ strategy: z.literal("latest") }), z.object({ strategy: z.literal("version"), version: z.string() })]),
-    } satisfies SubSchema<Step.S3Download>),
-  ]);
-
-  const superP = Parser.fromSchema<Step, z.Infer<typeof schema>>(schema).ensureTypeEquivalence();
-  const x = superP(["lol123"]);
-
-  export function parse(unknown: unknown): Step {
-    // Below ensures that Step is assignable to Zod
-    const unionTypeExhaustionCheck: z.Infer<typeof schema> = undefined as unknown as Step;
-    // Below ensures that Zod is assignable to Step (see method signature)
-    return schema.parse(unknown);
-  }
-  parse.SCHEMA = schema;
+    )
+    .ensureTypeEquivalence();
 }

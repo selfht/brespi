@@ -15,11 +15,14 @@ export namespace Execution {
     error = "error",
   }
 
-  const schema = z.object({
-    outcome: z.enum(Outcome),
-    duration: z.string().transform(Temporal.Duration.from),
-    startedAt: z.string().transform((x) => Temporal.PlainDateTime.from(x)),
-    completedAt: z.string().transform((x) => Temporal.PlainDateTime.from(x)),
-  });
-  export const parse = Parser.fromSchema<Execution, z.Infer<typeof schema>>(schema).ensureTypeEquivalence();
+  export const parse = Parser.forType<Execution>()
+    .withSchema(
+      z.object({
+        outcome: z.enum(Outcome),
+        duration: z.string().transform(Temporal.Duration.from),
+        startedAt: z.string().transform((x) => Temporal.PlainDateTime.from(x)),
+        completedAt: z.string().transform((x) => Temporal.PlainDateTime.from(x)),
+      }),
+    )
+    .ensureTypeEquivalence();
 }
