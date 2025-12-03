@@ -32,18 +32,18 @@ export function pipelines_$id() {
   const navigate = useNavigate();
   const pipelineClient = useRegistry.instance(PipelineClient);
 
-  const query = useQuery<PipelineWithBlocks | "new", ProblemDetails>({
+  const query = useQuery<Logic.PipelineWithBlocks | "new", ProblemDetails>({
     queryKey: [QueryKey.pipelines, id],
     queryFn: () => {
       if (id === "new") {
         return "new";
       }
-      return pipelineClient.find(id!).then<PipelineWithBlocks>(PipelineWithBlocks.convert);
+      return pipelineClient.find(id!).then<Logic.PipelineWithBlocks>(Logic.convert);
     },
   });
 
   const form = useForm<Form>();
-  const reset = (basis: PipelineWithBlocks | "new") => {
+  const reset = (basis: Logic.PipelineWithBlocks | "new") => {
     if (basis === "new") {
       form.reset({
         mode: "editing",
@@ -99,8 +99,7 @@ export function pipelines_$id() {
   const canvas = useRef<Canvas.Api>(null);
   const { mode, name } = form.watch();
 
-  const buttonGroups = useMemo(() => AvailableButtons.getButtonGroups(), []);
-
+  const buttonGroups = useMemo(() => Logic.getButtonGroups(), []);
   return (
     <Skeleton>
       <Paper className="col-span-full u-subgrid">
@@ -174,7 +173,7 @@ export function pipelines_$id() {
               <>
                 <div className="col-span-6 p-6">
                   <h2 className="mb-6 text-xl font-extralight">Execution History</h2>
-                  {(query.data as PipelineWithBlocks).executions.map((execution) => (
+                  {(query.data as Logic.PipelineWithBlocks).executions.map((execution) => (
                     <button key={execution.id} className="mt-4 flex items-center text-left gap-4 group cursor-pointer">
                       <SquareIcon variant={execution.outcome} className="group-hover:border-white group-hover:bg-c-dim/20" />
                       <div>
@@ -185,9 +184,9 @@ export function pipelines_$id() {
                       </div>
                     </button>
                   ))}
-                  {(query.data as PipelineWithBlocks).executions.length === 0 && <SquareIcon variant="no_data" />}
+                  {(query.data as Logic.PipelineWithBlocks).executions.length === 0 && <SquareIcon variant="no_data" />}
                 </div>
-                {(query.data as PipelineWithBlocks).executions.length > 0 && (
+                {(query.data as Logic.PipelineWithBlocks).executions.length > 0 && (
                   <div className="col-span-6 p-6">
                     <h2 className="mb-6 text-xl font-extralight">Execution Details</h2>
                     <p className="text-c-dim font-extralight">Select an execution to see its details.</p>
@@ -218,11 +217,28 @@ export function pipelines_$id() {
   );
 }
 
-type PipelineWithBlocks = PipelineView & {
-  blocks: Block[];
-};
+namespace Logic {
+  // TODO: translation file?
+  const categoryLabels: Record<Step.Category, string> = {
+    [Step.Category.producer]: "Artifact producers",
+    [Step.Category.transformer]: "Artifact transformers",
+    [Step.Category.consumer]: "Artifact consumers",
+  };
+  const typeLabels: Record<Step.Type, string> = {
+    [Step.Type.fs_read]: "Filesystem Read",
+    [Step.Type.fs_write]: "Filesystem Write",
+    [Step.Type.postgres_backup]: "Postgres Backup",
+    [Step.Type.compression]: "Compression",
+    [Step.Type.decompression]: "Decompression",
+    [Step.Type.encryption]: "Encryption",
+    [Step.Type.decryption]: "Decryption",
+    [Step.Type.s3_upload]: "S3 Upload",
+    [Step.Type.s3_download]: "S3 Download",
+  };
 
-namespace PipelineWithBlocks {
+  export type PipelineWithBlocks = PipelineView & {
+    blocks: Block[];
+  };
   export function convert(pipeline: PipelineView): PipelineWithBlocks {
     return {
       ...pipeline,
@@ -235,15 +251,13 @@ namespace PipelineWithBlocks {
         return {
           id: step.id,
           incomingId: step.previousStepId,
-          label: step.type,
+          label: typeLabels[step.type],
           handles: handles[Step.getCategory(step)],
         };
       }),
     };
   }
-}
 
-namespace AvailableButtons {
   type ButtonGroup = {
     category: Step.Category;
     categoryLabel: string;
@@ -252,28 +266,11 @@ namespace AvailableButtons {
       typeLabel: string;
     }>;
   };
-
   export function getButtonGroups(): ButtonGroup[] {
     const buttonGroups: ButtonGroup[] = [];
 
-    const categoryLabels: Record<Step.Category, string> = {
-      [Step.Category.producer]: "Artifact producers",
-      [Step.Category.transformer]: "Artifact transformers",
-      [Step.Category.consumer]: "Artifact consumers",
-    };
     const categoryOrder: Step.Category[] = [Step.Category.producer, Step.Category.transformer, Step.Category.consumer];
 
-    const typeLabels: Record<Step.Type, string> = {
-      [Step.Type.fs_read]: "Filesystem Read",
-      [Step.Type.fs_write]: "Filesystem Write",
-      [Step.Type.postgres_backup]: "Postgres Backup",
-      [Step.Type.compression]: "Compression",
-      [Step.Type.decompression]: "Decompression",
-      [Step.Type.encryption]: "Encryption",
-      [Step.Type.decryption]: "Decryption",
-      [Step.Type.s3_upload]: "S3 Upload",
-      [Step.Type.s3_download]: "S3 Download",
-    };
     const typeOrder: Step.Type[] = [
       // Producers
       Step.Type.postgres_backup,
