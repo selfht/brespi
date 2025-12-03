@@ -112,8 +112,8 @@ export namespace Step {
     [Step.Type.s3_upload]: Step.Category.consumer,
     [Step.Type.s3_download]: Step.Category.producer,
   };
-  export function getCategory(step: Step): Step.Category {
-    return categories[step.type];
+  export function getCategory({ type }: Pick<Step, "type">): Step.Category {
+    return categories[type];
   }
 
   type SubSchema<T extends Step> = Record<keyof T, z.ZodType>;

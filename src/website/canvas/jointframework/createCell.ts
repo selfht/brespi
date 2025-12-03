@@ -9,18 +9,12 @@ export function createCell(block: JointBlock) {
   // TODO: doesn't belong here
   const hasInput = block.handles.includes(Block.Handle.input);
   const hasOutput = block.handles.includes(Block.Handle.output);
-  let blockColor = "#9b59b6"; // Default purple (transformer)
-  if (hasOutput && !hasInput) {
-    blockColor = "#3498db"; // Blue (producer)
-  } else if (hasInput && !hasOutput) {
-    blockColor = "#e74c3c"; // Red (consumer)
-  }
 
   const sideConnector = {
     width: 16,
     height: 16,
     borderRadius: 4,
-    offset: 4,
+    offset: 6,
   };
   if (hasInput) {
     items.push({ id: Block.Handle.input, group: Block.Handle.input });
@@ -35,7 +29,8 @@ export function createCell(block: JointBlock) {
           y: -(sideConnector.height / 2), // Center vertically
           rx: sideConnector.borderRadius,
           ry: sideConnector.borderRadius,
-          fill: blockColor, // Transparent fill
+          class: "fill-c-artifact-fill stroke-c-artifact-stroke",
+          strokeWidth: 3,
           magnet: "passive",
         },
       },
@@ -54,7 +49,8 @@ export function createCell(block: JointBlock) {
           y: -(sideConnector.height / 2), // Center vertically
           rx: sideConnector.borderRadius,
           ry: sideConnector.borderRadius,
-          fill: blockColor, // Transparent fill
+          class: "fill-c-artifact-fill stroke-c-artifact-stroke",
+          strokeWidth: 3,
           magnet: true,
         },
       },
@@ -64,15 +60,15 @@ export function createCell(block: JointBlock) {
   return new shapes.standard.Rectangle({
     id: block.id,
     position: block.coordinates,
-    size: { width: 90, height: 70 },
+    size: { width: 80, height: 60 },
     markup: [
       { tagName: "rect", selector: "body" },
       { tagName: "text", selector: "label" },
     ],
     attrs: {
       body: {
-        fill: blockColor,
-        stroke: "none",
+        class: "fill-c-artifact-fill stroke-c-artifact-stroke",
+        strokeWidth: 3,
         rx: 8, // Rounded corners (scaled down)
         ry: 8,
         width: "calc(w)",
@@ -80,8 +76,9 @@ export function createCell(block: JointBlock) {
       },
       label: {
         text: block.label,
-        fill: "#000",
-        fontSize: 12,
+        // fill: "#000",
+        class: "fill-c-dark",
+        fontSize: 14,
         x: "calc(0.5*w)", // Center horizontally
         y: "calc(h+18)", // Below block
         textAnchor: "middle",

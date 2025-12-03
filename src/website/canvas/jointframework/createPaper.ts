@@ -21,7 +21,7 @@ export function createPaper({ element, blocksRef, validateArrow, initialBlocks }
     model: graph,
     width: element.clientWidth || 10,
     height: element.clientHeight || 10,
-    background: { color: "#F8F9FA" },
+    background: { color: "transparent" },
     cellViewNamespace: namespace,
     gridSize: 1, // Free-form movement (no snapping)
     clickThreshold: 10, // Allow 10px movement and still count as click

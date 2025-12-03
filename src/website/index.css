@@ -78,6 +78,8 @@
     --color-c-info: #8585f6;
     --color-c-dim: #979797;
     --color-c-dark: #2d2c32;
+    --color-c-artifact-fill: #b0cee6;
+    --color-c-artifact-stroke: #6c9bc2;
 }
 /* DESKTOP FIRST / PART B -> https://stackoverflow.com/a/79607480 */
 @custom-variant 2xl (@media (max-width: 1535px));
