@@ -1,12 +1,5 @@
 import { Step } from "@/models/Step";
-import { ObjectFlatten } from "@/types/ObjectFlatten";
 import { StepFlatten } from "@/types/StepFlatten";
-
-const categoryLabels: Record<Step.Category, string> = {
-  [Step.Category.producer]: "Artifact producers",
-  [Step.Category.transformer]: "Artifact transformers",
-  [Step.Category.consumer]: "Artifact consumers",
-};
 
 const typeLabels: Record<Step.Type, string> = {
   [Step.Type.filesystem_read]: "Filesystem Read",
@@ -24,27 +17,72 @@ const typeLabels: Record<Step.Type, string> = {
   [Step.Type.s3_download]: "S3 Download",
 };
 
+const categoryLabels: Record<Step.Category, string> = {
+  [Step.Category.producer]: "Artifact producers",
+  [Step.Category.transformer]: "Artifact transformers",
+  [Step.Category.consumer]: "Artifact consumers",
+};
+
 type DetailLabels = {
   [T in Step.Type]: Record<keyof StepFlatten<T>, string>;
 };
-// const detailLabels: DetailLabels = {
-//   [Step.Type.filesystem_read]: {
-//     path: "Path",
-//   },
-//   [Step.Type.filesystem_write]: {
-//     path: "Path",
-//   },
-//   [Step.Type.postgres_backup]: {},
-//   [Step.Type.postgres_restore]: {},
-//   [Step.Type.compression]: {},
-//   [Step.Type.decompression]: {},
-//   [Step.Type.encryption]: {},
-//   [Step.Type.decryption]: {},
-//   [Step.Type.folder_flatten]: {},
-//   [Step.Type.folder_group]: {},
-//   [Step.Type.script_execution]: {},
-//   [Step.Type.s3_upload]: {},
-//   [Step.Type.s3_download]: {},
-// };
+const detailLabels: DetailLabels = {
+  [Step.Type.filesystem_read]: {
+    path: "Path",
+  },
+  [Step.Type.filesystem_write]: {
+    path: "Path",
+  },
+  [Step.Type.compression]: {
+    "implementation.algorithm": "Algorithm",
+    "implementation.level": "Compression level",
+  },
+  [Step.Type.decompression]: {
+    "implementation.algorithm": "Algorithm",
+  },
+  [Step.Type.encryption]: {
+    "implementation.algorithm": "Algorithm",
+    keyReference: "Key reference",
+  },
+  [Step.Type.decryption]: {
+    "implementation.algorithm": "Algorithm",
+    keyReference: "Key reference",
+  },
+  [Step.Type.folder_flatten]: {},
+  [Step.Type.folder_group]: {},
+  [Step.Type.script_execution]: {
+    path: "Path",
+    passthrough: "Passthrough?",
+  },
+  [Step.Type.s3_upload]: {
+    accessKeyReference: "Access key reference",
+    secretKeyReference: "Secret key reference",
+    baseFolder: "Base folder",
+  },
+  [Step.Type.s3_download]: {
+    accessKeyReference: "Access key reference",
+    secretKeyReference: "Secret key reference",
+    baseFolder: "Base folder",
+    artifact: "Artifact",
+    "selection.target": "Selection Target",
+    "selection.version": "Selection Version",
+  },
+  [Step.Type.postgres_backup]: {
+    "databases.selection": "Selection",
+  },
+  [Step.Type.postgres_restore]: {
+    database: "Database",
+  },
+};
 
-export namespace StepTranslation {}
+export namespace StepTranslation {
+  export function type(type: Step.Type): string {
+    return typeLabels[type];
+  }
+  export function category(category: Step.Category): string {
+    return categoryLabels[category];
+  }
+  export function details(type: Step.Type): DetailLabels[Step.Type] {
+    return detailLabels[type];
+  }
+}

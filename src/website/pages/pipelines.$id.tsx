@@ -1,13 +1,17 @@
 import { ProblemDetails } from "@/models/ProblemDetails";
 import { Step } from "@/models/Step";
+import { StepFlatten } from "@/types/StepFlatten";
 import { PipelineView } from "@/views/PipelineView";
+import { Temporal } from "@js-temporal/polyfill";
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { Block } from "../canvas/Block";
 import { Canvas } from "../canvas/Canvas";
+import { CanvasEvent } from "../canvas/CanvasEvent";
+import { Interactivity } from "../canvas/Interactivity";
 import { PipelineClient } from "../clients/PipelineClient";
 import { QueryKey } from "../clients/QueryKey";
 import { ArtifactSymbol } from "../comps/ArtifactSymbol";
@@ -17,14 +21,10 @@ import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
 import { SquareIcon } from "../comps/SquareIcon";
-import { useRegistry } from "../hooks/useRegistry";
-import "./pipelines.$id.css";
-import { useNavigate } from "react-router";
-import { Temporal } from "@js-temporal/polyfill";
 import { StepForm } from "../forms/StepForm";
-import { CanvasEvent } from "../canvas/CanvasEvent";
-import { Interactivity } from "../canvas/Interactivity";
-import { ObjectFlatten } from "@/types/ObjectFlatten";
+import { useRegistry } from "../hooks/useRegistry";
+import { StepTranslation } from "../translation/StepTranslation";
+import "./pipelines.$id.css";
 
 type Form = {
   interactivity: Interactivity;
@@ -272,36 +272,6 @@ export function pipelines_$id() {
 }
 
 namespace Internal {
-  // TODO: translation file?
-  const categoryLabels: Record<Step.Category, string> = {
-    [Step.Category.producer]: "Artifact producers",
-    [Step.Category.transformer]: "Artifact transformers",
-    [Step.Category.consumer]: "Artifact consumers",
-  };
-  const typeLabels: Record<Step.Type, string> = {
-    [Step.Type.filesystem_read]: "Filesystem Read",
-    [Step.Type.filesystem_write]: "Filesystem Write",
-    [Step.Type.postgres_backup]: "Postgres Backup",
-    [Step.Type.postgres_restore]: "Postgres Restore",
-    [Step.Type.compression]: "Compression",
-    [Step.Type.decompression]: "Decompression",
-    [Step.Type.encryption]: "Encryption",
-    [Step.Type.decryption]: "Decryption",
-    [Step.Type.folder_flatten]: "Folder Flatten",
-    [Step.Type.folder_group]: "Folder Group",
-    [Step.Type.script_execution]: "Script Execution",
-    [Step.Type.s3_upload]: "S3 Upload",
-    [Step.Type.s3_download]: "S3 Download",
-  };
-  type DetailLabels = {
-    [T in Step.Type]: Record<keyof ObjectFlatten<Omit<Extract<Step, { type: T }>, "id" | "type" | "previousStepId">>, string>;
-  };
-  const detailLabels: DetailLabels = {
-    [Step.Type.filesystem_read]: {
-      path: "Path",
-    },
-  };
-
   export type PipelineWithInitialBlocks = PipelineView & {
     initialBlocks: Block[];
   };
@@ -312,15 +282,8 @@ namespace Internal {
         return {
           id: step.id,
           incomingId: step.previousStepId,
-          label: typeLabels[step.type],
-          details: {
-            appel: "taartje",
-            kopje: "thee",
-            aantal: 34,
-            lekker: true,
-            waarom: "daarom",
-            nogIets: undefined,
-          },
+          label: StepTranslation.type(step.type),
+          details: convertToDetails(step),
           handles: convertTypeToHandles(step.type),
           selected: false,
         };
@@ -328,9 +291,15 @@ namespace Internal {
     };
   }
   export function convertToDetails(step: Step): Block["details"] {
-    if (step.type === Step.Type.compression) {
-      const obj = ObjectFlatten.perform(step);
-    }
+    type Primitive = string | number | boolean | undefined;
+    const result: Record<string, Primitive> = {};
+    const labels = StepTranslation.details(step.type);
+    Object.entries(StepFlatten.perform(step)).forEach(([key, value]) => {
+      if (value !== undefined) {
+        result[(labels as Record<string, string>)[key]] = value as Primitive;
+      }
+    });
+    return result;
   }
   export function convertTypeToHandles(type: Step.Type): Block["handles"] {
     const handles: Record<Step.Category, Block.Handle[]> = {
@@ -380,16 +349,16 @@ namespace Internal {
       if (existing) {
         existing.steps.push({
           type,
-          typeLabel: typeLabels[type],
+          typeLabel: StepTranslation.type(type),
         });
       } else {
         buttonGroups.push({
           category,
-          categoryLabel: categoryLabels[category],
+          categoryLabel: StepTranslation.category(category),
           steps: [
             {
               type,
-              typeLabel: typeLabels[type],
+              typeLabel: StepTranslation.type(type),
             },
           ],
         });

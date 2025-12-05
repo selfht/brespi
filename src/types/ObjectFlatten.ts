@@ -6,7 +6,7 @@ type FlattenKeys<T, Prefix extends string = ""> = T extends Primitive
       [K in keyof T]-?: K extends string
         ? T[K] extends Primitive
           ? `${Prefix}${K}`
-          : `${Prefix}${K}` | FlattenKeys<T[K], `${Prefix}${K}.`>
+          : FlattenKeys<T[K], `${Prefix}${K}.`>
         : never;
     }[keyof T];
 
