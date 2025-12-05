@@ -53,20 +53,20 @@ export class S3Adapter {
       endpoint: "http://minio:9000",
     });
 
-    const manifest: S3Manifest = await this.handleManifestExclusively(client, options.namespace, (manifest) => manifest);
+    const manifest: S3Manifest = await this.handleManifestExclusively(client, options.baseFolder, (manifest) => manifest);
     const selection = options.selection;
     const target =
-      selection.strategy === "latest"
+      selection.target === "latest"
         ? manifest.uploads.find((u) => u.name === options.artifact)
         : manifest.uploads.find((u) => u.name === options.artifact && u.path === selection.version);
     if (!target) {
       throw new Error(`Upload entry not found for options: ${JSON.stringify(options)}`);
     }
-    const s3FileMeta = client.file(join(options.namespace, `${target.path}.brespi.json`));
+    const s3FileMeta = client.file(join(options.baseFolder, `${target.path}.brespi.json`));
     if (!(await s3FileMeta.exists())) {
       throw new Error(`Upload file meta not found for options: ${JSON.stringify(options)}`);
     }
-    const s3File = client.file(join(options.namespace, target.path));
+    const s3File = client.file(join(options.baseFolder, target.path));
     if (!(await s3File.exists())) {
       throw new Error(`Upload file not found for options: ${JSON.stringify(options)}`);
     }

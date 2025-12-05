@@ -56,27 +56,33 @@ export namespace Step {
 
   export type Compression = Common & {
     type: Type.compression;
-    algorithm: "targzip";
-    targzip: {
+    implementation: {
+      algorithm: "targzip";
       level: number;
     };
   };
 
   export type Decompression = Common & {
     type: Type.decompression;
-    algorithm: "targzip";
+    implementation: {
+      algorithm: "targzip";
+    };
   };
 
   export type Encryption = Common & {
     type: Type.encryption;
-    algorithm: "aes256cbc";
     keyReference: string;
+    implementation: {
+      algorithm: "aes256cbc";
+    };
   };
 
   export type Decryption = Common & {
     type: Type.decryption;
-    algorithm: "aes256cbc";
     keyReference: string;
+    implementation: {
+      algorithm: "aes256cbc";
+    };
   };
 
   export type FolderFlatten = Common & {
@@ -104,12 +110,12 @@ export namespace Step {
     type: Type.s3_download;
     accessKeyReference: string;
     secretKeyReference: string;
-    namespace: string;
+    baseFolder: string;
     artifact: string;
     selection:
-      | { strategy: "latest" }
+      | { target: "latest" }
       //
-      | { strategy: "version"; version: string };
+      | { target: "specific"; version: string };
   };
 
   export type PostgresBackup = Common & {
@@ -168,8 +174,8 @@ export namespace Step {
           id: z.string(),
           previousStepId: z.string().optional(),
           type: z.literal(Type.compression),
-          algorithm: z.literal("targzip"),
-          targzip: z.object({
+          implementation: z.object({
+            algorithm: z.literal("targzip"),
             level: z.number().min(1).max(9),
           }),
         } satisfies SubSchema<Step.Compression>),
@@ -178,23 +184,29 @@ export namespace Step {
           id: z.string(),
           previousStepId: z.string().optional(),
           type: z.literal(Type.decompression),
-          algorithm: z.literal("targzip"),
+          implementation: z.object({
+            algorithm: z.literal("targzip"),
+          }),
         } satisfies SubSchema<Step.Decompression>),
 
         z.object({
           id: z.string(),
           previousStepId: z.string().optional(),
           type: z.literal(Type.encryption),
-          algorithm: z.literal("aes256cbc"),
           keyReference: z.string(),
+          implementation: z.object({
+            algorithm: z.literal("aes256cbc"),
+          }),
         } satisfies SubSchema<Step.Encryption>),
 
         z.object({
           id: z.string(),
           previousStepId: z.string().optional(),
           type: z.literal(Type.decryption),
-          algorithm: z.literal("aes256cbc"),
           keyReference: z.string(),
+          implementation: z.object({
+            algorithm: z.literal("aes256cbc"),
+          }),
         } satisfies SubSchema<Step.Decryption>),
 
         z.object({
@@ -232,11 +244,12 @@ export namespace Step {
           type: z.literal(Type.s3_download),
           accessKeyReference: z.string(),
           secretKeyReference: z.string(),
-          namespace: z.string(),
+          baseFolder: z.string(),
           artifact: z.string(),
           selection: z.union([
-            z.object({ strategy: z.literal("latest") }),
-            z.object({ strategy: z.literal("version"), version: z.string() }),
+            z.object({ target: z.literal("latest") }),
+            //
+            z.object({ target: z.literal("specific"), version: z.string() }),
           ]),
         } satisfies SubSchema<Step.S3Download>),
 

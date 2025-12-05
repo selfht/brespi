@@ -16,16 +16,18 @@ export namespace PipelineData {
       {
         id: Bun.randomUUIDv7(),
         type: Step.Type.compression,
-        algorithm: "targzip",
-        targzip: {
+        implementation: {
+          algorithm: "targzip",
           level: 9,
         },
       },
       {
         id: Bun.randomUUIDv7(),
         type: Step.Type.encryption,
-        algorithm: "aes256cbc",
         keyReference: "SYMMETRIC_KEY",
+        implementation: {
+          algorithm: "aes256cbc",
+        },
       },
       {
         id: Bun.randomUUIDv7(),
@@ -56,24 +58,28 @@ export namespace PipelineData {
       {
         id: Bun.randomUUIDv7(),
         type: Step.Type.s3_download,
-        namespace: "some-random-parent-folder",
+        baseFolder: "some-random-parent-folder",
         artifact: "gamingworld",
         accessKeyReference: "ACCESS_KEY",
         secretKeyReference: "SECRET_KEY",
         selection: {
-          strategy: "latest",
+          target: "latest",
         },
       },
       {
         id: Bun.randomUUIDv7(),
         type: Step.Type.decryption,
-        algorithm: "aes256cbc",
         keyReference: "SYMMETRIC_KEY",
+        implementation: {
+          algorithm: "aes256cbc",
+        },
       },
       {
         id: Bun.randomUUIDv7(),
         type: Step.Type.decompression,
-        algorithm: "targzip",
+        implementation: {
+          algorithm: "targzip",
+        },
       },
     ],
   };
