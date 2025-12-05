@@ -1,1 +1,7 @@
-export type CanvasEvent = "select" | "deselect" | "insert" | "remove" | "relation";
+export enum CanvasEvent {
+  select = "select",
+  deselect = "deselect",
+  insert = "insert",
+  remove = "remove",
+  relation = "relation",
+}

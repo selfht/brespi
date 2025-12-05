@@ -37,7 +37,7 @@ export function pipelines_$id() {
   const navigate = useNavigate();
   const pipelineClient = useRegistry.instance(PipelineClient);
 
-  const query = useQuery<Internal.PipelineWithInitialBlocks | "new", ProblemDetails>({
+  const query = useQuery<"new" | Internal.PipelineWithInitialBlocks, ProblemDetails>({
     queryKey: [QueryKey.pipelines, id],
     queryFn: () => {
       if (id === "new") {
@@ -51,8 +51,8 @@ export function pipelines_$id() {
   const mainForm = useForm<Form>();
 
   const now = useMemo(() => Temporal.Now.plainDateTimeISO(), []);
-  const reset = (basis: Internal.PipelineWithInitialBlocks | "new") => {
-    if (basis === "new") {
+  const reset = (initial: "new" | Internal.PipelineWithInitialBlocks) => {
+    if (initial === "new") {
       mainForm.reset({
         interactivity: Interactivity.editing,
         name: `My New Pipeline (${now.toLocaleString()})`,
@@ -61,8 +61,8 @@ export function pipelines_$id() {
     } else {
       mainForm.reset({
         interactivity: Interactivity.viewing,
-        name: basis.name,
-        steps: basis.steps,
+        name: initial.name,
+        steps: initial.steps,
       });
     }
   };

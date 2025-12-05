@@ -115,14 +115,14 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
       };
       blocksRef.current.push(newBlock);
       graphRef.current!.addCell(createCell(newBlock));
-      internal.notifyBlocksChange("insert");
+      internal.notifyBlocksChange(CanvasEvent.insert);
     },
     remove(id: string) {
       blocksRef.current = blocksRef.current.filter((block) => block.id !== id);
       const cell = graphRef.current!.getCell(id);
       if (cell) {
         cell.remove();
-        internal.notifyBlocksChange("remove");
+        internal.notifyBlocksChange(CanvasEvent.remove);
       }
     },
     select(id: string) {
@@ -140,7 +140,7 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
             }
           }
         });
-        internal.notifyBlocksChange("select");
+        internal.notifyBlocksChange(CanvasEvent.select);
       }
     },
     deselect(id: string) {
@@ -151,7 +151,7 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
         if (cell) {
           StylingHelper.synchronizeBlockStylingWithCell(block, cell);
           internal.hideBlockDetails(cell);
-          internal.notifyBlocksChange("deselect");
+          internal.notifyBlocksChange(CanvasEvent.deselect);
         }
       }
     },
