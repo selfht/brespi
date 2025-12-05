@@ -44,7 +44,7 @@ export function pipelines_$id() {
     },
   });
 
-  const [detailForm, setDetailForm] = useState<{ type: Step.Type; existingStep?: Step }>();
+  const [detailForm, setDetailForm] = useState<{ id: string; type: Step.Type; existingStep?: Step }>();
   const mainForm = useForm<Form>();
 
   const now = useMemo(() => Temporal.Now.plainDateTimeISO(), []);
@@ -76,8 +76,13 @@ export function pipelines_$id() {
     mainForm.setValue("mode", "viewing");
   };
   const showDetailForm = (type: Step.Type, existingStep?: Step) => {
-    canvas.current?.format();
-    // setDetailForm({ type, existingStep });
+    const id = existingStep?.id ?? "lololol-smth-random-TODO";
+    setDetailForm({ id, type, existingStep });
+    canvas.current?.createBlock({
+      id,
+      label: "NEW",
+      handles: [],
+    });
   };
 
   /**
@@ -104,6 +109,17 @@ export function pipelines_$id() {
       mainForm.setValue("steps", [...steps, step]);
     }
     setDetailForm(undefined);
+  };
+  const handleStepCancel = () => {
+    setDetailForm((df) => {
+      if (df) {
+        const didNewStepGetTemporarilyAdded = !df.existingStep;
+        if (didNewStepGetTemporarilyAdded) {
+          canvas.current?.deleteBlock(df.id);
+        }
+      }
+      return undefined;
+    });
   };
   /**
    * Handle arrow relation updates
@@ -235,9 +251,10 @@ export function pipelines_$id() {
             ) : (
               <StepForm
                 className="col-span-full p-6"
+                id={detailForm.id}
                 type={detailForm.type}
                 existing={detailForm.existingStep}
-                onCancel={() => setDetailForm(undefined)}
+                onCancel={handleStepCancel}
                 onSubmit={handleStepUpdate}
               />
             )}

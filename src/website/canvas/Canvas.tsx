@@ -1,13 +1,15 @@
 import { dia } from "@joint/core";
-import { ReactElement, RefObject, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { ReactElement, RefObject, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Block } from "./Block";
-import { createPaper } from "./jointframework/createPaper";
 import { createCell } from "./jointframework/createCell";
+import { createPaper } from "./jointframework/createPaper";
+import { JointBlock } from "./jointframework/helpers/JointBlock";
+import { JointBlockWithProposedHandle } from "./jointframework/helpers/JointBlockWithProposedHandle";
 import { setupBlockInteractions } from "./jointframework/setupBlockInteractions";
 import { setupLinkInteractions } from "./jointframework/setupLinkInteractions";
 import { setupPanning } from "./jointframework/setupPanning";
-import { JointBlockWithProposedHandle } from "./jointframework/helpers/JointBlockWithProposedHandle";
-import { JointBlock } from "./jointframework/helpers/JointBlock";
+import { Dimensions } from "./jointframework/helpers/Dimensions";
+import { Coordinates } from "./jointframework/helpers/Coordinates";
 
 /**
  * One-way databinding is strongly discouraged for the Canvas editor for performance reasons.
@@ -81,7 +83,7 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksRelationChange, class
   };
 
   const initialDraw = (graph: dia.Graph, paper: dia.Paper) => {
-    const dimensions: Internal.Dimensions = {
+    const dimensions: Dimensions = {
       width: Number(paper.options.width),
       height: Number(paper.options.height),
     };
@@ -153,22 +155,38 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksRelationChange, class
   }, [mode]);
 
   // Expose the API
+  const format = () => {
+    blocksRef.current = Internal.performSmartPositioning(blocksRef.current, {
+      width: Number(paperRef.current!.options.width),
+      height: Number(paperRef.current!.options.height),
+    });
+    blocksRef.current.forEach((block) => {
+      const cell = graphRef.current!.getCell(block.id);
+      if (cell && block.coordinates) {
+        cell.set("position", { x: block.coordinates.x, y: block.coordinates.y });
+      }
+    });
+  };
+  const createBlock = (block: Block) => {
+    const newBlock: JointBlock = {
+      ...block,
+      coordinates: Internal.findOptimalNewSpot(blocksRef.current, {
+        width: Number(paperRef.current!.options.width),
+        height: Number(paperRef.current!.options.height),
+      }),
+    };
+    blocksRef.current.push(newBlock);
+    graphRef.current!.addCell(createCell(newBlock));
+  };
+  const deleteBlock = (id: string) => {
+    graphRef.current!.getCell(id)?.remove();
+    blocksRef.current = blocksRef.current.filter((block) => block.id !== id);
+  };
   useImperativeHandle(ref, () => {
     return {
-      format: () => {
-        const dimensions: Internal.Dimensions = {
-          width: Number(paperRef.current!.options.width),
-          height: Number(paperRef.current!.options.height),
-        };
-        blocksRef.current = Internal.performSmartPositioning(blocksRef.current, dimensions);
-        // TODO: how to update the position of existing cells??
-      },
-      createBlock: (block: Block) => {
-        console.log(`Adding: ${block}`);
-      },
-      deleteBlock: (id: string) => {
-        console.log(`Deleting ${id}`);
-      },
+      format,
+      createBlock,
+      deleteBlock,
     };
   });
 
@@ -184,19 +202,13 @@ export namespace Canvas {
 }
 
 namespace Internal {
-  export type Dimensions = {
-    width: number;
-    height: number;
-  };
-
   export function stripCoords(blocks: JointBlock[]): Block[] {
     return blocks.map(({ coordinates: _, ...block }) => ({
       ...block,
     }));
   }
 
-  export function performSmartPositioning(blocks: Block[], dimensions: Dimensions): JointBlock[] {
-    console.log(dimensions);
+  export function performSmartPositioning(blocks: Block[], paperDimensions: Dimensions): JointBlock[] {
     return blocks.map<JointBlock>((b, index) => ({
       ...b,
       coordinates: {
@@ -204,5 +216,12 @@ namespace Internal {
         x: 50 + index * 200,
       },
     }));
+  }
+
+  export function findOptimalNewSpot(blocks: Block[], paperDimensions: Dimensions): Coordinates {
+    return {
+      y: 100,
+      x: 50,
+    };
   }
 }

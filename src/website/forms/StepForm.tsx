@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { FileSystemReadForm } from "./FileSystemReadForm";
 
 type Props = {
+  id: string;
   type: Step.Type;
   existing?: Step;
   className?: string;

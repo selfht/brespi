@@ -10,12 +10,13 @@ type Form = {
   itemizeDirectoryContents: "true" | "false";
 };
 type Props = {
-  className?: string;
+  id: string;
   existing?: Step.FsRead;
   onCancel: () => unknown;
   onSubmit: (step: Step.FsRead) => unknown;
+  className?: string;
 };
-export function FileSystemReadForm({ existing, className, onCancel, onSubmit }: Props) {
+export function FileSystemReadForm({ id, existing, onCancel, onSubmit, className }: Props) {
   const { register, handleSubmit, formState } = useForm<Form>({
     defaultValues: {
       path: existing?.path ?? "",
@@ -25,7 +26,7 @@ export function FileSystemReadForm({ existing, className, onCancel, onSubmit }: 
   const submit: SubmitHandler<Form> = async (form) => {
     await new Promise((res) => setTimeout(res, 2000));
     onSubmit({
-      id: existing?.id ?? `${Math.random()}`, // TODO
+      id,
       previousStepId: existing?.previousStepId,
       type: Step.Type.fs_read,
       path: form.path,
