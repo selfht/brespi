@@ -159,7 +159,7 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
 
     setupBlockInteractions({ graph, paper, interactivityRef: interactivityRef, blocksRef, select: api.select, deselect: api.deselect });
     setupLinkInteractions({ graph, notifyBlocksChange });
-    const cleanupPanning = setupPanning(paper);
+    const panning = setupPanning({ paperRef });
 
     // Setup ResizeObserver to make canvas responsive
     const observer = new ResizeObserver((entries) => {
@@ -177,13 +177,13 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
     observer.observe(element.current.parentElement!);
 
     return () => {
-      cleanupPanning();
+      panning.cleanup();
       observer.disconnect();
       paper.remove();
     };
   }, []);
 
-  // Update interactivity when the mode changes
+  // Monitor changes in interactivity
   useEffect(() => {
     interactivityRef.current = interactivity;
     if (paperRef.current) {

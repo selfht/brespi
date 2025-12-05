@@ -11,7 +11,6 @@ type Options = {
   select: (id: string) => void;
   deselect: (id: string) => void;
 };
-
 export function setupBlockInteractions({ graph, paper, interactivityRef, blocksRef, select, deselect }: Options) {
   // Handle block clicks (activate/highlight)
   paper.on("element:pointerclick", (elementView, evt) => {

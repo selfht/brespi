@@ -1,8 +1,15 @@
 import { dia } from "@joint/core";
+import { RefObject } from "react";
 
-type CleanupFn = () => void;
+type Options = {
+  paperRef: RefObject<dia.Paper | null>;
+};
+type Result = {
+  cleanup: () => void;
+};
+export function setupPanning({ paperRef }: Options): Result {
+  const paper = paperRef.current!;
 
-export function setupPanning(paper: dia.Paper): CleanupFn {
   let dragStartPosition: { x: number; y: number } | null = null;
   let isPanning = false;
   const PAN_THRESHOLD = 5;
@@ -40,7 +47,9 @@ export function setupPanning(paper: dia.Paper): CleanupFn {
   paper.on("blank:pointerup", stopPanning);
   document.addEventListener("pointerup", stopPanning);
 
-  return () => {
-    document.removeEventListener("pointerup", stopPanning);
+  return {
+    cleanup() {
+      document.removeEventListener("pointerup", stopPanning);
+    },
   };
 }

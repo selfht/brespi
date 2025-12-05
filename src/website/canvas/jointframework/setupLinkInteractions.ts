@@ -5,7 +5,6 @@ type Options = {
   graph: dia.Graph;
   notifyBlocksChange: (event: CanvasEvent) => void;
 };
-
 export function setupLinkInteractions({ graph, notifyBlocksChange }: Options) {
   graph.on("add", (cell) => {
     if (cell.isLink()) {
