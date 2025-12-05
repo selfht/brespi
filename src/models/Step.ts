@@ -97,7 +97,7 @@ export namespace Step {
     type: Type.s3_upload;
     accessKeyReference: string;
     secretKeyReference: string;
-    namespace: string;
+    baseFolder: string;
   };
 
   export type S3Download = Common & {
@@ -223,7 +223,7 @@ export namespace Step {
           type: z.literal(Type.s3_upload),
           accessKeyReference: z.string(),
           secretKeyReference: z.string(),
-          namespace: z.string(),
+          baseFolder: z.string(),
         } satisfies SubSchema<Step.S3Upload>),
 
         z.object({

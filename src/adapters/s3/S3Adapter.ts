@@ -20,7 +20,7 @@ export class S3Adapter {
       endpoint: "http://minio:9000",
     });
 
-    const manifest = await this.handleManifestExclusively(client, options.namespace, async (s3Manifest, s3Save) => {
+    const manifest = await this.handleManifestExclusively(client, options.baseFolder, async (s3Manifest, s3Save) => {
       s3Manifest.uploads.unshift(
         ...artifacts.map((artifact) => ({
           name: artifact.name,
@@ -40,8 +40,8 @@ export class S3Adapter {
         timestamp: artifact.timestamp,
         trail,
       };
-      await client.write(join(options.namespace, `${s3Path}.brespi.json`), JSON.stringify(meta));
-      await client.write(join(options.namespace, s3Path), Bun.file(artifact.path));
+      await client.write(join(options.baseFolder, `${s3Path}.brespi.json`), JSON.stringify(meta));
+      await client.write(join(options.baseFolder, s3Path), Bun.file(artifact.path));
     }
   }
 

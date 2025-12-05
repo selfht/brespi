@@ -32,7 +32,7 @@ export namespace PipelineData {
         type: Step.Type.s3_upload,
         accessKeyReference: "ACCESS_KEY",
         secretKeyReference: "SECRET_KEY",
-        namespace: "some-random-parent-folder",
+        baseFolder: "some-random-parent-folder",
       },
     ],
   };
