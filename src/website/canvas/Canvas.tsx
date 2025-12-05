@@ -95,10 +95,15 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksChange = (_, __) => {
       };
       blocksRef.current.push(newBlock);
       graphRef.current!.addCell(createCell(newBlock));
+      notifyBlocksChange("insert");
     },
     remove(id: string) {
       blocksRef.current = blocksRef.current.filter((block) => block.id !== id);
-      graphRef.current!.getCell(id)?.remove();
+      const cell = graphRef.current!.getCell(id);
+      if (cell) {
+        cell.remove();
+        notifyBlocksChange("remove");
+      }
     },
     select(id: string) {
       const block = blocksRef.current.find((b) => b.id === id);
