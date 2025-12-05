@@ -49,7 +49,7 @@ export function FileSystemReadForm({ id, existing, onCancel, onSubmit, className
             </label>
             <input
               type="text"
-              className={clsx("flex-1 p-2 bg-c-dim/20 font-mono", {
+              className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
                 "outline-2 outline-c-error": formState.errors.path,
               })}
               readOnly={formState.isSubmitting}
