@@ -1,16 +1,18 @@
 import { dia } from "@joint/core";
 import { RefObject } from "react";
 import { Block } from "../Block";
+import { CanvasMode } from "../CanvasMode";
 
 type Options = {
   paper: dia.Paper;
   graph: dia.Graph;
+  modeRef: RefObject<CanvasMode>;
   blocksRef: RefObject<Block[]>;
   select: (id: string) => void;
   deselect: (id: string) => void;
 };
 
-export function setupBlockInteractions({ graph, paper, blocksRef, select, deselect }: Options) {
+export function setupBlockInteractions({ graph, paper, modeRef, blocksRef, select, deselect }: Options) {
   // Handle block clicks (activate/highlight)
   paper.on("element:pointerclick", (elementView, evt) => {
     const clickedElement = elementView.model;
@@ -24,8 +26,8 @@ export function setupBlockInteractions({ graph, paper, blocksRef, select, desele
       const portName = portElement.getAttribute("port");
       console.log("Clicked on port:", portName);
 
-      // If clicking on input port, delete incoming link
-      if (portName === "input") {
+      // If clicking on input port, delete incoming link (only in editing mode)
+      if (portName === "input" && modeRef.current === "write") {
         const incomingLinks = graph.getConnectedLinks(clickedElement, { inbound: true });
         if (incomingLinks.length > 0) {
           incomingLinks[0].remove();

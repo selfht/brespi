@@ -23,9 +23,10 @@ import { useNavigate } from "react-router";
 import { Temporal } from "@js-temporal/polyfill";
 import { StepForm } from "../forms/StepForm";
 import { CanvasEvent } from "../canvas/CanvasEvent";
+import { CanvasMode } from "../canvas/CanvasMode";
 
 type Form = {
-  mode: "viewing" | "editing";
+  mode: CanvasMode;
   name: string;
   steps: Step[];
 };
@@ -52,13 +53,13 @@ export function pipelines_$id() {
   const reset = (basis: Internal.PipelineWithBlocks | "new") => {
     if (basis === "new") {
       mainForm.reset({
-        mode: "editing",
+        mode: "write",
         name: `My New Pipeline (${now.toLocaleString()})`,
         steps: [],
       });
     } else {
       mainForm.reset({
-        mode: "viewing",
+        mode: "read",
         name: basis.name,
         steps: basis.steps,
       });
@@ -69,12 +70,12 @@ export function pipelines_$id() {
       navigate("/pipelines");
     } else {
       console.log("TODO: undo form changes");
-      mainForm.setValue("mode", "viewing");
+      mainForm.setValue("mode", "read");
     }
   };
   const save = () => {
     console.log("TODO: save updated pipeline");
-    mainForm.setValue("mode", "viewing");
+    mainForm.setValue("mode", "read");
   };
   const showDetailForm = (type: Step.Type, existingStep?: Step) => {
     const id = existingStep?.id ?? `${Math.random()}`; // TODO!!!
@@ -166,21 +167,21 @@ export function pipelines_$id() {
               <h1 className="text-xl font-extralight relative inline-block">
                 <div
                   className={clsx({
-                    "py-2": mode === "viewing",
-                    "whitespace-pre invisible h-0": mode === "editing",
+                    "py-2": mode === "read",
+                    "whitespace-pre invisible h-0": mode === "write",
                   })}
                 >
                   {name}
                 </div>
-                {mode === "editing" && (
+                {mode === "write" && (
                   <input type="text" className="bg-c-dim/20 py-2 w-full active:border-none" {...mainForm.register("name")} />
                 )}
               </h1>
               <div className="flex gap-4">
-                {mode === "viewing" ? (
+                {mode === "read" ? (
                   <>
                     <Button icon="play">Execute</Button>
-                    <Button onClick={() => mainForm.setValue("mode", "editing")}>Edit</Button>
+                    <Button onClick={() => mainForm.setValue("mode", "write")}>Edit</Button>
                   </>
                 ) : (
                   <>
@@ -198,8 +199,8 @@ export function pipelines_$id() {
             <div className="col-span-full px-6">
               <div
                 className={clsx("h-[400px] rounded-lg overflow-hidden", {
-                  "bg-white": mode === "viewing",
-                  "bg-white/90": mode === "editing",
+                  "bg-white": mode === "read",
+                  "bg-white/90": mode === "write",
                 })}
               >
                 <Canvas
@@ -211,7 +212,7 @@ export function pipelines_$id() {
               </div>
             </div>
             {/* DETAILS */}
-            {mode === "viewing" ? (
+            {mode === "read" ? (
               <>
                 <div className="col-span-6 p-6">
                   <h2 className="mb-6 text-xl font-extralight">Execution History</h2>

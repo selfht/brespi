@@ -11,6 +11,7 @@ import { setupLinkInteractions } from "./jointframework/setupLinkInteractions";
 import { setupPanning } from "./jointframework/setupPanning";
 import { Dimensions } from "./jointframework/types/Dimensions";
 import { JointBlock } from "./jointframework/types/JointBlock";
+import { CanvasMode } from "./CanvasMode";
 
 /**
  * One-way databinding is strongly discouraged for the Canvas editor for performance reasons.
@@ -18,7 +19,7 @@ import { JointBlock } from "./jointframework/types/JointBlock";
  */
 type Props = {
   ref: RefObject<Canvas.Api | null>;
-  mode: "viewing" | "editing";
+  mode: CanvasMode;
   initialBlocks: Block[];
   onBlocksChange?: (event: CanvasEvent, blocks: Block[]) => void;
   className?: string;
@@ -31,6 +32,7 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksChange = (_, __) => {
   const graphRef = useRef<dia.Graph>(null);
   const paperRef = useRef<dia.Paper>(null);
   const blocksRef = useRef<JointBlock[]>([]);
+  const modeRef = useRef(mode);
 
   const notifyBlocksChange = (event: CanvasEvent) => {
     const graph = graphRef.current!;
@@ -108,12 +110,14 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksChange = (_, __) => {
     select(id: string) {
       const block = blocksRef.current.find((b) => b.id === id);
       if (block) {
-        block.selected = true;
-        const cell = graphRef.current!.getCell(id);
-        if (cell) {
-          StylingHelper.synchronizeBlockStylingWithCell(block, cell);
-          notifyBlocksChange("select");
-        }
+        blocksRef.current.forEach((b) => {
+          b.selected = b.id === id ? true : false;
+          const cell = graphRef.current!.getCell(b.id);
+          if (cell) {
+            StylingHelper.synchronizeBlockStylingWithCell(b, cell);
+          }
+        });
+        notifyBlocksChange("select");
       }
     },
     deselect(id: string) {
@@ -153,7 +157,7 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksChange = (_, __) => {
     graphRef.current = graph;
     paperRef.current = paper;
 
-    setupBlockInteractions({ graph, paper, blocksRef, select: api.select, deselect: api.deselect });
+    setupBlockInteractions({ graph, paper, modeRef, blocksRef, select: api.select, deselect: api.deselect });
     setupLinkInteractions({ graph, notifyBlocksChange });
     const cleanupPanning = setupPanning(paper);
 
@@ -181,16 +185,18 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksChange = (_, __) => {
 
   // Update interactivity when the mode changes
   useEffect(() => {
+    modeRef.current = mode;
     if (paperRef.current) {
       const interactivity: dia.CellView.InteractivityOptions =
-        mode === "editing"
+        mode === "write"
           ? {
               elementMove: true,
               addLinkFromMagnet: true,
+              stopDelegation: false, // Allow event delegation for magnets
             }
           : {
-              elementMove: false,
-              addLinkFromMagnet: false,
+              elementMove: true, // Allow moving in read mode
+              addLinkFromMagnet: false, // But no link creation
             };
       paperRef.current.setInteractivity(interactivity);
     }
