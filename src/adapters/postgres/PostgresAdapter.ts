@@ -106,6 +106,10 @@ export class PostgresAdapter {
       await rm(tempDir, { recursive: true, force: true });
     }
   }
+
+  public async restore(artifacts: Artifact[], options: Step.PostgresRestore): Promise<void> {
+    throw new Error("Not implemented");
+  }
 }
 
 export namespace PostgresAdapter {

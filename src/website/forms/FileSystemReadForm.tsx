@@ -7,7 +7,6 @@ import { Spinner } from "../comps/Spinner";
 
 type Form = {
   path: string;
-  itemizeDirectoryContents: "true" | "false";
 };
 type Props = {
   id: string;
@@ -20,7 +19,6 @@ export function FileSystemReadForm({ id, existing, onCancel, onSubmit, className
   const { register, handleSubmit, formState } = useForm<Form>({
     defaultValues: {
       path: existing?.path ?? "",
-      itemizeDirectoryContents: existing?.itemizeDirectoryContents ? "true" : "false",
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -30,7 +28,6 @@ export function FileSystemReadForm({ id, existing, onCancel, onSubmit, className
       previousStepId: existing?.previousStepId,
       type: Step.Type.filesystem_read,
       path: form.path,
-      itemizeDirectoryContents: form.itemizeDirectoryContents === "true",
     });
   };
   return (
@@ -60,33 +57,6 @@ export function FileSystemReadForm({ id, existing, onCancel, onSubmit, className
                 required: true,
               })}
             />
-          </div>
-          <div className="flex items-center">
-            <label className="w-72">Itemize Directory Contents</label>
-            <div className="flex-1 flex gap-4">
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  value="true"
-                  readOnly={formState.isSubmitting}
-                  {...register("itemizeDirectoryContents", {
-                    required: true,
-                  })}
-                />
-                Yes
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  value="false"
-                  readOnly={formState.isSubmitting}
-                  {...register("itemizeDirectoryContents", {
-                    required: true,
-                  })}
-                />
-                No
-              </label>
-            </div>
           </div>
         </fieldset>
 

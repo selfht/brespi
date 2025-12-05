@@ -2,20 +2,15 @@ import { NamingHelper } from "@/helpers/NamingHelper";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { Temporal } from "@js-temporal/polyfill";
-import { stat, readdir, copyFile, mkdir } from "fs/promises";
-import { join, basename } from "path";
+import { copyFile, mkdir, readdir, stat } from "fs/promises";
+import { basename, join } from "path";
 
 export class FileSystemAdapter {
   /**
    * Read file(s) from filesystem and convert to artifacts
    */
   public async read(options: Step.FilesystemRead): Promise<Artifact[]> {
-    const item = await stat(options.path);
-    if (item.isDirectory() && options.itemizeDirectoryContents) {
-      return await this.readDirectoryRecursively(options.path);
-    } else {
-      return [await this.convertItemIntoArtifact(options.path)];
-    }
+    return [await this.convertItemIntoArtifact(options.path)];
   }
 
   /**
@@ -35,6 +30,24 @@ export class FileSystemAdapter {
         await this.copyDirectory(artifact.path, destPath);
       }
     }
+  }
+
+  public async folderFlatten(artifacts: Artifact[], options: Step.FolderFlatten): Promise<Artifact[]> {
+    const result: Artifact[] = [];
+    for (const artifact of artifacts) {
+      if (artifact.type === "file") {
+        result.push(artifact);
+      } else {
+        // TODO: does this work? wouldn't we need to move or copy files?
+        // whatabout the automatic deletion of stuff inside /artifacts/xxxx?
+        result.push(...(await this.readDirectoryRecursively(artifact.path)));
+      }
+    }
+    return result;
+  }
+
+  public async folderGroup(artifacts: Artifact[], options: Step.FolderGroup): Promise<Artifact> {
+    throw new Error("Not imlemented");
   }
 
   private async convertItemIntoArtifact(path: string): Promise<Artifact> {
@@ -59,6 +72,9 @@ export class FileSystemAdapter {
     }
   }
 
+  /**
+   *  TODO TODO need this for group_flatten
+   */
   private async readDirectoryRecursively(dirPath: string): Promise<Artifact[]> {
     const artifacts: Artifact[] = [];
     const entries = await readdir(dirPath, { withFileTypes: true });

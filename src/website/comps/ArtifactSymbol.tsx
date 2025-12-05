@@ -12,14 +12,14 @@ export function ArtifactSymbol({ variant }: Props) {
       <div
         className={clsx("size-4 border-2 rounded-md", {
           "bg-c-artifact-fill border-c-artifact-stroke": hasInput,
-          "bg-transparent border-c-dim": !hasInput,
+          "bg-c-dim/30 border-c-dim": !hasInput,
         })}
       />
       <div className="w-10 h-8 bg-c-artifact-fill border-2 border-c-artifact-stroke rounded-lg" />
       <div
         className={clsx("size-4 border-2 rounded-md", {
           "bg-c-artifact-fill border-c-artifact-stroke": hasOutput,
-          "bg-transparent border-c-dim": !hasOutput,
+          "bg-c-dim/30 border-c-dim": !hasOutput,
         })}
       />
     </div>

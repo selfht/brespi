@@ -1,10 +1,11 @@
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { CompressionAdapter } from "./compression/CompressionAdapter";
-import { FileSystemAdapter } from "./filesystem/FileSystemAdapter";
+import { FileSystemAdapter } from "./filesystem/LalaAdapter";
 import { PostgresAdapter } from "./postgres/PostgresAdapter";
 import { EncryptionAdapter } from "./encyption/EncryptionAdapter";
 import { S3Adapter } from "./s3/S3Adapter";
+import { ScriptAdapter } from "./scripting/ScriptAdapter";
 
 type Handler<S extends Step> = (artifacts: Artifact[], options: S, history: Step[]) => Promise<Artifact[]>;
 
@@ -16,11 +17,12 @@ export class AdapterService {
   private readonly registry: InternalRegistry;
 
   public constructor(
-    postgresAdapter: PostgresAdapter,
     compressionAdapter: CompressionAdapter,
     fileSystemAdapter: FileSystemAdapter,
     encryptionAdapter: EncryptionAdapter,
+    scriptAdapter: ScriptAdapter,
     s3Adapter: S3Adapter,
+    postgresAdapter: PostgresAdapter,
   ) {
     this.registry = {
       [Step.Type.filesystem_read]: async (_, options) => {
@@ -29,9 +31,6 @@ export class AdapterService {
       [Step.Type.filesystem_write]: async (artifacts, options) => {
         await fileSystemAdapter.write(artifacts, options);
         return [];
-      },
-      [Step.Type.postgres_backup]: async (_, options) => {
-        return await postgresAdapter.backup(options);
       },
       [Step.Type.compression]: async (artifacts, options) => {
         return await this.spreadAndCollect(artifacts, (a) => compressionAdapter.compress(a, options));
@@ -45,12 +44,28 @@ export class AdapterService {
       [Step.Type.decryption]: async (artifacts, options) => {
         return await this.spreadAndCollect(artifacts, (a) => encryptionAdapter.decrypt(a, options));
       },
+      [Step.Type.folder_flatten]: async (artifacts, options) => {
+        return await fileSystemAdapter.folderFlatten(artifacts, options);
+      },
+      [Step.Type.folder_group]: async (artifacts, options) => {
+        return [await fileSystemAdapter.folderGroup(artifacts, options)];
+      },
+      [Step.Type.script_execution]: async (artifacts, options) => {
+        return await scriptAdapter.execute(artifacts, options);
+      },
       [Step.Type.s3_upload]: async (artifacts, options, trail) => {
         await s3Adapter.upload(artifacts, options, trail);
         return [];
       },
       [Step.Type.s3_download]: async (_, options) => {
         return [await s3Adapter.download(options)];
+      },
+      [Step.Type.postgres_backup]: async (_, options) => {
+        return await postgresAdapter.backup(options);
+      },
+      [Step.Type.postgres_restore]: async (artifacts, options) => {
+        await postgresAdapter.restore(artifacts, options);
+        return [];
       },
     };
   }

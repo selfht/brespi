@@ -2,12 +2,13 @@ import { Class } from "@/types/Class";
 import { Server } from "./Server";
 import { AdapterService } from "./adapters/AdapterService";
 import { CompressionAdapter } from "./adapters/compression/CompressionAdapter";
-import { FileSystemAdapter } from "./adapters/filesystem/FileSystemAdapter";
+import { FileSystemAdapter } from "./adapters/filesystem/LalaAdapter";
 import { PostgresAdapter } from "./adapters/postgres/PostgresAdapter";
 import { PipelineService } from "./services/PipelineService";
 import { CleanupService } from "./services/CleanupService";
 import { EncryptionAdapter } from "./adapters/encyption/EncryptionAdapter";
 import { S3Adapter } from "./adapters/s3/S3Adapter";
+import { ScriptAdapter } from "./adapters/scripting/ScriptAdapter";
 
 export class ServerRegistry {
   public static async bootstrap(): Promise<ServerRegistry> {
@@ -18,17 +19,19 @@ export class ServerRegistry {
 
   private constructor() {
     // Adapters
-    const postgresAdapter = (this.registry[PostgresAdapter.name] = new PostgresAdapter());
     const compressionAdapter = (this.registry[CompressionAdapter.name] = new CompressionAdapter());
     const fileSystemAdapter = (this.registry[FileSystemAdapter.name] = new FileSystemAdapter());
     const encryptionAdapter = (this.registry[EncryptionAdapter.name] = new EncryptionAdapter());
+    const scriptAdapter = (this.registry[ScriptAdapter.name] = new ScriptAdapter());
     const s3Adapter = (this.registry[S3Adapter.name] = new S3Adapter());
+    const postgresAdapter = (this.registry[PostgresAdapter.name] = new PostgresAdapter());
     const adapterService = (this.registry[AdapterService.name] = new AdapterService(
-      postgresAdapter,
       compressionAdapter,
       fileSystemAdapter,
       encryptionAdapter,
+      scriptAdapter,
       s3Adapter,
+      postgresAdapter,
     ));
 
     // Services

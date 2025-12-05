@@ -45,7 +45,6 @@ export namespace PipelineData {
         id: Bun.randomUUIDv7(),
         type: Step.Type.filesystem_read,
         path: "/wordpress/wp-uploads",
-        itemizeDirectoryContents: false,
       },
     ],
   };

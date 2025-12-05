@@ -7,7 +7,7 @@ export namespace StylingHelper {
     const hasOutput = handles.includes(Block.Handle.output);
 
     const defaultClass = "fill-c-artifact-fill stroke-c-artifact-stroke";
-    const defaultUnusedClass = "fill-gray-300 stroke-c-dim";
+    const defaultUnusedClass = "fill-gray-200 stroke-c-dim";
     const selectedClass = "fill-c-dark stroke-c-info";
     const selectedUnusedClass = "fill-gray-100 stroke-c-info";
 
