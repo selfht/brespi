@@ -2,6 +2,7 @@ import { dia } from "@joint/core";
 import { ReactElement, RefObject, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Block } from "./Block";
 import { createPaper } from "./jointframework/createPaper";
+import { createCell } from "./jointframework/createCell";
 import { setupBlockInteractions } from "./jointframework/setupBlockInteractions";
 import { setupLinkInteractions } from "./jointframework/setupLinkInteractions";
 import { setupPanning } from "./jointframework/setupPanning";
@@ -22,17 +23,20 @@ type Props = {
 
 export function Canvas({ ref, mode, initialBlocks, onBlocksRelationChange, className }: Props): ReactElement {
   const element = useRef<HTMLDivElement>(null);
-  const [paper, setPaper] = useState<dia.Paper>();
   const [activeBlockId, setActiveBlockId] = useState<string>();
+  const [initiallyDrawn, setInitiallyDrawn] = useState(false);
 
-  // Keep track of blocks internally to report changes upwards
-  const blocksRef = useRef(Internal.performSmartPositioning(initialBlocks));
+  const graphRef = useRef<dia.Graph>(null);
+  const paperRef = useRef<dia.Paper>(null);
+  const blocksRef = useRef<JointBlock[]>([]);
 
   // Helper to notify parent of changes - takes graph as parameter to avoid closure issues
-  const notifyBlocksChange = (graphInstance: dia.Graph) => {
-    const links = graphInstance.getLinks();
+  const notifyBlocksChange = () => {
+    const graph = graphRef.current!;
+
+    const links = graph.getLinks();
     const updatedBlocks = blocksRef.current.map((block) => {
-      const cell = graphInstance.getCell(block.id);
+      const cell = graph.getCell(block.id);
       if (!cell) {
         return block;
       }
@@ -76,6 +80,15 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksRelationChange, class
     return true;
   };
 
+  const initialDraw = (graph: dia.Graph, paper: dia.Paper) => {
+    const dimensions: Internal.Dimensions = {
+      width: Number(paper.options.width),
+      height: Number(paper.options.height),
+    };
+    blocksRef.current = Internal.performSmartPositioning(initialBlocks, dimensions);
+    graph.addCells(blocksRef.current.map(createCell));
+  };
+
   // Initialize graph and paper (once)
   useEffect(() => {
     if (!element.current) return;
@@ -85,6 +98,8 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksRelationChange, class
       blocksRef,
       validateArrow,
     });
+    graphRef.current = graph;
+    paperRef.current = paper;
 
     const notifyBlocksChangeWithGraph = () => notifyBlocksChange(graph);
     setupBlockInteractions({
@@ -103,11 +118,16 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksRelationChange, class
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
         paper.setDimensions(width, height);
+        setInitiallyDrawn((alreadyDrawn) => {
+          if (!alreadyDrawn) {
+            initialDraw(graph, paper);
+          }
+          return true;
+        });
       }
     });
     observer.observe(element.current.parentElement!);
 
-    setPaper(paper);
     return () => {
       cleanupPanning();
       observer.disconnect();
@@ -117,7 +137,7 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksRelationChange, class
 
   // Update interactivity when the mode changes
   useEffect(() => {
-    if (paper) {
+    if (paperRef.current) {
       const interactivity: dia.CellView.InteractivityOptions =
         mode === "editing"
           ? {
@@ -128,15 +148,20 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksRelationChange, class
               elementMove: false,
               addLinkFromMagnet: false,
             };
-      paper.setInteractivity(interactivity);
+      paperRef.current.setInteractivity(interactivity);
     }
-  }, [paper, mode]);
+  }, [mode]);
 
   // Expose the API
   useImperativeHandle(ref, () => {
     return {
       format: () => {
-        console.log("~formatting~");
+        const dimensions: Internal.Dimensions = {
+          width: Number(paperRef.current!.options.width),
+          height: Number(paperRef.current!.options.height),
+        };
+        blocksRef.current = Internal.performSmartPositioning(blocksRef.current, dimensions);
+        // TODO: how to update the position of existing cells??
       },
       createBlock: (block: Block) => {
         console.log(`Adding: ${block}`);
@@ -159,13 +184,19 @@ export namespace Canvas {
 }
 
 namespace Internal {
+  export type Dimensions = {
+    width: number;
+    height: number;
+  };
+
   export function stripCoords(blocks: JointBlock[]): Block[] {
     return blocks.map(({ coordinates: _, ...block }) => ({
       ...block,
     }));
   }
 
-  export function performSmartPositioning(blocks: Block[]): JointBlock[] {
+  export function performSmartPositioning(blocks: Block[], dimensions: Dimensions): JointBlock[] {
+    console.log(dimensions);
     return blocks.map<JointBlock>((b, index) => ({
       ...b,
       coordinates: {

@@ -76,7 +76,8 @@ export function pipelines_$id() {
     mainForm.setValue("mode", "viewing");
   };
   const showDetailForm = (type: Step.Type, existingStep?: Step) => {
-    setDetailForm({ type, existingStep });
+    canvas.current?.format();
+    // setDetailForm({ type, existingStep });
   };
 
   /**

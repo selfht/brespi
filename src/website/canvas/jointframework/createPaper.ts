@@ -1,7 +1,6 @@
 import { dia, shapes } from "@joint/core";
 import { RefObject } from "react";
 import { Block } from "../Block";
-import { createCell } from "./createCell";
 import { JointBlockWithProposedHandle } from "./helpers/JointBlockWithProposedHandle";
 import { JointBlock } from "./helpers/JointBlock";
 
@@ -68,10 +67,6 @@ export function createPaper({ element, blocksRef, validateArrow }: Options) {
       return false;
     },
   });
-
-  const initialBlocks = blocksRef.current;
-  const cells = initialBlocks.map(createCell);
-  graph.addCells(cells);
 
   return { graph, paper };
 }
