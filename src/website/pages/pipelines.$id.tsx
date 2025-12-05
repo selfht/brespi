@@ -23,10 +23,10 @@ import { useNavigate } from "react-router";
 import { Temporal } from "@js-temporal/polyfill";
 import { StepForm } from "../forms/StepForm";
 import { CanvasEvent } from "../canvas/CanvasEvent";
-import { CanvasMode } from "../canvas/CanvasMode";
+import { Interactivity } from "../canvas/Interactivity";
 
 type Form = {
-  mode: CanvasMode;
+  interactivity: Interactivity;
   name: string;
   steps: Step[];
 };
@@ -53,13 +53,13 @@ export function pipelines_$id() {
   const reset = (basis: Internal.PipelineWithInitialBlocks | "new") => {
     if (basis === "new") {
       mainForm.reset({
-        mode: "write",
+        interactivity: Interactivity.editing,
         name: `My New Pipeline (${now.toLocaleString()})`,
         steps: [],
       });
     } else {
       mainForm.reset({
-        mode: "read",
+        interactivity: Interactivity.viewing,
         name: basis.name,
         steps: basis.steps,
       });
@@ -70,12 +70,12 @@ export function pipelines_$id() {
       navigate("/pipelines");
     } else {
       console.log("TODO: undo form changes");
-      mainForm.setValue("mode", "read");
+      mainForm.setValue("interactivity", Interactivity.viewing);
     }
   };
   const save = () => {
     console.log("TODO: save updated pipeline");
-    mainForm.setValue("mode", "read");
+    mainForm.setValue("interactivity", Interactivity.viewing);
   };
   const showDetailForm = (type: Step.Type, existingStep?: Step) => {
     const id = existingStep?.id ?? `${Math.random()}`; // TODO!!!
@@ -145,7 +145,7 @@ export function pipelines_$id() {
   };
 
   const canvas = useRef<Canvas.Api>(null);
-  const { mode, name } = mainForm.watch();
+  const { interactivity, name } = mainForm.watch();
 
   const buttonGroups = useMemo(() => Internal.getButtonGroups(), []);
   return (
@@ -167,21 +167,21 @@ export function pipelines_$id() {
               <h1 className="text-xl font-extralight relative inline-block">
                 <div
                   className={clsx({
-                    "py-2": mode === "read",
-                    "whitespace-pre invisible h-0": mode === "write",
+                    "py-2": interactivity === Interactivity.viewing,
+                    "whitespace-pre invisible h-0": interactivity === Interactivity.editing,
                   })}
                 >
                   {name}
                 </div>
-                {mode === "write" && (
+                {interactivity === Interactivity.editing && (
                   <input type="text" className="bg-c-dim/20 py-2 w-full active:border-none" {...mainForm.register("name")} />
                 )}
               </h1>
               <div className="flex gap-4">
-                {mode === "read" ? (
+                {interactivity === Interactivity.viewing ? (
                   <>
                     <Button icon="play">Execute</Button>
-                    <Button onClick={() => mainForm.setValue("mode", "write")}>Edit</Button>
+                    <Button onClick={() => mainForm.setValue("interactivity", Interactivity.editing)}>Edit</Button>
                   </>
                 ) : (
                   <>
@@ -199,20 +199,20 @@ export function pipelines_$id() {
             <div className="col-span-full px-6">
               <div
                 className={clsx("h-[400px] rounded-lg overflow-hidden", {
-                  "bg-white": mode === "read",
-                  "bg-white/90": mode === "write",
+                  "bg-white": interactivity === Interactivity.viewing,
+                  "bg-white/90": interactivity === Interactivity.editing,
                 })}
               >
                 <Canvas
                   ref={canvas}
-                  mode={mode}
+                  interactivity={interactivity}
                   initialBlocks={query.data === "new" ? [] : query.data.initialBlocks}
                   onBlocksChange={handleBlocksChange}
                 />
               </div>
             </div>
             {/* DETAILS */}
-            {mode === "read" ? (
+            {interactivity === Interactivity.viewing ? (
               <>
                 <div className="col-span-6 p-6">
                   <h2 className="mb-6 text-xl font-extralight">Execution History</h2>
@@ -287,7 +287,7 @@ namespace Internal {
     [Step.Type.decryption]: "Decryption",
     [Step.Type.folder_flatten]: "Folder Flatten",
     [Step.Type.folder_group]: "Folder Group",
-    [Step.Type.script_execution]: "Script",
+    [Step.Type.script_execution]: "Script Execution",
     [Step.Type.s3_upload]: "S3 Upload",
     [Step.Type.s3_download]: "S3 Download",
   };
@@ -333,17 +333,22 @@ namespace Internal {
 
     const typeOrder: Step.Type[] = [
       // Producers
-      Step.Type.postgres_backup,
-      Step.Type.s3_download,
       Step.Type.filesystem_read,
+      Step.Type.s3_download,
+      Step.Type.postgres_backup,
       // Transformers
       Step.Type.compression,
       Step.Type.decompression,
       Step.Type.encryption,
       Step.Type.decryption,
+      Step.Type.folder_group,
+      Step.Type.folder_flatten,
+      Step.Type.decryption,
+      Step.Type.script_execution,
       // Consumers
-      Step.Type.s3_upload,
       Step.Type.filesystem_write,
+      Step.Type.s3_upload,
+      Step.Type.postgres_restore,
     ];
 
     Object.values(Step.Type).map((type) => {

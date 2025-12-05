@@ -11,7 +11,7 @@ import { setupLinkInteractions } from "./jointframework/setupLinkInteractions";
 import { setupPanning } from "./jointframework/setupPanning";
 import { Dimensions } from "./jointframework/types/Dimensions";
 import { JointBlock } from "./jointframework/types/JointBlock";
-import { CanvasMode } from "./CanvasMode";
+import { Interactivity } from "./Interactivity";
 
 /**
  * One-way databinding is strongly discouraged for the Canvas editor for performance reasons.
@@ -19,20 +19,20 @@ import { CanvasMode } from "./CanvasMode";
  */
 type Props = {
   ref: RefObject<Canvas.Api | null>;
-  mode: CanvasMode;
+  interactivity: Interactivity;
   initialBlocks: Block[];
   onBlocksChange?: (event: CanvasEvent, blocks: Block[]) => void;
   className?: string;
 };
 
-export function Canvas({ ref, mode, initialBlocks, onBlocksChange = (_, __) => {}, className }: Props): ReactElement {
+export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_, __) => {}, className }: Props): ReactElement {
   const element = useRef<HTMLDivElement>(null);
   const [initiallyDrawn, setInitiallyDrawn] = useState(false);
 
   const graphRef = useRef<dia.Graph>(null);
   const paperRef = useRef<dia.Paper>(null);
   const blocksRef = useRef<JointBlock[]>([]);
-  const modeRef = useRef(mode);
+  const interactivityRef = useRef<Interactivity>(interactivity);
 
   const notifyBlocksChange = (event: CanvasEvent) => {
     const graph = graphRef.current!;
@@ -157,7 +157,7 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksChange = (_, __) => {
     graphRef.current = graph;
     paperRef.current = paper;
 
-    setupBlockInteractions({ graph, paper, modeRef, blocksRef, select: api.select, deselect: api.deselect });
+    setupBlockInteractions({ graph, paper, interactivityRef: interactivityRef, blocksRef, select: api.select, deselect: api.deselect });
     setupLinkInteractions({ graph, notifyBlocksChange });
     const cleanupPanning = setupPanning(paper);
 
@@ -185,10 +185,10 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksChange = (_, __) => {
 
   // Update interactivity when the mode changes
   useEffect(() => {
-    modeRef.current = mode;
+    interactivityRef.current = interactivity;
     if (paperRef.current) {
-      const interactivity: dia.CellView.InteractivityOptions =
-        mode === "write"
+      const options: dia.CellView.InteractivityOptions =
+        interactivity === Interactivity.editing
           ? {
               elementMove: true,
               addLinkFromMagnet: true,
@@ -198,9 +198,9 @@ export function Canvas({ ref, mode, initialBlocks, onBlocksChange = (_, __) => {
               elementMove: true, // Allow moving in read mode
               addLinkFromMagnet: false, // But no link creation
             };
-      paperRef.current.setInteractivity(interactivity);
+      paperRef.current.setInteractivity(options);
     }
-  }, [mode]);
+  }, [interactivity]);
 
   return <div ref={element} className={className} />;
 }
