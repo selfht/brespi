@@ -1,12 +1,14 @@
 import clsx from "clsx";
 import { JSX } from "react/jsx-dev-runtime";
 
-type Props = JSX.IntrinsicElements["div"];
-export function Paper({ className, children, ...props }: Props) {
+type Props = JSX.IntrinsicElements["div"] & {
+  borderClassName?: string;
+};
+export function Paper({ className, borderClassName, children, ...props }: Props) {
   return (
     <div className={clsx("bg-c-dark rounded-2xl relative", className)} {...props}>
       {children}
-      <div className="absolute size-full border-2 rounded-2xl left-2 top-2 border-c-dark -z-10" />
+      <div className={clsx("absolute size-full border-2 rounded-2xl left-2 top-2 border-c-dark -z-10", borderClassName)} />
     </div>
   );
 }

@@ -23,3 +23,9 @@ export function StepForm({ type, existing, ...props }: Props) {
   }
   return null;
 }
+
+export namespace StepForm {
+  export async function snoozeBeforeSubmit(): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+}

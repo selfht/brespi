@@ -13,6 +13,8 @@ import { setupLinkInteractions } from "./jointframework/setupLinkInteractions";
 import { setupPanning } from "./jointframework/setupPanning";
 import { Dimensions } from "./jointframework/types/Dimensions";
 import { JointBlock } from "./jointframework/types/JointBlock";
+import { BetterOmit } from "@/types/BetterOmit";
+import z from "zod/v4";
 
 /**
  * One-way databinding is strongly discouraged for the Canvas editor for performance reasons.
@@ -34,6 +36,11 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
   const paperRef = useRef<dia.Paper>(null);
   const blocksRef = useRef<JointBlock[]>([]);
   const interactivityRef = useRef<Interactivity>(interactivity);
+
+  useEffect(() => {
+    const i = setInterval(() => console.log(blocksRef.current.length), 1000);
+    return () => clearInterval(i);
+  }, []);
 
   /**
    * State
@@ -98,9 +105,16 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
         }
       });
     },
-    insert(block: Block) {
+    insert(block) {
+      const safeBlockWithoutTheRiskOfExtraProperties: typeof block = {
+        id: block.id,
+        label: block.label,
+        details: block.details,
+        handles: block.handles,
+        selected: block.selected,
+      };
       const newBlock: JointBlock = {
-        ...block,
+        ...safeBlockWithoutTheRiskOfExtraProperties,
         coordinates: PositioningHelper.findOptimalFreeSpot(blocksRef.current, {
           width: Number(paperRef.current!.options.width),
           height: Number(paperRef.current!.options.height),
@@ -110,13 +124,28 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
       graphRef.current!.addCell(createCell(newBlock));
       internal.notifyBlocksChange(CanvasEvent.insert);
     },
-    remove(id: string) {
-      blocksRef.current = blocksRef.current.filter((block) => block.id !== id);
+    update(id, changes) {
+      const block = blocksRef.current.find((block) => block.id !== id);
       const cell = graphRef.current!.getCell(id);
-      if (cell) {
-        cell.remove();
-        internal.notifyBlocksChange(CanvasEvent.remove);
+      if (!block || !cell) {
+        throw new Error(`Could not find block or cell; block=${Boolean(block)}, cell=${Boolean(cell)}`);
       }
+      const safeChangesWithoutTheRiskOfExtraProperties: typeof changes = {
+        label: changes.label,
+        details: changes.details,
+      };
+      Object.assign(block, safeChangesWithoutTheRiskOfExtraProperties);
+      internal.notifyBlocksChange(CanvasEvent.update);
+    },
+    remove(id) {
+      const block = blocksRef.current.find((block) => block.id !== id);
+      const cell = graphRef.current!.getCell(id);
+      if (!block || !cell) {
+        throw new Error(`Could not find block or cell; block=${Boolean(block)}, cell=${Boolean(cell)}`);
+      }
+      blocksRef.current.splice(blocksRef.current.indexOf(block), 1);
+      cell.remove();
+      internal.notifyBlocksChange(CanvasEvent.remove);
     },
     select(id: string) {
       const targetBlock = blocksRef.current.find((block) => block.id === id);
@@ -249,7 +278,8 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
 export namespace Canvas {
   export type Api = {
     format: () => void;
-    insert: (block: Omit<Block, "incomingId">) => void;
+    insert: (block: BetterOmit<Block, "incomingId">) => void;
+    update: (id: string, changes: Pick<Block, "label" | "details">) => void;
     remove: (id: string) => void;
     select: (id: string) => void;
     deselect: (id: string) => void;

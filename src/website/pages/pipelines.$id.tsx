@@ -133,6 +133,7 @@ export function pipelines_$id() {
       setStepForm((stepForm) => {
         if (stepForm) {
           canvasApi.current!.deselect(stepForm.id);
+          canvasApi.current!.update(stepForm.id, Internal.convertStepToBlock(step));
         }
         return undefined;
       });
@@ -170,8 +171,6 @@ export function pipelines_$id() {
           }),
         );
       }
-      if (event === CanvasEvent.select) {
-      }
     },
   };
 
@@ -191,7 +190,14 @@ export function pipelines_$id() {
   const buttonGroups = useMemo(() => Internal.getButtonGroups(), []);
   return (
     <Skeleton>
-      <Paper className="col-span-full u-subgrid">
+      <Paper
+        className={clsx("col-span-full u-subgrid", {
+          "bg-black!": interactivity === Interactivity.editing,
+        })}
+        borderClassName={clsx({
+          "border-c-info bg-c-info": interactivity === Interactivity.editing,
+        })}
+      >
         {query.error ? (
           <div className="col-span-full p-6 text-center">
             <ErrorDump error={query.error} />
@@ -226,10 +232,18 @@ export function pipelines_$id() {
                   </>
                 ) : (
                   <>
-                    <Button onClick={mainApi.cancel} className="border-c-primary/80 bg-c-primary/80 text-c-dark hover:bg-c-primary">
+                    <Button
+                      onClick={mainApi.cancel}
+                      disabled={Boolean(stepForm)}
+                      className="border-c-primary/80 bg-c-primary/80 text-c-dark hover:bg-c-primary"
+                    >
                       Cancel
                     </Button>
-                    <Button onClick={mainApi.save} className="border-c-success/80 bg-c-success/80 text-c-dark hover:bg-c-success">
+                    <Button
+                      onClick={mainApi.save}
+                      disabled={Boolean(stepForm)}
+                      className="border-c-success/80 bg-c-success/80 text-c-dark hover:bg-c-success"
+                    >
                       Save
                     </Button>
                   </>
@@ -317,19 +331,20 @@ namespace Internal {
   export function convert(pipeline: PipelineView): PipelineWithInitialBlocks {
     return {
       ...pipeline,
-      initialBlocks: pipeline.steps.map<Block>((step) => {
-        return {
-          id: step.id,
-          incomingId: step.previousStepId,
-          label: StepTranslation.type(step.type),
-          details: convertToDetails(step),
-          handles: convertTypeToHandles(step.type),
-          selected: false,
-        };
-      }),
+      initialBlocks: pipeline.steps.map<Block>(convertStepToBlock),
     };
   }
-  export function convertToDetails(step: Step): Block["details"] {
+  export function convertStepToBlock(step: Step): Block {
+    return {
+      id: step.id,
+      incomingId: step.previousStepId,
+      label: StepTranslation.type(step.type),
+      details: convertStepToDetails(step),
+      handles: convertTypeToHandles(step.type),
+      selected: false,
+    };
+  }
+  export function convertStepToDetails(step: Step): Block["details"] {
     type Primitive = string | number | boolean | undefined;
     const result: Record<string, Primitive> = {};
     const labels = StepTranslation.details(step.type);

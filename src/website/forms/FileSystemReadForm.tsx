@@ -4,6 +4,8 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "../comps/Button";
 import { Icon } from "../comps/Icon";
 import { Spinner } from "../comps/Spinner";
+import { StepForm } from "./StepForm";
+import { StepTranslation } from "../translation/StepTranslation";
 
 type Form = {
   path: string;
@@ -22,7 +24,7 @@ export function FileSystemReadForm({ id, existing, onCancel, onSubmit, className
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
-    await new Promise((res) => setTimeout(res, 2000));
+    await StepForm.snoozeBeforeSubmit();
     onSubmit({
       id,
       previousStepId: existing?.previousStepId,
@@ -35,7 +37,7 @@ export function FileSystemReadForm({ id, existing, onCancel, onSubmit, className
       <div className="col-span-6 pr-3">
         <div className="flex items-center gap-2">
           {existing && <Icon variant="trashcan" />}
-          <h1 className="text-2xl font-extralight text-c-dim">Filesystem Read</h1>
+          <h1 className="text-2xl font-extralight text-c-dim">{StepTranslation.type(Step.Type.filesystem_read)}</h1>
         </div>
 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
@@ -45,7 +47,7 @@ export function FileSystemReadForm({ id, existing, onCancel, onSubmit, className
                 "text-c-error": formState.errors.path,
               })}
             >
-              Path
+              {StepTranslation.details(Step.Type.filesystem_read, "path")}
             </label>
             <input
               type="text"

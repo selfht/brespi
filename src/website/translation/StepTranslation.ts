@@ -79,10 +79,17 @@ export namespace StepTranslation {
   export function type(type: Step.Type): string {
     return typeLabels[type];
   }
+
   export function category(category: Step.Category): string {
     return categoryLabels[category];
   }
-  export function details(type: Step.Type): DetailLabels[Step.Type] {
+
+  export function details<T extends Step.Type>(type: T): DetailLabels[T];
+  export function details<T extends Step.Type>(type: T, key: keyof DetailLabels[T]): string;
+  export function details<T extends Step.Type>(type: T, key?: keyof DetailLabels[T]): DetailLabels[T] | string {
+    if (key) {
+      return detailLabels[type][key];
+    }
     return detailLabels[type];
   }
 }

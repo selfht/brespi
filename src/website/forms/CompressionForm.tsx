@@ -4,6 +4,8 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "../comps/Button";
 import { Icon } from "../comps/Icon";
 import { Spinner } from "../comps/Spinner";
+import { StepTranslation } from "../translation/StepTranslation";
+import { StepForm } from "./StepForm";
 
 type Form = {
   algorithm: "targzip";
@@ -24,7 +26,8 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
-    await new Promise((res) => setTimeout(res, 2000));
+    await StepForm.snoozeBeforeSubmit();
+    await new Promise((res) => setTimeout(res, 500));
     onSubmit({
       id,
       previousStepId: existing?.previousStepId,
@@ -40,7 +43,7 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
       <div className="col-span-6 pr-3">
         <div className="flex items-center gap-2">
           {existing && <Icon variant="trashcan" />}
-          <h1 className="text-2xl font-extralight text-c-dim">Compression</h1>
+          <h1 className="text-2xl font-extralight text-c-dim">{StepTranslation.type(Step.Type.compression)}</h1>
         </div>
 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
@@ -50,7 +53,7 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
                 "text-c-error": formState.errors.targzipLevel,
               })}
             >
-              Compression level
+              {StepTranslation.details(Step.Type.compression, "implementation.level")}
             </label>
             <input
               type="number"
