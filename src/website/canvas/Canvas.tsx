@@ -5,6 +5,7 @@ import { CanvasEvent } from "./CanvasEvent";
 import { Interactivity } from "./Interactivity";
 import { createCell } from "./jointframework/createCell";
 import { createPaper } from "./jointframework/createPaper";
+import { CalloutHelper } from "./jointframework/helpers/CalloutHelper";
 import { PositioningHelper } from "./jointframework/helpers/PositioningHelper";
 import { StylingHelper } from "./jointframework/helpers/StylingHelper";
 import { setupBlockInteractions } from "./jointframework/setupBlockInteractions";
@@ -79,14 +80,6 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
       blocksRef.current = PositioningHelper.performSmartPositioning(initialBlocks, dimensions);
       graphRef.current!.addCells(blocksRef.current.map(createCell));
     },
-    showBlockDetails(cell: dia.Cell) {
-      cell.attr("label/display", "none");
-      cell.attr("callout/display", "block");
-    },
-    hideBlockDetails(cell: dia.Cell) {
-      cell.attr("callout/display", "none");
-      cell.attr("label/display", "block");
-    },
   };
 
   /**
@@ -135,10 +128,10 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
             StylingHelper.synchronizeBlockStylingWithCell(block, cell);
             if (block.id === id) {
               if (interactivityRef.current === Interactivity.viewing) {
-                internal.showBlockDetails(cell);
+                CalloutHelper.showBlockDetails(cell, block);
               }
             } else {
-              internal.hideBlockDetails(cell);
+              CalloutHelper.hideDetails(cell);
             }
           }
         });
@@ -152,7 +145,7 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
         const cell = graphRef.current!.getCell(id);
         if (cell) {
           StylingHelper.synchronizeBlockStylingWithCell(block, cell);
-          internal.hideBlockDetails(cell);
+          CalloutHelper.hideDetails(cell);
           internal.notifyBlocksChange(CanvasEvent.deselect);
         }
       }

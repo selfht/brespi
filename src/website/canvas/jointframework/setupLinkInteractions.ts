@@ -13,7 +13,6 @@ export function setupLinkInteractions({ graph, notifyBlocksChange }: Options) {
         const target = cell.get("target");
         // Only notify if target is an actual element (has id), not just mouse coordinates
         if (target && target.id) {
-          console.log("Link connected to target, notifying parent");
           notifyBlocksChange(CanvasEvent.relation);
         }
       });
@@ -23,7 +22,6 @@ export function setupLinkInteractions({ graph, notifyBlocksChange }: Options) {
   // Notify when link is removed
   graph.on("remove", (cell) => {
     if (cell.isLink()) {
-      console.log("Link removed, notifying parent");
       notifyBlocksChange(CanvasEvent.relation);
     }
   });

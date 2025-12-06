@@ -6,8 +6,6 @@ import { renderToString } from "react-dom/server";
 import clsx from "clsx";
 
 export function createCell(block: JointBlock) {
-  console.log(block.details);
-
   const items: dia.Element.Port[] = [];
   const groups: Record<string, dia.Element.PortGroup> = {};
 
@@ -96,25 +94,7 @@ export function createCell(block: JointBlock) {
           style: {
             overflow: "visible",
           },
-          html: renderToString(
-            <div className="flex flex-col gap-3 border-3 border-c-info rounded-lg bg-c-dark p-2">
-              <h1 className="font-light text-lg text-c-dim">{block.label}</h1>
-              {Object.entries(block.details).map(([key, value]) => (
-                <div key={key} className="text-sm flex flex-col">
-                  <strong className="pb-1">{key}</strong>
-                  <code
-                    className={clsx("break-all p-1 bg-c-dim/20 rounded", {
-                      "text-c-info": typeof value === "number",
-                      "text-c-success": typeof value === "boolean" && value,
-                      "text-c-error": typeof value === "boolean" && !value,
-                    })}
-                  >
-                    {typeof value === "boolean" ? (value ? "Yes" : "No") : value}
-                  </code>
-                </div>
-              ))}
-            </div>,
-          ),
+          html: "",
         },
       },
       ports: {

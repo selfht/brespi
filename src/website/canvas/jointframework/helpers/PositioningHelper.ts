@@ -9,7 +9,7 @@ export namespace PositioningHelper {
       ...b,
       coordinates: {
         y: 50,
-        x: 50 + index * 200,
+        x: 80 + index * 200,
       },
     }));
   }
@@ -17,7 +17,7 @@ export namespace PositioningHelper {
   export function findOptimalFreeSpot(blocks: Block[], paperDimensions: Dimensions): Coordinates {
     return {
       y: 100,
-      x: 50,
+      x: 80,
     };
   }
 }
