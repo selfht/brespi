@@ -1,16 +1,14 @@
 import { Step } from "@/models/Step";
 import clsx from "clsx";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { Button } from "../comps/Button";
-import { Icon } from "../comps/Icon";
-import { Spinner } from "../comps/Spinner";
-import { StepTranslation } from "../translation/StepTranslation";
-import { StepForm } from "./StepForm";
+import { Button } from "../../comps/Button";
+import { Icon } from "../../comps/Icon";
+import { Spinner } from "../../comps/Spinner";
+import { StepTranslation } from "../../translation/StepTranslation";
+import { FormHelper } from "../FormHelper";
+import { StepFlatten } from "@/types/StepFlatten";
 
-type Form = {
-  algorithm: "targzip";
-  targzipLevel: number;
-};
+type Form = StepFlatten<Step.Type.compression>;
 type Props = {
   id: string;
   existing?: Step.Compression;
@@ -21,20 +19,20 @@ type Props = {
 export function CompressionForm({ id, existing, onCancel, onSubmit, className }: Props) {
   const { register, handleSubmit, formState } = useForm<Form>({
     defaultValues: {
-      algorithm: "targzip",
-      targzipLevel: 9,
+      "implementation.algorithm": existing?.implementation.algorithm ?? "targzip",
+      "implementation.level": existing?.implementation.level ?? 9,
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
-    await StepForm.snoozeBeforeSubmit();
+    await FormHelper.snoozeBeforeSubmit();
     await new Promise((res) => setTimeout(res, 500));
     onSubmit({
       id,
       previousStepId: existing?.previousStepId,
       type: Step.Type.compression,
       implementation: {
-        algorithm: form.algorithm,
-        level: form.targzipLevel,
+        algorithm: form["implementation.algorithm"],
+        level: form["implementation.level"],
       },
     });
   };
@@ -50,7 +48,7 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
           <div className="flex items-center">
             <label
               className={clsx("w-72", {
-                "text-c-error": formState.errors.targzipLevel,
+                "text-c-error": formState.errors["implementation.level"],
               })}
             >
               {StepTranslation.details(Step.Type.compression, "implementation.level")}
@@ -58,10 +56,10 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
             <input
               type="number"
               className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors.targzipLevel,
+                "outline-2 outline-c-error": formState.errors["implementation.level"],
               })}
               readOnly={formState.isSubmitting}
-              {...register("targzipLevel", {
+              {...register("implementation.level", {
                 required: true,
                 valueAsNumber: true,
               })}

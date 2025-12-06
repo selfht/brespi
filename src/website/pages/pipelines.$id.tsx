@@ -25,6 +25,7 @@ import { StepForm } from "../forms/StepForm";
 import { useRegistry } from "../hooks/useRegistry";
 import { StepTranslation } from "../translation/StepTranslation";
 import "./pipelines.$id.css";
+import { FormHelper } from "../forms/FormHelper";
 
 type Form = {
   interactivity: Interactivity;
@@ -62,7 +63,8 @@ export function pipelines_$id() {
    * Main form API
    */
   const mainApi = {
-    save() {
+    async save() {
+      await FormHelper.snoozeBeforeSubmit();
       console.log("TODO: save updated pipeline");
       mainForm.setValue("interactivity", Interactivity.viewing);
     },
@@ -98,7 +100,6 @@ export function pipelines_$id() {
     showForm(type: Step.Type, existingStep?: Step) {
       const id = existingStep?.id ?? `${Math.random()}`; // TODO!!!
       setStepForm({ id, type, existingStep });
-      // Only insert a new block if this is a NEW step (not an existing one)
       if (!existingStep) {
         canvasApi.current?.insert({
           id,
@@ -148,15 +149,19 @@ export function pipelines_$id() {
    */
   const canvasListener = {
     handleBlocksChange(event: CanvasEvent, blocks: Block[]) {
+      const interactivity = mainForm.getValues("interactivity");
       // Click events
       if (event === CanvasEvent.select) {
-        const selectedStep = mainForm.getValues("steps").find((step) => step.id === blocks.find((block) => block.selected)?.id);
-        if (selectedStep) {
+        const selectedBlock = blocks.find((block) => block.selected);
+        const selectedStep = mainForm.getValues("steps").find((step) => step.id === selectedBlock?.id);
+        if (interactivity === Interactivity.editing && selectedStep) {
           stepApi.showForm(selectedStep.type, selectedStep);
         }
       }
       if (event === CanvasEvent.deselect) {
-        stepApi.cancelForm();
+        if (interactivity === Interactivity.editing) {
+          stepApi.cancelForm();
+        }
       }
       // Relation events
       if (event === CanvasEvent.relation) {

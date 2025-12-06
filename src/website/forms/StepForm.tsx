@@ -1,7 +1,7 @@
 import { Step } from "@/models/Step";
-import { FileSystemReadForm } from "./FileSystemReadForm";
-import { PostgresBackupForm } from "./PostgresBackupForm";
-import { CompressionForm } from "./CompressionForm";
+import { CompressionForm } from "./step/CompressionForm";
+import { FileSystemReadForm } from "./step/FileSystemReadForm";
+import { PostgresBackupForm } from "./step/PostgresBackupForm";
 
 type Props = {
   id: string;
@@ -22,10 +22,4 @@ export function StepForm({ type, existing, ...props }: Props) {
     return <PostgresBackupForm existing={existing as Step.PostgresBackup} {...props} />;
   }
   return null;
-}
-
-export namespace StepForm {
-  export async function snoozeBeforeSubmit(): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
 }
