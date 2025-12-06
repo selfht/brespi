@@ -37,11 +37,6 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
   const blocksRef = useRef<JointBlock[]>([]);
   const interactivityRef = useRef<Interactivity>(interactivity);
 
-  useEffect(() => {
-    const i = setInterval(() => console.log(blocksRef.current.length), 1000);
-    return () => clearInterval(i);
-  }, []);
-
   /**
    * State
    */
@@ -125,7 +120,7 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
       internal.notifyBlocksChange(CanvasEvent.insert);
     },
     update(id, changes) {
-      const block = blocksRef.current.find((block) => block.id !== id);
+      const block = blocksRef.current.find((block) => block.id === id);
       const cell = graphRef.current!.getCell(id);
       if (!block || !cell) {
         throw new Error(`Could not find block or cell; block=${Boolean(block)}, cell=${Boolean(cell)}`);
@@ -138,7 +133,7 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
       internal.notifyBlocksChange(CanvasEvent.update);
     },
     remove(id) {
-      const block = blocksRef.current.find((block) => block.id !== id);
+      const block = blocksRef.current.find((block) => block.id === id);
       const cell = graphRef.current!.getCell(id);
       if (!block || !cell) {
         throw new Error(`Could not find block or cell; block=${Boolean(block)}, cell=${Boolean(cell)}`);

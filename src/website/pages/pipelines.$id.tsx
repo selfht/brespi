@@ -98,13 +98,16 @@ export function pipelines_$id() {
     showForm(type: Step.Type, existingStep?: Step) {
       const id = existingStep?.id ?? `${Math.random()}`; // TODO!!!
       setStepForm({ id, type, existingStep });
-      canvasApi.current?.insert({
-        id,
-        label: "NEW",
-        details: {},
-        handles: Internal.convertTypeToHandles(type),
-        selected: true,
-      });
+      // Only insert a new block if this is a NEW step (not an existing one)
+      if (!existingStep) {
+        canvasApi.current?.insert({
+          id,
+          label: "NEW",
+          details: {},
+          handles: Internal.convertTypeToHandles(type),
+          selected: true,
+        });
+      }
     },
     cancelForm() {
       setStepForm((stepForm) => {
