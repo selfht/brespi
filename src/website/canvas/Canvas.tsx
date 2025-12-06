@@ -119,22 +119,25 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
       }
     },
     select(id: string) {
-      const exists = blocksRef.current.some((block) => block.id === id);
-      if (exists) {
+      const targetBlock = blocksRef.current.find((block) => block.id === id);
+      if (targetBlock) {
         blocksRef.current.forEach((block) => {
           block.selected = block.id === id ? true : false;
           const cell = graphRef.current!.getCell(block.id);
           if (cell) {
             StylingHelper.synchronizeBlockStylingWithCell(block, cell);
-            if (block.id === id) {
-              if (interactivityRef.current === Interactivity.viewing) {
-                CalloutHelper.showBlockDetails(cell, block);
-              }
-            } else {
+            if (block.id !== id) {
               CalloutHelper.hideDetails(cell);
             }
           }
         });
+        // Show callout for selected block after all others are hidden
+        if (interactivityRef.current === Interactivity.viewing) {
+          const targetCell = graphRef.current!.getCell(id);
+          if (targetCell) {
+            CalloutHelper.showBlockDetails(targetCell, targetBlock);
+          }
+        }
         internal.notifyBlocksChange(CanvasEvent.select);
       }
     },
