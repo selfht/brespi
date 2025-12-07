@@ -14,7 +14,7 @@ import { setupPanning } from "./jointframework/setupPanning";
 import { Dimensions } from "./jointframework/types/Dimensions";
 import { JointBlock } from "./jointframework/types/JointBlock";
 import { BetterOmit } from "@/types/BetterOmit";
-import z from "zod/v4";
+import "./Canvas.css";
 
 /**
  * One-way databinding is strongly discouraged for the Canvas editor for performance reasons.

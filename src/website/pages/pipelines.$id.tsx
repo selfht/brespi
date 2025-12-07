@@ -24,7 +24,7 @@ import { FormHelper } from "../forms/FormHelper";
 import { StepForm } from "../forms/StepForm";
 import { useRegistry } from "../hooks/useRegistry";
 import { StepTranslation } from "../translation/StepTranslation";
-import "./pipelines.$id.css";
+import bgCanvas from "../images/bg-canvas.svg";
 
 type Form = {
   interactivity: Interactivity;
@@ -280,9 +280,10 @@ export function pipelines_$id() {
             <div className="col-span-full px-6">
               <div
                 className={clsx("h-[500px] rounded-lg overflow-hidden", {
-                  "bg-white": interactivity === Interactivity.viewing,
+                  "bg-white bg-none!": interactivity === Interactivity.viewing,
                   "bg-white/90": interactivity === Interactivity.editing,
                 })}
+                style={{ backgroundImage: `url(${bgCanvas})`, backgroundSize: 10 }}
               >
                 <Canvas
                   ref={canvasApi}
