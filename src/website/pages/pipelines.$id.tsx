@@ -88,8 +88,8 @@ export function pipelines_$id() {
       if (query.data === "new") {
         navigate("/pipelines");
       } else {
-        console.log("TODO: undo form changes");
-        mainForm.setValue("interactivity", Interactivity.viewing);
+        mainApi.reset(query.data!);
+        // TODO: reset the blocks and links too !!
       }
     },
     reset(initial: "new" | Internal.PipelineWithInitialBlocks) {
