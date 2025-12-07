@@ -42,22 +42,22 @@ export namespace StepTranslation {
         };
       case Step.Type.compression:
         return {
-          Implementation: step.algorithm.implementation,
+          Algorithm: step.algorithm.implementation,
           "Compression level": step.algorithm.level,
         };
       case Step.Type.decompression:
         return {
-          Implementation: step.algorithm.implementation,
+          Algorithm: step.algorithm.implementation,
         };
       case Step.Type.encryption:
         return {
           "Key reference": step.keyReference,
-          Implementation: step.algorithm.implementation,
+          Algorithm: step.algorithm.implementation,
         };
       case Step.Type.decryption:
         return {
           "Key reference": step.keyReference,
-          Implementation: step.algorithm.implementation,
+          Algorithm: step.algorithm.implementation,
         };
       case Step.Type.folder_flatten:
         return {};
