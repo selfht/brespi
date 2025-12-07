@@ -57,7 +57,7 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
                 "text-c-error": formState.errors.implementationTargzip?.level,
               })}
             >
-              {StepTranslation.details(Step.Type.compression, "implementation.level")}
+              Compression level
             </label>
             <input
               type="number"

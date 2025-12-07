@@ -47,7 +47,7 @@ export function FileSystemReadForm({ id, existing, onCancel, onSubmit, className
                 "text-c-error": formState.errors.path,
               })}
             >
-              {StepTranslation.details(Step.Type.filesystem_read, "path")}
+              Path
             </label>
             <input
               type="text"

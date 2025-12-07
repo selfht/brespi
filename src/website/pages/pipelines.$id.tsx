@@ -1,6 +1,5 @@
 import { ProblemDetails } from "@/models/ProblemDetails";
 import { Step } from "@/models/Step";
-import { StepFlatten } from "@/types/StepFlatten";
 import { PipelineView } from "@/views/PipelineView";
 import { Temporal } from "@js-temporal/polyfill";
 import { useQuery } from "@tanstack/react-query";
@@ -353,14 +352,8 @@ namespace Internal {
     };
   }
   export function convertStepToDetails(step: Step): Block["details"] {
-    type Primitive = string | number | boolean | undefined;
-    const result: Record<string, Primitive> = {};
-    const labels = StepTranslation.details(step.type);
-    Object.entries(StepFlatten.perform(step)).forEach(([key, value]) => {
-      if (value !== undefined) {
-        result[(labels as Record<string, string>)[key]] = value as Primitive;
-      }
-    });
+    const result: Block["details"] = {};
+    // TODO!
     return result;
   }
   export function convertTypeToHandles(type: Step.Type): Block["handles"] {

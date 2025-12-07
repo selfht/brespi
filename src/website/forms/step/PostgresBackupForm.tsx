@@ -74,7 +74,7 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
                 "text-c-error": formState.errors.databases,
               })}
             >
-              {StepTranslation.details(Step.Type.postgres_backup, "databases.selection")}
+              Selection
             </label>
             <select
               className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
