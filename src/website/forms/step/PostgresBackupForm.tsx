@@ -102,8 +102,11 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
               </label>
               <input
                 type="text"
+                className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
+                  "outline-2 outline-c-error": formState.errors.databasesInclude?.include,
+                })}
                 {...register("databasesInclude.include", {
-                  setValueAs: (text: string) => text.split(","),
+                  setValueAs: (values: string | string[]) => (typeof values === "string" ? values.split(",") : values.join(",")),
                 })}
               />
             </div>
@@ -119,8 +122,11 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
               </label>
               <input
                 type="text"
+                className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
+                  "outline-2 outline-c-error": formState.errors.databasesExclude?.exclude,
+                })}
                 {...register("databasesExclude.exclude", {
-                  setValueAs: (text: string) => text.split(","),
+                  setValueAs: (values: string | string[]) => (typeof values === "string" ? values.split(",") : values.join(",")),
                 })}
               />
             </div>

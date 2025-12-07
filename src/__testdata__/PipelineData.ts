@@ -10,7 +10,8 @@ export namespace PipelineData {
         id: Bun.randomUUIDv7(),
         type: Step.Type.postgres_backup,
         databases: {
-          selection: "all",
+          selection: "include",
+          include: ["apple", "banana", "coconut"],
         },
       },
       {
