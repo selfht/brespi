@@ -4,9 +4,6 @@ import { ServerError } from "@/errors/ServerError";
 import index from "@/website/index.html";
 import { ErrorLike, serve } from "bun";
 import { PipelineData } from "./__testdata__/PipelineData";
-import { PipelineViewData } from "./__testdata__/PipelineViewData";
-import { PipelineError } from "./errors/PipelineError";
-import { Pipeline } from "./models/Pipeline";
 import { PipelineService } from "./services/PipelineService";
 import { PipelineView } from "./views/PipelineView";
 
@@ -43,34 +40,26 @@ export class Server {
          */
         "/api/pipelines": {
           GET: async () => {
-            const pipelines = [PipelineViewData.POSTGRES_BACKUP, PipelineViewData.WP_BACKUP, PipelineViewData.RESTORE];
-            return Response.json(pipelines satisfies PipelineView[]);
+            const pipelines: PipelineView[] = await this.pipelineService.query();
+            return Response.json(pipelines);
           },
           POST: async (request) => {
-            console.log(`TODO: save new pipeline`);
-            const pipeline: Pipeline = {
-              id: Bun.randomUUIDv7(),
-              ...(await request.json()),
-            };
-            return Response.json({ ...pipeline, executions: [] } satisfies PipelineView);
+            const pipeline: PipelineView = await this.pipelineService.create(await request.json());
+            return Response.json(pipeline);
           },
         },
         "/api/pipelines/:id": {
-          GET: async ({ params }) => {
-            const pipeline: PipelineView | undefined = [
-              PipelineViewData.POSTGRES_BACKUP,
-              PipelineViewData.WP_BACKUP,
-              PipelineViewData.RESTORE,
-            ].find((p) => p.id === params.id);
-            if (!pipeline) {
-              return Response.json(PipelineError.not_found().json(), { status: 400 });
-            }
-            return Response.json(pipeline satisfies PipelineView);
+          GET: async (request) => {
+            const pipeline: PipelineView = await this.pipelineService.find(request.params.id);
+            return Response.json(pipeline);
           },
           PUT: async (request) => {
-            console.log(`TODO: save updated pipeline ${request.params.id}`);
-            const pipeline: Pipeline = await request.json();
-            return Response.json({ ...pipeline, executions: [] } satisfies PipelineView);
+            const pipeline: PipelineView = await this.pipelineService.update(request.params.id, await request.json());
+            return Response.json(pipeline);
+          },
+          DELETE: async (request) => {
+            const pipeline: PipelineView = await this.pipelineService.remove(request.params.id);
+            return Response.json(pipeline);
           },
         },
 
