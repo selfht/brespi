@@ -3,6 +3,7 @@ import { RefObject } from "react";
 import { Block } from "../Block";
 import { JointBlockWithProposedHandle } from "./types/JointBlockWithProposedHandle";
 import { JointBlock } from "./types/JointBlock";
+import { createLink } from "./createLink";
 
 type Options = {
   elementRef: RefObject<HTMLElement | null>;
@@ -24,23 +25,7 @@ export function createPaper({ elementRef, blocksRef, validateArrow }: Options) {
     gridSize: 1, // Free-form movement (no snapping)
     clickThreshold: 10, // Allow 10px movement and still count as click
     magnetThreshold: 5, // Require 5px movement before starting link creation
-    defaultLink: () =>
-      new shapes.standard.Link({
-        attrs: {
-          line: {
-            stroke: "#34495e",
-            strokeWidth: 2.5,
-            strokeLinecap: "round",
-            targetMarker: {
-              type: "path",
-              d: "M 10 -5 -2.5 0 10 5 z",
-              fill: "#34495e",
-            },
-          },
-        },
-        connector: { name: "rounded" },
-        router: { name: "normal" },
-      }),
+    defaultLink: createLink,
     linkPinning: false,
     defaultConnectionPoint: {
       name: "boundary",

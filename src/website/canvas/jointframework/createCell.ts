@@ -1,9 +1,7 @@
 import { dia, shapes } from "@joint/core";
 import { Block } from "../Block";
-import { JointBlock } from "./types/JointBlock";
 import { StylingHelper } from "./helpers/StylingHelper";
-import { renderToString } from "react-dom/server";
-import clsx from "clsx";
+import { JointBlock } from "./types/JointBlock";
 
 export function createCell(block: JointBlock) {
   const items: dia.Element.Port[] = [];

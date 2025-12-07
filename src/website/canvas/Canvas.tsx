@@ -4,6 +4,7 @@ import { Block } from "./Block";
 import { CanvasEvent } from "./CanvasEvent";
 import { Interactivity } from "./Interactivity";
 import { createCell } from "./jointframework/createCell";
+import { createLink } from "./jointframework/createLink";
 import { createPaper } from "./jointframework/createPaper";
 import { CalloutHelper } from "./jointframework/helpers/CalloutHelper";
 import { PositioningHelper } from "./jointframework/helpers/PositioningHelper";
@@ -80,7 +81,24 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
         height: Number(paperRef.current!.options.height),
       };
       blocksRef.current = PositioningHelper.performSmartPositioning(initialBlocks, dimensions);
-      graphRef.current!.addCells(blocksRef.current.map(createCell));
+      // Add blocks
+      const cells = blocksRef.current.map(createCell);
+      graphRef.current!.addCells(cells);
+      // Add links
+      blocksRef.current.forEach((block) => {
+        if (block.incomingId) {
+          const sourceCell = graphRef.current!.getCell(block.incomingId);
+          const targetCell = graphRef.current!.getCell(block.id);
+          if (sourceCell && targetCell) {
+            const link = createLink();
+            link.set({
+              source: { id: block.incomingId, port: Block.Handle.output },
+              target: { id: block.id, port: Block.Handle.input },
+            });
+            graphRef.current!.addCell(link);
+          }
+        }
+      });
     },
   };
 
@@ -197,7 +215,7 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
         if (source.proposedHandle !== Block.Handle.output || target.proposedHandle !== Block.Handle.input) {
           return false; // Only allow links from input to output
         }
-        if (target.incomingId !== undefined) {
+        if (target.incomingId) {
           return false; // Each block can only have a single incoming arrow
         }
         return true;
