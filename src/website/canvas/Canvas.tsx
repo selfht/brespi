@@ -126,13 +126,22 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
         handles: block.handles,
         selected: block.selected,
       };
+      const panPosition = paperRef.current!.translate();
+      console.log(panPosition);
       const newBlock: JointBlock = {
         ...safeBlockWithoutTheRiskOfExtraProperties,
         incomingId: null,
-        coordinates: PositioningHelper.findOptimalFreeSpot(blocksRef.current, {
-          width: Number(paperRef.current!.options.width),
-          height: Number(paperRef.current!.options.height),
-        }),
+        coordinates: PositioningHelper.findNewSpot(
+          blocksRef.current,
+          {
+            width: Number(paperRef.current!.options.width),
+            height: Number(paperRef.current!.options.height),
+          },
+          {
+            x: -panPosition.tx,
+            y: -panPosition.ty,
+          },
+        ),
       };
       blocksRef.current.push(newBlock);
       graphRef.current!.addCell(createCell(newBlock));

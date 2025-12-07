@@ -119,7 +119,7 @@ export function pipelines_$id() {
       if (!existingStep) {
         canvasApi.current?.insert({
           id: stepId,
-          label: "NEW",
+          label: StepTranslation.type(type),
           details: {},
           handles: Internal.convertTypeToHandles(type),
           selected: true,
@@ -281,7 +281,7 @@ export function pipelines_$id() {
               <div
                 className={clsx("h-[500px] rounded-lg overflow-hidden", {
                   "bg-white bg-none!": interactivity === Interactivity.viewing,
-                  "bg-white/90": interactivity === Interactivity.editing,
+                  "bg-white/95": interactivity === Interactivity.editing,
                 })}
                 style={{ backgroundImage: `url(${bgCanvas})`, backgroundSize: 10 }}
               >
