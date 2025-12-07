@@ -1,5 +1,4 @@
 import { Step } from "@/models/Step";
-import { StepFlatten } from "@/types/StepFlatten";
 import clsx from "clsx";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "../../comps/Button";
@@ -8,7 +7,15 @@ import { Spinner } from "../../comps/Spinner";
 import { StepTranslation } from "../../translation/StepTranslation";
 import { FormHelper } from "../FormHelper";
 
-type Form = StepFlatten<Step.Type.postgres_backup>;
+type Form = {
+  databases: "all" | "include" | "exclude";
+  databasesInclude: {
+    include: string[];
+  };
+  databasesExclude: {
+    exclude: string[];
+  };
+};
 type Props = {
   id: string;
   existing?: Step.PostgresBackup;
@@ -17,9 +24,15 @@ type Props = {
   className?: string;
 };
 export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className }: Props) {
-  const { register, handleSubmit, formState } = useForm<Form>({
+  const { register, handleSubmit, formState, watch } = useForm<Form>({
     defaultValues: {
-      "databases.selection": existing?.databases.selection ?? "all",
+      databases: existing?.databases.selection ?? "all",
+      databasesInclude: {
+        include: existing?.databases.selection === "include" ? existing?.databases.include : [],
+      },
+      databasesExclude: {
+        exclude: existing?.databases.selection === "exclude" ? existing?.databases.exclude : [],
+      },
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -28,11 +41,24 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
       id,
       previousStepId: existing?.previousStepId,
       type: Step.Type.postgres_backup,
-      databases: {
-        selection: "all", // TODO!!!
-      },
+      databases:
+        form.databases === "all"
+          ? {
+              selection: form.databases,
+            }
+          : form.databases === "include"
+            ? {
+                selection: form.databases,
+                include: form.databasesInclude.include,
+              }
+            : {
+                selection: form.databases,
+                exclude: form.databasesExclude.exclude,
+              },
     });
   };
+
+  const databases = watch("databases");
   return (
     <div className={clsx(className, "u-subgrid font-light")}>
       <div className="col-span-6 pr-3">
@@ -45,22 +71,60 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
           <div className="flex items-center">
             <label
               className={clsx("w-72", {
-                "text-c-error": formState.errors["databases.selection"],
+                "text-c-error": formState.errors.databases,
               })}
             >
               {StepTranslation.details(Step.Type.postgres_backup, "databases.selection")}
             </label>
-            <input
-              type="text"
+            <select
               className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors["databases.selection"],
+                "outline-2 outline-c-error": formState.errors.databases,
               })}
-              readOnly={formState.isSubmitting}
-              {...register("databaseSelection", {
+              {...register("databases", {
                 required: true,
               })}
-            />
+            >
+              {["all", "include", "exclude"].map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
           </div>
+          {databases === "include" && (
+            <div className="flex items-center">
+              <label
+                className={clsx("w-72", {
+                  "text-c-error": formState.errors.databasesInclude?.include,
+                })}
+              >
+                Include
+              </label>
+              <input
+                type="text"
+                {...register("databasesInclude.include", {
+                  setValueAs: (text: string) => text.split(","),
+                })}
+              />
+            </div>
+          )}
+          {databases === "exclude" && (
+            <div className="flex items-center">
+              <label
+                className={clsx("w-72", {
+                  "text-c-error": formState.errors.databasesInclude?.include,
+                })}
+              >
+                Exclude
+              </label>
+              <input
+                type="text"
+                {...register("databasesExclude.exclude", {
+                  setValueAs: (text: string) => text.split(","),
+                })}
+              />
+            </div>
+          )}
         </fieldset>
 
         <div className="mt-12 flex justify-end gap-4">

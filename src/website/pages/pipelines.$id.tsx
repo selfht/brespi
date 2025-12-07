@@ -21,11 +21,11 @@ import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
 import { SquareIcon } from "../comps/SquareIcon";
+import { FormHelper } from "../forms/FormHelper";
 import { StepForm } from "../forms/StepForm";
 import { useRegistry } from "../hooks/useRegistry";
 import { StepTranslation } from "../translation/StepTranslation";
 import "./pipelines.$id.css";
-import { FormHelper } from "../forms/FormHelper";
 
 type Form = {
   interactivity: Interactivity;

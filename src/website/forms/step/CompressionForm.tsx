@@ -6,9 +6,13 @@ import { Icon } from "../../comps/Icon";
 import { Spinner } from "../../comps/Spinner";
 import { StepTranslation } from "../../translation/StepTranslation";
 import { FormHelper } from "../FormHelper";
-import { StepFlatten } from "@/types/StepFlatten";
 
-type Form = StepFlatten<Step.Type.compression>;
+type Form = {
+  implementation: "targzip";
+  implementationTargzip: {
+    level: number;
+  };
+};
 type Props = {
   id: string;
   existing?: Step.Compression;
@@ -19,8 +23,10 @@ type Props = {
 export function CompressionForm({ id, existing, onCancel, onSubmit, className }: Props) {
   const { register, handleSubmit, formState } = useForm<Form>({
     defaultValues: {
-      "implementation.algorithm": existing?.implementation.algorithm ?? "targzip",
-      "implementation.level": existing?.implementation.level ?? 9,
+      implementation: existing?.implementation.algorithm ?? "targzip",
+      implementationTargzip: {
+        level: existing?.implementation.level ?? 9,
+      },
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -31,8 +37,8 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
       previousStepId: existing?.previousStepId,
       type: Step.Type.compression,
       implementation: {
-        algorithm: form["implementation.algorithm"],
-        level: form["implementation.level"],
+        algorithm: form.implementation,
+        level: form.implementationTargzip?.level,
       },
     });
   };
@@ -48,7 +54,7 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
           <div className="flex items-center">
             <label
               className={clsx("w-72", {
-                "text-c-error": formState.errors["implementation.level"],
+                "text-c-error": formState.errors.implementationTargzip?.level,
               })}
             >
               {StepTranslation.details(Step.Type.compression, "implementation.level")}
@@ -56,10 +62,9 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
             <input
               type="number"
               className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors["implementation.level"],
+                "outline-2 outline-c-error": formState.errors.implementationTargzip?.level,
               })}
-              readOnly={formState.isSubmitting}
-              {...register("implementation.level", {
+              {...register("implementationTargzip.level", {
                 required: true,
                 valueAsNumber: true,
               })}

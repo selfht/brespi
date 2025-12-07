@@ -1,5 +1,4 @@
 import { Step } from "@/models/Step";
-import { StepFlatten } from "@/types/StepFlatten";
 import clsx from "clsx";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "../../comps/Button";
@@ -8,7 +7,9 @@ import { Spinner } from "../../comps/Spinner";
 import { StepTranslation } from "../../translation/StepTranslation";
 import { FormHelper } from "../FormHelper";
 
-type Form = StepFlatten<Step.Type.filesystem_read>;
+type Form = {
+  path: string;
+};
 type Props = {
   id: string;
   existing?: Step.FilesystemRead;
@@ -53,7 +54,6 @@ export function FileSystemReadForm({ id, existing, onCancel, onSubmit, className
               className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
                 "outline-2 outline-c-error": formState.errors.path,
               })}
-              readOnly={formState.isSubmitting}
               {...register("path", {
                 required: true,
               })}
