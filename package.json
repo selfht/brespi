@@ -6,7 +6,7 @@
   "main": "src/index.tsx",
   "module": "src/index.tsx",
   "scripts": {
-    "typecheck": "bunx tsc --noEmit",
+    "tc": "bunx tsc --noEmit",
     "dev": "bun --env-file=.env.development --hot src/index.tsx",
     "start": "NODE_ENV=production bun --env-file=.env.production src/index.tsx",
     "build": "bun run build.ts"

@@ -2,7 +2,7 @@ import { ProblemDetails } from "@/models/ProblemDetails";
 import { Step } from "@/models/Step";
 import { PipelineView } from "@/views/PipelineView";
 import { Temporal } from "@js-temporal/polyfill";
-import { useQuery } from "@tanstack/react-query";
+import { QueryClient, useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -35,8 +35,10 @@ type Form = {
 export function pipelines_$id() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useRegistry.instance(QueryClient);
   const pipelineClient = useRegistry.instance(PipelineClient);
 
+  const queryKey = [QueryKey.pipelines, id];
   const query = useQuery<"new" | Internal.PipelineWithInitialBlocks, ProblemDetails>({
     queryKey: [QueryKey.pipelines, id],
     queryFn: () => {
@@ -62,10 +64,25 @@ export function pipelines_$id() {
    * Main form API
    */
   const mainApi = {
-    async save() {
+    async save(form: Form) {
       await FormHelper.snoozeBeforeSubmit();
-      console.log("TODO: save updated pipeline");
-      mainForm.setValue("interactivity", Interactivity.viewing);
+      if (id === "new") {
+        const pipeline = await pipelineClient.create({
+          name: form.name,
+          steps: form.steps,
+        });
+        navigate(`/pipelines/${pipeline.id}`, { replace: true });
+      } else {
+        const pipelineWithInitialBlocks = await pipelineClient
+          .update(id!, {
+            id: id!,
+            name: form.name,
+            steps: form.steps,
+          })
+          .then(Internal.convert);
+        queryClient.setQueryData(queryKey, pipelineWithInitialBlocks);
+        mainApi.reset(pipelineWithInitialBlocks);
+      }
     },
     cancel() {
       if (query.data === "new") {
@@ -97,11 +114,11 @@ export function pipelines_$id() {
    */
   const stepApi = {
     showForm(type: Step.Type, existingStep?: Step) {
-      const id = existingStep?.id ?? `${Math.random()}`; // TODO!!!
-      setStepForm({ id, type, existingStep });
+      const stepId = existingStep?.id ?? `${Math.random()}`; // TODO!!!
+      setStepForm({ id: stepId, type, existingStep });
       if (!existingStep) {
         canvasApi.current?.insert({
-          id,
+          id: stepId,
           label: "NEW",
           details: {},
           handles: Internal.convertTypeToHandles(type),
@@ -239,19 +256,21 @@ export function pipelines_$id() {
                   </>
                 ) : (
                   <>
+                    {!mainForm.formState.isSubmitting && (
+                      <Button
+                        onClick={mainApi.cancel}
+                        disabled={mainForm.formState.isSubmitting || Boolean(stepForm)}
+                        className="border-c-primary/80 bg-c-primary/80 text-c-dark hover:bg-c-primary"
+                      >
+                        Cancel
+                      </Button>
+                    )}
                     <Button
-                      onClick={mainApi.cancel}
-                      disabled={Boolean(stepForm)}
-                      className="border-c-primary/80 bg-c-primary/80 text-c-dark hover:bg-c-primary"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={mainApi.save}
-                      disabled={Boolean(stepForm)}
+                      onClick={mainForm.handleSubmit(mainApi.save)}
+                      disabled={mainForm.formState.isSubmitting || Boolean(stepForm)}
                       className="border-c-success/80 bg-c-success/80 text-c-dark hover:bg-c-success"
                     >
-                      Save
+                      {mainForm.formState.isSubmitting ? <Spinner className="border-black! border-t-transparent!" /> : "Save"}
                     </Button>
                   </>
                 )}

@@ -3,11 +3,12 @@ import { Exception } from "@/errors/Exception";
 import { ServerError } from "@/errors/ServerError";
 import index from "@/website/index.html";
 import { ErrorLike, serve } from "bun";
-import { PipelineService } from "./services/PipelineService";
-import { PipelineView } from "./views/PipelineView";
-import { PipelineError } from "./errors/PipelineError";
 import { PipelineData } from "./__testdata__/PipelineData";
 import { PipelineViewData } from "./__testdata__/PipelineViewData";
+import { PipelineError } from "./errors/PipelineError";
+import { Pipeline } from "./models/Pipeline";
+import { PipelineService } from "./services/PipelineService";
+import { PipelineView } from "./views/PipelineView";
 
 export class Server {
   public constructor(private readonly pipelineService: PipelineService) {}
@@ -45,6 +46,14 @@ export class Server {
             const pipelines = [PipelineViewData.POSTGRES_BACKUP, PipelineViewData.WP_BACKUP, PipelineViewData.RESTORE];
             return Response.json(pipelines satisfies PipelineView[]);
           },
+          POST: async (request) => {
+            console.log(`TODO: save new pipeline`);
+            const pipeline: Pipeline = {
+              id: Bun.randomUUIDv7(),
+              ...(await request.json()),
+            };
+            return Response.json({ ...pipeline, executions: [] } satisfies PipelineView);
+          },
         },
         "/api/pipelines/:id": {
           GET: async ({ params }) => {
@@ -57,6 +66,11 @@ export class Server {
               return Response.json(PipelineError.not_found().json(), { status: 400 });
             }
             return Response.json(pipeline satisfies PipelineView);
+          },
+          PUT: async (request) => {
+            console.log(`TODO: save updated pipeline ${request.params.id}`);
+            const pipeline: Pipeline = await request.json();
+            return Response.json({ ...pipeline, executions: [] } satisfies PipelineView);
           },
         },
 
