@@ -8,8 +8,8 @@ import { StepTranslation } from "../../translation/StepTranslation";
 import { FormHelper } from "../FormHelper";
 
 type Form = {
-  implementation: "targzip";
-  implementationTargzip: {
+  algorithm: "targzip";
+  algorithmTargzip: {
     level: number;
   };
 };
@@ -23,9 +23,9 @@ type Props = {
 export function CompressionForm({ id, existing, onCancel, onSubmit, className }: Props) {
   const { register, handleSubmit, formState } = useForm<Form>({
     defaultValues: {
-      implementation: existing?.implementation.algorithm ?? "targzip",
-      implementationTargzip: {
-        level: existing?.implementation.level ?? 9,
+      algorithm: existing?.algorithm.implementation ?? "targzip",
+      algorithmTargzip: {
+        level: existing?.algorithm.level ?? 9,
       },
     },
   });
@@ -34,11 +34,11 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
     await new Promise((res) => setTimeout(res, 500));
     onSubmit({
       id,
-      previousStepId: existing?.previousStepId,
+      previousStepId: existing?.previousStepId || null,
       type: Step.Type.compression,
-      implementation: {
-        algorithm: form.implementation,
-        level: form.implementationTargzip?.level,
+      algorithm: {
+        implementation: form.algorithm,
+        level: form.algorithmTargzip?.level,
       },
     });
   };
@@ -54,7 +54,7 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
           <div className="flex items-center">
             <label
               className={clsx("w-72", {
-                "text-c-error": formState.errors.implementationTargzip?.level,
+                "text-c-error": formState.errors.algorithmTargzip?.level,
               })}
             >
               Compression level
@@ -62,9 +62,9 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
             <input
               type="number"
               className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors.implementationTargzip?.level,
+                "outline-2 outline-c-error": formState.errors.algorithmTargzip?.level,
               })}
-              {...register("implementationTargzip.level", {
+              {...register("algorithmTargzip.level", {
                 required: true,
                 valueAsNumber: true,
               })}

@@ -13,7 +13,7 @@ export class EncryptionAdapter {
     if (artifact.type !== "file") {
       throw new Error("Unsupported artifact type");
     }
-    const algorithm = this.translateAlgorithm(options.implementation.algorithm);
+    const algorithm = this.translateAlgorithm(options.algorithm.implementation);
 
     const inputPath = artifact.path;
     const outputPath = NamingHelper.generatePath(artifact);
@@ -47,7 +47,7 @@ export class EncryptionAdapter {
     if (artifact.type !== "file") {
       throw new Error("Unsupported artifact type");
     }
-    const algorithm = this.translateAlgorithm(options.implementation.algorithm);
+    const algorithm = this.translateAlgorithm(options.algorithm.implementation);
 
     const inputPath = artifact.path;
     const outputPath = NamingHelper.generatePath(artifact);

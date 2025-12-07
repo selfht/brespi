@@ -346,15 +346,10 @@ namespace Internal {
       id: step.id,
       incomingId: step.previousStepId,
       label: StepTranslation.type(step.type),
-      details: convertStepToDetails(step),
+      details: StepTranslation.details(step),
       handles: convertTypeToHandles(step.type),
       selected: false,
     };
-  }
-  export function convertStepToDetails(step: Step): Block["details"] {
-    const result: Block["details"] = {};
-    // TODO!
-    return result;
   }
   export function convertTypeToHandles(type: Step.Type): Block["handles"] {
     const handles: Record<Step.Category, Block.Handle[]> = {

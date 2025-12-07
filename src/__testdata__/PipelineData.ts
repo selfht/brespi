@@ -8,30 +8,34 @@ export namespace PipelineData {
     steps: [
       {
         id: Bun.randomUUIDv7(),
+        previousStepId: null,
         type: Step.Type.postgres_backup,
-        databases: {
-          selection: "include",
+        selection: {
+          databases: "include",
           include: ["apple", "banana", "coconut"],
         },
       },
       {
         id: Bun.randomUUIDv7(),
+        previousStepId: null,
         type: Step.Type.compression,
-        implementation: {
-          algorithm: "targzip",
+        algorithm: {
+          implementation: "targzip",
           level: 9,
         },
       },
       {
         id: Bun.randomUUIDv7(),
+        previousStepId: null,
         type: Step.Type.encryption,
         keyReference: "SYMMETRIC_KEY_TUCKED_FAR_AWAY",
-        implementation: {
-          algorithm: "aes256cbc",
+        algorithm: {
+          implementation: "aes256cbc",
         },
       },
       {
         id: Bun.randomUUIDv7(),
+        previousStepId: null,
         type: Step.Type.s3_upload,
         accessKeyReference: "ACCESS_KEY",
         secretKeyReference: "SECRET_KEY",
@@ -46,6 +50,7 @@ export namespace PipelineData {
     steps: [
       {
         id: Bun.randomUUIDv7(),
+        previousStepId: null,
         type: Step.Type.filesystem_read,
         path: "/wordpress/wp-uploads",
       },
@@ -58,6 +63,7 @@ export namespace PipelineData {
     steps: [
       {
         id: Bun.randomUUIDv7(),
+        previousStepId: null,
         type: Step.Type.s3_download,
         baseFolder: "some-random-parent-folder",
         artifact: "gamingworld",
@@ -69,17 +75,19 @@ export namespace PipelineData {
       },
       {
         id: Bun.randomUUIDv7(),
+        previousStepId: null,
         type: Step.Type.decryption,
         keyReference: "SYMMETRIC_KEY",
-        implementation: {
-          algorithm: "aes256cbc",
+        algorithm: {
+          implementation: "aes256cbc",
         },
       },
       {
         id: Bun.randomUUIDv7(),
+        previousStepId: null,
         type: Step.Type.decompression,
-        implementation: {
-          algorithm: "targzip",
+        algorithm: {
+          implementation: "targzip",
         },
       },
     ],

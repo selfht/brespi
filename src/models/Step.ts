@@ -41,7 +41,7 @@ export namespace Step {
 
   type Common = {
     id: string;
-    previousStepId?: string;
+    previousStepId: string | null;
   };
 
   export type FilesystemRead = Common & {
@@ -56,32 +56,32 @@ export namespace Step {
 
   export type Compression = Common & {
     type: Type.compression;
-    implementation: {
-      algorithm: "targzip";
+    algorithm: {
+      implementation: "targzip";
       level: number;
     };
   };
 
   export type Decompression = Common & {
     type: Type.decompression;
-    implementation: {
-      algorithm: "targzip";
+    algorithm: {
+      implementation: "targzip";
     };
   };
 
   export type Encryption = Common & {
     type: Type.encryption;
     keyReference: string;
-    implementation: {
-      algorithm: "aes256cbc";
+    algorithm: {
+      implementation: "aes256cbc";
     };
   };
 
   export type Decryption = Common & {
     type: Type.decryption;
     keyReference: string;
-    implementation: {
-      algorithm: "aes256cbc";
+    algorithm: {
+      implementation: "aes256cbc";
     };
   };
 
@@ -120,12 +120,12 @@ export namespace Step {
 
   export type PostgresBackup = Common & {
     type: Type.postgres_backup;
-    databases:
-      | { selection: "all" }
+    selection:
+      | { databases: "all" }
       //
-      | { selection: "include"; include: string[] }
+      | { databases: "include"; include: string[] }
       //
-      | { selection: "exclude"; exclude: string[] };
+      | { databases: "exclude"; exclude: string[] };
   };
 
   export type PostgresRestore = Common & {
@@ -158,72 +158,72 @@ export namespace Step {
       z.discriminatedUnion("type", [
         z.object({
           id: z.string(),
-          previousStepId: z.string().optional(),
+          previousStepId: z.string().nullable(),
           type: z.literal(Type.filesystem_read),
           path: z.string(),
         } satisfies SubSchema<Step.FilesystemRead>),
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().optional(),
+          previousStepId: z.string().nullable(),
           type: z.literal(Type.filesystem_write),
           path: z.string(),
         } satisfies SubSchema<Step.FilesystemWrite>),
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().optional(),
+          previousStepId: z.string().nullable(),
           type: z.literal(Type.compression),
-          implementation: z.object({
-            algorithm: z.literal("targzip"),
+          algorithm: z.object({
+            implementation: z.literal("targzip"),
             level: z.number().min(1).max(9),
           }),
         } satisfies SubSchema<Step.Compression>),
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().optional(),
+          previousStepId: z.string().nullable(),
           type: z.literal(Type.decompression),
-          implementation: z.object({
-            algorithm: z.literal("targzip"),
+          algorithm: z.object({
+            implementation: z.literal("targzip"),
           }),
         } satisfies SubSchema<Step.Decompression>),
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().optional(),
+          previousStepId: z.string().nullable(),
           type: z.literal(Type.encryption),
           keyReference: z.string(),
-          implementation: z.object({
-            algorithm: z.literal("aes256cbc"),
+          algorithm: z.object({
+            implementation: z.literal("aes256cbc"),
           }),
         } satisfies SubSchema<Step.Encryption>),
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().optional(),
+          previousStepId: z.string().nullable(),
           type: z.literal(Type.decryption),
           keyReference: z.string(),
-          implementation: z.object({
-            algorithm: z.literal("aes256cbc"),
+          algorithm: z.object({
+            implementation: z.literal("aes256cbc"),
           }),
         } satisfies SubSchema<Step.Decryption>),
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().optional(),
+          previousStepId: z.string().nullable(),
           type: z.literal(Type.folder_flatten),
         } satisfies SubSchema<Step.FolderFlatten>),
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().optional(),
+          previousStepId: z.string().nullable(),
           type: z.literal(Type.folder_group),
         } satisfies SubSchema<Step.FolderGroup>),
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().optional(),
+          previousStepId: z.string().nullable(),
           type: z.literal(Type.script_execution),
           path: z.string(),
           passthrough: z.boolean(),
@@ -231,7 +231,7 @@ export namespace Step {
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().optional(),
+          previousStepId: z.string().nullable(),
           type: z.literal(Type.s3_upload),
           accessKeyReference: z.string(),
           secretKeyReference: z.string(),
@@ -240,7 +240,7 @@ export namespace Step {
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().optional(),
+          previousStepId: z.string().nullable(),
           type: z.literal(Type.s3_download),
           accessKeyReference: z.string(),
           secretKeyReference: z.string(),
@@ -255,18 +255,18 @@ export namespace Step {
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().optional(),
+          previousStepId: z.string().nullable(),
           type: z.literal(Type.postgres_backup),
-          databases: z.union([
-            z.object({ selection: z.literal("all") }),
-            z.object({ selection: z.literal("include"), include: z.array(z.string()) }),
-            z.object({ selection: z.literal("exclude"), exclude: z.array(z.string()) }),
+          selection: z.union([
+            z.object({ databases: z.literal("all") }),
+            z.object({ databases: z.literal("include"), include: z.array(z.string()) }),
+            z.object({ databases: z.literal("exclude"), exclude: z.array(z.string()) }),
           ]),
         } satisfies SubSchema<Step.PostgresBackup>),
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().optional(),
+          previousStepId: z.string().nullable(),
           type: z.literal(Type.postgres_restore),
           database: z.string(),
         } satisfies SubSchema<Step.PostgresRestore>),

@@ -1,6 +1,7 @@
 import { Step } from "@/models/Step";
+import { Block } from "../canvas/Block";
 
-const typeLabels: Record<Step.Type, string> = {
+const types: Record<Step.Type, string> = {
   [Step.Type.filesystem_read]: "Filesystem Read",
   [Step.Type.filesystem_write]: "Filesystem Write",
   [Step.Type.postgres_backup]: "Postgres Backup",
@@ -16,7 +17,7 @@ const typeLabels: Record<Step.Type, string> = {
   [Step.Type.s3_download]: "S3 Download",
 };
 
-const categoryLabels: Record<Step.Category, string> = {
+const categories: Record<Step.Category, string> = {
   [Step.Category.producer]: "Artifact producers",
   [Step.Category.transformer]: "Artifact transformers",
   [Step.Category.consumer]: "Artifact consumers",
@@ -24,10 +25,74 @@ const categoryLabels: Record<Step.Category, string> = {
 
 export namespace StepTranslation {
   export function type(type: Step.Type): string {
-    return typeLabels[type];
+    return types[type];
   }
-
   export function category(category: Step.Category): string {
-    return categoryLabels[category];
+    return categories[category];
+  }
+  export function details(step: Step): Block["details"] {
+    switch (step.type) {
+      case Step.Type.filesystem_read:
+        return {
+          Path: step.path,
+        };
+      case Step.Type.filesystem_write:
+        return {
+          Path: step.path,
+        };
+      case Step.Type.compression:
+        return {
+          Implementation: step.algorithm.implementation,
+          "Compression level": step.algorithm.level,
+        };
+      case Step.Type.decompression:
+        return {
+          Implementation: step.algorithm.implementation,
+        };
+      case Step.Type.encryption:
+        return {
+          "Key reference": step.keyReference,
+          Implementation: step.algorithm.implementation,
+        };
+      case Step.Type.decryption:
+        return {
+          "Key reference": step.keyReference,
+          Implementation: step.algorithm.implementation,
+        };
+      case Step.Type.folder_flatten:
+        return {};
+      case Step.Type.folder_group:
+        return {};
+      case Step.Type.script_execution:
+        return {
+          Path: step.path,
+          "Passthrough?": step.passthrough,
+        };
+      case Step.Type.s3_upload:
+        return {
+          "Access key reference": step.accessKeyReference,
+          "Secret key reference": step.secretKeyReference,
+          "Base folder": step.baseFolder,
+        };
+      case Step.Type.s3_download:
+        return {
+          "Access key reference": step.accessKeyReference,
+          "Secret key reference": step.secretKeyReference,
+          "Base folder": step.baseFolder,
+          Artifact: step.artifact,
+          Selection: step.selection.target,
+          "Selection version": step.selection.target === "specific" ? step.selection.version : undefined,
+        };
+      case Step.Type.postgres_backup:
+        return {
+          Selection: step.selection.databases,
+          "Selection include": step.selection.databases === "include" ? step.selection.include : undefined,
+          "Selection exclude": step.selection.databases === "exclude" ? step.selection.exclude : undefined,
+        };
+      case Step.Type.postgres_restore:
+        return {
+          Database: step.database,
+        };
+    }
   }
 }

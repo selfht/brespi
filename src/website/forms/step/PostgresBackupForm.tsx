@@ -8,11 +8,11 @@ import { StepTranslation } from "../../translation/StepTranslation";
 import { FormHelper } from "../FormHelper";
 
 type Form = {
-  databases: "all" | "include" | "exclude";
-  databasesInclude: {
+  selection: "all" | "include" | "exclude";
+  selectionInclude: {
     include: string[];
   };
-  databasesExclude: {
+  selectionExclude: {
     exclude: string[];
   };
 };
@@ -24,14 +24,15 @@ type Props = {
   className?: string;
 };
 export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className }: Props) {
+  console.log(existing);
   const { register, handleSubmit, formState, watch } = useForm<Form>({
     defaultValues: {
-      databases: existing?.databases.selection ?? "all",
-      databasesInclude: {
-        include: existing?.databases.selection === "include" ? existing?.databases.include : [],
+      selection: existing?.selection.databases ?? "all",
+      selectionInclude: {
+        include: existing?.selection.databases === "include" ? existing?.selection.include : [],
       },
-      databasesExclude: {
-        exclude: existing?.databases.selection === "exclude" ? existing?.databases.exclude : [],
+      selectionExclude: {
+        exclude: existing?.selection.databases === "exclude" ? existing?.selection.exclude : [],
       },
     },
   });
@@ -39,26 +40,26 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
     await FormHelper.snoozeBeforeSubmit();
     onSubmit({
       id,
-      previousStepId: existing?.previousStepId,
+      previousStepId: existing?.previousStepId || null,
       type: Step.Type.postgres_backup,
-      databases:
-        form.databases === "all"
+      selection:
+        form.selection === "all"
           ? {
-              selection: form.databases,
+              databases: form.selection,
             }
-          : form.databases === "include"
+          : form.selection === "include"
             ? {
-                selection: form.databases,
-                include: form.databasesInclude.include,
+                databases: form.selection,
+                ...form.selectionInclude,
               }
             : {
-                selection: form.databases,
-                exclude: form.databasesExclude.exclude,
+                databases: form.selection,
+                ...form.selectionExclude,
               },
     });
   };
 
-  const databases = watch("databases");
+  const selection = watch("selection");
   return (
     <div className={clsx(className, "u-subgrid font-light")}>
       <div className="col-span-6 pr-3">
@@ -71,16 +72,16 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
           <div className="flex items-center">
             <label
               className={clsx("w-72", {
-                "text-c-error": formState.errors.databases,
+                "text-c-error": formState.errors.selection,
               })}
             >
               Selection
             </label>
             <select
               className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors.databases,
+                "outline-2 outline-c-error": formState.errors.selection,
               })}
-              {...register("databases", {
+              {...register("selection", {
                 required: true,
               })}
             >
@@ -91,11 +92,11 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
               ))}
             </select>
           </div>
-          {databases === "include" && (
+          {selection === "include" && (
             <div className="flex items-center">
               <label
                 className={clsx("w-72", {
-                  "text-c-error": formState.errors.databasesInclude?.include,
+                  "text-c-error": formState.errors.selectionInclude?.include,
                 })}
               >
                 Include
@@ -103,19 +104,19 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
               <input
                 type="text"
                 className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                  "outline-2 outline-c-error": formState.errors.databasesInclude?.include,
+                  "outline-2 outline-c-error": formState.errors.selectionInclude?.include,
                 })}
-                {...register("databasesInclude.include", {
+                {...register("selectionInclude.include", {
                   setValueAs: (values: string | string[]) => (typeof values === "string" ? values.split(",") : values.join(",")),
                 })}
               />
             </div>
           )}
-          {databases === "exclude" && (
+          {selection === "exclude" && (
             <div className="flex items-center">
               <label
                 className={clsx("w-72", {
-                  "text-c-error": formState.errors.databasesInclude?.include,
+                  "text-c-error": formState.errors.selectionExclude?.exclude,
                 })}
               >
                 Exclude
@@ -123,9 +124,9 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
               <input
                 type="text"
                 className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                  "outline-2 outline-c-error": formState.errors.databasesExclude?.exclude,
+                  "outline-2 outline-c-error": formState.errors.selectionExclude?.exclude,
                 })}
-                {...register("databasesExclude.exclude", {
+                {...register("selectionExclude.exclude", {
                   setValueAs: (values: string | string[]) => (typeof values === "string" ? values.split(",") : values.join(",")),
                 })}
               />

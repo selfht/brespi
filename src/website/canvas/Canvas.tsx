@@ -65,7 +65,7 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
             x: position.x,
             y: position.y,
           },
-          incomingId: incomingLink ? (incomingLink.source().id as string) : undefined,
+          incomingId: incomingLink ? (incomingLink.source().id as string) : null,
         };
       });
       blocksRef.current = updatedBlocks;
@@ -110,6 +110,7 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
       };
       const newBlock: JointBlock = {
         ...safeBlockWithoutTheRiskOfExtraProperties,
+        incomingId: null,
         coordinates: PositioningHelper.findOptimalFreeSpot(blocksRef.current, {
           width: Number(paperRef.current!.options.width),
           height: Number(paperRef.current!.options.height),
