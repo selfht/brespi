@@ -23,12 +23,20 @@ const categories: Record<Step.Category, string> = {
   [Step.Category.consumer]: "Artifact consumers",
 };
 
+const algorithms: Record<"targzip" | "aes256cbc", string> = {
+  targzip: "tar/gzip",
+  aes256cbc: "AES-256-CBC",
+};
+
 export namespace StepTranslation {
   export function type(type: Step.Type): string {
     return types[type];
   }
   export function category(category: Step.Category): string {
     return categories[category];
+  }
+  export function algorithm(algorithm: keyof typeof algorithms): string {
+    return algorithms[algorithm];
   }
   export function details(step: Step): Block["details"] {
     switch (step.type) {
@@ -42,22 +50,22 @@ export namespace StepTranslation {
         };
       case Step.Type.compression:
         return {
-          Algorithm: step.algorithm.implementation,
+          Algorithm: algorithms[step.algorithm.implementation],
           "Compression level": step.algorithm.level,
         };
       case Step.Type.decompression:
         return {
-          Algorithm: step.algorithm.implementation,
+          Algorithm: algorithms[step.algorithm.implementation],
         };
       case Step.Type.encryption:
         return {
           "Key reference": step.keyReference,
-          Algorithm: step.algorithm.implementation,
+          Algorithm: algorithms[step.algorithm.implementation],
         };
       case Step.Type.decryption:
         return {
           "Key reference": step.keyReference,
-          Algorithm: step.algorithm.implementation,
+          Algorithm: algorithms[step.algorithm.implementation],
         };
       case Step.Type.folder_flatten:
         return {};
@@ -85,9 +93,9 @@ export namespace StepTranslation {
         };
       case Step.Type.postgres_backup:
         return {
-          Selection: step.selection.databases,
-          "Selection include": step.selection.databases === "include" ? step.selection.include : undefined,
-          "Selection exclude": step.selection.databases === "exclude" ? step.selection.exclude : undefined,
+          Selection: step.databaseSelection.strategy,
+          "Selection include": step.databaseSelection.strategy === "include" ? step.databaseSelection.include : undefined,
+          "Selection exclude": step.databaseSelection.strategy === "exclude" ? step.databaseSelection.exclude : undefined,
         };
       case Step.Type.postgres_restore:
         return {

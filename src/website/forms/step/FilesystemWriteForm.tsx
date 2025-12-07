@@ -8,38 +8,28 @@ import { StepTranslation } from "../../translation/StepTranslation";
 import { FormHelper } from "../FormHelper";
 
 type Form = {
-  algorithmImplementation: "targzip";
-  algorithmTargzip: {
-    level: number;
-  };
+  path: string;
 };
 type Props = {
   id: string;
-  existing?: Step.Compression;
+  existing?: Step.FilesystemWrite;
   onCancel: () => unknown;
-  onSubmit: (step: Step.Compression) => unknown;
+  onSubmit: (step: Step.FilesystemWrite) => unknown;
   className?: string;
 };
-export function CompressionForm({ id, existing, onCancel, onSubmit, className }: Props) {
+export function FilesystemWriteForm({ id, existing, onCancel, onSubmit, className }: Props) {
   const { register, handleSubmit, formState } = useForm<Form>({
     defaultValues: {
-      algorithmImplementation: existing?.algorithm.implementation ?? "targzip",
-      algorithmTargzip: {
-        level: existing?.algorithm.level ?? 9,
-      },
+      path: existing?.path ?? "",
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
-    await new Promise((res) => setTimeout(res, 500));
     onSubmit({
       id,
       previousStepId: existing?.previousStepId || null,
-      type: Step.Type.compression,
-      algorithm: {
-        implementation: form.algorithmImplementation,
-        level: form.algorithmTargzip?.level,
-      },
+      type: Step.Type.filesystem_write,
+      path: form.path,
     });
   };
   return (
@@ -47,45 +37,25 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
       <div className="col-span-6 pr-3">
         <div className="flex items-center gap-2">
           {existing && <Icon variant="trashcan" />}
-          <h1 className="text-2xl font-extralight text-c-dim">{StepTranslation.type(Step.Type.compression)}</h1>
+          <h1 className="text-2xl font-extralight text-c-dim">{StepTranslation.type(Step.Type.filesystem_write)}</h1>
         </div>
 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label
               className={clsx("w-72", {
-                "text-c-error": formState.errors.algorithmImplementation,
+                "text-c-error": formState.errors.path,
               })}
             >
-              Algorithm
-            </label>
-            <select
-              className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors.algorithmImplementation,
-              })}
-              {...register("algorithmImplementation", {
-                required: true,
-              })}
-            >
-              <option value="targzip">{StepTranslation.algorithm("targzip")}</option>
-            </select>
-          </div>
-          <div className="flex items-center">
-            <label
-              className={clsx("w-72", {
-                "text-c-error": formState.errors.algorithmTargzip?.level,
-              })}
-            >
-              Compression level
+              Path
             </label>
             <input
-              type="number"
+              type="text"
               className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors.algorithmTargzip?.level,
+                "outline-2 outline-c-error": formState.errors.path,
               })}
-              {...register("algorithmTargzip.level", {
+              {...register("path", {
                 required: true,
-                valueAsNumber: true,
               })}
             />
           </div>
@@ -103,7 +73,10 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
         </div>
       </div>
       <div className="col-span-6 pl-3 border-l-2 border-c-dim/20">
-        <p>This step can be used for compressing artifacts</p>
+        <p>This step can be used for writing to the local filesystem.</p>
+        <p>
+          The <strong className="font-bold">path</strong> references the target location where artifacts will be written.
+        </p>
       </div>
     </div>
   );

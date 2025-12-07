@@ -8,37 +8,32 @@ import { StepTranslation } from "../../translation/StepTranslation";
 import { FormHelper } from "../FormHelper";
 
 type Form = {
-  algorithmImplementation: "targzip";
-  algorithmTargzip: {
-    level: number;
-  };
+  keyReference: string;
+  algorithmImplementation: "aes256cbc";
 };
 type Props = {
   id: string;
-  existing?: Step.Compression;
+  existing?: Step.Encryption;
   onCancel: () => unknown;
-  onSubmit: (step: Step.Compression) => unknown;
+  onSubmit: (step: Step.Encryption) => unknown;
   className?: string;
 };
-export function CompressionForm({ id, existing, onCancel, onSubmit, className }: Props) {
+export function EncryptionForm({ id, existing, onCancel, onSubmit, className }: Props) {
   const { register, handleSubmit, formState } = useForm<Form>({
     defaultValues: {
-      algorithmImplementation: existing?.algorithm.implementation ?? "targzip",
-      algorithmTargzip: {
-        level: existing?.algorithm.level ?? 9,
-      },
+      keyReference: existing?.keyReference ?? "",
+      algorithmImplementation: existing?.algorithm.implementation ?? "aes256cbc",
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
-    await new Promise((res) => setTimeout(res, 500));
     onSubmit({
       id,
       previousStepId: existing?.previousStepId || null,
-      type: Step.Type.compression,
+      type: Step.Type.encryption,
+      keyReference: form.keyReference,
       algorithm: {
         implementation: form.algorithmImplementation,
-        level: form.algorithmTargzip?.level,
       },
     });
   };
@@ -47,10 +42,28 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
       <div className="col-span-6 pr-3">
         <div className="flex items-center gap-2">
           {existing && <Icon variant="trashcan" />}
-          <h1 className="text-2xl font-extralight text-c-dim">{StepTranslation.type(Step.Type.compression)}</h1>
+          <h1 className="text-2xl font-extralight text-c-dim">{StepTranslation.type(Step.Type.encryption)}</h1>
         </div>
 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
+          <div className="flex items-center">
+            <label
+              className={clsx("w-72", {
+                "text-c-error": formState.errors.keyReference,
+              })}
+            >
+              Key Reference
+            </label>
+            <input
+              type="text"
+              className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
+                "outline-2 outline-c-error": formState.errors.keyReference,
+              })}
+              {...register("keyReference", {
+                required: true,
+              })}
+            />
+          </div>
           <div className="flex items-center">
             <label
               className={clsx("w-72", {
@@ -67,27 +80,8 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
                 required: true,
               })}
             >
-              <option value="targzip">{StepTranslation.algorithm("targzip")}</option>
+              <option value="aes256cbc">{StepTranslation.algorithm("aes256cbc")}</option>
             </select>
-          </div>
-          <div className="flex items-center">
-            <label
-              className={clsx("w-72", {
-                "text-c-error": formState.errors.algorithmTargzip?.level,
-              })}
-            >
-              Compression level
-            </label>
-            <input
-              type="number"
-              className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors.algorithmTargzip?.level,
-              })}
-              {...register("algorithmTargzip.level", {
-                required: true,
-                valueAsNumber: true,
-              })}
-            />
           </div>
         </fieldset>
 
@@ -103,7 +97,10 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
         </div>
       </div>
       <div className="col-span-6 pl-3 border-l-2 border-c-dim/20">
-        <p>This step can be used for compressing artifacts</p>
+        <p>This step can be used for encrypting artifacts.</p>
+        <p>
+          The <strong className="font-bold">key reference</strong> specifies which encryption key to use.
+        </p>
       </div>
     </div>
   );

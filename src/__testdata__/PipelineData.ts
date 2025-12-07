@@ -10,8 +10,8 @@ export namespace PipelineData {
         id: Bun.randomUUIDv7(),
         previousStepId: null,
         type: Step.Type.postgres_backup,
-        selection: {
-          databases: "include",
+        databaseSelection: {
+          strategy: "include",
           include: ["apple", "banana", "coconut"],
         },
       },

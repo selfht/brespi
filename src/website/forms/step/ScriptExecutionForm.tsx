@@ -8,38 +8,31 @@ import { StepTranslation } from "../../translation/StepTranslation";
 import { FormHelper } from "../FormHelper";
 
 type Form = {
-  algorithmImplementation: "targzip";
-  algorithmTargzip: {
-    level: number;
-  };
+  path: string;
+  passthrough: boolean;
 };
 type Props = {
   id: string;
-  existing?: Step.Compression;
+  existing?: Step.ScriptExecution;
   onCancel: () => unknown;
-  onSubmit: (step: Step.Compression) => unknown;
+  onSubmit: (step: Step.ScriptExecution) => unknown;
   className?: string;
 };
-export function CompressionForm({ id, existing, onCancel, onSubmit, className }: Props) {
+export function ScriptExecutionForm({ id, existing, onCancel, onSubmit, className }: Props) {
   const { register, handleSubmit, formState } = useForm<Form>({
     defaultValues: {
-      algorithmImplementation: existing?.algorithm.implementation ?? "targzip",
-      algorithmTargzip: {
-        level: existing?.algorithm.level ?? 9,
-      },
+      path: existing?.path ?? "",
+      passthrough: existing?.passthrough ?? false,
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
-    await new Promise((res) => setTimeout(res, 500));
     onSubmit({
       id,
       previousStepId: existing?.previousStepId || null,
-      type: Step.Type.compression,
-      algorithm: {
-        implementation: form.algorithmImplementation,
-        level: form.algorithmTargzip?.level,
-      },
+      type: Step.Type.script_execution,
+      path: form.path,
+      passthrough: form.passthrough,
     });
   };
   return (
@@ -47,47 +40,31 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
       <div className="col-span-6 pr-3">
         <div className="flex items-center gap-2">
           {existing && <Icon variant="trashcan" />}
-          <h1 className="text-2xl font-extralight text-c-dim">{StepTranslation.type(Step.Type.compression)}</h1>
+          <h1 className="text-2xl font-extralight text-c-dim">{StepTranslation.type(Step.Type.script_execution)}</h1>
         </div>
 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label
               className={clsx("w-72", {
-                "text-c-error": formState.errors.algorithmImplementation,
+                "text-c-error": formState.errors.path,
               })}
             >
-              Algorithm
-            </label>
-            <select
-              className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors.algorithmImplementation,
-              })}
-              {...register("algorithmImplementation", {
-                required: true,
-              })}
-            >
-              <option value="targzip">{StepTranslation.algorithm("targzip")}</option>
-            </select>
-          </div>
-          <div className="flex items-center">
-            <label
-              className={clsx("w-72", {
-                "text-c-error": formState.errors.algorithmTargzip?.level,
-              })}
-            >
-              Compression level
+              Script path
             </label>
             <input
-              type="number"
+              type="text"
               className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors.algorithmTargzip?.level,
+                "outline-2 outline-c-error": formState.errors.path,
               })}
-              {...register("algorithmTargzip.level", {
+              {...register("path", {
                 required: true,
-                valueAsNumber: true,
               })}
             />
+          </div>
+          <div className="flex items-center">
+            <label className="w-72">Passthrough?</label>
+            <input type="checkbox" className="rounded p-2 bg-c-dim/20" {...register("passthrough")} />
           </div>
         </fieldset>
 
@@ -103,7 +80,13 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
         </div>
       </div>
       <div className="col-span-6 pl-3 border-l-2 border-c-dim/20">
-        <p>This step can be used for compressing artifacts</p>
+        <p>This step can be used for executing custom scripts on artifacts.</p>
+        <p>
+          The <strong className="font-bold">script path</strong> references the script file to execute.
+        </p>
+        <p>
+          If <strong className="font-bold">passthrough</strong> is enabled, the original artifacts will be passed along unchanged.
+        </p>
       </div>
     </div>
   );

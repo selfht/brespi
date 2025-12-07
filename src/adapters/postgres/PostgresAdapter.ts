@@ -29,12 +29,12 @@ export class PostgresAdapter {
       PGUSER: this.opts.user,
       PGPASSWORD: this.opts.password,
       BACKUP_ROOT: tempDir,
-      SELECTION_MODE: options.selection.databases,
-      ...(options.selection.databases === "include" && {
-        INCLUDE_DBS: options.selection.include.join(" "),
+      SELECTION_MODE: options.databaseSelection.strategy,
+      ...(options.databaseSelection.strategy === "include" && {
+        INCLUDE_DBS: options.databaseSelection.include.join(" "),
       }),
-      ...(options.selection.databases === "exclude" && {
-        EXCLUDE_DBS: options.selection.exclude.join(" "),
+      ...(options.databaseSelection.strategy === "exclude" && {
+        EXCLUDE_DBS: options.databaseSelection.exclude.join(" "),
       }),
     };
 

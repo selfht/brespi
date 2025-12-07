@@ -120,12 +120,12 @@ export namespace Step {
 
   export type PostgresBackup = Common & {
     type: Type.postgres_backup;
-    selection:
-      | { databases: "all" }
+    databaseSelection:
+      | { strategy: "all" }
       //
-      | { databases: "include"; include: string[] }
+      | { strategy: "include"; include: string[] }
       //
-      | { databases: "exclude"; exclude: string[] };
+      | { strategy: "exclude"; exclude: string[] };
   };
 
   export type PostgresRestore = Common & {
@@ -257,10 +257,10 @@ export namespace Step {
           id: z.string(),
           previousStepId: z.string().nullable(),
           type: z.literal(Type.postgres_backup),
-          selection: z.union([
-            z.object({ databases: z.literal("all") }),
-            z.object({ databases: z.literal("include"), include: z.array(z.string()) }),
-            z.object({ databases: z.literal("exclude"), exclude: z.array(z.string()) }),
+          databaseSelection: z.union([
+            z.object({ strategy: z.literal("all") }),
+            z.object({ strategy: z.literal("include"), include: z.array(z.string()) }),
+            z.object({ strategy: z.literal("exclude"), exclude: z.array(z.string()) }),
           ]),
         } satisfies SubSchema<Step.PostgresBackup>),
 
