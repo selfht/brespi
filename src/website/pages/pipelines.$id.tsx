@@ -23,8 +23,8 @@ import { SquareIcon } from "../comps/SquareIcon";
 import { FormHelper } from "../forms/FormHelper";
 import { StepForm } from "../forms/StepForm";
 import { useRegistry } from "../hooks/useRegistry";
-import { StepTranslation } from "../translation/StepTranslation";
 import bgCanvas from "../images/bg-canvas.svg";
+import { StepTranslation } from "../translation/StepTranslation";
 
 type Form = {
   interactivity: Interactivity;
@@ -39,13 +39,13 @@ export function pipelines_$id() {
   const pipelineClient = useRegistry.instance(PipelineClient);
 
   const queryKey = [QueryKey.pipelines, id];
-  const query = useQuery<"new" | Internal.PipelineWithInitialBlocks, ProblemDetails>({
+  const query = useQuery<"new" | PipelineView, ProblemDetails>({
     queryKey: [QueryKey.pipelines, id],
     queryFn: () => {
       if (id === "new") {
         return "new";
       }
-      return pipelineClient.find(id!).then<Internal.PipelineWithInitialBlocks>(Internal.convert);
+      return pipelineClient.find(id!);
     },
   });
 
@@ -61,9 +61,30 @@ export function pipelines_$id() {
   const [stepForm, setStepForm] = useState<{ id: string; type: Step.Type; existingStep?: Step }>();
 
   /**
+   * General reset function (invoked once at the start, or after saving)
+   */
+  const reset = (initial: "new" | PipelineView) => {
+    if (initial === "new") {
+      mainForm.reset({
+        interactivity: Interactivity.editing,
+        name: `My New Pipeline (${Temporal.Now.plainTimeISO().toLocaleString()})`,
+        steps: [],
+      });
+    } else {
+      mainForm.reset({
+        interactivity: Interactivity.viewing,
+        name: initial.name,
+        steps: initial.steps,
+      });
+    }
+    const blocks = initial === "new" ? [] : initial.steps.map(Internal.convertStepToBlock);
+    canvasApi.current!.reset(blocks);
+  };
+
+  /**
    * Main form API
    */
-  const mainApi = {
+  const mainFormApi = {
     async save(form: Form) {
       await FormHelper.snoozeBeforeSubmit();
       if (id === "new") {
@@ -73,38 +94,20 @@ export function pipelines_$id() {
         });
         navigate(`/pipelines/${pipeline.id}`, { replace: true });
       } else {
-        const pipelineWithInitialBlocks = await pipelineClient
-          .update(id!, {
-            id: id!,
-            name: form.name,
-            steps: form.steps,
-          })
-          .then(Internal.convert);
-        queryClient.setQueryData(queryKey, pipelineWithInitialBlocks);
-        mainApi.reset(pipelineWithInitialBlocks);
+        const pipeline = await pipelineClient.update(id!, {
+          id: id!,
+          name: form.name,
+          steps: form.steps,
+        });
+        queryClient.setQueryData(queryKey, pipeline);
+        // Implicitly leads to a "reset" via effect listener on "query.data"
       }
     },
     cancel() {
       if (query.data === "new") {
         navigate("/pipelines");
       } else {
-        mainApi.reset(query.data!);
-        // TODO: reset the blocks and links too !!
-      }
-    },
-    reset(initial: "new" | Internal.PipelineWithInitialBlocks) {
-      if (initial === "new") {
-        mainForm.reset({
-          interactivity: Interactivity.editing,
-          name: `My New Pipeline (${Temporal.Now.plainTimeISO().toLocaleString()})`,
-          steps: [],
-        });
-      } else {
-        mainForm.reset({
-          interactivity: Interactivity.viewing,
-          name: initial.name,
-          steps: initial.steps,
-        });
+        reset(query.data!);
       }
     },
   };
@@ -112,8 +115,8 @@ export function pipelines_$id() {
   /**
    * Step form API
    */
-  const stepApi = {
-    showForm(type: Step.Type, existingStep?: Step) {
+  const stepFormApi = {
+    show(type: Step.Type, existingStep?: Step) {
       const stepId = existingStep?.id ?? `${Math.random()}`; // TODO!!!
       setStepForm({ id: stepId, type, existingStep });
       if (!existingStep) {
@@ -126,20 +129,7 @@ export function pipelines_$id() {
         });
       }
     },
-    cancelForm() {
-      setStepForm((stepForm) => {
-        if (stepForm) {
-          const didNewStepGetTemporarilyAdded = !stepForm.existingStep;
-          if (didNewStepGetTemporarilyAdded) {
-            canvasApi.current!.remove(stepForm.id);
-          } else {
-            canvasApi.current!.deselect(stepForm.id);
-          }
-        }
-        return undefined;
-      });
-    },
-    upsert(step: Step) {
+    save(step: Step) {
       const steps = mainForm.getValues("steps");
       const existingStep: boolean = steps.some((s) => s.id === step.id);
       if (existingStep) {
@@ -158,6 +148,19 @@ export function pipelines_$id() {
         return undefined;
       });
     },
+    cancel() {
+      setStepForm((stepForm) => {
+        if (stepForm) {
+          const didNewStepGetTemporarilyAdded = !stepForm.existingStep;
+          if (didNewStepGetTemporarilyAdded) {
+            canvasApi.current!.remove(stepForm.id);
+          } else {
+            canvasApi.current!.deselect(stepForm.id);
+          }
+        }
+        return undefined;
+      });
+    },
   };
 
   /**
@@ -171,12 +174,12 @@ export function pipelines_$id() {
         const selectedBlock = blocks.find((block) => block.selected);
         const selectedStep = mainForm.getValues("steps").find((step) => step.id === selectedBlock?.id);
         if (interactivity === Interactivity.editing && selectedStep) {
-          stepApi.showForm(selectedStep.type, selectedStep);
+          stepFormApi.show(selectedStep.type, selectedStep);
         }
       }
       if (event === CanvasEvent.deselect) {
         if (interactivity === Interactivity.editing) {
-          stepApi.cancelForm();
+          stepFormApi.cancel();
         }
       }
       // Relation events
@@ -203,7 +206,7 @@ export function pipelines_$id() {
    */
   useEffect(() => {
     if (query.data) {
-      mainApi.reset(query.data);
+      reset(query.data);
     }
   }, [query.data, mainForm]);
 
@@ -258,7 +261,7 @@ export function pipelines_$id() {
                   <>
                     {!mainForm.formState.isSubmitting && (
                       <Button
-                        onClick={mainApi.cancel}
+                        onClick={mainFormApi.cancel}
                         disabled={mainForm.formState.isSubmitting || Boolean(stepForm)}
                         className="border-c-primary/80 bg-c-primary/80 text-c-dark hover:bg-c-primary"
                       >
@@ -266,7 +269,7 @@ export function pipelines_$id() {
                       </Button>
                     )}
                     <Button
-                      onClick={mainForm.handleSubmit(mainApi.save)}
+                      onClick={mainForm.handleSubmit(mainFormApi.save)}
                       disabled={mainForm.formState.isSubmitting || Boolean(stepForm)}
                       className="border-c-success/80 bg-c-success/80 text-c-dark hover:bg-c-success"
                     >
@@ -285,12 +288,7 @@ export function pipelines_$id() {
                 })}
                 style={{ backgroundImage: `url(${bgCanvas})`, backgroundSize: 10 }}
               >
-                <Canvas
-                  ref={canvasApi}
-                  interactivity={interactivity}
-                  initialBlocks={query.data === "new" ? [] : query.data.initialBlocks}
-                  onBlocksChange={canvasListener.handleBlocksChange}
-                />
+                <Canvas ref={canvasApi} interactivity={interactivity} onBlocksChange={canvasListener.handleBlocksChange} />
               </div>
             </div>
             {/* DETAILS */}
@@ -298,7 +296,7 @@ export function pipelines_$id() {
               <>
                 <div className="col-span-6 p-6">
                   <h2 className="mb-6 text-xl font-extralight">Execution History</h2>
-                  {(query.data as Internal.PipelineWithInitialBlocks).executions.map((execution) => (
+                  {(query.data as PipelineView).executions.map((execution) => (
                     <button key={execution.id} className="mt-4 flex items-center text-left gap-4 group cursor-pointer">
                       <SquareIcon variant={execution.outcome} className="group-hover:border-white group-hover:bg-c-dim/20" />
                       <div>
@@ -309,9 +307,9 @@ export function pipelines_$id() {
                       </div>
                     </button>
                   ))}
-                  {(query.data as Internal.PipelineWithInitialBlocks).executions.length === 0 && <SquareIcon variant="no_data" />}
+                  {(query.data as PipelineView).executions.length === 0 && <SquareIcon variant="no_data" />}
                 </div>
-                {(query.data as Internal.PipelineWithInitialBlocks).executions.length > 0 && (
+                {(query.data as PipelineView).executions.length > 0 && (
                   <div className="col-span-6 p-6">
                     <h2 className="mb-6 text-xl font-extralight">Execution Details</h2>
                     <p className="text-c-dim font-extralight">Select an execution to see its details.</p>
@@ -326,7 +324,7 @@ export function pipelines_$id() {
                     <div className="font-extralight text-c-dim mt-3">{bg.categoryLabel}</div>
                     <div className="flex flex-wrap gap-2 mt-6">
                       {bg.steps.map((step) => (
-                        <Button key={step.type} onClick={() => stepApi.showForm(step.type)} icon="new" className="border-c-info!">
+                        <Button key={step.type} onClick={() => stepFormApi.show(step.type)} icon="new" className="border-c-info!">
                           {step.typeLabel}
                         </Button>
                       ))}
@@ -340,8 +338,8 @@ export function pipelines_$id() {
                 id={stepForm.id}
                 type={stepForm.type}
                 existing={stepForm.existingStep}
-                onCancel={stepApi.cancelForm}
-                onSubmit={stepApi.upsert}
+                onCancel={stepFormApi.cancel}
+                onSubmit={stepFormApi.save}
               />
             )}
           </>
@@ -352,15 +350,6 @@ export function pipelines_$id() {
 }
 
 namespace Internal {
-  export type PipelineWithInitialBlocks = PipelineView & {
-    initialBlocks: Block[];
-  };
-  export function convert(pipeline: PipelineView): PipelineWithInitialBlocks {
-    return {
-      ...pipeline,
-      initialBlocks: pipeline.steps.map<Block>(convertStepToBlock),
-    };
-  }
   export function convertStepToBlock(step: Step): Block {
     return {
       id: step.id,

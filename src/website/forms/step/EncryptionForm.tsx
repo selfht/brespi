@@ -80,7 +80,7 @@ export function EncryptionForm({ id, existing, onCancel, onSubmit, className }: 
                 required: true,
               })}
             >
-              <option value="aes256cbc">{StepTranslation.algorithm("aes256cbc")}</option>
+              <option value="aes256cbc">aes256cbc</option>
             </select>
           </div>
         </fieldset>

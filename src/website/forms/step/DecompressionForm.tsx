@@ -59,7 +59,7 @@ export function DecompressionForm({ id, existing, onCancel, onSubmit, className 
                 required: true,
               })}
             >
-              <option value="targzip">{StepTranslation.algorithm("targzip")}</option>
+              <option value="targzip">targzip</option>
             </select>
           </div>
         </fieldset>

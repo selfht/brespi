@@ -1,6 +1,8 @@
+import { BetterOmit } from "@/types/BetterOmit";
 import { dia } from "@joint/core";
 import { ReactElement, RefObject, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Block } from "./Block";
+import "./Canvas.css";
 import { CanvasEvent } from "./CanvasEvent";
 import { Interactivity } from "./Interactivity";
 import { createCell } from "./jointframework/createCell";
@@ -14,8 +16,6 @@ import { setupLinkInteractions } from "./jointframework/setupLinkInteractions";
 import { setupPanning } from "./jointframework/setupPanning";
 import { Dimensions } from "./jointframework/types/Dimensions";
 import { JointBlock } from "./jointframework/types/JointBlock";
-import { BetterOmit } from "@/types/BetterOmit";
-import "./Canvas.css";
 
 /**
  * One-way databinding is strongly discouraged for the Canvas editor for performance reasons.
@@ -24,11 +24,10 @@ import "./Canvas.css";
 type Props = {
   ref: RefObject<Canvas.Api | null>;
   interactivity: Interactivity;
-  initialBlocks: Block[];
   onBlocksChange?: (event: CanvasEvent, blocks: Block[]) => void;
   className?: string;
 };
-export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_, __) => {}, className }: Props): ReactElement {
+export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, className }: Props): ReactElement {
   /**
    * Refs
    */
@@ -39,9 +38,10 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
   const interactivityRef = useRef<Interactivity>(interactivity);
 
   /**
-   * State
+   * Initialization
    */
-  const [initiallyDrawn, setInitiallyDrawn] = useState(false);
+  const [parentDimensionsMeasured, setParentDimensionsMeasured] = useState(false);
+  const parentDimensionsPromiseRef = useRef(Promise.withResolvers<void>());
 
   /**
    * Internal API
@@ -75,17 +75,25 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
         updatedBlocks.map(({ coordinates, ...block }) => block), // strip coordinates
       );
     },
-    performInitialDraw() {
+    performInitialDraw(blocks: Block[]): JointBlock[] {
+      /**
+       * Part 1/2: cleanup
+       */
+      paperRef.current!.translate(0, 0);
+      graphRef.current!.clear();
+      /**
+       * Part 2/2: setup
+       */
       const dimensions: Dimensions = {
         width: Number(paperRef.current!.options.width),
         height: Number(paperRef.current!.options.height),
       };
-      blocksRef.current = PositioningHelper.performSmartPositioning(initialBlocks, dimensions);
+      const jointBlocks: JointBlock[] = PositioningHelper.performSmartPositioning(blocks, dimensions);
       // Add blocks
-      const cells = blocksRef.current.map(createCell);
+      const cells = jointBlocks.map(createCell);
       graphRef.current!.addCells(cells);
       // Add links
-      blocksRef.current.forEach((block) => {
+      jointBlocks.forEach((block) => {
         if (block.incomingId) {
           const sourceCell = graphRef.current!.getCell(block.incomingId);
           const targetCell = graphRef.current!.getCell(block.id);
@@ -99,6 +107,7 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
           }
         }
       });
+      return jointBlocks;
     },
   };
 
@@ -106,6 +115,11 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
    * Public API
    */
   const api: Canvas.Api = {
+    async reset(blocks) {
+      await parentDimensionsPromiseRef.current.promise;
+      blocksRef.current = internal.performInitialDraw(blocks);
+      // TODO: reset blocksRef (and get rid of JointBlock !!!) (and get rid of the `initialBlocks` property !!!)
+    },
     format() {
       blocksRef.current = PositioningHelper.performSmartPositioning(blocksRef.current, {
         width: Number(paperRef.current!.options.width),
@@ -127,7 +141,6 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
         selected: block.selected,
       };
       const panPosition = paperRef.current!.translate();
-      console.log(panPosition);
       const newBlock: JointBlock = {
         ...safeBlockWithoutTheRiskOfExtraProperties,
         incomingId: null,
@@ -249,9 +262,9 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
         paper.setDimensions(width, height);
-        setInitiallyDrawn((alreadyDrawn) => {
-          if (!alreadyDrawn) {
-            internal.performInitialDraw();
+        setParentDimensionsMeasured((parentDimensionsMeasured) => {
+          if (!parentDimensionsMeasured) {
+            parentDimensionsPromiseRef.current.resolve();
           }
           return true;
         });
@@ -300,6 +313,7 @@ export function Canvas({ ref, interactivity, initialBlocks, onBlocksChange = (_,
 
 export namespace Canvas {
   export type Api = {
+    reset: (blocks: Block[]) => Promise<void>;
     format: () => void;
     insert: (block: BetterOmit<Block, "incomingId">) => void;
     update: (id: string, changes: Pick<Block, "label" | "details">) => void;

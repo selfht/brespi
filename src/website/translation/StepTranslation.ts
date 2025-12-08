@@ -23,20 +23,12 @@ const categories: Record<Step.Category, string> = {
   [Step.Category.consumer]: "Artifact consumers",
 };
 
-const algorithms: Record<"targzip" | "aes256cbc", string> = {
-  targzip: "tar/gzip",
-  aes256cbc: "AES-256-CBC",
-};
-
 export namespace StepTranslation {
   export function type(type: Step.Type): string {
     return types[type];
   }
   export function category(category: Step.Category): string {
     return categories[category];
-  }
-  export function algorithm(algorithm: keyof typeof algorithms): string {
-    return algorithms[algorithm];
   }
   export function details(step: Step): Block["details"] {
     switch (step.type) {
@@ -50,22 +42,22 @@ export namespace StepTranslation {
         };
       case Step.Type.compression:
         return {
-          Algorithm: algorithms[step.algorithm.implementation],
+          Algorithm: step.algorithm.implementation,
           "Compression level": step.algorithm.level,
         };
       case Step.Type.decompression:
         return {
-          Algorithm: algorithms[step.algorithm.implementation],
+          Algorithm: step.algorithm.implementation,
         };
       case Step.Type.encryption:
         return {
           "Key reference": step.keyReference,
-          Algorithm: algorithms[step.algorithm.implementation],
+          Algorithm: step.algorithm.implementation,
         };
       case Step.Type.decryption:
         return {
           "Key reference": step.keyReference,
-          Algorithm: algorithms[step.algorithm.implementation],
+          Algorithm: step.algorithm.implementation,
         };
       case Step.Type.folder_flatten:
         return {};

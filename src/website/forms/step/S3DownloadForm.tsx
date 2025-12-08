@@ -43,10 +43,7 @@ export function S3DownloadForm({ id, existing, onCancel, onSubmit, className }: 
       secretKeyReference: form.secretKeyReference,
       baseFolder: form.baseFolder,
       artifact: form.artifact,
-      selection:
-        form.selectionTarget === "latest"
-          ? { target: "latest" }
-          : { target: "specific", version: form.selectionSpecificVersion },
+      selection: form.selectionTarget === "latest" ? { target: "latest" } : { target: "specific", version: form.selectionSpecificVersion },
     });
   };
 
@@ -148,8 +145,8 @@ export function S3DownloadForm({ id, existing, onCancel, onSubmit, className }: 
                 required: true,
               })}
             >
-              <option value="latest">Latest</option>
-              <option value="specific">Specific Version</option>
+              <option value="latest">latest</option>
+              <option value="specific">specific</option>
             </select>
           </div>
           {selectionTarget === "specific" && (
