@@ -24,7 +24,6 @@ type Props = {
   className?: string;
 };
 export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className }: Props) {
-  console.log(existing);
   const { register, handleSubmit, formState, watch } = useForm<Form>({
     defaultValues: {
       databaseSelectionStrategy: existing?.databaseSelection.strategy ?? "all",

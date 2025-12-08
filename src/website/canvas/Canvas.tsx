@@ -132,16 +132,17 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
       });
     },
     insert(block) {
-      const safeBlockWithoutTheRiskOfExtraProperties: typeof block = {
+      block = {
         id: block.id,
         label: block.label,
         details: block.details,
         handles: block.handles,
         selected: block.selected,
+        // manually copy to prevent extra properties
       };
       const panPosition = paperRef.current!.translate();
       const newBlock: JointBlock = {
-        ...safeBlockWithoutTheRiskOfExtraProperties,
+        ...block,
         incomingId: null,
         coordinates: PositioningHelper.findNewSpot(
           blocksRef.current,
@@ -165,11 +166,12 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
       if (!block || !cell) {
         throw new Error(`Could not find block or cell; block=${Boolean(block)}, cell=${Boolean(cell)}`);
       }
-      const safeChangesWithoutTheRiskOfExtraProperties: typeof changes = {
+      changes = {
         label: changes.label,
         details: changes.details,
+        // manually copy to prevent extra properties
       };
-      Object.assign(block, safeChangesWithoutTheRiskOfExtraProperties);
+      Object.assign(block, changes);
       internal.notifyBlocksChange(CanvasEvent.update);
     },
     remove(id) {
@@ -314,9 +316,11 @@ export namespace Canvas {
   export type Api = {
     reset: (blocks: Block[]) => Promise<void>;
     format: () => void;
+    // crud
     insert: (block: BetterOmit<Block, "incomingId">) => void;
     update: (id: string, changes: Pick<Block, "label" | "details">) => void;
     remove: (id: string) => void;
+    // selection
     select: (id: string) => void;
     deselect: (id: string) => void;
   };

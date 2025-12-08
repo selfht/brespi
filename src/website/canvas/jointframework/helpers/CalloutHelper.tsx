@@ -5,7 +5,6 @@ import { JointBlock } from "../types/JointBlock";
 
 export namespace CalloutHelper {
   export function showBlockDetails(cell: dia.Cell, block: JointBlock) {
-    console.log(block.label, block.details);
     // Hide label
     cell.attr("label/display", "none");
     // Show callout
