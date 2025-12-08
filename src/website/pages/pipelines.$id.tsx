@@ -117,7 +117,7 @@ export function pipelines_$id() {
    */
   const stepFormApi = {
     show(type: Step.Type, existingStep?: Step) {
-      const stepId = existingStep?.id ?? `${Math.random()}`; // TODO!!!
+      const stepId = existingStep?.id ?? FormHelper.generateStepId();
       setStepForm({ id: stepId, type, existingStep });
       if (!existingStep) {
         canvasApi.current?.insert({

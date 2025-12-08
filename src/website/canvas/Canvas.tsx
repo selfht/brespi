@@ -118,7 +118,6 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
     async reset(blocks) {
       await parentDimensionsPromiseRef.current.promise;
       blocksRef.current = internal.performInitialDraw(blocks);
-      // TODO: reset blocksRef (and get rid of JointBlock !!!) (and get rid of the `initialBlocks` property !!!)
     },
     format() {
       blocksRef.current = PositioningHelper.performSmartPositioning(blocksRef.current, {
