@@ -27,7 +27,7 @@ export function PostgresRestoreForm({ id, existing, onCancel, onSubmit, classNam
     await FormHelper.snoozeBeforeSubmit();
     onSubmit({
       id,
-      previousStepId: existing?.previousStepId || null,
+      previousId: existing?.previousId || null,
       type: Step.Type.postgres_restore,
       database: form.database,
     });

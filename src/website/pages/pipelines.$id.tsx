@@ -25,6 +25,7 @@ import { StepForm } from "../forms/StepForm";
 import { useRegistry } from "../hooks/useRegistry";
 import bgCanvas from "../images/bg-canvas.svg";
 import { StepTranslation } from "../translation/StepTranslation";
+import { Icon } from "../comps/Icon";
 
 type Form = {
   interactivity: Interactivity;
@@ -61,7 +62,7 @@ export function pipelines_$id() {
   const [stepForm, setStepForm] = useState<{ id: string; type: Step.Type; existingStep?: Step }>();
 
   /**
-   * General reset function (invoked once at the start, or after saving)
+   * General reset function (invoked initially, or after saving)
    */
   const reset = (initial: "new" | PipelineView) => {
     if (initial === "new") {
@@ -86,21 +87,27 @@ export function pipelines_$id() {
    */
   const mainFormApi = {
     async save(form: Form) {
+      mainForm.clearErrors("root");
       await FormHelper.snoozeBeforeSubmit();
-      if (id === "new") {
-        const pipeline = await pipelineClient.create({
-          name: form.name,
-          steps: form.steps,
-        });
-        navigate(`/pipelines/${pipeline.id}`, { replace: true });
-      } else {
-        const pipeline = await pipelineClient.update(id!, {
-          id: id!,
-          name: form.name,
-          steps: form.steps,
-        });
-        queryClient.setQueryData(queryKey, pipeline);
-        // Implicitly leads to a "reset" via effect listener on "query.data"
+      try {
+        if (id === "new") {
+          const pipeline = await pipelineClient.create({
+            name: form.name,
+            steps: form.steps,
+          });
+          navigate(`/pipelines/${pipeline.id}`, { replace: true });
+        } else {
+          const pipeline = await pipelineClient.update(id!, {
+            id: id!,
+            name: form.name,
+            steps: form.steps,
+          });
+          queryClient.setQueryData(queryKey, pipeline);
+          // Implicitly leads to a "reset" via the effect listener on "query.data"
+        }
+      } catch (error: unknown) {
+        const message = ProblemDetails.isInstance(error) ? error.problem : (error as Error)?.message;
+        mainForm.setError("root", { message });
       }
     },
     cancel() {
@@ -251,7 +258,7 @@ export function pipelines_$id() {
                   <input type="text" className="bg-c-dim/20 py-2 w-full active:border-none" {...mainForm.register("name")} />
                 )}
               </h1>
-              <div className="flex gap-4">
+              <div className="flex items-center gap-4">
                 {interactivity === Interactivity.viewing ? (
                   <>
                     <Button icon="play">Execute</Button>
@@ -259,6 +266,12 @@ export function pipelines_$id() {
                   </>
                 ) : (
                   <>
+                    {mainForm.formState.errors.root && (
+                      <div className="flex h-full gap-2 text-c-error">
+                        <Icon variant="error" className="size-5" />
+                        <code>{mainForm.formState.errors.root.message}</code>
+                      </div>
+                    )}
                     {!mainForm.formState.isSubmitting && (
                       <Button
                         onClick={mainFormApi.cancel}
@@ -353,7 +366,7 @@ namespace Internal {
   export function convertStepToBlock(step: Step): Block {
     return {
       id: step.id,
-      incomingId: step.previousStepId,
+      incomingId: step.previousId,
       label: StepTranslation.type(step.type),
       details: StepTranslation.details(step),
       handles: convertTypeToHandles(step.type),

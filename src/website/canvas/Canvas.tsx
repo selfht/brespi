@@ -40,8 +40,8 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
   /**
    * Initialization
    */
-  const [parentDimensionsMeasured, setParentDimensionsMeasured] = useState(false);
-  const parentDimensionsPromiseRef = useRef(Promise.withResolvers<void>());
+  const [_, setDimensionsMeasured] = useState(false);
+  const dimensionsMeasuredPromiseRef = useRef(Promise.withResolvers<void>());
 
   /**
    * Internal API
@@ -116,7 +116,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
    */
   const api: Canvas.Api = {
     async reset(blocks) {
-      await parentDimensionsPromiseRef.current.promise;
+      await dimensionsMeasuredPromiseRef.current.promise;
       blocksRef.current = internal.performInitialDraw(blocks);
     },
     format() {
@@ -263,9 +263,9 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
         paper.setDimensions(width, height);
-        setParentDimensionsMeasured((parentDimensionsMeasured) => {
-          if (!parentDimensionsMeasured) {
-            parentDimensionsPromiseRef.current.resolve();
+        setDimensionsMeasured((dimensionsMeasured) => {
+          if (!dimensionsMeasured) {
+            dimensionsMeasuredPromiseRef.current.resolve();
           }
           return true;
         });

@@ -29,7 +29,7 @@ export function ScriptExecutionForm({ id, existing, onCancel, onSubmit, classNam
     await FormHelper.snoozeBeforeSubmit();
     onSubmit({
       id,
-      previousStepId: existing?.previousStepId || null,
+      previousId: existing?.previousId || null,
       type: Step.Type.script_execution,
       path: form.path,
       passthrough: form.passthrough,

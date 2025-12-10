@@ -29,7 +29,7 @@ export function EncryptionForm({ id, existing, onCancel, onSubmit, className }: 
     await FormHelper.snoozeBeforeSubmit();
     onSubmit({
       id,
-      previousStepId: existing?.previousStepId || null,
+      previousId: existing?.previousId || null,
       type: Step.Type.encryption,
       keyReference: form.keyReference,
       algorithm: {

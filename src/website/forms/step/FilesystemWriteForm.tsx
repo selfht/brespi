@@ -27,7 +27,7 @@ export function FilesystemWriteForm({ id, existing, onCancel, onSubmit, classNam
     await FormHelper.snoozeBeforeSubmit();
     onSubmit({
       id,
-      previousStepId: existing?.previousStepId || null,
+      previousId: existing?.previousId || null,
       type: Step.Type.filesystem_write,
       path: form.path,
     });

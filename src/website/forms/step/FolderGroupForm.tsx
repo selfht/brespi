@@ -21,7 +21,7 @@ export function FolderGroupForm({ id, existing, onCancel, onSubmit, className }:
     await FormHelper.snoozeBeforeSubmit();
     onSubmit({
       id,
-      previousStepId: existing?.previousStepId || null,
+      previousId: existing?.previousId || null,
       type: Step.Type.folder_group,
     });
   };

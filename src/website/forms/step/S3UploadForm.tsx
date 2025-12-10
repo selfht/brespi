@@ -31,7 +31,7 @@ export function S3UploadForm({ id, existing, onCancel, onSubmit, className }: Pr
     await FormHelper.snoozeBeforeSubmit();
     onSubmit({
       id,
-      previousStepId: existing?.previousStepId || null,
+      previousId: existing?.previousId || null,
       type: Step.Type.s3_upload,
       accessKeyReference: form.accessKeyReference,
       secretKeyReference: form.secretKeyReference,

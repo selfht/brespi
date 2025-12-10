@@ -37,7 +37,7 @@ export function S3DownloadForm({ id, existing, onCancel, onSubmit, className }: 
     await FormHelper.snoozeBeforeSubmit();
     onSubmit({
       id,
-      previousStepId: existing?.previousStepId || null,
+      previousId: existing?.previousId || null,
       type: Step.Type.s3_download,
       accessKeyReference: form.accessKeyReference,
       secretKeyReference: form.secretKeyReference,

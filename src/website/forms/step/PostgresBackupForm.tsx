@@ -39,7 +39,7 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
     await FormHelper.snoozeBeforeSubmit();
     onSubmit({
       id,
-      previousStepId: existing?.previousStepId || null,
+      previousId: existing?.previousId || null,
       type: Step.Type.postgres_backup,
       databaseSelection:
         form.databaseSelectionStrategy === "all"

@@ -34,7 +34,7 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
     await new Promise((res) => setTimeout(res, 500));
     onSubmit({
       id,
-      previousStepId: existing?.previousStepId || null,
+      previousId: existing?.previousId || null,
       type: Step.Type.compression,
       algorithm: {
         implementation: form.algorithmImplementation,

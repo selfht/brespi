@@ -41,7 +41,7 @@ export namespace Step {
 
   type Common = {
     id: string;
-    previousStepId: string | null;
+    previousId: string | null;
   };
 
   export type FilesystemRead = Common & {
@@ -158,31 +158,31 @@ export namespace Step {
       z.discriminatedUnion("type", [
         z.object({
           id: z.string(),
-          previousStepId: z.string().nullable(),
+          previousId: z.string().nullable(),
           type: z.literal(Type.filesystem_read),
           path: z.string(),
         } satisfies SubSchema<Step.FilesystemRead>),
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().nullable(),
+          previousId: z.string().nullable(),
           type: z.literal(Type.filesystem_write),
           path: z.string(),
         } satisfies SubSchema<Step.FilesystemWrite>),
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().nullable(),
+          previousId: z.string().nullable(),
           type: z.literal(Type.compression),
           algorithm: z.object({
             implementation: z.literal("targzip"),
-            level: z.number().min(1).max(9),
+            level: z.int().min(1).max(9),
           }),
         } satisfies SubSchema<Step.Compression>),
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().nullable(),
+          previousId: z.string().nullable(),
           type: z.literal(Type.decompression),
           algorithm: z.object({
             implementation: z.literal("targzip"),
@@ -191,7 +191,7 @@ export namespace Step {
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().nullable(),
+          previousId: z.string().nullable(),
           type: z.literal(Type.encryption),
           keyReference: z.string(),
           algorithm: z.object({
@@ -201,7 +201,7 @@ export namespace Step {
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().nullable(),
+          previousId: z.string().nullable(),
           type: z.literal(Type.decryption),
           keyReference: z.string(),
           algorithm: z.object({
@@ -211,19 +211,19 @@ export namespace Step {
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().nullable(),
+          previousId: z.string().nullable(),
           type: z.literal(Type.folder_flatten),
         } satisfies SubSchema<Step.FolderFlatten>),
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().nullable(),
+          previousId: z.string().nullable(),
           type: z.literal(Type.folder_group),
         } satisfies SubSchema<Step.FolderGroup>),
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().nullable(),
+          previousId: z.string().nullable(),
           type: z.literal(Type.script_execution),
           path: z.string(),
           passthrough: z.boolean(),
@@ -231,7 +231,7 @@ export namespace Step {
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().nullable(),
+          previousId: z.string().nullable(),
           type: z.literal(Type.s3_upload),
           accessKeyReference: z.string(),
           secretKeyReference: z.string(),
@@ -240,7 +240,7 @@ export namespace Step {
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().nullable(),
+          previousId: z.string().nullable(),
           type: z.literal(Type.s3_download),
           accessKeyReference: z.string(),
           secretKeyReference: z.string(),
@@ -255,7 +255,7 @@ export namespace Step {
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().nullable(),
+          previousId: z.string().nullable(),
           type: z.literal(Type.postgres_backup),
           databaseSelection: z.union([
             z.object({ strategy: z.literal("all") }),
@@ -266,7 +266,7 @@ export namespace Step {
 
         z.object({
           id: z.string(),
-          previousStepId: z.string().nullable(),
+          previousId: z.string().nullable(),
           type: z.literal(Type.postgres_restore),
           database: z.string(),
         } satisfies SubSchema<Step.PostgresRestore>),
