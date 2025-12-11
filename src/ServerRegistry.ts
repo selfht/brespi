@@ -9,6 +9,7 @@ import { CleanupService } from "./services/CleanupService";
 import { EncryptionAdapter } from "./adapters/encyption/EncryptionAdapter";
 import { S3Adapter } from "./adapters/s3/S3Adapter";
 import { ScriptAdapter } from "./adapters/scripting/ScriptAdapter";
+import { StepService } from "./services/StepService";
 
 export class ServerRegistry {
   public static async bootstrap(): Promise<ServerRegistry> {
@@ -35,11 +36,12 @@ export class ServerRegistry {
     ));
 
     // Services
-    const pipelineService = (this.registry[PipelineService.name] = new PipelineService(adapterService));
+    const stepService = (this.registry[StepService.name] = new StepService());
+    const pipelineService = (this.registry[PipelineService.name] = new PipelineService(stepService, adapterService));
     this.registry[CleanupService.name] = new CleanupService();
 
     // Server
-    this.registry[Server.name] = new Server(pipelineService);
+    this.registry[Server.name] = new Server(stepService, pipelineService);
   }
 
   public get<T>(klass: Class<T>): T {

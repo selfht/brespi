@@ -1,10 +1,16 @@
 import z from "zod/v4";
 
 export namespace ZodProblem {
-  export function problematicProperties(e: z.core.$ZodCatchCtx): string[] {
-    return e.issues
-      .map((issue) => issue.path)
-      .filter(Boolean)
-      .map((propertyKeys) => propertyKeys!.map((pk) => pk.toString()).join("."));
+  export function issuesSummary(e: z.core.$ZodCatchCtx): Record<string, any> {
+    return {
+      issues: e.issues
+        .filter((issue) => Boolean(issue.path))
+        .map((issue) => {
+          return {
+            field: issue.path!.map((propertyKey) => propertyKey.toString()).join("."),
+            description: issue.code,
+          };
+        }),
+    };
   }
 }

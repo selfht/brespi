@@ -2,6 +2,7 @@ import { PipelineViewData } from "@/__testdata__/PipelineViewData";
 import { AdapterService } from "@/adapters/AdapterService";
 import { Env } from "@/Env";
 import { PipelineError } from "@/errors/PipelineError";
+import { ServerError } from "@/errors/ServerError";
 import { ZodProblem } from "@/helpers/ZodIssues";
 import { Artifact } from "@/models/Artifact";
 import { Pipeline } from "@/models/Pipeline";
@@ -9,11 +10,15 @@ import { Step } from "@/models/Step";
 import { PipelineView } from "@/views/PipelineView";
 import { rm } from "fs/promises";
 import z from "zod/v4";
+import { StepService } from "./StepService";
 
 export class PipelineService {
   private readonly REPOSITORY = [PipelineViewData.POSTGRES_BACKUP, PipelineViewData.WP_BACKUP, PipelineViewData.RESTORE];
 
-  public constructor(private readonly adapterService: AdapterService) {}
+  public constructor(
+    private readonly stepService: StepService,
+    private readonly adapterService: AdapterService,
+  ) {}
 
   public async query(): Promise<PipelineView[]> {
     return this.REPOSITORY;
@@ -100,6 +105,7 @@ export class PipelineService {
     if (!referencedStepIds.every((id) => availableStepIds.includes(id))) {
       throw PipelineError.invalid_step_references();
     }
+    pipeline.steps.forEach((step) => this.stepService.validate(step));
     return pipeline;
   }
 }
@@ -111,8 +117,6 @@ export namespace PipelineService {
       steps: z.array(Step.parse.SCHEMA),
     })
     .catch((e) => {
-      throw PipelineError.invalid_structure({
-        properties: ZodProblem.problematicProperties(e),
-      });
+      throw ServerError.invalid_request_body(ZodProblem.issuesSummary(e));
     });
 }

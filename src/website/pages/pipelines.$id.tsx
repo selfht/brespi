@@ -6,7 +6,7 @@ import { QueryClient, useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate, useParams } from "react-router";
+import { Form, useNavigate, useParams } from "react-router";
 import { Block } from "../canvas/Block";
 import { Canvas } from "../canvas/Canvas";
 import { CanvasEvent } from "../canvas/CanvasEvent";
@@ -16,6 +16,7 @@ import { QueryKey } from "../clients/QueryKey";
 import { ArtifactSymbol } from "../comps/ArtifactSymbol";
 import { Button } from "../comps/Button";
 import { ErrorDump } from "../comps/ErrorDump";
+import { Icon } from "../comps/Icon";
 import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
@@ -25,7 +26,6 @@ import { StepForm } from "../forms/StepForm";
 import { useRegistry } from "../hooks/useRegistry";
 import bgCanvas from "../images/bg-canvas.svg";
 import { StepTranslation } from "../translation/StepTranslation";
-import { Icon } from "../comps/Icon";
 
 type Form = {
   interactivity: Interactivity;
@@ -105,11 +105,10 @@ export function pipelines_$id() {
           queryClient.setQueryData(queryKey, pipeline);
           // Implicitly leads to a "reset" via the effect listener on "query.data"
         }
-      } catch (error: unknown) {
-        const message = ProblemDetails.isInstance(error)
-          ? `${error.problem}${error.details ? ` ${JSON.stringify(error.details, null, 2)}` : ""}`
-          : (error as Error)?.message;
-        mainForm.setError("root", { message });
+      } catch (error) {
+        mainForm.setError("root", {
+          message: FormHelper.formatMessage(error),
+        });
       }
     },
     cancel() {
@@ -300,7 +299,7 @@ export function pipelines_$id() {
                 {mainForm.formState.errors.root?.message && (
                   <div className="absolute w-[calc(100%-1rem)] left-2 top-2 rounded-lg z-10 p-5 bg-black border-3 border-c-error flex justify-between items-start">
                     <pre className="text-c-error">{mainForm.formState.errors.root.message}</pre>
-                    <button className="cursor-pointer" onClick={() => mainForm.clearErrors("root")}>
+                    <button className="cursor-pointer" onClick={() => mainForm.clearErrors()}>
                       <Icon variant="close" className="size-5" />
                     </button>
                   </div>

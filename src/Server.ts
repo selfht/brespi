@@ -5,10 +5,14 @@ import index from "@/website/index.html";
 import { ErrorLike, serve } from "bun";
 import { PipelineData } from "./__testdata__/PipelineData";
 import { PipelineService } from "./services/PipelineService";
+import { StepService } from "./services/StepService";
 import { PipelineView } from "./views/PipelineView";
 
 export class Server {
-  public constructor(private readonly pipelineService: PipelineService) {}
+  public constructor(
+    private readonly stepService: StepService,
+    private readonly pipelineService: PipelineService,
+  ) {}
 
   public listen() {
     const server = serve({
@@ -36,8 +40,14 @@ export class Server {
         },
 
         /**
-         * Pipelines
+         * Steps & Pipelines
          */
+        "/api/steps/validate": {
+          POST: async (request) => {
+            this.stepService.validate(await request.json());
+            return new Response();
+          },
+        },
         "/api/pipelines": {
           GET: async () => {
             const pipelines: PipelineView[] = await this.pipelineService.query();
