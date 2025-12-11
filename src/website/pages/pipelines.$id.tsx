@@ -106,7 +106,9 @@ export function pipelines_$id() {
           // Implicitly leads to a "reset" via the effect listener on "query.data"
         }
       } catch (error: unknown) {
-        const message = ProblemDetails.isInstance(error) ? error.problem : (error as Error)?.message;
+        const message = ProblemDetails.isInstance(error)
+          ? `${error.problem}${error.details ? ` ${JSON.stringify(error.details, null, 2)}` : ""}`
+          : (error as Error)?.message;
         mainForm.setError("root", { message });
       }
     },
@@ -193,12 +195,12 @@ export function pipelines_$id() {
       if (event === CanvasEvent.relation) {
         mainForm.setValue(
           "steps",
-          mainForm.getValues("steps").map((step) => {
+          mainForm.getValues("steps").map((step): Step => {
             const block = blocks.find((b) => b.id === step.id);
             if (block) {
               return {
                 ...step,
-                previousStepId: block.incomingId,
+                previousId: block.incomingId,
               };
             }
             throw new Error(`Block not found: ${step.id}`);
@@ -266,12 +268,6 @@ export function pipelines_$id() {
                   </>
                 ) : (
                   <>
-                    {mainForm.formState.errors.root && (
-                      <div className="flex h-full gap-2 text-c-error">
-                        <Icon variant="error" className="size-5" />
-                        <code>{mainForm.formState.errors.root.message}</code>
-                      </div>
-                    )}
                     {!mainForm.formState.isSubmitting && (
                       <Button
                         onClick={mainFormApi.cancel}
@@ -295,12 +291,20 @@ export function pipelines_$id() {
             {/* CANVAS */}
             <div className="col-span-full px-6">
               <div
-                className={clsx("h-[500px] rounded-lg overflow-hidden", {
+                className={clsx("relative h-[500px] rounded-lg overflow-hidden", {
                   "bg-white bg-none!": interactivity === Interactivity.viewing,
                   "bg-white/95": interactivity === Interactivity.editing,
                 })}
                 style={{ backgroundImage: `url(${bgCanvas})`, backgroundSize: 10 }}
               >
+                {mainForm.formState.errors.root?.message && (
+                  <div className="absolute w-[calc(100%-1rem)] left-2 top-2 rounded-lg z-10 p-5 bg-black border-3 border-c-error flex justify-between items-start">
+                    <pre className="text-c-error">{mainForm.formState.errors.root.message}</pre>
+                    <button className="cursor-pointer" onClick={() => mainForm.clearErrors("root")}>
+                      <Icon variant="close" className="size-5" />
+                    </button>
+                  </div>
+                )}
                 <Canvas ref={canvasApi} interactivity={interactivity} onBlocksChange={canvasListener.handleBlocksChange} />
               </div>
             </div>

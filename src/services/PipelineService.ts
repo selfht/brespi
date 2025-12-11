@@ -2,6 +2,7 @@ import { PipelineViewData } from "@/__testdata__/PipelineViewData";
 import { AdapterService } from "@/adapters/AdapterService";
 import { Env } from "@/Env";
 import { PipelineError } from "@/errors/PipelineError";
+import { ZodProblem } from "@/helpers/ZodIssues";
 import { Artifact } from "@/models/Artifact";
 import { Pipeline } from "@/models/Pipeline";
 import { Step } from "@/models/Step";
@@ -82,8 +83,11 @@ export class PipelineService {
 
   private validate(pipeline: Pipeline) {
     const startingSteps = pipeline.steps.filter((s) => !s.previousId);
-    if (startingSteps.length !== 1) {
-      throw PipelineError.missing_single_starting_step();
+    if (startingSteps.length === 0) {
+      throw PipelineError.missing_starting_step();
+    }
+    if (startingSteps.length > 1) {
+      throw PipelineError.too_many_starting_steps();
     }
     const availableStepIds: string[] = [];
     const referencedStepIds: string[] = [];
@@ -103,16 +107,12 @@ export class PipelineService {
 export namespace PipelineService {
   export const UpsertPipelineRequest = z
     .object({
-      name: z.string().min(5000),
+      name: z.string(),
       steps: z.array(Step.parse.SCHEMA),
     })
     .catch((e) => {
-      const properties = e.issues
-        .map((issue) => issue.path)
-        .filter(Boolean)
-        .map((propertyKeys) => propertyKeys!.map((pk) => pk.toString()).join("."));
       throw PipelineError.invalid_structure({
-        properties,
+        properties: ZodProblem.problematicProperties(e),
       });
     });
 }
