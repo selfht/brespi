@@ -36,16 +36,32 @@ export namespace PositioningHelper {
     const trees: Tree[] = startingBlocks.map(buildTree);
 
     const grid: Block[][] = [];
-    const insert = (tree: Tree, row = 0, column = 0): void => {
+
+    // Returns the height of the subtree (how many rows it occupies)
+    const insert = (tree: Tree, row: number, column: number): number => {
       if (!grid[row]) {
         grid[row] = [];
       }
       grid[row][column] = tree.leaf;
-      tree.children.forEach((childTree, childIndex) => {
-        insert(childTree, row + childIndex, column + 1);
+
+      if (tree.children.length === 0) {
+        return 1; // A leaf node occupies 1 row
+      }
+
+      let currentRow = row;
+      tree.children.forEach((childTree) => {
+        const childHeight = insert(childTree, currentRow, column + 1);
+        currentRow += childHeight; // Next child starts after this child's subtree
       });
+
+      return currentRow - row; // Total height is the difference
     };
-    trees.forEach((tree) => insert(tree));
+
+    let currentStartRow = 0;
+    trees.forEach((tree) => {
+      const treeHeight = insert(tree, currentStartRow, 0);
+      currentStartRow += treeHeight; // Next tree starts after this tree
+    });
 
     // Convert positioned blocks to JointBlocks
     const result: JointBlock[] = [];
@@ -63,7 +79,6 @@ export namespace PositioningHelper {
         }
       }
     }
-    console.log(result);
     return result;
   }
 
