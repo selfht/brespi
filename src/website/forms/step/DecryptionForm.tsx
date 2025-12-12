@@ -15,11 +15,11 @@ type Props = {
   id: string;
   existing?: Step.Decryption;
   onCancel: () => unknown;
-  onSubmit: (step: Step.Decryption) => unknown;
+  onSubmit: (step: Step.Decryption) => Promise<any>;
   className?: string;
 };
 export function DecryptionForm({ id, existing, onCancel, onSubmit, className }: Props) {
-  const { register, handleSubmit, formState } = useForm<Form>({
+  const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       keyReference: existing?.keyReference ?? "",
       algorithmImplementation: existing?.algorithm.implementation ?? "aes256cbc",
@@ -27,15 +27,21 @@ export function DecryptionForm({ id, existing, onCancel, onSubmit, className }: 
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
-    onSubmit({
-      id,
-      previousId: existing?.previousId || null,
-      type: Step.Type.decryption,
-      keyReference: form.keyReference,
-      algorithm: {
-        implementation: form.algorithmImplementation,
-      },
-    });
+    try {
+      await onSubmit({
+        id,
+        previousId: existing?.previousId || null,
+        type: Step.Type.decryption,
+        keyReference: form.keyReference,
+        algorithm: {
+          implementation: form.algorithmImplementation,
+        },
+      });
+    } catch (error) {
+      setError("root", {
+        message: FormHelper.formatError(error),
+      });
+    }
   };
   return (
     <div className={clsx(className, "u-subgrid font-light")}>
@@ -47,39 +53,12 @@ export function DecryptionForm({ id, existing, onCancel, onSubmit, className }: 
 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label
-              className={clsx("w-72", {
-                "text-c-error": formState.errors.keyReference,
-              })}
-            >
-              Key Reference
-            </label>
-            <input
-              type="text"
-              className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors.keyReference,
-              })}
-              {...register("keyReference", {
-                required: true,
-              })}
-            />
+            <label className="w-72">Key Reference</label>
+            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("keyReference")} />
           </div>
           <div className="flex items-center">
-            <label
-              className={clsx("w-72", {
-                "text-c-error": formState.errors.algorithmImplementation,
-              })}
-            >
-              Algorithm
-            </label>
-            <select
-              className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors.algorithmImplementation,
-              })}
-              {...register("algorithmImplementation", {
-                required: true,
-              })}
-            >
+            <label className="w-72">Algorithm</label>
+            <select className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("algorithmImplementation")}>
               <option value="aes256cbc">aes256cbc</option>
             </select>
           </div>
@@ -97,10 +76,21 @@ export function DecryptionForm({ id, existing, onCancel, onSubmit, className }: 
         </div>
       </div>
       <div className="col-span-6 pl-3 border-l-2 border-c-dim/20">
-        <p>This step can be used for decrypting artifacts.</p>
-        <p>
-          The <strong className="font-bold">key reference</strong> specifies which decryption key to use.
-        </p>
+        {formState.errors.root?.message ? (
+          <div className="border-3 border-c-error p-3 rounded-lg flex justify-between items-start">
+            <pre className="text-c-error">{formState.errors.root.message}</pre>
+            <button className="cursor-pointer" onClick={() => clearErrors()}>
+              <Icon variant="close" className="size-5" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <p>This step can be used for decrypting artifacts.</p>
+            <p>
+              The <strong className="font-bold">key reference</strong> specifies which decryption key to use.
+            </p>
+          </>
+        )}
       </div>
     </div>
   );

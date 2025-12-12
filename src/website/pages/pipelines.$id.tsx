@@ -107,7 +107,7 @@ export function pipelines_$id() {
         }
       } catch (error) {
         mainForm.setError("root", {
-          message: FormHelper.formatMessage(error),
+          message: FormHelper.formatError(error),
         });
       }
     },

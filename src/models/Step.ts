@@ -160,7 +160,7 @@ export namespace Step {
           id: z.string(),
           previousId: z.string().nullable(),
           type: z.literal(Type.filesystem_read),
-          path: z.string().min(400),
+          path: z.string(),
         } satisfies SubSchema<Step.FilesystemRead>),
 
         z.object({

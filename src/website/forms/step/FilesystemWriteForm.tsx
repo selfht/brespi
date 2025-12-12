@@ -14,23 +14,29 @@ type Props = {
   id: string;
   existing?: Step.FilesystemWrite;
   onCancel: () => unknown;
-  onSubmit: (step: Step.FilesystemWrite) => unknown;
+  onSubmit: (step: Step.FilesystemWrite) => Promise<any>;
   className?: string;
 };
 export function FilesystemWriteForm({ id, existing, onCancel, onSubmit, className }: Props) {
-  const { register, handleSubmit, formState } = useForm<Form>({
+  const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       path: existing?.path ?? "",
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
-    onSubmit({
-      id,
-      previousId: existing?.previousId || null,
-      type: Step.Type.filesystem_write,
-      path: form.path,
-    });
+    try {
+      await onSubmit({
+        id,
+        previousId: existing?.previousId || null,
+        type: Step.Type.filesystem_write,
+        path: form.path,
+      });
+    } catch (error) {
+      setError("root", {
+        message: FormHelper.formatError(error),
+      });
+    }
   };
   return (
     <div className={clsx(className, "u-subgrid font-light")}>
@@ -42,22 +48,8 @@ export function FilesystemWriteForm({ id, existing, onCancel, onSubmit, classNam
 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label
-              className={clsx("w-72", {
-                "text-c-error": formState.errors.path,
-              })}
-            >
-              Path
-            </label>
-            <input
-              type="text"
-              className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors.path,
-              })}
-              {...register("path", {
-                required: true,
-              })}
-            />
+            <label className="w-72">Path</label>
+            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("path")} />
           </div>
         </fieldset>
 
@@ -73,10 +65,21 @@ export function FilesystemWriteForm({ id, existing, onCancel, onSubmit, classNam
         </div>
       </div>
       <div className="col-span-6 pl-3 border-l-2 border-c-dim/20">
-        <p>This step can be used for writing to the local filesystem.</p>
-        <p>
-          The <strong className="font-bold">path</strong> references the target location where artifacts will be written.
-        </p>
+        {formState.errors.root?.message ? (
+          <div className="border-3 border-c-error p-3 rounded-lg flex justify-between items-start">
+            <pre className="text-c-error">{formState.errors.root.message}</pre>
+            <button className="cursor-pointer" onClick={() => clearErrors()}>
+              <Icon variant="close" className="size-5" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <p>This step can be used for writing to the local filesystem.</p>
+            <p>
+              The <strong className="font-bold">path</strong> references the target location where artifacts will be written.
+            </p>
+          </>
+        )}
       </div>
     </div>
   );

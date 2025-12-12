@@ -17,11 +17,11 @@ type Props = {
   id: string;
   existing?: Step.Compression;
   onCancel: () => unknown;
-  onSubmit: (step: Step.Compression) => unknown;
+  onSubmit: (step: Step.Compression) => Promise<any>;
   className?: string;
 };
 export function CompressionForm({ id, existing, onCancel, onSubmit, className }: Props) {
-  const { register, handleSubmit, formState } = useForm<Form>({
+  const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       algorithmImplementation: existing?.algorithm.implementation ?? "targzip",
       algorithmTargzip: {
@@ -31,16 +31,21 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
-    await new Promise((res) => setTimeout(res, 500));
-    onSubmit({
-      id,
-      previousId: existing?.previousId || null,
-      type: Step.Type.compression,
-      algorithm: {
-        implementation: form.algorithmImplementation,
-        level: form.algorithmTargzip?.level,
-      },
-    });
+    try {
+      await onSubmit({
+        id,
+        previousId: existing?.previousId || null,
+        type: Step.Type.compression,
+        algorithm: {
+          implementation: form.algorithmImplementation,
+          level: form.algorithmTargzip?.level,
+        },
+      });
+    } catch (error) {
+      setError("root", {
+        message: FormHelper.formatError(error),
+      });
+    }
   };
   return (
     <div className={clsx(className, "u-subgrid font-light")}>
@@ -52,39 +57,17 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label
-              className={clsx("w-72", {
-                "text-c-error": formState.errors.algorithmImplementation,
-              })}
-            >
-              Algorithm
-            </label>
-            <select
-              className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors.algorithmImplementation,
-              })}
-              {...register("algorithmImplementation", {
-                required: true,
-              })}
-            >
+            <label className="w-72">Algorithm</label>
+            <select className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("algorithmImplementation")}>
               <option value="targzip">targzip</option>
             </select>
           </div>
           <div className="flex items-center">
-            <label
-              className={clsx("w-72", {
-                "text-c-error": formState.errors.algorithmTargzip?.level,
-              })}
-            >
-              Compression level
-            </label>
+            <label className="w-72">Compression level</label>
             <input
               type="number"
-              className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors.algorithmTargzip?.level,
-              })}
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
               {...register("algorithmTargzip.level", {
-                required: true,
                 valueAsNumber: true,
               })}
             />
@@ -103,7 +86,16 @@ export function CompressionForm({ id, existing, onCancel, onSubmit, className }:
         </div>
       </div>
       <div className="col-span-6 pl-3 border-l-2 border-c-dim/20">
-        <p>This step can be used for compressing artifacts</p>
+        {formState.errors.root?.message ? (
+          <div className="border-3 border-c-error p-3 rounded-lg flex justify-between items-start">
+            <pre className="text-c-error">{formState.errors.root.message}</pre>
+            <button className="cursor-pointer" onClick={() => clearErrors()}>
+              <Icon variant="close" className="size-5" />
+            </button>
+          </div>
+        ) : (
+          <p>This step can be used for compressing artifacts</p>
+        )}
       </div>
     </div>
   );

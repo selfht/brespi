@@ -12,18 +12,24 @@ type Props = {
   id: string;
   existing?: Step.FolderGroup;
   onCancel: () => unknown;
-  onSubmit: (step: Step.FolderGroup) => unknown;
+  onSubmit: (step: Step.FolderGroup) => Promise<any>;
   className?: string;
 };
 export function FolderGroupForm({ id, existing, onCancel, onSubmit, className }: Props) {
-  const { handleSubmit, formState } = useForm<Form>();
+  const { handleSubmit, formState, setError, clearErrors } = useForm<Form>();
   const submit: SubmitHandler<Form> = async () => {
     await FormHelper.snoozeBeforeSubmit();
-    onSubmit({
-      id,
-      previousId: existing?.previousId || null,
-      type: Step.Type.folder_group,
-    });
+    try {
+      await onSubmit({
+        id,
+        previousId: existing?.previousId || null,
+        type: Step.Type.folder_group,
+      });
+    } catch (error) {
+      setError("root", {
+        message: FormHelper.formatError(error),
+      });
+    }
   };
   return (
     <div className={clsx(className, "u-subgrid font-light")}>
@@ -49,8 +55,19 @@ export function FolderGroupForm({ id, existing, onCancel, onSubmit, className }:
         </div>
       </div>
       <div className="col-span-6 pl-3 border-l-2 border-c-dim/20">
-        <p>This step can be used for grouping files into folders.</p>
-        <p>Files will be organized based on their attributes or naming patterns.</p>
+        {formState.errors.root?.message ? (
+          <div className="border-3 border-c-error p-3 rounded-lg flex justify-between items-start">
+            <pre className="text-c-error">{formState.errors.root.message}</pre>
+            <button className="cursor-pointer" onClick={() => clearErrors()}>
+              <Icon variant="close" className="size-5" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <p>This step can be used for grouping files into folders.</p>
+            <p>Files will be organized based on their attributes or naming patterns.</p>
+          </>
+        )}
       </div>
     </div>
   );

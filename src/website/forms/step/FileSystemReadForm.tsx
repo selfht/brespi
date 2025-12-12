@@ -34,7 +34,7 @@ export function FileSystemReadForm({ id, existing, onCancel, onSubmit, className
       });
     } catch (error) {
       setError("root", {
-        message: FormHelper.formatMessage(error),
+        message: FormHelper.formatError(error),
       });
     }
   };

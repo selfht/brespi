@@ -20,11 +20,11 @@ type Props = {
   id: string;
   existing?: Step.PostgresBackup;
   onCancel: () => unknown;
-  onSubmit: (step: Step.PostgresBackup) => unknown;
+  onSubmit: (step: Step.PostgresBackup) => Promise<any>;
   className?: string;
 };
 export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className }: Props) {
-  const { register, handleSubmit, formState, watch } = useForm<Form>({
+  const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       databaseSelectionStrategy: existing?.databaseSelection.strategy ?? "all",
       databaseSelectionInclude: {
@@ -37,25 +37,31 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
-    onSubmit({
-      id,
-      previousId: existing?.previousId || null,
-      type: Step.Type.postgres_backup,
-      databaseSelection:
-        form.databaseSelectionStrategy === "all"
-          ? {
-              strategy: form.databaseSelectionStrategy,
-            }
-          : form.databaseSelectionStrategy === "include"
+    try {
+      await onSubmit({
+        id,
+        previousId: existing?.previousId || null,
+        type: Step.Type.postgres_backup,
+        databaseSelection:
+          form.databaseSelectionStrategy === "all"
             ? {
                 strategy: form.databaseSelectionStrategy,
-                ...form.databaseSelectionInclude,
               }
-            : {
-                strategy: form.databaseSelectionStrategy,
-                ...form.databaseSelectionExclude,
-              },
-    });
+            : form.databaseSelectionStrategy === "include"
+              ? {
+                  strategy: form.databaseSelectionStrategy,
+                  ...form.databaseSelectionInclude,
+                }
+              : {
+                  strategy: form.databaseSelectionStrategy,
+                  ...form.databaseSelectionExclude,
+                },
+      });
+    } catch (error) {
+      setError("root", {
+        message: FormHelper.formatError(error),
+      });
+    }
   };
 
   const databaseSelectionStrategy = watch("databaseSelectionStrategy");
@@ -69,21 +75,8 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label
-              className={clsx("w-72", {
-                "text-c-error": formState.errors.databaseSelectionStrategy,
-              })}
-            >
-              Database selection
-            </label>
-            <select
-              className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors.databaseSelectionStrategy,
-              })}
-              {...register("databaseSelectionStrategy", {
-                required: true,
-              })}
-            >
+            <label className="w-72">Database selection</label>
+            <select className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("databaseSelectionStrategy")}>
               {["all", "include", "exclude"].map((value) => (
                 <option key={value} value={value}>
                   {value}
@@ -93,18 +86,10 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
           </div>
           {databaseSelectionStrategy === "include" && (
             <div className="flex items-center">
-              <label
-                className={clsx("w-72", {
-                  "text-c-error": formState.errors.databaseSelectionInclude?.include,
-                })}
-              >
-                Include
-              </label>
+              <label className="w-72">Include</label>
               <input
                 type="text"
-                className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                  "outline-2 outline-c-error": formState.errors.databaseSelectionInclude?.include,
-                })}
+                className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
                 {...register("databaseSelectionInclude.include", {
                   setValueAs: (values: string | string[]) => (typeof values === "string" ? values.split(",") : values.join(",")),
                 })}
@@ -113,18 +98,10 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
           )}
           {databaseSelectionStrategy === "exclude" && (
             <div className="flex items-center">
-              <label
-                className={clsx("w-72", {
-                  "text-c-error": formState.errors.databaseSelectionExclude?.exclude,
-                })}
-              >
-                Exclude
-              </label>
+              <label className="w-72">Exclude</label>
               <input
                 type="text"
-                className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                  "outline-2 outline-c-error": formState.errors.databaseSelectionExclude?.exclude,
-                })}
+                className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
                 {...register("databaseSelectionExclude.exclude", {
                   setValueAs: (values: string | string[]) => (typeof values === "string" ? values.split(",") : values.join(",")),
                 })}
@@ -145,7 +122,16 @@ export function PostgresBackupForm({ id, existing, onCancel, onSubmit, className
         </div>
       </div>
       <div className="col-span-6 pl-3 border-l-2 border-c-dim/20">
-        <p>This step can be used for creating a Postgres backup</p>
+        {formState.errors.root?.message ? (
+          <div className="border-3 border-c-error p-3 rounded-lg flex justify-between items-start">
+            <pre className="text-c-error">{formState.errors.root.message}</pre>
+            <button className="cursor-pointer" onClick={() => clearErrors()}>
+              <Icon variant="close" className="size-5" />
+            </button>
+          </div>
+        ) : (
+          <p>This step can be used for creating a Postgres backup</p>
+        )}
       </div>
     </div>
   );

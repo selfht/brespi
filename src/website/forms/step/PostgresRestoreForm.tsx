@@ -14,23 +14,29 @@ type Props = {
   id: string;
   existing?: Step.PostgresRestore;
   onCancel: () => unknown;
-  onSubmit: (step: Step.PostgresRestore) => unknown;
+  onSubmit: (step: Step.PostgresRestore) => Promise<any>;
   className?: string;
 };
 export function PostgresRestoreForm({ id, existing, onCancel, onSubmit, className }: Props) {
-  const { register, handleSubmit, formState } = useForm<Form>({
+  const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       database: existing?.database ?? "",
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
-    onSubmit({
-      id,
-      previousId: existing?.previousId || null,
-      type: Step.Type.postgres_restore,
-      database: form.database,
-    });
+    try {
+      await onSubmit({
+        id,
+        previousId: existing?.previousId || null,
+        type: Step.Type.postgres_restore,
+        database: form.database,
+      });
+    } catch (error) {
+      setError("root", {
+        message: FormHelper.formatError(error),
+      });
+    }
   };
   return (
     <div className={clsx(className, "u-subgrid font-light")}>
@@ -42,22 +48,8 @@ export function PostgresRestoreForm({ id, existing, onCancel, onSubmit, classNam
 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label
-              className={clsx("w-72", {
-                "text-c-error": formState.errors.database,
-              })}
-            >
-              Database
-            </label>
-            <input
-              type="text"
-              className={clsx("rounded flex-1 p-2 bg-c-dim/20 font-mono", {
-                "outline-2 outline-c-error": formState.errors.database,
-              })}
-              {...register("database", {
-                required: true,
-              })}
-            />
+            <label className="w-72">Database</label>
+            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("database")} />
           </div>
         </fieldset>
 
@@ -73,10 +65,21 @@ export function PostgresRestoreForm({ id, existing, onCancel, onSubmit, classNam
         </div>
       </div>
       <div className="col-span-6 pl-3 border-l-2 border-c-dim/20">
-        <p>This step can be used for restoring a Postgres database from a backup.</p>
-        <p>
-          The <strong className="font-bold">database</strong> specifies which database to restore to.
-        </p>
+        {formState.errors.root?.message ? (
+          <div className="border-3 border-c-error p-3 rounded-lg flex justify-between items-start">
+            <pre className="text-c-error">{formState.errors.root.message}</pre>
+            <button className="cursor-pointer" onClick={() => clearErrors()}>
+              <Icon variant="close" className="size-5" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <p>This step can be used for restoring a Postgres database from a backup.</p>
+            <p>
+              The <strong className="font-bold">database</strong> specifies which database to restore to.
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
