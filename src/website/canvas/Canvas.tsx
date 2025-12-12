@@ -130,6 +130,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
           cell.set("position", { x: block.coordinates.x, y: block.coordinates.y });
         }
       });
+      paperRef.current!.translate(0, 0);
     },
     insert(block) {
       block = {
@@ -232,14 +233,22 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
       elementRef,
       blocksRef,
       validateArrow: (source, target) => {
-        if (source.id === target.id) {
-          return false; // Prevent self-linking
-        }
         if (source.proposedHandle !== Block.Handle.output || target.proposedHandle !== Block.Handle.input) {
           return false; // Only allow links from input to output
         }
         if (target.incomingId) {
           return false; // Each block can only have a single incoming arrow
+        }
+        let subjectId = source.id;
+        while (true) {
+          const subject = blocksRef.current.find((b) => b.id === subjectId)!;
+          if (subject.id === target.id) {
+            return false; // No cycles (this includes self-linking)
+          }
+          if (subject.incomingId === null) {
+            break;
+          }
+          subjectId = subject.incomingId;
         }
         return true;
       },

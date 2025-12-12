@@ -94,6 +94,7 @@ export class PipelineService {
     if (startingSteps.length > 1) {
       throw PipelineError.too_many_starting_steps();
     }
+    // this already eliminates any possible cycles
     const availableStepIds: string[] = [];
     const referencedStepIds: string[] = [];
     pipeline.steps.forEach(({ id, previousId: previousStepId }) => {

@@ -44,7 +44,7 @@ export namespace FormElements {
   type DescriptionOrErrorProps = {
     formState: FormState<{}>;
     clearErrors: () => unknown;
-    children?: ReactNode[];
+    children: ReactNode;
   };
   export function DescriptionOrError({ formState, clearErrors, children }: DescriptionOrErrorProps) {
     if (formState.errors.root?.message) {

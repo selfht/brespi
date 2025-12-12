@@ -5,6 +5,8 @@ import { JointBlock } from "../types/JointBlock";
 
 export namespace CalloutHelper {
   export function showBlockDetails(cell: dia.Cell, block: JointBlock) {
+    // Bring to front
+    cell.toFront();
     // Hide label
     cell.attr("label/display", "none");
     // Show callout

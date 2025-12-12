@@ -318,6 +318,12 @@ export function pipelines_$id() {
                     </button>
                   </div>
                 )}
+                <button
+                  className="absolute bottom-2 right-2 p-2 rounded-lg bg-c-dark cursor-pointer z-10"
+                  onClick={canvasApi.current?.format}
+                >
+                  format
+                </button>
                 <Canvas ref={canvasApi} interactivity={interactivity} onBlocksChange={canvasListener.handleBlocksChange} />
               </div>
             </div>
