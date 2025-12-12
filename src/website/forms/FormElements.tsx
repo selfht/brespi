@@ -17,13 +17,13 @@ export namespace FormElements {
 
   type ButtonBarProps = {
     className?: string;
-    formState: FormState<{}>;
     existing?: Step;
+    formState: FormState<{}>;
     onSubmit: () => unknown;
     onDelete: (id: string) => unknown;
     onCancel: () => unknown;
   };
-  export function ButtonBar({ className, formState, existing, onSubmit, onDelete, onCancel }: ButtonBarProps) {
+  export function ButtonBar({ className, existing, formState, onSubmit, onDelete, onCancel }: ButtonBarProps) {
     return (
       <div className={clsx("flex flex-row-reverse justify-between gap-4", className)}>
         <div className="flex gap-4">
@@ -44,7 +44,7 @@ export namespace FormElements {
   type DescriptionOrErrorProps = {
     formState: FormState<{}>;
     clearErrors: () => unknown;
-    children?: ReactNode;
+    children?: ReactNode[];
   };
   export function DescriptionOrError({ formState, clearErrors, children }: DescriptionOrErrorProps) {
     if (formState.errors.root?.message) {

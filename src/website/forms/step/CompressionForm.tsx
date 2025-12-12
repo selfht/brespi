@@ -71,8 +71,8 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
 
         <FormElements.ButtonBar
           className="mt-12"
-          formState={formState}
           existing={existing}
+          formState={formState}
           onSubmit={handleSubmit(submit)}
           onDelete={onDelete}
           onCancel={onCancel}
