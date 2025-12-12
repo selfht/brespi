@@ -156,6 +156,20 @@ export function pipelines_$id() {
         return undefined;
       });
     },
+    delete(id: string) {
+      const steps = mainForm.getValues("steps");
+      const existingStep: boolean = steps.some((s) => s.id === id);
+      if (existingStep) {
+        mainForm.setValue(
+          "steps",
+          steps.filter((s) => s.id !== id),
+        );
+        setStepForm(undefined);
+        canvasApi.current!.remove(id);
+      } else {
+        throw new Error(`Illegal state: step does not exist; id=${id}`);
+      }
+    },
     cancel() {
       setStepForm((stepForm) => {
         if (stepForm) {
@@ -354,8 +368,9 @@ export function pipelines_$id() {
                 id={stepForm.id}
                 type={stepForm.type}
                 existing={stepForm.existingStep}
+                onSave={stepFormApi.save}
+                onDelete={stepFormApi.delete}
                 onCancel={stepFormApi.cancel}
-                onSubmit={stepFormApi.save}
               />
             )}
           </>

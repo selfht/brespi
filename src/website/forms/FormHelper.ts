@@ -2,7 +2,7 @@ import { ProblemDetails } from "@/models/ProblemDetails";
 
 export namespace FormHelper {
   export async function snoozeBeforeSubmit(): Promise<void> {
-    // await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
   export function formatError(error: unknown): string {
     return ProblemDetails.isInstance(error)

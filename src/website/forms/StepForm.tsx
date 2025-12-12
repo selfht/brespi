@@ -21,14 +21,15 @@ type Props = {
   type: Step.Type;
   existing?: Step;
   className?: string;
+  onSave: (step: Step) => unknown;
+  onDelete: (id: string) => unknown;
   onCancel: () => unknown;
-  onSubmit: (step: Step) => unknown;
 };
-export function StepForm({ type, existing, onSubmit, ...props }: Props): JSX.Element {
+export function StepForm({ type, existing, onSave, ...props }: Props): JSX.Element {
   const stepClient = useRegistry.instance(StepClient);
   const validateAndSubmit = async (step: Step) => {
     await stepClient.validate(step);
-    onSubmit(step);
+    onSave(step);
   };
   switch (type) {
     case Step.Type.filesystem_read:
@@ -54,7 +55,7 @@ export function StepForm({ type, existing, onSubmit, ...props }: Props): JSX.Ele
     case Step.Type.s3_download:
       return <S3DownloadForm existing={existing as Step.S3Download} onSubmit={validateAndSubmit} {...props} />;
     case Step.Type.postgres_backup:
-      return <PostgresBackupForm existing={existing as Step.PostgresBackup} onSubmit={validateAndSubmit} {...props} />;
+      return <PostgresBackupForm existing={existing as Step.PostgresBackup} onSave={validateAndSubmit} {...props} />;
     case Step.Type.postgres_restore:
       return <PostgresRestoreForm existing={existing as Step.PostgresRestore} onSubmit={validateAndSubmit} {...props} />;
   }
