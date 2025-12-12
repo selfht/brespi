@@ -18,11 +18,12 @@ type Form = {
 type Props = {
   id: string;
   existing?: Step.S3Download;
+  onSave: (step: Step.S3Download) => Promise<any>;
+  onDelete: (id: string) => unknown;
   onCancel: () => unknown;
-  onSubmit: (step: Step.S3Download) => Promise<any>;
   className?: string;
 };
-export function S3DownloadForm({ id, existing, onCancel, onSubmit, className }: Props) {
+export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       accessKeyReference: existing?.accessKeyReference ?? "",
@@ -36,7 +37,7 @@ export function S3DownloadForm({ id, existing, onCancel, onSubmit, className }: 
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
     try {
-      await onSubmit({
+      await onSave({
         id,
         previousId: existing?.previousId || null,
         type: Step.Type.s3_download,
@@ -58,10 +59,7 @@ export function S3DownloadForm({ id, existing, onCancel, onSubmit, className }: 
   return (
     <div className={clsx(className, "u-subgrid font-light")}>
       <div className="col-span-6 pr-3">
-        <div className="flex items-center gap-2">
-          {existing && <Icon variant="trashcan" />}
-          <h1 className="text-2xl font-extralight text-c-dim">{StepTranslation.type(Step.Type.s3_download)}</h1>
-        </div>
+        <h1 className="text-2xl font-extralight text-c-dim">{StepTranslation.type(Step.Type.s3_download)}</h1>
 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
@@ -95,15 +93,22 @@ export function S3DownloadForm({ id, existing, onCancel, onSubmit, className }: 
           )}
         </fieldset>
 
-        <div className="mt-12 flex justify-end gap-4">
-          {!formState.isSubmitting && <Button onClick={onCancel}>Cancel</Button>}
-          <Button
-            disabled={formState.isSubmitting}
-            onClick={handleSubmit(submit)}
-            className="border-c-success text-c-success hover:bg-c-success/20"
-          >
-            {formState.isSubmitting ? <Spinner className="border-c-success" /> : existing ? "Update Step" : "Add Step"}
-          </Button>
+        <div className="mt-12 flex flex-row-reverse justify-between gap-4">
+          <div className="flex gap-4">
+            {!formState.isSubmitting && <Button onClick={onCancel}>Cancel</Button>}
+            <Button
+              disabled={formState.isSubmitting}
+              onClick={handleSubmit(submit)}
+              className="border-c-success text-c-success hover:bg-c-success/20"
+            >
+              {formState.isSubmitting ? <Spinner className="border-c-success" /> : existing ? "Update Step" : "Add Step"}
+            </Button>
+          </div>
+          {existing && !formState.isSubmitting && (
+            <Button className="border-c-error! text-c-error hover:bg-c-error/20" onClick={() => onDelete(existing.id)}>
+              Delete Step
+            </Button>
+          )}
         </div>
       </div>
       <div className="col-span-6 pl-3 border-l-2 border-c-dim/20">

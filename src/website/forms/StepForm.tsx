@@ -27,36 +27,36 @@ type Props = {
 };
 export function StepForm({ type, existing, onSave, ...props }: Props): JSX.Element {
   const stepClient = useRegistry.instance(StepClient);
-  const validateAndSubmit = async (step: Step) => {
+  const validateAndSave = async (step: Step) => {
     await stepClient.validate(step);
     onSave(step);
   };
   switch (type) {
     case Step.Type.filesystem_read:
-      return <FileSystemReadForm existing={existing as Step.FilesystemRead} onSubmit={validateAndSubmit} {...props} />;
+      return <FileSystemReadForm existing={existing as Step.FilesystemRead} onSave={validateAndSave} {...props} />;
     case Step.Type.filesystem_write:
-      return <FilesystemWriteForm existing={existing as Step.FilesystemWrite} onSubmit={validateAndSubmit} {...props} />;
+      return <FilesystemWriteForm existing={existing as Step.FilesystemWrite} onSave={validateAndSave} {...props} />;
     case Step.Type.compression:
-      return <CompressionForm existing={existing as Step.Compression} onSubmit={validateAndSubmit} {...props} />;
+      return <CompressionForm existing={existing as Step.Compression} onSave={validateAndSave} {...props} />;
     case Step.Type.decompression:
-      return <DecompressionForm existing={existing as Step.Decompression} onSubmit={validateAndSubmit} {...props} />;
+      return <DecompressionForm existing={existing as Step.Decompression} onSave={validateAndSave} {...props} />;
     case Step.Type.encryption:
-      return <EncryptionForm existing={existing as Step.Encryption} onSubmit={validateAndSubmit} {...props} />;
+      return <EncryptionForm existing={existing as Step.Encryption} onSave={validateAndSave} {...props} />;
     case Step.Type.decryption:
-      return <DecryptionForm existing={existing as Step.Decryption} onSubmit={validateAndSubmit} {...props} />;
+      return <DecryptionForm existing={existing as Step.Decryption} onSave={validateAndSave} {...props} />;
     case Step.Type.folder_flatten:
-      return <FolderFlattenForm existing={existing as Step.FolderFlatten} onSubmit={validateAndSubmit} {...props} />;
+      return <FolderFlattenForm existing={existing as Step.FolderFlatten} onSave={validateAndSave} {...props} />;
     case Step.Type.folder_group:
-      return <FolderGroupForm existing={existing as Step.FolderGroup} onSubmit={validateAndSubmit} {...props} />;
+      return <FolderGroupForm existing={existing as Step.FolderGroup} onSave={validateAndSave} {...props} />;
     case Step.Type.script_execution:
-      return <ScriptExecutionForm existing={existing as Step.ScriptExecution} onSubmit={validateAndSubmit} {...props} />;
+      return <ScriptExecutionForm existing={existing as Step.ScriptExecution} onSave={validateAndSave} {...props} />;
     case Step.Type.s3_upload:
-      return <S3UploadForm existing={existing as Step.S3Upload} onSubmit={validateAndSubmit} {...props} />;
+      return <S3UploadForm existing={existing as Step.S3Upload} onSave={validateAndSave} {...props} />;
     case Step.Type.s3_download:
-      return <S3DownloadForm existing={existing as Step.S3Download} onSubmit={validateAndSubmit} {...props} />;
+      return <S3DownloadForm existing={existing as Step.S3Download} onSave={validateAndSave} {...props} />;
     case Step.Type.postgres_backup:
-      return <PostgresBackupForm existing={existing as Step.PostgresBackup} onSave={validateAndSubmit} {...props} />;
+      return <PostgresBackupForm existing={existing as Step.PostgresBackup} onSave={validateAndSave} {...props} />;
     case Step.Type.postgres_restore:
-      return <PostgresRestoreForm existing={existing as Step.PostgresRestore} onSubmit={validateAndSubmit} {...props} />;
+      return <PostgresRestoreForm existing={existing as Step.PostgresRestore} onSave={validateAndSave} {...props} />;
   }
 }
