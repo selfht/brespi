@@ -49,10 +49,67 @@ export namespace PipelineData {
     name: "My Wordpress Pipeline for /wp-uploads (work in progress)",
     steps: [
       {
-        id: Bun.randomUUIDv7(),
+        id: "kpwmqemdrxyz",
+        previousId: "yfdqipzrjpka",
+        type: Step.Type.filesystem_write,
+        path: "",
+      },
+      {
+        id: "dlxhvcsgumze",
+        previousId: "yfdqipzrjpka",
+        type: Step.Type.s3_upload,
+        accessKeyReference: "",
+        secretKeyReference: "",
+        baseFolder: "",
+      },
+      {
+        id: "xalkneycatmp",
+        previousId: "yfdqipzrjpka",
+        type: Step.Type.postgres_restore,
+        database: "",
+      },
+      {
+        id: "agunfwvnftwr",
+        previousId: "kwclogopzrec",
+        type: Step.Type.compression,
+        algorithm: {
+          implementation: "targzip",
+          level: 9,
+        },
+      },
+      {
+        id: "yfdqipzrjpka",
+        previousId: "agunfwvnftwr",
+        type: Step.Type.encryption,
+        keyReference: "",
+        algorithm: {
+          implementation: "aes256cbc",
+        },
+      },
+      {
+        id: "kwclogopzrec",
         previousId: null,
-        type: Step.Type.filesystem_read,
-        path: "/wordpress/wp-uploads",
+        type: Step.Type.postgres_backup,
+        databaseSelection: {
+          strategy: "all",
+        },
+      },
+      {
+        id: "httkqpjuluef",
+        previousId: "agunfwvnftwr",
+        type: Step.Type.script_execution,
+        path: "",
+        passthrough: false,
+      },
+      {
+        id: "qgbyxvjsfmhu",
+        previousId: "httkqpjuluef",
+        type: Step.Type.folder_group,
+      },
+      {
+        id: "amuhvjqcyrjn",
+        previousId: "qgbyxvjsfmhu",
+        type: Step.Type.folder_flatten,
       },
     ],
   };
