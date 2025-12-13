@@ -1,35 +1,33 @@
-import { PipelineViewData } from "@/__testdata__/PipelineViewData";
-import { AdapterService } from "@/adapters/AdapterService";
-import { Env } from "@/Env";
 import { PipelineError } from "@/errors/PipelineError";
 import { ServerError } from "@/errors/ServerError";
 import { ZodProblem } from "@/helpers/ZodIssues";
-import { Artifact } from "@/models/Artifact";
+import { Execution } from "@/models/Execution";
 import { Pipeline } from "@/models/Pipeline";
 import { Step } from "@/models/Step";
+import { ExecutionRepository } from "@/repositories/ExecutionRepository";
+import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { PipelineView } from "@/views/PipelineView";
-import { rm } from "fs/promises";
 import z from "zod/v4";
 import { StepService } from "./StepService";
 
 export class PipelineService {
-  private readonly REPOSITORY = [PipelineViewData.POSTGRES_BACKUP, PipelineViewData.WP_BACKUP, PipelineViewData.RESTORE];
-
   public constructor(
+    private readonly repository: PipelineRepository,
+    private readonly executionRepository: ExecutionRepository,
     private readonly stepService: StepService,
-    private readonly adapterService: AdapterService,
   ) {}
 
   public async query(): Promise<PipelineView[]> {
-    return this.REPOSITORY;
+    const pipelines = await this.repository.query();
+    return await this.enhance(pipelines);
   }
 
   public async find(id: string): Promise<PipelineView> {
-    const pipeline = this.REPOSITORY.find((p) => p.id === id);
+    const pipeline = await this.repository.find(id);
     if (!pipeline) {
       throw PipelineError.not_found();
     }
-    return pipeline;
+    return await this.enhance(pipeline);
   }
 
   public async create(unknown: unknown): Promise<PipelineView> {
@@ -37,9 +35,10 @@ export class PipelineService {
       id: Bun.randomUUIDv7(),
       ...PipelineService.UpsertPipelineRequest.parse(unknown),
     });
-
-    this.REPOSITORY.push({ ...pipeline, executions: [] });
-    return this.REPOSITORY[this.REPOSITORY.length - 1];
+    if (!(await this.repository.create(pipeline))) {
+      throw PipelineError.already_exists();
+    }
+    return await this.enhance(pipeline);
   }
 
   public async update(id: string, unknown: unknown): Promise<PipelineView> {
@@ -47,43 +46,33 @@ export class PipelineService {
       id,
       ...PipelineService.UpsertPipelineRequest.parse(unknown),
     });
-
-    const existingPipeline = this.REPOSITORY.find((p) => p.id === id);
-    if (!existingPipeline) {
+    if (!(await this.repository.update(pipeline))) {
       throw PipelineError.not_found();
     }
-
-    const index = this.REPOSITORY.indexOf(existingPipeline);
-    this.REPOSITORY.splice(index, 1, { ...pipeline, executions: [] });
-    return this.REPOSITORY[index];
+    return await this.enhance(pipeline);
   }
 
   public async remove(id: string): Promise<PipelineView> {
-    const existingPipeline = this.REPOSITORY.find((p) => p.id === id);
-    if (!existingPipeline) {
+    const pipeline = await this.repository.remove(id);
+    if (!pipeline) {
       throw PipelineError.not_found();
     }
-    this.REPOSITORY.splice(this.REPOSITORY.indexOf(existingPipeline), 1);
-    return existingPipeline;
+    return await this.enhance(pipeline);
   }
 
-  public async execute(pipeline: Pipeline): Promise<Artifact[]> {
-    let artifacts: Artifact[] = [];
-    for (let index = 0; index < pipeline.steps.length; index++) {
-      const step = pipeline.steps[index];
-      const trail = pipeline.steps.slice(0, index + 1);
-      const newArtifacts = await this.adapterService.submit(artifacts, step, trail);
-      await this.cleanup(artifacts);
-      artifacts = newArtifacts;
-    }
-    return artifacts;
-  }
-
-  private async cleanup(artifacts: Artifact[]): Promise<void> {
-    const artifactsWithinRootFolder = artifacts.filter((a) => a.path.startsWith(Env.artifactsRoot()));
-    for (const artifact of artifactsWithinRootFolder) {
-      await rm(artifact.path, { recursive: true, force: true });
-    }
+  private async enhance(pipeline: Pipeline): Promise<PipelineView>;
+  private async enhance(pipelines: Pipeline[]): Promise<PipelineView[]>;
+  private async enhance(arg: Pipeline | Pipeline[]): Promise<PipelineView | PipelineView[]> {
+    const isArray = Array.isArray(arg);
+    const pipelines: Pipeline[] = isArray ? arg : [arg];
+    const executions: Execution[] = await this.executionRepository.query({
+      pipelineIds: pipelines.map(({ id }) => id),
+    });
+    const pipelineViews: PipelineView[] = pipelines.map((p) => ({
+      ...p,
+      executions: executions.filter((e) => e.pipelineId === p.id),
+    }));
+    return isArray ? pipelineViews : pipelineViews[0];
   }
 
   private validate(pipeline: Pipeline) {

@@ -10,6 +10,9 @@ import { EncryptionAdapter } from "./adapters/encyption/EncryptionAdapter";
 import { S3Adapter } from "./adapters/s3/S3Adapter";
 import { ScriptAdapter } from "./adapters/scripting/ScriptAdapter";
 import { StepService } from "./services/StepService";
+import { ExecutionService } from "./services/ExecutionService";
+import { PipelineRepository } from "./repositories/PipelineRepository";
+import { ExecutionRepository } from "./repositories/ExecutionRepository";
 
 export class ServerRegistry {
   public static async bootstrap(): Promise<ServerRegistry> {
@@ -35,13 +38,22 @@ export class ServerRegistry {
       postgresAdapter,
     ));
 
+    // Repositories
+    const pipelineRepository = (this.registry[PipelineRepository.name] = new PipelineRepository());
+    const executionRepository = (this.registry[ExecutionRepository.name] = new ExecutionRepository());
+
     // Services
     const stepService = (this.registry[StepService.name] = new StepService());
-    const pipelineService = (this.registry[PipelineService.name] = new PipelineService(stepService, adapterService));
+    const pipelineService = (this.registry[PipelineService.name] = new PipelineService(
+      pipelineRepository,
+      executionRepository,
+      stepService,
+    ));
+    const executionService = (this.registry[ExecutionService.name] = new ExecutionService(adapterService));
     this.registry[CleanupService.name] = new CleanupService();
 
     // Server
-    this.registry[Server.name] = new Server(stepService, pipelineService);
+    this.registry[Server.name] = new Server(stepService, pipelineService, executionService);
   }
 
   public get<T>(klass: Class<T>): T {

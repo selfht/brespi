@@ -7,27 +7,30 @@ export namespace ExecutionData {
   const time3 = Temporal.Now.plainDateTimeISO().subtract({ days: 3 });
   const duration = Temporal.Duration.from({ seconds: Math.round(200 + Math.random() * 400) });
 
-  export const SUCCESS_1: Execution = {
+  export const SUCCESS_1 = (pipelineId: string): Execution => ({
     id: Bun.randomUUIDv7(),
+    pipelineId,
     outcome: Execution.Outcome.success,
     duration,
     startedAt: time1,
     completedAt: time1.add(duration),
-  };
+  });
 
-  export const SUCCESS_2: Execution = {
+  export const SUCCESS_2 = (pipelineId: string): Execution => ({
     id: Bun.randomUUIDv7(),
+    pipelineId,
     outcome: Execution.Outcome.success,
     duration,
     startedAt: time2,
     completedAt: time2.add(duration),
-  };
+  });
 
-  export const ERROR: Execution = {
+  export const ERROR = (pipelineId: string): Execution => ({
     id: Bun.randomUUIDv7(),
+    pipelineId,
     outcome: Execution.Outcome.error,
     duration,
     startedAt: time3,
     completedAt: time3.add(duration),
-  };
+  });
 }

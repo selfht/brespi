@@ -3,15 +3,16 @@ import { Exception } from "@/errors/Exception";
 import { ServerError } from "@/errors/ServerError";
 import index from "@/website/index.html";
 import { ErrorLike, serve } from "bun";
-import { PipelineData } from "./__testdata__/PipelineData";
 import { PipelineService } from "./services/PipelineService";
 import { StepService } from "./services/StepService";
 import { PipelineView } from "./views/PipelineView";
+import { ExecutionService } from "./services/ExecutionService";
 
 export class Server {
   public constructor(
     private readonly stepService: StepService,
     private readonly pipelineService: PipelineService,
+    private readonly executionService: ExecutionService,
   ) {}
 
   public listen() {
@@ -74,18 +75,22 @@ export class Server {
         },
 
         /**
-         * Temporary
+         * Executions
          */
-        "/api/backup": {
+        "/api/executions": {
+          GET: async () => {
+            // TODO
+            return Response.json([]);
+          },
           POST: async () => {
-            const result = await this.pipelineService.execute(PipelineData.POSTGRES_BACKUP);
-            return Response.json(result);
+            // TODO
+            return Response.json({});
           },
         },
-        "/api/restore": {
-          POST: async () => {
-            const result = await this.pipelineService.execute(PipelineData.RESTORE);
-            return Response.json(result);
+        "/api/executions/:id": {
+          GET: async () => {
+            // TODO
+            return Response.json({});
           },
         },
       },
