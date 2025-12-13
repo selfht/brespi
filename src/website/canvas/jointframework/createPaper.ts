@@ -1,8 +1,8 @@
 import { dia, shapes } from "@joint/core";
 import { RefObject } from "react";
 import { Block } from "../Block";
-import { JointBlockWithProposedHandle } from "./types/JointBlockWithProposedHandle";
-import { JointBlock } from "./types/JointBlock";
+import { JointBlockWithProposedHandle } from "./models/JointBlockWithProposedHandle";
+import { JointBlock } from "./models/JointBlock";
 import { createLink } from "./createLink";
 
 type Options = {

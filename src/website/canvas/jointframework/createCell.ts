@@ -1,7 +1,7 @@
 import { dia, shapes } from "@joint/core";
 import { Block } from "../Block";
 import { StylingHelper } from "./helpers/StylingHelper";
-import { JointBlock } from "./types/JointBlock";
+import { JointBlock } from "./models/JointBlock";
 
 export function createCell(block: JointBlock) {
   const items: dia.Element.Port[] = [];

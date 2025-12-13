@@ -14,8 +14,8 @@ import { StylingHelper } from "./jointframework/helpers/StylingHelper";
 import { setupBlockInteractions } from "./jointframework/setupBlockInteractions";
 import { setupLinkInteractions } from "./jointframework/setupLinkInteractions";
 import { setupPanning } from "./jointframework/setupPanning";
-import { Dimensions } from "./jointframework/types/Dimensions";
-import { JointBlock } from "./jointframework/types/JointBlock";
+import { Dimensions } from "./jointframework/models/Dimensions";
+import { JointBlock } from "./jointframework/models/JointBlock";
 
 /**
  * One-way databinding is strongly discouraged for the Canvas editor for performance reasons.

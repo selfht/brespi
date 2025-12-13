@@ -304,7 +304,7 @@ export function pipelines_$id() {
             {/* CANVAS */}
             <div className="col-span-full px-6">
               <div
-                className={clsx("relative h-[500px] rounded-lg overflow-hidden", {
+                className={clsx("relative h-[30rem] rounded-lg overflow-hidden", {
                   "bg-white bg-none!": interactivity === Interactivity.viewing,
                   "bg-white/95": interactivity === Interactivity.editing,
                 })}

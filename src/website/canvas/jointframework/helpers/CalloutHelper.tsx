@@ -1,7 +1,7 @@
 import { dia } from "@joint/core";
 import clsx from "clsx";
 import { renderToString } from "react-dom/server";
-import { JointBlock } from "../types/JointBlock";
+import { JointBlock } from "../models/JointBlock";
 
 export namespace CalloutHelper {
   export function showBlockDetails(cell: dia.Cell, block: JointBlock) {

@@ -5,8 +5,8 @@
  */
 :root {
     --grid-column-count: 12;
-    --column-max-width: 96px;
-    --grid-gap: 8px;
+    --column-max-width: 76px;
+    --grid-gap: 6px;
 }
 
 /**
@@ -108,6 +108,10 @@
         font-stretch: normal;
         font-style: italic;
         font-display: swap;
+    }
+
+    html {
+        font-size: 14px; /* 80% of default 16px */
     }
 
     body {

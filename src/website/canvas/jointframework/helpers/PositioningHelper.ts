@@ -1,7 +1,7 @@
 import { Block } from "../../Block";
-import { Coordinates } from "../types/Coordinates";
-import { Dimensions } from "../types/Dimensions";
-import { JointBlock } from "../types/JointBlock";
+import { Coordinates } from "../models/Coordinates";
+import { Dimensions } from "../models/Dimensions";
+import { JointBlock } from "../models/JointBlock";
 
 export namespace PositioningHelper {
   const BLOCK_WIDTH = 200;
