@@ -41,9 +41,7 @@ export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, 
   };
   return (
     <FormElements.Container className={className}>
-      <FormElements.Container.Left>
-        <FormElements.Title stepType={Step.Type.script_execution} />
-
+      <FormElements.Left stepType={Step.Type.script_execution}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label className="w-72">Script path</label>
@@ -54,7 +52,6 @@ export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, 
             <input type="checkbox" className="rounded p-2 bg-c-dim/20" {...register("passthrough")} />
           </div>
         </fieldset>
-
         <FormElements.ButtonBar
           className="mt-12"
           existing={existing}
@@ -63,8 +60,8 @@ export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, 
           onDelete={onDelete}
           onCancel={onCancel}
         />
-      </FormElements.Container.Left>
-      <FormElements.Container.Right formState={formState} clearErrors={clearErrors}>
+      </FormElements.Left>
+      <FormElements.Right formState={formState} clearErrors={clearErrors}>
         <p>This step can be used for executing custom scripts on artifacts.</p>
         <p>
           The <strong className="font-bold">script path</strong> references the script file to execute.
@@ -72,7 +69,7 @@ export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, 
         <p>
           If <strong className="font-bold">passthrough</strong> is enabled, the original artifacts will be passed along unchanged.
         </p>
-      </FormElements.Container.Right>
+      </FormElements.Right>
     </FormElements.Container>
   );
 }

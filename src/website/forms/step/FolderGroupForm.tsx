@@ -31,13 +31,10 @@ export function FolderGroupForm({ id, existing, onSave, onDelete, onCancel, clas
   };
   return (
     <FormElements.Container className={className}>
-      <FormElements.Container.Left>
-        <FormElements.Title stepType={Step.Type.folder_group} />
-
+      <FormElements.Left stepType={Step.Type.folder_group}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <p className="text-c-dim">This step requires no additional configuration.</p>
         </fieldset>
-
         <FormElements.ButtonBar
           className="mt-12"
           existing={existing}
@@ -46,11 +43,11 @@ export function FolderGroupForm({ id, existing, onSave, onDelete, onCancel, clas
           onDelete={onDelete}
           onCancel={onCancel}
         />
-      </FormElements.Container.Left>
-      <FormElements.Container.Right formState={formState} clearErrors={clearErrors}>
+      </FormElements.Left>
+      <FormElements.Right formState={formState} clearErrors={clearErrors}>
         <p>This step can be used for grouping files into folders.</p>
         <p>Files will be organized based on their attributes or naming patterns.</p>
-      </FormElements.Container.Right>
+      </FormElements.Right>
     </FormElements.Container>
   );
 }

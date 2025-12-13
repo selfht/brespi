@@ -38,16 +38,13 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
   };
   return (
     <FormElements.Container className={className}>
-      <FormElements.Container.Left>
-        <FormElements.Title stepType={Step.Type.filesystem_write} />
-
+      <FormElements.Left stepType={Step.Type.filesystem_write}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label className="w-72">Path</label>
             <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("path")} />
           </div>
         </fieldset>
-
         <FormElements.ButtonBar
           className="mt-12"
           existing={existing}
@@ -56,13 +53,13 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
           onDelete={onDelete}
           onCancel={onCancel}
         />
-      </FormElements.Container.Left>
-      <FormElements.Container.Right formState={formState} clearErrors={clearErrors}>
+      </FormElements.Left>
+      <FormElements.Right formState={formState} clearErrors={clearErrors}>
         <p>This step can be used for writing to the local filesystem.</p>
         <p>
           The <strong className="font-bold">path</strong> references the target location where artifacts will be written.
         </p>
-      </FormElements.Container.Right>
+      </FormElements.Right>
     </FormElements.Container>
   );
 }

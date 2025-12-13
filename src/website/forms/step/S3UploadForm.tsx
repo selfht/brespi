@@ -44,9 +44,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
   };
   return (
     <FormElements.Container className={className}>
-      <FormElements.Container.Left>
-        <FormElements.Title stepType={Step.Type.s3_upload} />
-
+      <FormElements.Left stepType={Step.Type.s3_upload}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label className="w-72">Access Key Reference</label>
@@ -61,7 +59,6 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
             <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("baseFolder")} />
           </div>
         </fieldset>
-
         <FormElements.ButtonBar
           className="mt-12"
           existing={existing}
@@ -70,8 +67,8 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
           onDelete={onDelete}
           onCancel={onCancel}
         />
-      </FormElements.Container.Left>
-      <FormElements.Container.Right formState={formState} clearErrors={clearErrors}>
+      </FormElements.Left>
+      <FormElements.Right formState={formState} clearErrors={clearErrors}>
         <p>This step can be used for uploading artifacts to S3.</p>
         <p>
           The <strong className="font-bold">access key</strong> and <strong className="font-bold">secret key</strong> references specify
@@ -80,7 +77,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
         <p>
           The <strong className="font-bold">base folder</strong> specifies the S3 path where artifacts will be uploaded.
         </p>
-      </FormElements.Container.Right>
+      </FormElements.Right>
     </FormElements.Container>
   );
 }

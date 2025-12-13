@@ -31,13 +31,10 @@ export function FolderFlattenForm({ id, existing, onSave, onDelete, onCancel, cl
   };
   return (
     <FormElements.Container className={className}>
-      <FormElements.Container.Left>
-        <FormElements.Title stepType={Step.Type.folder_flatten} />
-
+      <FormElements.Left stepType={Step.Type.folder_flatten}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <p className="text-c-dim">This step requires no additional configuration.</p>
         </fieldset>
-
         <FormElements.ButtonBar
           className="mt-12"
           existing={existing}
@@ -46,11 +43,11 @@ export function FolderFlattenForm({ id, existing, onSave, onDelete, onCancel, cl
           onDelete={onDelete}
           onCancel={onCancel}
         />
-      </FormElements.Container.Left>
-      <FormElements.Container.Right formState={formState} clearErrors={clearErrors}>
+      </FormElements.Left>
+      <FormElements.Right formState={formState} clearErrors={clearErrors}>
         <p>This step can be used for flattening folder structures.</p>
         <p>All files from nested directories will be moved to a single level.</p>
-      </FormElements.Container.Right>
+      </FormElements.Right>
     </FormElements.Container>
   );
 }

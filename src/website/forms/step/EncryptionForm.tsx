@@ -43,9 +43,7 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
   };
   return (
     <FormElements.Container className={className}>
-      <FormElements.Container.Left>
-        <FormElements.Title stepType={Step.Type.encryption} />
-
+      <FormElements.Left stepType={Step.Type.encryption}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label className="w-72">Key Reference</label>
@@ -58,7 +56,6 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
             </select>
           </div>
         </fieldset>
-
         <FormElements.ButtonBar
           className="mt-12"
           existing={existing}
@@ -67,13 +64,13 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
           onDelete={onDelete}
           onCancel={onCancel}
         />
-      </FormElements.Container.Left>
-      <FormElements.Container.Right formState={formState} clearErrors={clearErrors}>
+      </FormElements.Left>
+      <FormElements.Right formState={formState} clearErrors={clearErrors}>
         <p>This step can be used for encrypting artifacts.</p>
         <p>
           The <strong className="font-bold">key reference</strong> specifies which encryption key to use.
         </p>
-      </FormElements.Container.Right>
+      </FormElements.Right>
     </FormElements.Container>
   );
 }
