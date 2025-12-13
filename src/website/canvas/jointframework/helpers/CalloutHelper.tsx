@@ -4,6 +4,32 @@ import { renderToString } from "react-dom/server";
 import { JointBlock } from "../models/JointBlock";
 
 export namespace CalloutHelper {
+  function Value({ v }: { v: string | number | boolean | null }) {
+    const displayValue =
+      v === null
+        ? "(absent)"
+        : typeof v === "boolean"
+          ? v
+            ? "Yes"
+            : "No"
+          : typeof v === "string" && v.trim() === ""
+            ? "\u00A0" // Non-breaking space to preserve vertical height
+            : v;
+
+    return (
+      <code
+        className={clsx("break-all p-0.5 bg-c-dim/20 rounded", {
+          italic: v === null,
+          "text-c-info": typeof v === "number",
+          "text-c-success": typeof v === "boolean" && v,
+          "text-c-error": typeof v === "boolean" && !v,
+        })}
+      >
+        {displayValue}
+      </code>
+    );
+  }
+
   export function showBlockDetails(cell: dia.Cell, block: JointBlock) {
     // Bring to front
     cell.toFront();
@@ -27,28 +53,12 @@ export namespace CalloutHelper {
                       .filter((v) => v !== undefined)
                       .map((v, index) => (
                         <li key={index}>
-                          <code
-                            className={clsx("break-all p-0.5 bg-c-dim/20 rounded", {
-                              "text-c-info": typeof v === "number",
-                              "text-c-success": typeof v === "boolean" && v,
-                              "text-c-error": typeof v === "boolean" && !v,
-                            })}
-                          >
-                            {typeof v === "boolean" ? (v ? "Yes" : "No") : v}
-                          </code>
+                          <Value v={v} />
                         </li>
                       ))}
                   </ul>
                 ) : (
-                  <code
-                    className={clsx("break-all p-0.5 bg-c-dim/20 rounded", {
-                      "text-c-info": typeof value === "number",
-                      "text-c-success": typeof value === "boolean" && value,
-                      "text-c-error": typeof value === "boolean" && !value,
-                    })}
-                  >
-                    {typeof value === "boolean" ? (value ? "Yes" : "No") : value}
-                  </code>
+                  <Value v={value as string | number | boolean | null} /> /* undefined is already filtered out */
                 )}
               </div>
             ))}

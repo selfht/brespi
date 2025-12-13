@@ -2,15 +2,9 @@ import { Block } from "../../Block";
 import { Coordinates } from "../models/Coordinates";
 import { Dimensions } from "../models/Dimensions";
 import { JointBlock } from "../models/JointBlock";
+import { Sizing } from "../sizing/Sizing";
 
 export namespace PositioningHelper {
-  const BLOCK_WIDTH = 200;
-  const BLOCK_HEIGHT = 100;
-  const HORIZONTAL_SPACING = 50;
-  const VERTICAL_SPACING = 30;
-  const START_X = 80;
-  const START_Y = 50;
-
   export function performSmartPositioning(blocks: Block[], paperDimensions: Dimensions): JointBlock[] {
     const childrenMap = new Map<string | null, Block[]>();
     blocks.forEach((block) => {
@@ -72,8 +66,8 @@ export namespace PositioningHelper {
           result.push({
             ...block,
             coordinates: {
-              x: START_X + (BLOCK_WIDTH + HORIZONTAL_SPACING) * column,
-              y: START_Y + (BLOCK_HEIGHT + VERTICAL_SPACING) * row,
+              x: Sizing.GRID_START_X + (Sizing.BLOCK_WIDTH + Sizing.GRID_HORIZONTAL_SPACING) * column,
+              y: Sizing.GRID_START_Y + (Sizing.BLOCK_HEIGHT + Sizing.GRID_VERTICAL_SPACING) * row,
             },
           });
         }

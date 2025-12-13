@@ -130,7 +130,6 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
           cell.set("position", { x: block.coordinates.x, y: block.coordinates.y });
         }
       });
-      paperRef.current!.translate(0, 0);
     },
     insert(block) {
       block = {

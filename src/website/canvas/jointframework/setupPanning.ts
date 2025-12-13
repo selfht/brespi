@@ -1,5 +1,6 @@
 import { dia } from "@joint/core";
 import { RefObject } from "react";
+import { Sizing } from "./sizing/Sizing";
 
 type Options = {
   paperRef: RefObject<dia.Paper | null>;
@@ -12,7 +13,6 @@ export function setupPanning({ paperRef }: Options): Result {
 
   let dragStartPosition: { x: number; y: number } | null = null;
   let isPanning = false;
-  const PAN_THRESHOLD = 5;
 
   paper.on("blank:pointerdown", (evt) => {
     dragStartPosition = { x: evt.clientX!, y: evt.clientY! };
@@ -25,7 +25,7 @@ export function setupPanning({ paperRef }: Options): Result {
       const deltaY = evt.clientY! - dragStartPosition.y;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-      if (!isPanning && distance < PAN_THRESHOLD) {
+      if (!isPanning && distance < Sizing.PAN_THRESHOLD) {
         return;
       }
 

@@ -235,7 +235,7 @@ export function pipelines_$id() {
   /**
    * Render
    */
-  const { interactivity, name } = mainForm.watch();
+  const { interactivity, name, steps } = mainForm.watch();
   const buttonGroups = useMemo(() => Internal.getButtonGroups(), []);
   return (
     <Skeleton>
@@ -318,12 +318,14 @@ export function pipelines_$id() {
                     </button>
                   </div>
                 )}
-                <button
-                  className="absolute bottom-2 right-2 p-2 rounded-lg bg-c-dark cursor-pointer z-10"
-                  onClick={canvasApi.current?.format}
-                >
-                  format
-                </button>
+                {steps && steps.length > 1 && (
+                  <button
+                    className="absolute bottom-2 right-2 p-2 rounded-lg bg-c-dark hover:text-white cursor-pointer z-10"
+                    onClick={canvasApi.current?.format}
+                  >
+                    Reposition
+                  </button>
+                )}
                 <Canvas ref={canvasApi} interactivity={interactivity} onBlocksChange={canvasListener.handleBlocksChange} />
               </div>
             </div>

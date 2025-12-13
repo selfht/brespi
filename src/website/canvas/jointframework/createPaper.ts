@@ -4,6 +4,7 @@ import { Block } from "../Block";
 import { JointBlockWithProposedHandle } from "./models/JointBlockWithProposedHandle";
 import { JointBlock } from "./models/JointBlock";
 import { createLink } from "./createLink";
+import { Sizing } from "./sizing/Sizing";
 
 type Options = {
   elementRef: RefObject<HTMLElement | null>;
@@ -23,13 +24,13 @@ export function createPaper({ elementRef, blocksRef, validateArrow }: Options) {
     background: { color: "transparent" },
     cellViewNamespace: namespace,
     gridSize: 1, // Free-form movement (no snapping)
-    clickThreshold: 10, // Allow 10px movement and still count as click
-    magnetThreshold: 5, // Require 5px movement before starting link creation
+    clickThreshold: Sizing.CLICK_THRESHOLD, // Allow movement and still count as click
+    magnetThreshold: Sizing.MAGNET_THRESHOLD, // Require movement before starting link creation
     defaultLink: createLink,
     linkPinning: false,
     defaultConnectionPoint: {
       name: "boundary",
-      args: { offset: 8 },
+      args: { offset: Sizing.CONNECTION_POINT_OFFSET },
     },
     interactive: {
       elementMove: false,

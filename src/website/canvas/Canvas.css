@@ -1,5 +1,5 @@
 .joint-paper {
-    cursor: grab;
+    cursor: move;
 }
 
 .joint-paper.joint-theme-default .joint-element {

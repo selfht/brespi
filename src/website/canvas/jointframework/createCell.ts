@@ -2,17 +2,11 @@ import { dia, shapes } from "@joint/core";
 import { Block } from "../Block";
 import { StylingHelper } from "./helpers/StylingHelper";
 import { JointBlock } from "./models/JointBlock";
+import { Sizing } from "./sizing/Sizing";
 
 export function createCell(block: JointBlock) {
   const items: dia.Element.Port[] = [];
   const groups: Record<string, dia.Element.PortGroup> = {};
-
-  const ioConnector = {
-    width: 16,
-    height: 16,
-    borderRadius: 4,
-    offset: 6,
-  };
 
   // Input side
   items.push({ id: Block.Handle.input, group: Block.Handle.input });
@@ -21,14 +15,14 @@ export function createCell(block: JointBlock) {
     markup: [{ tagName: "rect", selector: "rect" }],
     attrs: {
       rect: {
-        width: ioConnector.width,
-        height: ioConnector.height,
-        x: -ioConnector.width - ioConnector.offset, // Position fully outside to the left
-        y: -(ioConnector.height / 2), // Center vertically
-        rx: ioConnector.borderRadius,
-        ry: ioConnector.borderRadius,
+        width: Sizing.CONNECTOR_WIDTH,
+        height: Sizing.CONNECTOR_HEIGHT,
+        x: -Sizing.CONNECTOR_WIDTH - Sizing.CONNECTOR_OFFSET, // Position fully outside to the left
+        y: -(Sizing.CONNECTOR_HEIGHT / 2), // Center vertically
+        rx: Sizing.CONNECTOR_BORDER_RADIUS,
+        ry: Sizing.CONNECTOR_BORDER_RADIUS,
         class: "",
-        strokeWidth: 3,
+        strokeWidth: Sizing.CONNECTOR_STROKE_WIDTH,
         magnet: "passive",
       },
     },
@@ -41,14 +35,14 @@ export function createCell(block: JointBlock) {
     markup: [{ tagName: "rect", selector: "rect" }],
     attrs: {
       rect: {
-        width: ioConnector.width,
-        height: ioConnector.height,
-        x: ioConnector.offset, // Position fully outside to the right
-        y: -(ioConnector.height / 2), // Center vertically
-        rx: ioConnector.borderRadius,
-        ry: ioConnector.borderRadius,
+        width: Sizing.CONNECTOR_WIDTH,
+        height: Sizing.CONNECTOR_HEIGHT,
+        x: Sizing.CONNECTOR_OFFSET, // Position fully outside to the right
+        y: -(Sizing.CONNECTOR_HEIGHT / 2), // Center vertically
+        rx: Sizing.CONNECTOR_BORDER_RADIUS,
+        ry: Sizing.CONNECTOR_BORDER_RADIUS,
         class: "",
-        strokeWidth: 3,
+        strokeWidth: Sizing.CONNECTOR_STROKE_WIDTH,
         magnet: true,
       },
     },
@@ -60,7 +54,7 @@ export function createCell(block: JointBlock) {
     new shapes.standard.Rectangle({
       id: block.id,
       position: block.coordinates,
-      size: { width: 80, height: 60 },
+      size: { width: Sizing.BLOCK_WIDTH, height: Sizing.BLOCK_HEIGHT },
       markup: [
         { tagName: "rect", selector: "body" },
         { tagName: "text", selector: "label" },
@@ -69,25 +63,25 @@ export function createCell(block: JointBlock) {
       attrs: {
         body: {
           class: "",
-          strokeWidth: 3,
-          rx: 8, // Rounded corners (scaled down)
-          ry: 8,
+          strokeWidth: Sizing.BLOCK_STROKE_WIDTH,
+          rx: Sizing.BLOCK_BORDER_RADIUS,
+          ry: Sizing.BLOCK_BORDER_RADIUS,
           width: "calc(w)",
           height: "calc(h)",
         },
         label: {
           text: block.label,
           class: "fill-c-dark font-base",
-          fontSize: 16,
+          fontSize: Sizing.LABEL_FONT_SIZE,
           x: "calc(0.5*w)", // Center horizontally
-          y: "calc(h+18)", // Below block
+          y: `calc(h+${Sizing.LABEL_Y_OFFSET})`, // Below block
           textAnchor: "middle",
         },
         callout: {
           display: "none", // Hidden by default
-          x: "calc(0.5*w-100)",
-          y: "calc(h+10)", // Below label with spacing
-          width: 200,
+          x: `calc(0.5*w-${Sizing.CALLOUT_WIDTH / 2})`,
+          y: `calc(h+${Sizing.CALLOUT_Y_OFFSET})`, // Below label with spacing
+          width: Sizing.CALLOUT_WIDTH,
           height: 1, // Will grow based on content
           style: {
             overflow: "visible",

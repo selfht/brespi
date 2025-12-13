@@ -1,11 +1,12 @@
 import { shapes } from "@joint/core";
+import { Sizing } from "./sizing/Sizing";
 
 export function createLink() {
   return new shapes.standard.Link({
     attrs: {
       line: {
         stroke: "#34495e",
-        strokeWidth: 2.5,
+        strokeWidth: Sizing.LINK_STROKE_WIDTH,
         strokeLinecap: "round",
         targetMarker: {
           type: "path",
