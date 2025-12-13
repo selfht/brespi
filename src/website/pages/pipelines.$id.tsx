@@ -304,28 +304,28 @@ export function pipelines_$id() {
             {/* CANVAS */}
             <div className="col-span-full px-6">
               <div
-                className={clsx("relative h-[30rem] rounded-lg overflow-hidden", {
+                className={clsx("relative h-120 rounded-lg overflow-hidden", {
                   "bg-white bg-none!": interactivity === Interactivity.viewing,
                   "bg-white/95": interactivity === Interactivity.editing,
                 })}
                 style={{ backgroundImage: `url(${bgCanvas})`, backgroundSize: 10 }}
               >
                 {mainForm.formState.errors.root?.message && (
-                  <div className="absolute w-[calc(100%-1rem)] left-2 top-2 rounded-lg z-10 p-5 bg-black border-3 border-c-error flex justify-between items-start">
+                  <div className="absolute left-2 right-2 top-2 rounded-lg z-10 p-5 bg-black border-3 border-c-error flex justify-between items-start">
                     <pre className="text-c-error">{mainForm.formState.errors.root.message}</pre>
                     <button className="cursor-pointer" onClick={() => mainForm.clearErrors()}>
                       <Icon variant="close" className="size-5" />
                     </button>
                   </div>
                 )}
-                {steps && steps.length > 1 && (
-                  <button
-                    className="absolute bottom-2 right-2 p-2 rounded-lg bg-c-dark hover:text-white cursor-pointer z-10"
-                    onClick={canvasApi.current?.format}
-                  >
-                    Reposition
-                  </button>
-                )}
+                <div className="absolute left-2 right-2 bottom-2 z-10 flex justify-end gap-2">
+                  {steps && steps.length > 1 && (
+                    <button className="p-2 rounded-lg bg-c-dark hover:text-white cursor-pointer" onClick={canvasApi.current?.format}>
+                      Reposition
+                    </button>
+                  )}
+                  <button className="p-2 rounded-lg bg-c-dark hover:text-white cursor-pointer">Full screen</button>
+                </div>
                 <Canvas ref={canvasApi} interactivity={interactivity} onBlocksChange={canvasListener.handleBlocksChange} />
               </div>
             </div>

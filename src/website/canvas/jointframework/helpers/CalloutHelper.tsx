@@ -15,7 +15,6 @@ export namespace CalloutHelper {
           : typeof v === "string" && v.trim() === ""
             ? "\u00A0" // Non-breaking space to preserve vertical height
             : v;
-
     return (
       <code
         className={clsx("break-all p-0.5 bg-c-dim/20 rounded", {
