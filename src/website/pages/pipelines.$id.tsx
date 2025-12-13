@@ -23,6 +23,7 @@ import { Spinner } from "../comps/Spinner";
 import { SquareIcon } from "../comps/SquareIcon";
 import { FormHelper } from "../forms/FormHelper";
 import { StepForm } from "../forms/StepForm";
+import { useFullScreen } from "../hooks/useFullScreen";
 import { useRegistry } from "../hooks/useRegistry";
 import bgCanvas from "../images/bg-canvas.svg";
 import { StepTranslation } from "../translation/StepTranslation";
@@ -39,6 +40,9 @@ export function pipelines_$id() {
   const queryClient = useRegistry.instance(QueryClient);
   const pipelineClient = useRegistry.instance(PipelineClient);
 
+  /**
+   * Data
+   */
   const queryKey = [QueryKey.pipelines, id];
   const query = useQuery<"new" | PipelineView, ProblemDetails>({
     queryKey: [QueryKey.pipelines, id],
@@ -51,7 +55,12 @@ export function pipelines_$id() {
   });
 
   /**
-   * Refs
+   * Full screen
+   */
+  const { fullScreenElementRef, isFullScreen, toggleFullScreen } = useFullScreen();
+
+  /**
+   * Canvas
    */
   const canvasApi = useRef<Canvas.Api>(null);
 
@@ -240,11 +249,12 @@ export function pipelines_$id() {
   return (
     <Skeleton>
       <Paper
+        ref={fullScreenElementRef}
         className={clsx("col-span-full u-subgrid", {
           "bg-black!": interactivity === Interactivity.editing,
         })}
         borderClassName={clsx({
-          "border-c-info bg-c-info": interactivity === Interactivity.editing,
+          "border-c-info bg-c-info": interactivity === Interactivity.editing && !isFullScreen,
         })}
       >
         {query.error ? (
@@ -320,11 +330,19 @@ export function pipelines_$id() {
                 )}
                 <div className="absolute left-2 right-2 bottom-2 z-10 flex justify-end gap-2">
                   {steps && steps.length > 1 && (
-                    <button className="p-2 rounded-lg bg-c-dark hover:text-white cursor-pointer" onClick={canvasApi.current?.format}>
+                    <button
+                      className="p-2 rounded-lg cursor-pointer bg-c-dark opacity-90 hover:opacity-100 hover:text-white"
+                      onClick={canvasApi.current?.format}
+                    >
                       Reposition
                     </button>
                   )}
-                  <button className="p-2 rounded-lg bg-c-dark hover:text-white cursor-pointer">Full screen</button>
+                  <button
+                    className="p-2 rounded-lg cursor-pointer bg-c-dark opacity-90 hover:opacity-100 hover:text-white"
+                    onClick={toggleFullScreen}
+                  >
+                    Full screen
+                  </button>
                 </div>
                 <Canvas ref={canvasApi} interactivity={interactivity} onBlocksChange={canvasListener.handleBlocksChange} />
               </div>
