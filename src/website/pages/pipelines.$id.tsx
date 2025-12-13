@@ -250,25 +250,27 @@ export function pipelines_$id() {
     <Skeleton>
       <Paper
         ref={fullScreenElementRef}
-        className={clsx("col-span-full u-subgrid", {
+        className={clsx("col-span-full flex flex-col", {
           "bg-black!": interactivity === Interactivity.editing,
+          "h-screen w-screen": isFullScreen,
         })}
         borderClassName={clsx({
           "border-c-info bg-c-info": interactivity === Interactivity.editing && !isFullScreen,
+          "border-none": isFullScreen,
         })}
       >
         {query.error ? (
-          <div className="col-span-full p-6 text-center">
+          <div className="p-6 text-center">
             <ErrorDump error={query.error} />
           </div>
         ) : !query.data ? (
-          <div className="col-span-full p-6 text-center">
+          <div className="p-6 text-center">
             <Spinner />
           </div>
         ) : (
           <>
             {/* HEADER */}
-            <div className="col-span-full p-6 flex justify-between items-center">
+            <div className="p-6 flex justify-between items-center">
               {/*<h1 className="text-xl font-extralight">{name}</h1>*/}
               <h1 className="text-xl font-extralight relative inline-block">
                 <div
@@ -312,9 +314,9 @@ export function pipelines_$id() {
               </div>
             </div>
             {/* CANVAS */}
-            <div className="col-span-full px-6">
+            <div className={clsx("flex flex-col px-6", isFullScreen ? "flex-1 min-h-0" : "h-120")}>
               <div
-                className={clsx("relative h-120 rounded-lg overflow-hidden", {
+                className={clsx("h-full relative rounded-lg overflow-hidden", {
                   "bg-white bg-none!": interactivity === Interactivity.viewing,
                   "bg-white/95": interactivity === Interactivity.editing,
                 })}
@@ -349,8 +351,8 @@ export function pipelines_$id() {
             </div>
             {/* DETAILS */}
             {interactivity === Interactivity.viewing ? (
-              <>
-                <div className="col-span-6 p-6">
+              <div className="flex items-start">
+                <div className="flex-1 p-6">
                   <h2 className="mb-6 text-xl font-extralight">Execution History</h2>
                   {(query.data as PipelineView).executions.map((execution) => (
                     <button key={execution.id} className="mt-4 flex items-center text-left gap-4 group cursor-pointer">
@@ -366,16 +368,16 @@ export function pipelines_$id() {
                   {(query.data as PipelineView).executions.length === 0 && <SquareIcon variant="no_data" />}
                 </div>
                 {(query.data as PipelineView).executions.length > 0 && (
-                  <div className="col-span-6 p-6">
+                  <div className="flex-1 p-6">
                     <h2 className="mb-6 text-xl font-extralight">Execution Details</h2>
                     <p className="text-c-dim font-extralight">Select an execution to see its details.</p>
                   </div>
                 )}
-              </>
+              </div>
             ) : stepForm === undefined ? (
-              <>
+              <div className="flex items-start">
                 {buttonGroups.map((bg) => (
-                  <div key={bg.category} className="col-span-4 px-6 pt-10 pb-20 pr-3 flex flex-col">
+                  <div key={bg.category} className="flex-1 px-6 pt-10 pb-20 pr-3 flex flex-col">
                     <ArtifactSymbol variant={bg.category} />
                     <div className="font-extralight text-c-dim mt-3">{bg.categoryLabel}</div>
                     <div className="flex flex-wrap gap-2 mt-6">
@@ -387,10 +389,10 @@ export function pipelines_$id() {
                     </div>
                   </div>
                 ))}
-              </>
+              </div>
             ) : (
               <StepForm
-                className="col-span-full p-6"
+                className="w-full p-6"
                 id={stepForm.id}
                 type={stepForm.type}
                 existing={stepForm.existingStep}

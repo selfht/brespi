@@ -54,8 +54,8 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
 
   const selectionTarget = watch("selectionTarget");
   return (
-    <div className={clsx(className, "u-subgrid font-light")}>
-      <div className="col-span-6 pr-3">
+    <FormElements.Container className={className}>
+      <FormElements.Container.Left>
         <FormElements.Title stepType={Step.Type.s3_download} />
 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
@@ -98,23 +98,21 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           onDelete={onDelete}
           onCancel={onCancel}
         />
-      </div>
-      <div className="col-span-6 pl-3 border-l-2 border-c-dim/20">
-        <FormElements.DescriptionOrError formState={formState} clearErrors={clearErrors}>
-          <p>This step can be used for downloading artifacts from S3.</p>
-          <p>
-            The <strong className="font-bold">access key</strong> and <strong className="font-bold">secret key</strong> references specify
-            which S3 credentials to use.
-          </p>
-          <p>
-            The <strong className="font-bold">base folder</strong> specifies the S3 path to download from.
-          </p>
-          <p>
-            The <strong className="font-bold">artifact</strong> specifies which artifact to download.
-          </p>
-          <p>You can choose to download the latest version or a specific version.</p>
-        </FormElements.DescriptionOrError>
-      </div>
-    </div>
+      </FormElements.Container.Left>
+      <FormElements.Container.Right formState={formState} clearErrors={clearErrors}>
+        <p>This step can be used for downloading artifacts from S3.</p>
+        <p>
+          The <strong className="font-bold">access key</strong> and <strong className="font-bold">secret key</strong> references specify
+          which S3 credentials to use.
+        </p>
+        <p>
+          The <strong className="font-bold">base folder</strong> specifies the S3 path to download from.
+        </p>
+        <p>
+          The <strong className="font-bold">artifact</strong> specifies which artifact to download.
+        </p>
+        <p>You can choose to download the latest version or a specific version.</p>
+      </FormElements.Container.Right>
+    </FormElements.Container>
   );
 }

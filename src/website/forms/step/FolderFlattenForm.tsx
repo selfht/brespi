@@ -30,8 +30,8 @@ export function FolderFlattenForm({ id, existing, onSave, onDelete, onCancel, cl
     }
   };
   return (
-    <div className={clsx(className, "u-subgrid font-light")}>
-      <div className="col-span-6 pr-3">
+    <FormElements.Container className={className}>
+      <FormElements.Container.Left>
         <FormElements.Title stepType={Step.Type.folder_flatten} />
 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
@@ -46,13 +46,11 @@ export function FolderFlattenForm({ id, existing, onSave, onDelete, onCancel, cl
           onDelete={onDelete}
           onCancel={onCancel}
         />
-      </div>
-      <div className="col-span-6 pl-3 border-l-2 border-c-dim/20">
-        <FormElements.DescriptionOrError formState={formState} clearErrors={clearErrors}>
-          <p>This step can be used for flattening folder structures.</p>
-          <p>All files from nested directories will be moved to a single level.</p>
-        </FormElements.DescriptionOrError>
-      </div>
-    </div>
+      </FormElements.Container.Left>
+      <FormElements.Container.Right formState={formState} clearErrors={clearErrors}>
+        <p>This step can be used for flattening folder structures.</p>
+        <p>All files from nested directories will be moved to a single level.</p>
+      </FormElements.Container.Right>
+    </FormElements.Container>
   );
 }

@@ -37,8 +37,8 @@ export function FileSystemReadForm({ id, existing, onSave, onDelete, onCancel, c
     }
   };
   return (
-    <div className={clsx(className, "u-subgrid font-light")}>
-      <div className="col-span-6 pr-3">
+    <FormElements.Container className={className}>
+      <FormElements.Container.Left>
         <FormElements.Title stepType={Step.Type.filesystem_read} />
 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
@@ -56,15 +56,13 @@ export function FileSystemReadForm({ id, existing, onSave, onDelete, onCancel, c
           onDelete={onDelete}
           onCancel={onCancel}
         />
-      </div>
-      <div className="col-span-6 pl-3 border-l-2 border-c-dim/20">
-        <FormElements.DescriptionOrError formState={formState} clearErrors={clearErrors}>
-          <p>This step can be used for reading from the local filesystem.</p>
-          <p>
-            The <strong className="font-bold">path</strong> references either a file or a folder.
-          </p>
-        </FormElements.DescriptionOrError>
-      </div>
-    </div>
+      </FormElements.Container.Left>
+      <FormElements.Container.Right formState={formState} clearErrors={clearErrors}>
+        <p>This step can be used for reading from the local filesystem.</p>
+        <p>
+          The <strong className="font-bold">path</strong> references either a file or a folder.
+        </p>
+      </FormElements.Container.Right>
+    </FormElements.Container>
   );
 }

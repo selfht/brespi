@@ -8,6 +8,43 @@ import { Spinner } from "../comps/Spinner";
 import { StepTranslation } from "../translation/StepTranslation";
 
 export namespace FormElements {
+  type ContainerProps = {
+    className?: string;
+    children?: ReactNode;
+  };
+  export function Container({ className, children }: ContainerProps) {
+    return <div className={clsx("flex items-start font-light", className)}>{children}</div>;
+  }
+  export namespace Container {
+    type LeftProps = {
+      children?: ReactNode;
+    };
+    export function Left({ children }: LeftProps) {
+      return <div className="flex-1 pr-3">{children}</div>;
+    }
+    type RightProps = {
+      formState: FormState<{}>;
+      clearErrors: () => unknown;
+      children?: ReactNode;
+    };
+    export function Right({ formState, clearErrors, children }: RightProps) {
+      return (
+        <div className="flex-1 pl-3 border-l-2 border-c-dim/20">
+          {formState.errors.root?.message ? (
+            <div className="border-3 border-c-error p-3 rounded-lg flex justify-between items-start">
+              <pre className="text-c-error">{formState.errors.root.message}</pre>
+              <button className="cursor-pointer" onClick={() => clearErrors()}>
+                <Icon variant="close" className="size-5" />
+              </button>
+            </div>
+          ) : (
+            children
+          )}
+        </div>
+      );
+    }
+  }
+
   type TitleProps = {
     stepType: Step.Type;
   };
@@ -44,7 +81,7 @@ export namespace FormElements {
   type DescriptionOrErrorProps = {
     formState: FormState<{}>;
     clearErrors: () => unknown;
-    children: ReactNode;
+    children?: ReactNode;
   };
   export function DescriptionOrError({ formState, clearErrors, children }: DescriptionOrErrorProps) {
     if (formState.errors.root?.message) {
@@ -57,6 +94,6 @@ export namespace FormElements {
         </div>
       );
     }
-    return children || null;
+    return children;
   }
 }

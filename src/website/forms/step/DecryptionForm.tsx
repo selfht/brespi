@@ -42,8 +42,8 @@ export function DecryptionForm({ id, existing, onSave, onDelete, onCancel, class
     }
   };
   return (
-    <div className={clsx(className, "u-subgrid font-light")}>
-      <div className="col-span-6 pr-3">
+    <FormElements.Container className={className}>
+      <FormElements.Container.Left>
         <FormElements.Title stepType={Step.Type.decryption} />
 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
@@ -67,15 +67,13 @@ export function DecryptionForm({ id, existing, onSave, onDelete, onCancel, class
           onDelete={onDelete}
           onCancel={onCancel}
         />
-      </div>
-      <div className="col-span-6 pl-3 border-l-2 border-c-dim/20">
-        <FormElements.DescriptionOrError formState={formState} clearErrors={clearErrors}>
-          <p>This step can be used for decrypting artifacts.</p>
-          <p>
-            The <strong className="font-bold">key reference</strong> specifies which decryption key to use.
-          </p>
-        </FormElements.DescriptionOrError>
-      </div>
-    </div>
+      </FormElements.Container.Left>
+      <FormElements.Container.Right formState={formState} clearErrors={clearErrors}>
+        <p>This step can be used for decrypting artifacts.</p>
+        <p>
+          The <strong className="font-bold">key reference</strong> specifies which decryption key to use.
+        </p>
+      </FormElements.Container.Right>
+    </FormElements.Container>
   );
 }
