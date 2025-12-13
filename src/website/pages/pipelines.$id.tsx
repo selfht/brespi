@@ -330,17 +330,21 @@ export function pipelines_$id() {
                     </button>
                   </div>
                 )}
-                <div className="absolute left-2 right-2 bottom-2 z-10 flex justify-end gap-2">
+                <div className="absolute left-2 right-2 bottom-2 z-10 flex justify-end gap-2 text-xs">
                   {steps && steps.length > 1 && (
                     <button
-                      className="p-2 rounded-lg cursor-pointer bg-c-dark opacity-90 hover:opacity-100 hover:text-white"
+                      className={clsx("p-2 rounded-lg cursor-pointer bg-c-dark hover:text-white", {
+                        "bg-black!": interactivity === Interactivity.editing,
+                      })}
                       onClick={canvasApi.current?.format}
                     >
                       Reposition
                     </button>
                   )}
                   <button
-                    className="p-2 rounded-lg cursor-pointer bg-c-dark opacity-90 hover:opacity-100 hover:text-white"
+                    className={clsx("p-2 rounded-lg cursor-pointer bg-c-dark hover:text-white", {
+                      "bg-black!": interactivity === Interactivity.editing,
+                    })}
                     onClick={toggleFullScreen}
                   >
                     Full screen
