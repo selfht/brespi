@@ -20,7 +20,7 @@ export namespace PipelineData {
     name: "My Postgres Backup Pipeline",
     steps: [
       {
-        id: Bun.randomUUIDv7(),
+        id: "019b1e40-bc72-7001-80e4-c76ff6f1244e",
         previousId: null,
         type: Step.Type.postgres_backup,
         databaseSelection: {
@@ -29,8 +29,8 @@ export namespace PipelineData {
         },
       },
       {
-        id: Bun.randomUUIDv7(),
-        previousId: null,
+        id: "019b1e40-bc72-7002-8177-3d26094656c8",
+        previousId: "019b1e40-bc72-7001-80e4-c76ff6f1244e",
         type: Step.Type.compression,
         algorithm: {
           implementation: "targzip",
@@ -38,8 +38,8 @@ export namespace PipelineData {
         },
       },
       {
-        id: Bun.randomUUIDv7(),
-        previousId: null,
+        id: "019b1e40-bc72-7003-af23-dd2773f7bc70",
+        previousId: "019b1e40-bc72-7002-8177-3d26094656c8",
         type: Step.Type.encryption,
         keyReference: "SYMMETRIC_KEY_TUCKED_FAR_AWAY",
         algorithm: {
@@ -47,8 +47,8 @@ export namespace PipelineData {
         },
       },
       {
-        id: Bun.randomUUIDv7(),
-        previousId: null,
+        id: "019b1e40-bc72-7004-a622-09aaf21057ba",
+        previousId: "019b1e40-bc72-7003-af23-dd2773f7bc70",
         type: Step.Type.s3_upload,
         accessKeyReference: "ACCESS_KEY",
         secretKeyReference: "SECRET_KEY",

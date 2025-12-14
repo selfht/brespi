@@ -17,13 +17,13 @@ export class PipelineService {
     private readonly stepService: StepService,
   ) {}
 
-  public async query(): Promise<PipelineView[]> {
-    const pipelines = await this.repository.query();
+  public async list(): Promise<PipelineView[]> {
+    const pipelines = await this.repository.list();
     return await this.enhance(pipelines);
   }
 
   public async find(id: string): Promise<PipelineView> {
-    const pipeline = await this.repository.find(id);
+    const pipeline = await this.repository.findById(id);
     if (!pipeline) {
       throw PipelineError.not_found();
     }

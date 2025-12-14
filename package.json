@@ -8,6 +8,7 @@
   "scripts": {
     "tc": "bunx tsc --noEmit",
     "dev": "bun --env-file=.env.development --hot src/index.tsx",
+    "test": "bun --env-file=.env.development test",
     "start": "NODE_ENV=production bun --env-file=.env.production src/index.tsx",
     "build": "bun run build.ts"
   },

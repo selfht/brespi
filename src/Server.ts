@@ -52,7 +52,7 @@ export class Server {
         },
         "/api/pipelines": {
           GET: async () => {
-            const pipelines: PipelineView[] = await this.pipelineService.query();
+            const pipelines: PipelineView[] = await this.pipelineService.list();
             return Response.json(pipelines);
           },
           POST: async (request) => {
