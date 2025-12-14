@@ -4,7 +4,7 @@ import { ZodParser } from "@/helpers/ZodParser";
 import z from "zod/v4";
 
 export type PipelineView = Pipeline & {
-  executions: Execution[];
+  lastExecution: Execution | null;
 };
 
 export namespace PipelineView {
@@ -12,7 +12,7 @@ export namespace PipelineView {
     .ensureSchemaMatchesType(
       Pipeline.parse.SCHEMA.and(
         z.object({
-          executions: z.array(Execution.parse.SCHEMA),
+          lastExecution: Execution.parse.SCHEMA.nullable(),
         }),
       ),
     )

@@ -27,6 +27,7 @@ import { useFullScreen } from "../hooks/useFullScreen";
 import { useRegistry } from "../hooks/useRegistry";
 import bgCanvas from "../images/bg-canvas.svg";
 import { StepTranslation } from "../translation/StepTranslation";
+import { ExecutionClient } from "../clients/ExecutionClient";
 
 type Form = {
   interactivity: Interactivity;
@@ -37,8 +38,9 @@ type Form = {
 export function pipelines_$id() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useRegistry.instance(QueryClient);
-  const pipelineClient = useRegistry.instance(PipelineClient);
+  const queryClient = useRegistry(QueryClient);
+  const pipelineClient = useRegistry(PipelineClient);
+  const executionClient = useRegistry(ExecutionClient);
 
   /**
    * Data
@@ -74,6 +76,7 @@ export function pipelines_$id() {
    * General reset function (invoked initially, or after saving)
    */
   const reset = (initial: "new" | PipelineView) => {
+    // Reset the main form
     if (initial === "new") {
       mainForm.reset({
         interactivity: Interactivity.editing,
@@ -87,6 +90,9 @@ export function pipelines_$id() {
         steps: initial.steps,
       });
     }
+    // Close the step form
+    setStepForm(undefined);
+    // Reset the canvas based on the currently available steps
     const blocks = initial === "new" ? [] : initial.steps.map(Internal.convertStepToBlock);
     canvasApi.current!.reset(blocks);
   };

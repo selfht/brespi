@@ -3,11 +3,12 @@ import { useContext } from "react";
 import { ClientRegistry } from "../clients/ClientRegistry";
 import { Env } from "@/Env";
 
-export namespace useRegistry {
-  export function env(): Env.Public {
-    return useContext(ClientRegistry.Context).getEnv();
+export function useRegistry(env: "env"): Env.Public;
+export function useRegistry<T>(klass: Class<T>): T;
+export function useRegistry<T>(arg: "env" | Class<T>): Env.Public | T {
+  const context = useContext(ClientRegistry.Context);
+  if (arg === "env") {
+    return context.getEnv();
   }
-  export function instance<T>(klass: Class<T>): T {
-    return useContext(ClientRegistry.Context).get(klass);
-  }
+  return context.get(arg);
 }

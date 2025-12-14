@@ -1,11 +1,30 @@
 import { AdapterService } from "@/adapters/AdapterService";
 import { Env } from "@/Env";
+import { ExecutionError } from "@/errors/ExecutionError";
 import { Artifact } from "@/models/Artifact";
+import { Execution } from "@/models/Execution";
 import { Pipeline } from "@/models/Pipeline";
+import { ExecutionRepository } from "@/repositories/ExecutionRepository";
+import { exec } from "child_process";
 import { rm } from "fs/promises";
 
 export class ExecutionService {
-  public constructor(private readonly adapterService: AdapterService) {}
+  public constructor(
+    private readonly repository: ExecutionRepository,
+    private readonly adapterService: AdapterService,
+  ) {}
+
+  public async query(q: { pipelineId: string }): Promise<Execution[]> {
+    return await this.repository.query({ pipelineId: q.pipelineId });
+  }
+
+  public async find(id: string): Promise<Execution> {
+    const execution = await this.repository.find(id);
+    if (!execution) {
+      throw ExecutionError.not_found();
+    }
+    return execution;
+  }
 
   public async create(pipeline: Pipeline): Promise<Artifact[]> {
     let artifacts: Artifact[] = [];

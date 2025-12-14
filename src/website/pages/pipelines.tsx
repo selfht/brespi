@@ -13,7 +13,7 @@ import { SquareIcon } from "../comps/SquareIcon";
 import { useRegistry } from "../hooks/useRegistry";
 
 export function pipelines() {
-  const pipelineClient = useRegistry.instance(PipelineClient);
+  const pipelineClient = useRegistry(PipelineClient);
 
   const query = useQuery<PipelineVisualization[], ProblemDetails>({
     queryKey: [QueryKey.pipelines],
@@ -70,14 +70,14 @@ type PipelineVisualization = {
 };
 namespace PipelineVisualization {
   export function convert(p: PipelineView): PipelineVisualization {
-    const lastExecution = p.executions.length > 0 ? p.executions[0] : undefined;
+    const exec = p.lastExecution;
     return {
       link: `/pipelines/${p.id}`,
       title: p.name,
-      subtitle: lastExecution
-        ? `${lastExecution.outcome === "success" ? "Successfully executed" : "Failed to execute"} on ${lastExecution.completedAt.toLocaleString()}`
+      subtitle: exec
+        ? `${exec.outcome === "success" ? "Successfully executed" : "Failed to execute"} on ${exec.completedAt.toLocaleString()}`
         : "Last execution: N/A",
-      squareIcon: lastExecution?.outcome || "no_data",
+      squareIcon: exec?.outcome || "no_data",
     };
   }
 }

@@ -7,6 +7,7 @@ import { PipelineService } from "./services/PipelineService";
 import { StepService } from "./services/StepService";
 import { PipelineView } from "./views/PipelineView";
 import { ExecutionService } from "./services/ExecutionService";
+import { Execution } from "./models/Execution";
 
 export class Server {
   public constructor(
@@ -78,9 +79,11 @@ export class Server {
          * Executions
          */
         "/api/executions": {
-          GET: async () => {
-            // TODO
-            return Response.json([]);
+          GET: async (request) => {
+            const executions: Execution[] = await this.executionService.query({
+              pipelineId: this.qparam(request, "pipelineId"),
+            });
+            return Response.json(executions);
           },
           POST: async () => {
             // TODO
@@ -100,6 +103,15 @@ export class Server {
       error: (e) => this.handleError(e),
     });
     console.log(`🚀 Server running at ${server.url}`);
+  }
+
+  private qparam(request: Bun.BunRequest, name: string): string {
+    const url = new URL(request.url);
+    const value = url.searchParams.get(name);
+    if (!value) {
+      throw ServerError.missing_query_parameter({ name });
+    }
+    return value;
   }
 
   private async handleError(e: ErrorLike): Promise<Response> {

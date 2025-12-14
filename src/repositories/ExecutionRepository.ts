@@ -11,15 +11,20 @@ export class ExecutionRepository {
     ExecutionData.SUCCESS_1(PipelineData.WP_BACKUP.id),
   ];
 
-  public async query({ pipelineIds }: QueryRequest): Promise<Execution[]> {
-    return this.REPOSITORY.filter(({ pipelineId }) => pipelineIds.includes(pipelineId));
+  public async query(q: { pipelineId: string }): Promise<Execution[]> {
+    return this.REPOSITORY.filter((e) => e.pipelineId === q.pipelineId);
+  }
+
+  public async queryLastExecutions(q: { pipelineIds: string[] }): Promise<Map<string, Execution | null>> {
+    const result = new Map<string, Execution | null>();
+    q.pipelineIds.forEach((pipelineId) => {
+      const lastExecution = this.REPOSITORY.find((e) => e.pipelineId === pipelineId);
+      result.set(pipelineId, lastExecution || null);
+    });
+    return result;
   }
 
   public async find(id: string): Promise<Execution | undefined> {
     return this.REPOSITORY.find((e) => e.id === id);
   }
 }
-
-type QueryRequest = {
-  pipelineIds: string[];
-};

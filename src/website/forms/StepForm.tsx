@@ -26,7 +26,7 @@ type Props = {
   onCancel: () => unknown;
 };
 export function StepForm({ type, existing, onSave, ...props }: Props): JSX.Element {
-  const stepClient = useRegistry.instance(StepClient);
+  const stepClient = useRegistry(StepClient);
   const validateAndSave = async (step: Step) => {
     await stepClient.validate(step);
     onSave(step);

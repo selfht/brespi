@@ -65,12 +65,12 @@ export class PipelineService {
   private async enhance(arg: Pipeline | Pipeline[]): Promise<PipelineView | PipelineView[]> {
     const isArray = Array.isArray(arg);
     const pipelines: Pipeline[] = isArray ? arg : [arg];
-    const executions: Execution[] = await this.executionRepository.query({
+    const lastExecutionOutcomes = await this.executionRepository.queryLastExecutions({
       pipelineIds: pipelines.map(({ id }) => id),
     });
     const pipelineViews: PipelineView[] = pipelines.map((p) => ({
       ...p,
-      executions: executions.filter((e) => e.pipelineId === p.id),
+      lastExecution: lastExecutionOutcomes.get(p.id)!,
     }));
     return isArray ? pipelineViews : pipelineViews[0];
   }
