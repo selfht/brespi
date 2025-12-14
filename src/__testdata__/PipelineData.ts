@@ -2,8 +2,21 @@ import { Pipeline } from "../models/Pipeline";
 import { Step } from "../models/Step";
 
 export namespace PipelineData {
+  export const WORK_IN_PROGRESS: Pipeline = {
+    id: "2c4204f8-e503-48dd-9ba6-33caa572920a",
+    name: "This is just a work in progress",
+    steps: [
+      {
+        id: Bun.randomUUIDv7(),
+        previousId: null,
+        type: Step.Type.filesystem_read,
+        path: "/etc",
+      },
+    ],
+  };
+
   export const POSTGRES_BACKUP: Pipeline = {
-    id: "342698472-pgb-2173",
+    id: "e8b97a79-c187-477e-a03d-bb16a4560e72",
     name: "My Postgres Backup Pipeline",
     steps: [
       {
@@ -44,9 +57,9 @@ export namespace PipelineData {
     ],
   };
 
-  export const WP_BACKUP: Pipeline = {
-    id: "872318923-wpb-28917383",
-    name: "My Wordpress Pipeline for /wp-uploads (work in progress)",
+  export const WORDPRESS_BACKUP: Pipeline = {
+    id: "6c827a56-be44-498e-8891-4d6cdde32e81",
+    name: "My Wordpress Pipeline for /wp-uploads",
     steps: [
       {
         id: "kpwmqemdrxyz",
@@ -115,7 +128,7 @@ export namespace PipelineData {
   };
 
   export const RESTORE: Pipeline = {
-    id: "5672129810-rs-36746853",
+    id: "539d032f-af2a-41f3-8c11-4759c6e73512",
     name: "My Restore Pipeline",
     steps: [
       {

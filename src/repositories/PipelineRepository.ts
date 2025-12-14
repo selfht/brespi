@@ -2,7 +2,12 @@ import { PipelineData } from "@/__testdata__/PipelineData";
 import { Pipeline } from "@/models/Pipeline";
 
 export class PipelineRepository {
-  private readonly REPOSITORY: Pipeline[] = [PipelineData.POSTGRES_BACKUP, PipelineData.WP_BACKUP, PipelineData.RESTORE];
+  private readonly REPOSITORY: Pipeline[] = [
+    PipelineData.POSTGRES_BACKUP,
+    PipelineData.WORK_IN_PROGRESS,
+    PipelineData.WORDPRESS_BACKUP,
+    PipelineData.RESTORE,
+  ];
 
   public async query(): Promise<Pipeline[]> {
     return this.REPOSITORY;

@@ -11,6 +11,7 @@ import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
 import { SquareIcon } from "../comps/SquareIcon";
 import { useRegistry } from "../hooks/useRegistry";
+import { Outcome } from "@/models/Outcome";
 
 export function pipelines() {
   const pipelineClient = useRegistry(PipelineClient);
@@ -69,15 +70,22 @@ type PipelineVisualization = {
   squareIcon: SquareIcon.Props["variant"];
 };
 namespace PipelineVisualization {
-  export function convert(p: PipelineView): PipelineVisualization {
-    const exec = p.lastExecution;
+  export function convert({ id, name, lastExecution }: PipelineView): PipelineVisualization {
+    let subtitle = "";
+    if (lastExecution) {
+      if (lastExecution.result) {
+        subtitle = `${lastExecution.result.outcome === Outcome.success ? "Successfully executed" : "Failed to execute"} on ${lastExecution.result.completedAt.toLocaleString()}`;
+      } else {
+        subtitle = `Started executing on ${lastExecution.startedAt.toLocaleString()} ...`;
+      }
+    } else {
+      subtitle = "Last execution: N/A";
+    }
     return {
-      link: `/pipelines/${p.id}`,
-      title: p.name,
-      subtitle: exec
-        ? `${exec.outcome === "success" ? "Successfully executed" : "Failed to execute"} on ${exec.completedAt.toLocaleString()}`
-        : "Last execution: N/A",
-      squareIcon: exec?.outcome || "no_data",
+      link: `/pipelines/${id}`,
+      title: name,
+      subtitle,
+      squareIcon: lastExecution ? (lastExecution.result ? lastExecution.result.outcome : "loading") : "no_data",
     };
   }
 }

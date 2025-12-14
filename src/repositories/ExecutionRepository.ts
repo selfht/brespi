@@ -4,11 +4,12 @@ import { Execution } from "@/models/Execution";
 
 export class ExecutionRepository {
   private readonly REPOSITORY: Execution[] = [
-    ExecutionData.SUCCESS_1(PipelineData.POSTGRES_BACKUP.id),
-    ExecutionData.SUCCESS_2(PipelineData.POSTGRES_BACKUP.id),
+    ExecutionData.PENDING(PipelineData.WORK_IN_PROGRESS.id),
+    ExecutionData.SUCCESS(PipelineData.POSTGRES_BACKUP.id),
+    ExecutionData.SUCCESS(PipelineData.POSTGRES_BACKUP.id),
     ExecutionData.ERROR(PipelineData.POSTGRES_BACKUP.id),
-    ExecutionData.ERROR(PipelineData.WP_BACKUP.id),
-    ExecutionData.SUCCESS_1(PipelineData.WP_BACKUP.id),
+    ExecutionData.ERROR(PipelineData.WORDPRESS_BACKUP.id),
+    ExecutionData.SUCCESS(PipelineData.WORDPRESS_BACKUP.id),
   ];
 
   public async query(q: { pipelineId: string }): Promise<Execution[]> {

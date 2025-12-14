@@ -3,11 +3,11 @@ import { Exception } from "@/errors/Exception";
 import { ServerError } from "@/errors/ServerError";
 import index from "@/website/index.html";
 import { ErrorLike, serve } from "bun";
+import { Execution } from "./models/Execution";
+import { ExecutionService } from "./services/ExecutionService";
 import { PipelineService } from "./services/PipelineService";
 import { StepService } from "./services/StepService";
 import { PipelineView } from "./views/PipelineView";
-import { ExecutionService } from "./services/ExecutionService";
-import { Execution } from "./models/Execution";
 
 export class Server {
   public constructor(
