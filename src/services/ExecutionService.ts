@@ -18,17 +18,17 @@ import z from "zod/v4";
 
 export class ExecutionService {
   public constructor(
-    private readonly repository: ExecutionRepository,
+    private readonly executionRepository: ExecutionRepository,
     private readonly pipelineRepository: PipelineRepository,
     private readonly adapterService: AdapterService,
   ) {}
 
   public async query(q: { pipelineId: string }): Promise<Execution[]> {
-    return await this.repository.query({ pipelineId: q.pipelineId });
+    return await this.executionRepository.query({ pipelineId: q.pipelineId });
   }
 
   public async find(id: string): Promise<Execution> {
-    const execution = await this.repository.findById(id);
+    const execution = await this.executionRepository.findById(id);
     if (!execution) {
       throw ExecutionError.not_found();
     }
@@ -48,7 +48,7 @@ export class ExecutionService {
     if (!pipeline) {
       throw PipelineError.not_found();
     }
-    if (!(await this.repository.create(execution))) {
+    if (!(await this.executionRepository.create(execution))) {
       throw ExecutionError.already_exists();
     }
     this.execute(execution.id, pipeline); // no await, to turn it into a background task
@@ -75,7 +75,7 @@ export class ExecutionService {
     await this.executeStep(executionId, startingSteps[0], [], [], childrenMap);
 
     // Set final result
-    const execution = (await this.repository.findById(executionId))!;
+    const execution = (await this.executionRepository.findById(executionId))!;
     const hasErrors = execution.actions.some((a) => a.outcome === Outcome.error);
     const completedAt = Temporal.Now.plainDateTimeISO();
     execution.result = {
@@ -83,7 +83,7 @@ export class ExecutionService {
       duration: execution.startedAt.until(completedAt),
       completedAt,
     };
-    await this.repository.update(execution);
+    await this.executionRepository.update(execution);
   }
 
   private async executeStep(
@@ -116,10 +116,10 @@ export class ExecutionService {
       };
 
       // Update execution (reload to ensure we have latest state for concurrent updates)
-      const execution = await this.repository.findById(executionId);
+      const execution = await this.executionRepository.findById(executionId);
       if (execution) {
         execution.actions.push(action);
-        await this.repository.update(execution);
+        await this.executionRepository.update(execution);
       }
 
       // Cleanup old artifacts
@@ -150,10 +150,10 @@ export class ExecutionService {
       };
 
       // Update execution
-      const execution = await this.repository.findById(executionId);
+      const execution = await this.executionRepository.findById(executionId);
       if (execution) {
         execution.actions.push(action);
-        await this.repository.update(execution);
+        await this.executionRepository.update(execution);
       }
 
       // Don't execute children if step failed

@@ -12,48 +12,48 @@ import { StepService } from "./StepService";
 
 export class PipelineService {
   public constructor(
-    private readonly repository: PipelineRepository,
+    private readonly pipelineRepository: PipelineRepository,
     private readonly executionRepository: ExecutionRepository,
     private readonly stepService: StepService,
   ) {}
 
   public async list(): Promise<PipelineView[]> {
-    const pipelines = await this.repository.list();
+    const pipelines = await this.pipelineRepository.list();
     return await this.enhance(pipelines);
   }
 
   public async find(id: string): Promise<PipelineView> {
-    const pipeline = await this.repository.findById(id);
+    const pipeline = await this.pipelineRepository.findById(id);
     if (!pipeline) {
       throw PipelineError.not_found();
     }
     return await this.enhance(pipeline);
   }
 
-  public async create(unknown: unknown): Promise<PipelineView> {
+  public async create(unknown: z.infer<typeof PipelineService.UpsertPipelineRequest>): Promise<PipelineView> {
     const pipeline = this.validate({
       id: Bun.randomUUIDv7(),
       ...PipelineService.UpsertPipelineRequest.parse(unknown),
     });
-    if (!(await this.repository.create(pipeline))) {
+    if (!(await this.pipelineRepository.create(pipeline))) {
       throw PipelineError.already_exists();
     }
     return await this.enhance(pipeline);
   }
 
-  public async update(id: string, unknown: unknown): Promise<PipelineView> {
+  public async update(id: string, unknown: z.infer<typeof PipelineService.UpsertPipelineRequest>): Promise<PipelineView> {
     const pipeline = this.validate({
       id,
       ...PipelineService.UpsertPipelineRequest.parse(unknown),
     });
-    if (!(await this.repository.update(pipeline))) {
+    if (!(await this.pipelineRepository.update(pipeline))) {
       throw PipelineError.not_found();
     }
     return await this.enhance(pipeline);
   }
 
   public async remove(id: string): Promise<PipelineView> {
-    const pipeline = await this.repository.remove(id);
+    const pipeline = await this.pipelineRepository.remove(id);
     if (!pipeline) {
       throw PipelineError.not_found();
     }

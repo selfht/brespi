@@ -4,6 +4,6 @@ import { InMemoryRepository } from "./InMemoryRepository";
 
 export class PipelineRepository extends InMemoryRepository<Pipeline> {
   public constructor() {
-    super([PipelineData.POSTGRES_BACKUP, PipelineData.WORK_IN_PROGRESS, PipelineData.WORDPRESS_BACKUP, PipelineData.RESTORE]);
+    super([PipelineData.WORK_IN_PROGRESS, PipelineData.POSTGRES, PipelineData.WORDPRESS, PipelineData.RESTORE]);
   }
 }

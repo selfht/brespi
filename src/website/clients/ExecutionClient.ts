@@ -16,4 +16,11 @@ export class ExecutionClient {
     const { body } = await this.yesttp.get<Execution>(`/executions/${id}`);
     return Execution.parse(body);
   }
+
+  public async create(q: { pipelineId: string }): Promise<Execution> {
+    const { body } = await this.yesttp.post<Execution>("/executions", {
+      body: { pipelineId: q.pipelineId },
+    });
+    return Execution.parse(body);
+  }
 }

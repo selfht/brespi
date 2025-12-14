@@ -4,13 +4,14 @@ import { PipelineView } from "@/views/PipelineView";
 import { Temporal } from "@js-temporal/polyfill";
 import { QueryClient, useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Form, useNavigate, useParams } from "react-router";
 import { Block } from "../canvas/Block";
 import { Canvas } from "../canvas/Canvas";
 import { CanvasEvent } from "../canvas/CanvasEvent";
 import { Interactivity } from "../canvas/Interactivity";
+import { ExecutionClient } from "../clients/ExecutionClient";
 import { PipelineClient } from "../clients/PipelineClient";
 import { QueryKey } from "../clients/QueryKey";
 import { ArtifactSymbol } from "../comps/ArtifactSymbol";
@@ -39,6 +40,7 @@ export function pipelines_$id() {
   const navigate = useNavigate();
   const queryClient = useRegistry(QueryClient);
   const pipelineClient = useRegistry(PipelineClient);
+  const executionClient = useRegistry(ExecutionClient);
 
   /**
    * Data
@@ -94,6 +96,16 @@ export function pipelines_$id() {
     const blocks = initial === "new" ? [] : initial.steps.map(Internal.convertStepToBlock);
     canvasApi.current!.reset(blocks);
   };
+
+  /**
+   * Execute a pipeline (causes a data refresh)
+   */
+  const execute = useCallback(async () => {
+    if (query.data !== "new") {
+      const lastExecution = await executionClient.create({ pipelineId: id! });
+      await queryClient.setQueryData(queryKey, { ...query.data, lastExecution } as PipelineView);
+    }
+  }, [query.data]);
 
   /**
    * Main form API
@@ -250,6 +262,7 @@ export function pipelines_$id() {
    */
   const { interactivity, name, steps } = mainForm.watch();
   const buttonGroups = useMemo(() => Internal.getButtonGroups(), []);
+  const isExecuting = Boolean(query.data !== "new" && query.data?.lastExecution && !query.data.lastExecution.result);
   return (
     <Skeleton>
       <Paper
@@ -292,7 +305,9 @@ export function pipelines_$id() {
               <div className="flex items-center gap-4">
                 {interactivity === Interactivity.viewing ? (
                   <>
-                    <Button icon="play">Execute</Button>
+                    <Button icon={isExecuting ? "loading" : "play"} onClick={execute} disabled={isExecuting}>
+                      {isExecuting ? "Executing" : "Execute"}
+                    </Button>
                     <Button onClick={() => mainForm.setValue("interactivity", Interactivity.editing)}>Edit</Button>
                   </>
                 ) : (

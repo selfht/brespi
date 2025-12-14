@@ -15,7 +15,7 @@ export namespace PipelineData {
     ],
   };
 
-  export const POSTGRES_BACKUP: Pipeline = {
+  export const POSTGRES: Pipeline = {
     id: "e8b97a79-c187-477e-a03d-bb16a4560e72",
     name: "My Postgres Backup Pipeline",
     steps: [
@@ -57,7 +57,7 @@ export namespace PipelineData {
     ],
   };
 
-  export const WORDPRESS_BACKUP: Pipeline = {
+  export const WORDPRESS: Pipeline = {
     id: "6c827a56-be44-498e-8891-4d6cdde32e81",
     name: "My Wordpress Pipeline for /wp-uploads",
     steps: [
