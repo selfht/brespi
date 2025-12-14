@@ -16,18 +16,17 @@ import { QueryKey } from "../clients/QueryKey";
 import { ArtifactSymbol } from "../comps/ArtifactSymbol";
 import { Button } from "../comps/Button";
 import { ErrorDump } from "../comps/ErrorDump";
+import { ExecutionPanel } from "../comps/execution/ExecutionPanel";
 import { Icon } from "../comps/Icon";
 import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
-import { SquareIcon } from "../comps/SquareIcon";
 import { FormHelper } from "../forms/FormHelper";
 import { StepForm } from "../forms/StepForm";
 import { useFullScreen } from "../hooks/useFullScreen";
 import { useRegistry } from "../hooks/useRegistry";
 import bgCanvas from "../images/bg-canvas.svg";
 import { StepTranslation } from "../translation/StepTranslation";
-import { ExecutionClient } from "../clients/ExecutionClient";
 
 type Form = {
   interactivity: Interactivity;
@@ -40,14 +39,13 @@ export function pipelines_$id() {
   const navigate = useNavigate();
   const queryClient = useRegistry(QueryClient);
   const pipelineClient = useRegistry(PipelineClient);
-  const executionClient = useRegistry(ExecutionClient);
 
   /**
    * Data
    */
   const queryKey = [QueryKey.pipelines, id];
   const query = useQuery<"new" | PipelineView, ProblemDetails>({
-    queryKey: [QueryKey.pipelines, id],
+    queryKey,
     queryFn: () => {
       if (id === "new") {
         return "new";
@@ -361,29 +359,7 @@ export function pipelines_$id() {
             </div>
             {/* DETAILS */}
             {interactivity === Interactivity.viewing ? (
-              <div className="flex items-start">
-                <div className="flex-1 p-6">
-                  <h2 className="mb-6 text-xl font-extralight">Execution History</h2>
-                  {(query.data as PipelineView).executions.map((execution) => (
-                    <button key={execution.id} className="mt-4 flex items-center text-left gap-4 group cursor-pointer">
-                      <SquareIcon variant={execution.outcome} className="group-hover:border-white group-hover:bg-c-dim/20" />
-                      <div>
-                        <h3 className="text-base font-medium group-hover:text-white">
-                          {execution.outcome === "success" ? "Successfully executed" : "Failed to execute"}
-                        </h3>
-                        <p className="font-light italic text-c-dim">{execution.completedAt.toLocaleString()}</p>
-                      </div>
-                    </button>
-                  ))}
-                  {(query.data as PipelineView).executions.length === 0 && <SquareIcon variant="no_data" />}
-                </div>
-                {(query.data as PipelineView).executions.length > 0 && (
-                  <div className="flex-1 p-6">
-                    <h2 className="mb-6 text-xl font-extralight">Execution Details</h2>
-                    <p className="text-c-dim font-extralight">Select an execution to see its details.</p>
-                  </div>
-                )}
-              </div>
+              <ExecutionPanel pipelineId={id!} />
             ) : stepForm === undefined ? (
               <div className="flex items-start">
                 {buttonGroups.map((bg) => (

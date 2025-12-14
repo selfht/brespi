@@ -6,6 +6,7 @@ import { ProblemDetails } from "@/models/ProblemDetails";
 import { QueryClient } from "@tanstack/react-query";
 import { PipelineClient } from "./PipelineClient";
 import { StepClient } from "./StepClient.ts";
+import { ExecutionClient } from "./ExecutionClient";
 
 export class ClientRegistry {
   /**
@@ -31,6 +32,8 @@ export class ClientRegistry {
     }));
     this.registry[StepClient.name] = new StepClient(yesttp);
     this.registry[PipelineClient.name] = new PipelineClient(yesttp);
+    this.registry[PipelineClient.name] = new PipelineClient(yesttp);
+    this.registry[ExecutionClient.name] = new ExecutionClient(yesttp);
     this.registry[QueryClient.name] = new QueryClient({
       defaultOptions: {
         queries: {

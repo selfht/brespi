@@ -1,31 +1,19 @@
-import { Pipeline } from "@/models/Pipeline";
+import { Execution } from "@/models/Execution";
 import { PipelineView } from "@/views/PipelineView";
 import { Yesttp } from "yesttp";
 
 export class ExecutionClient {
   public constructor(private readonly yesttp: Yesttp) {}
 
-  public async query(): Promise<PipelineView[]> {
-    const { body } = await this.yesttp.get<PipelineView[]>("/pipelines");
-    return body.map(PipelineView.parse);
-  }
-
-  public async find(id: string): Promise<PipelineView> {
-    const { body } = await this.yesttp.get<PipelineView>(`/pipelines/${id}`);
-    return PipelineView.parse(body);
-  }
-
-  public async create(pipeline: Omit<Pipeline, "id">): Promise<PipelineView> {
-    const { body } = await this.yesttp.post<PipelineView>(`/pipelines`, {
-      body: pipeline,
+  public async query(q: { pipelineId: string }): Promise<Execution[]> {
+    const { body } = await this.yesttp.get<PipelineView[]>("/executions", {
+      searchParams: { pipelineId: q.pipelineId },
     });
-    return PipelineView.parse(body);
+    return body.map(Execution.parse);
   }
 
-  public async update(id: string, pipeline: Pipeline): Promise<PipelineView> {
-    const { body } = await this.yesttp.put<PipelineView>(`/pipelines/${id}`, {
-      body: pipeline,
-    });
-    return PipelineView.parse(body);
+  public async find(id: string): Promise<Execution> {
+    const { body } = await this.yesttp.get<Execution>(`/executions/${id}`);
+    return Execution.parse(body);
   }
 }

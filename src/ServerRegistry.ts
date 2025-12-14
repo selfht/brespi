@@ -49,7 +49,7 @@ export class ServerRegistry {
       executionRepository,
       stepService,
     ));
-    const executionService = (this.registry[ExecutionService.name] = new ExecutionService(adapterService));
+    const executionService = (this.registry[ExecutionService.name] = new ExecutionService(executionRepository, adapterService));
     this.registry[CleanupService.name] = new CleanupService();
 
     // Server
