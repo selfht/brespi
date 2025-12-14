@@ -81,19 +81,19 @@ export class Server {
         "/api/executions": {
           GET: async (request) => {
             const executions: Execution[] = await this.executionService.query({
-              pipelineId: this.qparam(request, "pipelineId"),
+              pipelineId: this.searchParam(request, "pipelineId!"),
             });
             return Response.json(executions);
           },
-          POST: async () => {
-            // TODO
-            return Response.json({});
+          POST: async (request) => {
+            const execution: Execution = await this.executionService.create(await request.json());
+            return Response.json(execution);
           },
         },
         "/api/executions/:id": {
-          GET: async () => {
-            // TODO
-            return Response.json({});
+          GET: async (request) => {
+            const execution: Execution = await this.executionService.find(request.params.id);
+            return Response.json(execution);
           },
         },
       },
@@ -105,13 +105,19 @@ export class Server {
     console.log(`🚀 Server running at ${server.url}`);
   }
 
-  private qparam(request: Bun.BunRequest, name: string): string {
+  private searchParam<T extends `${string}!`>(request: Bun.BunRequest, name: T): string;
+  private searchParam<T extends string>(request: Bun.BunRequest, name: T): string | undefined;
+  private searchParam<T extends string>(request: Bun.BunRequest, nameWithPossibleExclamation: T): string | undefined {
     const url = new URL(request.url);
+    const isRequired = nameWithPossibleExclamation.endsWith("!");
+    const name = isRequired
+      ? nameWithPossibleExclamation.substring(0, nameWithPossibleExclamation.length - 1)
+      : nameWithPossibleExclamation;
     const value = url.searchParams.get(name);
-    if (!value) {
+    if (isRequired && !value) {
       throw ServerError.missing_query_parameter({ name });
     }
-    return value;
+    return value || undefined;
   }
 
   private async handleError(e: ErrorLike): Promise<Response> {

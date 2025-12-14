@@ -28,4 +28,12 @@ export class ExecutionRepository {
   public async find(id: string): Promise<Execution | undefined> {
     return this.REPOSITORY.find((e) => e.id === id);
   }
+
+  public async create(execution: Execution): Promise<Execution | undefined> {
+    if (this.REPOSITORY.some((e) => e.id === execution.id)) {
+      return undefined;
+    }
+    this.REPOSITORY.push(execution);
+    return execution;
+  }
 }
