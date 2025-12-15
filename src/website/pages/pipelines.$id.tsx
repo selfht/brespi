@@ -1,3 +1,4 @@
+import { Execution } from "@/models/Execution";
 import { ProblemDetails } from "@/models/ProblemDetails";
 import { Step } from "@/models/Step";
 import { PipelineView } from "@/views/PipelineView";
@@ -45,15 +46,20 @@ export function pipelines_$id() {
   /**
    * Data
    */
-  const queryKey = [QueryKey.pipelines, id];
-  const query = useQuery<"new" | PipelineView, ProblemDetails>({
-    queryKey,
+  const pipelineQueryKey = [QueryKey.pipelines, id];
+  const pipelineQuery = useQuery<"new" | PipelineView, ProblemDetails>({
+    queryKey: pipelineQueryKey,
     queryFn: () => {
       if (id === "new") {
         return "new";
       }
       return pipelineClient.find(id!);
     },
+  });
+  const executionsQueryKey = [QueryKey.executions];
+  const executionsQuery = useQuery<Execution[], ProblemDetails>({
+    queryKey: executionsQueryKey,
+    queryFn: () => executionClient.query({ pipelineId: id! }),
   });
 
   /**
@@ -101,11 +107,22 @@ export function pipelines_$id() {
    * Execute a pipeline (causes a data refresh)
    */
   const execute = useCallback(async () => {
-    if (query.data !== "new") {
+    if (pipelineQuery.data !== "new") {
       const lastExecution = await executionClient.create({ pipelineId: id! });
-      await queryClient.setQueryData(queryKey, { ...query.data, lastExecution } as PipelineView);
+      await Promise.all([queryClient.setQueryData(executionsQueryKey, (data: Execution[]): Execution[] => [lastExecution, ...data])]);
     }
-  }, [query.data]);
+  }, [pipelineQuery.data]);
+
+  /**
+   * Keep refetching during execution
+   */
+  const isExecuting = executionsQuery.data?.some((e) => !e.result) || false;
+  useEffect(() => {
+    if (isExecuting) {
+      const interval = setInterval(() => executionsQuery.refetch(), 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isExecuting]);
 
   /**
    * Main form API
@@ -127,7 +144,7 @@ export function pipelines_$id() {
             name: form.name,
             steps: form.steps,
           });
-          queryClient.setQueryData(queryKey, pipeline);
+          queryClient.setQueryData(pipelineQueryKey, pipeline);
           // Implicitly leads to a "reset" via the effect listener on "query.data"
         }
       } catch (error) {
@@ -137,10 +154,10 @@ export function pipelines_$id() {
       }
     },
     cancel() {
-      if (query.data === "new") {
+      if (pipelineQuery.data === "new") {
         navigate("/pipelines");
       } else {
-        reset(query.data!);
+        reset(pipelineQuery.data!);
       }
     },
   };
@@ -252,17 +269,16 @@ export function pipelines_$id() {
    * Initialze (reset) the main form
    */
   useEffect(() => {
-    if (query.data) {
-      reset(query.data);
+    if (pipelineQuery.data) {
+      reset(pipelineQuery.data);
     }
-  }, [query.data, mainForm]);
+  }, [pipelineQuery.data, mainForm]);
 
   /**
    * Render
    */
   const { interactivity, name, steps } = mainForm.watch();
   const buttonGroups = useMemo(() => Internal.getButtonGroups(), []);
-  const isExecuting = Boolean(query.data !== "new" && query.data?.lastExecution && !query.data.lastExecution.result);
   return (
     <Skeleton>
       <Paper
@@ -276,11 +292,11 @@ export function pipelines_$id() {
           "border-none": isFullScreen,
         })}
       >
-        {query.error ? (
+        {pipelineQuery.error ? (
           <div className="p-6 text-center">
-            <ErrorDump error={query.error} />
+            <ErrorDump error={pipelineQuery.error} />
           </div>
-        ) : !query.data ? (
+        ) : !pipelineQuery.data ? (
           <div className="p-6 text-center">
             <Spinner />
           </div>
@@ -374,7 +390,7 @@ export function pipelines_$id() {
             </div>
             {/* DETAILS */}
             {interactivity === Interactivity.viewing ? (
-              <ExecutionPanel pipelineId={id!} />
+              <ExecutionPanel query={executionsQuery} />
             ) : stepForm === undefined ? (
               <div className="flex items-start">
                 {buttonGroups.map((bg) => (

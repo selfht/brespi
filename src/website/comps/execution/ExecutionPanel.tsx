@@ -1,29 +1,15 @@
 import { Execution } from "@/models/Execution";
+import { Outcome } from "@/models/Outcome";
 import { ProblemDetails } from "@/models/ProblemDetails";
-import { ExecutionClient } from "@/website/clients/ExecutionClient";
-import { QueryKey } from "@/website/clients/QueryKey";
-import { useRegistry } from "@/website/hooks/useRegistry";
-import { useQuery } from "@tanstack/react-query";
+import { UseQueryResult } from "@tanstack/react-query";
 import { ErrorDump } from "../ErrorDump";
 import { Spinner } from "../Spinner";
 import { SquareIcon } from "../SquareIcon";
-import { Outcome } from "@/models/Outcome";
 
 type Props = {
-  pipelineId: string;
+  query: UseQueryResult<Execution[], ProblemDetails>;
 };
-export function ExecutionPanel({ pipelineId }: Props) {
-  const executionClient = useRegistry(ExecutionClient);
-
-  /**
-   * Data
-   */
-  const queryKey = [QueryKey.executions];
-  const query = useQuery<Execution[], ProblemDetails>({
-    queryKey,
-    queryFn: () => executionClient.query({ pipelineId }),
-  });
-
+export function ExecutionPanel({ query }: Props) {
   if (query.error) {
     return (
       <div className="p-6 text-center">

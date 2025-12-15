@@ -11,11 +11,17 @@ export namespace Test {
     [K in keyof T]: T[K] extends (...args: any[]) => any ? Mock<T[K]> : never;
   };
 
-  export function impl<T extends Mocked<any>>(mock: T): T extends Mocked<infer U> ? U : never {
+  export function impl<T extends Mocked<any>>(mock: T) {
     return mock as T extends Mocked<infer U> ? U : never;
   }
 
-  export namespace InMemoryRepositoryRegistry {
+  export namespace MockRegistry {
+    export const adapterService: Mocked<AdapterService> = {
+      submit: mock(),
+    };
+  }
+
+  export namespace RepoRegistry {
     export const inMemoryPipelineRepository: PipelineRepository = new InMemoryRepository<Pipeline>();
     export const inMemoryExecutionRepository: ExecutionRepository =
       new (class InMemoryExecutionRepository extends InMemoryRepository<Execution> {
@@ -25,17 +31,11 @@ export namespace Test {
         public async queryLastExecutions(q: { pipelineIds: string[] }): Promise<Map<string, Execution | null>> {
           const result = new Map<string, Execution | null>();
           for (const pipelineId of q.pipelineIds) {
-            const lastExecution = super.storage.find((e) => e.pipelineId === pipelineId);
+            const lastExecution = super.storage.findLast((e) => e.pipelineId === pipelineId);
             result.set(pipelineId, lastExecution || null);
           }
           return result;
         }
       })();
-  }
-
-  export namespace MockRegistry {
-    export const adapterService: Mocked<AdapterService> = {
-      submit: mock(),
-    };
   }
 }

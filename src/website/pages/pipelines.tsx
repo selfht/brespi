@@ -12,12 +12,14 @@ import { Spinner } from "../comps/Spinner";
 import { SquareIcon } from "../comps/SquareIcon";
 import { useRegistry } from "../hooks/useRegistry";
 import { Outcome } from "@/models/Outcome";
+import { useEffect } from "react";
 
 export function pipelines() {
   const pipelineClient = useRegistry(PipelineClient);
 
+  const queryKey = [QueryKey.pipelines];
   const query = useQuery<PipelineVisualization[], ProblemDetails>({
-    queryKey: [QueryKey.pipelines],
+    queryKey,
     queryFn: () =>
       pipelineClient.query().then<PipelineVisualization[]>((pipelines) => [
         ...pipelines.map(PipelineVisualization.convert),
@@ -25,9 +27,18 @@ export function pipelines() {
           link: "/pipelines/new",
           title: "New Pipeline ...",
           squareIcon: "new",
+          isExecuting: false,
         },
       ]),
   });
+
+  const isExecuting = query.data?.some((pipeline) => pipeline.isExecuting) || false;
+  useEffect(() => {
+    if (isExecuting) {
+      const interval = setInterval(() => query.refetch(), 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isExecuting]);
 
   return (
     <Skeleton>
@@ -68,15 +79,18 @@ type PipelineVisualization = {
   title: string;
   subtitle?: string;
   squareIcon: SquareIcon.Props["variant"];
+  isExecuting: boolean;
 };
 namespace PipelineVisualization {
   export function convert({ id, name, lastExecution }: PipelineView): PipelineVisualization {
     let subtitle = "";
+    let isExecuting = false;
     if (lastExecution) {
       if (lastExecution.result) {
         subtitle = `${lastExecution.result.outcome === Outcome.success ? "Successfully executed" : "Failed to execute"} on ${lastExecution.result.completedAt.toLocaleString()}`;
       } else {
         subtitle = `Started executing on ${lastExecution.startedAt.toLocaleString()} ...`;
+        isExecuting = true;
       }
     } else {
       subtitle = "Last execution: N/A";
@@ -86,6 +100,7 @@ namespace PipelineVisualization {
       title: name,
       subtitle,
       squareIcon: lastExecution ? (lastExecution.result ? lastExecution.result.outcome : "loading") : "no_data",
+      isExecuting,
     };
   }
 }

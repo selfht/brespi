@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from "bun:test";
 import { ExecutionService } from "./ExecutionService";
 
 describe(ExecutionService.name, () => {
-  const { inMemoryExecutionRepository, inMemoryPipelineRepository } = Test.InMemoryRepositoryRegistry;
+  const { inMemoryExecutionRepository, inMemoryPipelineRepository } = Test.RepoRegistry;
   const { adapterService } = Test.MockRegistry;
   const service = new ExecutionService(inMemoryExecutionRepository, inMemoryPipelineRepository, Test.impl(adapterService));
 
