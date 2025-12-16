@@ -8,10 +8,12 @@ export type Action = {
   previousStepId: string | null;
   stepType: string;
   outcome: Outcome;
+  startedAt: Temporal.PlainDateTime;
+  completedAt: Temporal.PlainDateTime;
   duration: Temporal.Duration;
   artifactsConsumed: number;
   artifactsProduced: number;
-  failures: Action.Failure[];
+  failure: Action.Failure | null;
 };
 
 export namespace Action {
@@ -27,15 +29,17 @@ export namespace Action {
         previousStepId: z.string().nullable(),
         stepType: z.string(),
         outcome: z.enum(Outcome),
+        startedAt: z.string().transform((x) => Temporal.PlainDateTime.from(x)),
+        completedAt: z.string().transform((x) => Temporal.PlainDateTime.from(x)),
         duration: z.string().transform(Temporal.Duration.from),
         artifactsConsumed: z.number(),
         artifactsProduced: z.number(),
-        failures: z.array(
-          z.object({
+        failure: z
+          .object({
             problem: z.string(),
             message: z.string().nullable(),
-          }),
-        ),
+          })
+          .nullable(),
       }),
     )
     .ensureTypeMatchesSchema();

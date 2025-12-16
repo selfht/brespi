@@ -13,6 +13,7 @@ import { Step } from "@/models/Step";
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { Temporal } from "@js-temporal/polyfill";
+import { exec } from "child_process";
 import { rm } from "fs/promises";
 import z from "zod/v4";
 
@@ -66,105 +67,125 @@ export class ExecutionService {
     }
 
     // Find root step (the one with previousId === null)
-    const startingSteps = childrenMap.get(null) || [];
-    if (startingSteps.length !== 1) {
-      throw new Error("Illegal state; pipeline must have exactly one starting step");
+    const [startingStep] = childrenMap.get(null) || [];
+    if (!startingStep) {
+      throw new Error("Illegal state: missing starting step");
     }
 
     // Execute from root, walking the tree
-    await this.executeStep(executionId, startingSteps[0], [], [], childrenMap);
+    const execution = await this.executeTreeRecursively({
+      executionId,
+      step: startingStep,
+      input: [],
+      trail: [],
+      childrenMap,
+    });
 
     // Set final result
-    const execution = (await this.executionRepository.findById(executionId))!;
-    const hasErrors = execution.actions.some((a) => a.outcome === Outcome.error);
+    const hasError = execution.actions.some((a) => a.outcome === Outcome.error);
     const completedAt = Temporal.Now.plainDateTimeISO();
     execution.result = {
-      outcome: hasErrors ? Outcome.error : Outcome.success,
+      outcome: hasError ? Outcome.error : Outcome.success,
       duration: execution.startedAt.until(completedAt),
       completedAt,
     };
     await this.executionRepository.update(execution);
   }
 
-  private async executeStep(
-    executionId: string,
-    step: Step,
-    artifacts: Artifact[],
-    trail: Step[],
-    childrenMap: Map<string | null, Step[]>,
-  ): Promise<void> {
+  private async executeTreeRecursively({
+    executionId,
+    step,
+    input,
+    trail,
+    childrenMap,
+  }: {
+    executionId: string;
+    step: Step;
+    input: Artifact[];
+    trail: Step[];
+    childrenMap: Map<string | null, Step[]>;
+  }): Promise<Execution> {
+    const startedAt = Temporal.Now.plainDateTimeISO();
     const currentTrail = [...trail, step];
-    const startTime = Temporal.Now.plainDateTimeISO();
-    const artifactsConsumed = artifacts.length;
 
+    let output: Artifact[];
+    let outcome: Outcome;
+    let failure: Action.Failure | null;
     try {
-      // Execute the step
-      const newArtifacts = await this.adapterService.submit(artifacts, step, currentTrail);
-      const endTime = Temporal.Now.plainDateTimeISO();
-      const duration = startTime.until(endTime);
-
-      // Create action for successful step
-      const action: Action = {
-        stepId: step.id,
-        previousStepId: step.previousId,
-        stepType: step.type,
-        outcome: Outcome.success,
-        duration,
-        artifactsConsumed,
-        artifactsProduced: newArtifacts.length,
-        failures: [],
+      output = await this.adapterService.submit(input, step, currentTrail);
+      outcome = Outcome.success;
+      failure = null;
+    } catch (e) {
+      output = [];
+      outcome = Outcome.error;
+      failure = {
+        problem: e instanceof Error ? e.name : "UnknownError",
+        message: e instanceof Error ? e.message : String(e),
       };
-
-      // Update execution (reload to ensure we have latest state for concurrent updates)
-      const execution = await this.executionRepository.findById(executionId);
-      if (execution) {
-        execution.actions.push(action);
-        await this.executionRepository.update(execution);
-      }
-
-      // Cleanup old artifacts
-      await this.cleanup(artifacts);
-
-      // Find and execute all children in parallel
-      const children = childrenMap.get(step.id) || [];
-      await Promise.all(children.map((child) => this.executeStep(executionId, child, newArtifacts, currentTrail, childrenMap)));
-    } catch (error) {
-      const endTime = Temporal.Now.plainDateTimeISO();
-      const duration = startTime.until(endTime);
-
-      // Create action for failed step
-      const action: Action = {
-        stepId: step.id,
-        previousStepId: step.previousId,
-        stepType: step.type,
-        outcome: Outcome.error,
-        duration,
-        artifactsConsumed,
-        artifactsProduced: 0,
-        failures: [
-          {
-            problem: error instanceof Error ? error.name : "UnknownError",
-            message: error instanceof Error ? error.message : String(error),
-          },
-        ],
-      };
-
-      // Update execution
-      const execution = await this.executionRepository.findById(executionId);
-      if (execution) {
-        execution.actions.push(action);
-        await this.executionRepository.update(execution);
-      }
-
-      // Don't execute children if step failed
+    } finally {
+      await this.cleanupArtifacts(input);
     }
+    const completedAt = Temporal.Now.plainDateTimeISO();
+    const duration = startedAt.until(completedAt);
+
+    const action: Action = {
+      stepId: step.id,
+      previousStepId: step.previousId,
+      stepType: step.type,
+      outcome,
+      startedAt,
+      completedAt,
+      duration,
+      artifactsConsumed: input.length,
+      artifactsProduced: output.length,
+      failure,
+    };
+
+    const execution = await this.executionRepository.findById(executionId);
+    if (!execution) {
+      throw new Error("Illegal state: missing execution");
+    }
+    execution.actions.push(action);
+    await this.executionRepository.update(execution);
+
+    if (outcome === Outcome.success) {
+      // Only execute children if the current parent step succeeded
+      const children = childrenMap.get(step.id) || [];
+      const childrenInput: Map<string, Artifact[]> = new Map();
+      for (let index = 0; index < children.length; index++) {
+        const child = children[index];
+        if (index === 0) {
+          childrenInput.set(child.id, output);
+        } else {
+          childrenInput.set(child.id, await this.copyArtifacts(output));
+        }
+      }
+      await Promise.all(
+        children.map((child) =>
+          this.executeTreeRecursively({
+            executionId,
+            step: child,
+            input: childrenInput.get(child.id)!,
+            trail: currentTrail,
+            childrenMap,
+          }),
+        ),
+      );
+    }
+
+    return execution;
   }
 
-  private async cleanup(artifacts: Artifact[]): Promise<void> {
+  private async cleanupArtifacts(artifacts: Artifact[]): Promise<void> {
+    throw new Error("Not implemented");
     const artifactsWithinRootFolder = artifacts.filter((a) => a.path.startsWith(Env.artifactsRoot()));
     for (const artifact of artifactsWithinRootFolder) {
       await rm(artifact.path, { recursive: true, force: true });
     }
+  }
+
+  private async copyArtifacts(artifacts: Artifact[]): Promise<Artifact[]> {
+    throw new Error("Not implemented");
   }
 }
 
