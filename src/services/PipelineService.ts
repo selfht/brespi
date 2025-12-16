@@ -65,7 +65,7 @@ export class PipelineService {
   private async enhance(arg: Pipeline | Pipeline[]): Promise<PipelineView | PipelineView[]> {
     const isArray = Array.isArray(arg);
     const pipelines: Pipeline[] = isArray ? arg : [arg];
-    const lastExecutionOutcomes = await this.executionRepository.queryLastExecutions({
+    const lastExecutionOutcomes = await this.executionRepository.queryMostRecentExecutions({
       pipelineIds: pipelines.map(({ id }) => id),
     });
     const pipelineViews: PipelineView[] = pipelines.map((p) => ({

@@ -3,16 +3,17 @@ import { NamingHelper } from "@/helpers/NamingHelper";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { S3Client } from "bun";
+import { stat } from "fs/promises";
 import { basename, join } from "path";
 import { S3Manifest } from "./S3Manifest";
 import { S3Meta } from "./S3Meta";
-import { stat } from "fs/promises";
 
 export class S3Adapter {
   private static readonly MANIFEST_MUTEX = new Mutex();
 
   public constructor() {}
   public async upload(artifacts: Artifact[], options: Step.S3Upload, trail: Step[]): Promise<void> {
+    // TODO
     const client = new S3Client({
       accessKeyId: "kim",
       secretAccessKey: "possible",

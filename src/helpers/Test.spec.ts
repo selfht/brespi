@@ -28,10 +28,10 @@ export namespace Test {
         public async query(q: { pipelineId: string }): Promise<Execution[]> {
           return super.storage.filter((e) => e.pipelineId === q.pipelineId);
         }
-        public async queryLastExecutions(q: { pipelineIds: string[] }): Promise<Map<string, Execution | null>> {
+        public async queryMostRecentExecutions(q: { pipelineIds: string[] }): Promise<Map<string, Execution | null>> {
           const result = new Map<string, Execution | null>();
           for (const pipelineId of q.pipelineIds) {
-            const lastExecution = super.storage.findLast((e) => e.pipelineId === pipelineId);
+            const lastExecution = super.storage.find((e) => e.pipelineId === pipelineId);
             result.set(pipelineId, lastExecution || null);
           }
           return result;

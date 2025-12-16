@@ -1,33 +1,49 @@
-import { NamingHelper } from "@/helpers/NamingHelper";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
-import { Temporal } from "@js-temporal/polyfill";
-import { copyFile, mkdir, readdir, stat } from "fs/promises";
+import { copyFile, cp, mkdir, readdir, rename, stat } from "fs/promises";
 import { basename, join } from "path";
+import { AdapterHelper } from "../AdapterHelper";
 
 export class FilesystemAdapter {
   /**
    * Read file(s) from filesystem and convert to artifacts
    */
-  public async read(options: Step.FilesystemRead): Promise<Artifact[]> {
-    return [await this.convertItemIntoArtifact(options.path)];
+  public async read(options: Step.FilesystemRead): Promise<Artifact> {
+    const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
+    await cp(options.path, outputPath, { recursive: true });
+
+    const stats = await stat(outputPath);
+    const name = basename(options.path);
+    if (stats.isFile()) {
+      return {
+        id: outputId,
+        type: "file",
+        path: outputPath,
+        size: stats.size,
+        name,
+      };
+    } else {
+      return {
+        id: outputId,
+        type: "directory",
+        path: outputPath,
+        name,
+      };
+    }
   }
 
   /**
    * Write artifacts from pipeline to a directory on filesystem
    */
   public async write(artifacts: Artifact[], options: Step.FilesystemWrite): Promise<void> {
-    // Ensure destination directory exists
+    // Ensure the destination folder
     await mkdir(options.path, { recursive: true });
-
     for (const artifact of artifacts) {
-      const filename = basename(artifact.path);
-      const destPath = join(options.path, filename);
-
+      const destinationPath = join(options.path, artifact.name);
       if (artifact.type === "file") {
-        await copyFile(artifact.path, destPath);
+        await copyFile(artifact.path, destinationPath);
       } else if (artifact.type === "directory") {
-        await this.copyDirectory(artifact.path, destPath);
+        await cp(artifact.path, destinationPath, { recursive: true });
       }
     }
   }
@@ -36,10 +52,8 @@ export class FilesystemAdapter {
     const result: Artifact[] = [];
     for (const artifact of artifacts) {
       if (artifact.type === "file") {
-        result.push(artifact);
+        result.push(artifact); // Re-use is okay; this is checked during cleanup
       } else {
-        // TODO: does this work? wouldn't we need to move or copy files?
-        // whatabout the automatic deletion of stuff inside /artifacts/xxxx?
         result.push(...(await this.readDirectoryRecursively(artifact.path)));
       }
     }
@@ -47,68 +61,40 @@ export class FilesystemAdapter {
   }
 
   public async folderGroup(artifacts: Artifact[], options: Step.FolderGroup): Promise<Artifact> {
-    throw new Error("Not imlemented");
-  }
-
-  private async convertItemIntoArtifact(path: string): Promise<Artifact> {
-    const stats = await stat(path);
-    const timestamp = Math.floor(Temporal.Now.instant().epochMilliseconds / 1000);
-    const name = this.extractName(basename(path));
-    if (stats.isFile()) {
-      return {
-        type: "file",
-        path: path,
-        size: stats.size,
-        name,
-        timestamp,
-      };
-    } else {
-      return {
-        type: "directory",
-        path: path,
-        name,
-        timestamp,
-      };
+    const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
+    await mkdir(outputPath);
+    for (const artifact of artifacts) {
+      await rename(artifact.path, join(outputPath, artifact.name));
     }
+    return {
+      id: outputId,
+      type: "directory",
+      name: `group(${artifacts.length})`,
+      path: outputPath,
+    };
   }
 
-  /**
-   *  TODO TODO need this for group_flatten
-   */
   private async readDirectoryRecursively(dirPath: string): Promise<Artifact[]> {
     const artifacts: Artifact[] = [];
     const entries = await readdir(dirPath, { withFileTypes: true });
     for (const entry of entries) {
       const fullPath = join(dirPath, entry.name);
       if (entry.isFile()) {
-        artifacts.push(await this.convertItemIntoArtifact(fullPath));
+        const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
+        await rename(fullPath, outputPath);
+        const { size } = await stat(outputPath);
+        artifacts.push({
+          id: outputId,
+          type: "file",
+          name: entry.name,
+          path: outputPath,
+          size,
+        });
       } else if (entry.isDirectory()) {
         const subArtifacts = await this.readDirectoryRecursively(fullPath);
         artifacts.push(...subArtifacts);
       }
     }
     return artifacts;
-  }
-
-  private async copyDirectory(srcPath: string, destPath: string): Promise<void> {
-    await mkdir(destPath, { recursive: true });
-    const entries = await readdir(srcPath, { withFileTypes: true });
-
-    for (const entry of entries) {
-      const srcFullPath = join(srcPath, entry.name);
-      const destFullPath = join(destPath, entry.name);
-
-      if (entry.isFile()) {
-        await copyFile(srcFullPath, destFullPath);
-      } else if (entry.isDirectory()) {
-        await this.copyDirectory(srcFullPath, destFullPath);
-      }
-    }
-  }
-
-  private extractName(filename: string): string {
-    const lastDotIndex = filename.lastIndexOf(".");
-    const filenameWithoutExtension = lastDotIndex > 0 ? filename.substring(0, lastDotIndex) : filename;
-    return NamingHelper.sanitizeName(filenameWithoutExtension);
   }
 }

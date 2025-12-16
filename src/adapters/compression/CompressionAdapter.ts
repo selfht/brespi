@@ -1,31 +1,25 @@
 import { Env } from "@/Env";
-import { FolderHelper } from "@/helpers/FolderHelper";
-import { NamingHelper } from "@/helpers/NamingHelper";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { spawn } from "bun";
 import { rename, rm, stat } from "fs/promises";
 import { basename, dirname } from "path";
+import { AdapterHelper } from "../AdapterHelper";
 
 export class CompressionAdapter {
   public async compress(artifact: Artifact, options: Step.Compression): Promise<Artifact> {
     const inputPath = artifact.path;
-    const outputPath = NamingHelper.generatePath(artifact);
+    const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
 
     // Use tar with gzip for both files and directories
     // For files: tar -czf output.tar.gz -C /parent/dir filename
     // For directories: tar -czf output.tar.gz -C /parent/dir dirname
-    const targetName = basename(inputPath);
-    const parentDir = dirname(inputPath);
-
     const proc = spawn({
-      cmd: ["tar", "-czf", outputPath, "-C", parentDir, targetName],
+      cmd: ["tar", "-czf", outputPath, "-C", dirname(inputPath), basename(inputPath)],
       stdout: "pipe",
       stderr: "pipe",
     });
-
     await proc.exited;
-
     if (proc.exitCode !== 0) {
       const stderr = await new Response(proc.stderr).text();
       throw new Error(`Failed to compress: ${stderr}`);
@@ -33,11 +27,11 @@ export class CompressionAdapter {
 
     const stats = await stat(outputPath);
     return {
+      id: outputId,
       path: outputPath,
       size: stats.size,
       type: "file",
       name: artifact.name,
-      timestamp: artifact.timestamp,
     };
   }
 
@@ -48,43 +42,39 @@ export class CompressionAdapter {
 
     const inputPath = artifact.path;
     const tempPath = await Env.createTempDir();
-
-    // const outputPath = NamingHelper.generatePath(artifact);
     try {
       // Use tar to extract (works for both single files and directories)
+      // Will place the resulting "item" (file or folder) as the only child inside the temp dir
       const proc = spawn({
         cmd: ["tar", "-xzf", inputPath, "-C", tempPath],
         stdout: "pipe",
         stderr: "pipe",
       });
-
       await proc.exited;
-
       if (proc.exitCode !== 0) {
         const stderr = await new Response(proc.stderr).text();
         throw new Error(`Failed to decompress: ${stderr}`);
       }
 
-      const newPath = NamingHelper.generatePath(artifact);
+      const singleChildPath = await AdapterHelper.findSingleChildPathWithinDirectory(tempPath);
+      const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
 
-      const singleChildPath = await FolderHelper.findSingleChildPathWithinDirectory(tempPath);
-      await rename(singleChildPath, newPath);
-
-      const stats = await stat(newPath);
+      await rename(singleChildPath, outputPath);
+      const stats = await stat(outputPath);
       if (stats.isDirectory()) {
         return {
-          path: newPath,
+          id: outputId,
           type: "directory",
+          path: outputPath,
           name: artifact.name,
-          timestamp: artifact.timestamp,
         };
       } else {
         return {
-          path: newPath,
+          id: outputId,
+          path: outputPath,
           type: "file",
           size: stats.size,
           name: artifact.name,
-          timestamp: artifact.timestamp,
         };
       }
     } finally {

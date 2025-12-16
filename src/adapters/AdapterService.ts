@@ -26,7 +26,7 @@ export class AdapterService {
   ) {
     this.registry = {
       [Step.Type.filesystem_read]: async (_, options) => {
-        return await fileSystemAdapter.read(options);
+        return [await fileSystemAdapter.read(options)];
       },
       [Step.Type.filesystem_write]: async (artifacts, options) => {
         await fileSystemAdapter.write(artifacts, options);
@@ -50,6 +50,13 @@ export class AdapterService {
       [Step.Type.folder_group]: async (artifacts, options) => {
         return [await fileSystemAdapter.folderGroup(artifacts, options)];
       },
+      /**
+       *
+       *
+       * TODO: last 5
+       *
+       *
+       */
       [Step.Type.script_execution]: async (artifacts, options) => {
         return await scriptAdapter.execute(artifacts, options);
       },

@@ -108,7 +108,7 @@ export class ExecutionService {
     const startedAt = Temporal.Now.plainDateTimeISO();
     const currentTrail = [...trail, step];
 
-    let output: Artifact[];
+    let output: Artifact[] = [];
     let outcome: Outcome;
     let failure: Action.Failure | null;
     try {
@@ -123,7 +123,7 @@ export class ExecutionService {
         message: e instanceof Error ? e.message : String(e),
       };
     } finally {
-      await this.cleanupArtifacts(input);
+      await this.cleanupArtifacts({ input, output });
     }
     const completedAt = Temporal.Now.plainDateTimeISO();
     const duration = startedAt.until(completedAt);
@@ -176,10 +176,12 @@ export class ExecutionService {
     return execution;
   }
 
-  private async cleanupArtifacts(artifacts: Artifact[]): Promise<void> {
-    throw new Error("Not implemented");
-    const artifactsWithinRootFolder = artifacts.filter((a) => a.path.startsWith(Env.artifactsRoot()));
-    for (const artifact of artifactsWithinRootFolder) {
+  /**
+   * Only remove input artifacts which weren't reused in the output
+   */
+  private async cleanupArtifacts({ input, output }: { input: Artifact[]; output: Artifact[] }): Promise<void> {
+    const toBeRemoved = input.filter((i) => !output.some((o) => i.path === o.path));
+    for (const artifact of toBeRemoved) {
       await rm(artifact.path, { recursive: true, force: true });
     }
   }

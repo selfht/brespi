@@ -5,6 +5,7 @@ import { stat } from "fs/promises";
 import { createCipheriv, createDecipheriv, randomBytes, createHash } from "crypto";
 import { pipeline } from "stream/promises";
 import { Step } from "@/models/Step";
+import { AdapterHelper } from "../AdapterHelper";
 
 export class EncryptionAdapter {
   private readonly key = "supersecretkey"; // TODO
@@ -16,30 +17,25 @@ export class EncryptionAdapter {
     const algorithm = this.translateAlgorithm(options.algorithm.implementation);
 
     const inputPath = artifact.path;
-    const outputPath = NamingHelper.generatePath(artifact);
+    const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
 
     // Derive a 32-byte key from the hardcoded key using SHA-256
     const keyBuffer = createHash("sha256").update(this.key).digest();
 
-    // Generate a random 16-byte initialization vector
+    // Encrypt
     const iv = randomBytes(16);
-
-    // Create cipher
     const cipher = createCipheriv(algorithm, keyBuffer, iv);
-
-    // Write IV to the beginning of the file, then encrypted data
     const outputStream = createWriteStream(outputPath);
     outputStream.write(iv);
-
     await pipeline(createReadStream(inputPath), cipher, outputStream);
 
     const stats = await stat(outputPath);
     return {
+      id: outputId,
+      type: "file",
       path: outputPath,
       size: stats.size,
-      type: "file",
       name: artifact.name,
-      timestamp: artifact.timestamp,
     };
   }
 
@@ -50,12 +46,12 @@ export class EncryptionAdapter {
     const algorithm = this.translateAlgorithm(options.algorithm.implementation);
 
     const inputPath = artifact.path;
-    const outputPath = NamingHelper.generatePath(artifact);
+    const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
 
     // Derive the same 32-byte key
     const keyBuffer = createHash("sha256").update(this.key).digest();
 
-    // Read the IV from the beginning of the encrypted file
+    // Decrypt
     const inputStream = createReadStream(inputPath);
     const iv = await new Promise<Buffer>((resolve, reject) => {
       inputStream.once("readable", () => {
@@ -68,20 +64,16 @@ export class EncryptionAdapter {
       });
       inputStream.once("error", reject);
     });
-
-    // Create decipher
     const decipher = createDecipheriv(algorithm, keyBuffer, iv);
-
-    // Decrypt the rest of the file
     await pipeline(inputStream, decipher, createWriteStream(outputPath));
 
     const stats = await stat(outputPath);
     return {
+      id: outputId,
+      type: "file",
       path: outputPath,
       size: stats.size,
-      type: "file",
       name: artifact.name,
-      timestamp: artifact.timestamp,
     };
   }
 
