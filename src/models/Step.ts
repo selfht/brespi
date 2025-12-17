@@ -10,6 +10,7 @@ export type Step =
   | Step.Decryption
   | Step.FolderFlatten
   | Step.FolderGroup
+  | Step.Filter
   | Step.ScriptExecution
   | Step.S3Upload
   | Step.S3Download
@@ -26,6 +27,7 @@ export namespace Step {
     decryption = "decryption",
     folder_flatten = "folder_flatten",
     folder_group = "folder_group",
+    filter = "filter",
     script_execution = "script_execution",
     s3_upload = "s3_upload",
     s3_download = "s3_download",
@@ -91,6 +93,15 @@ export namespace Step {
 
   export type FolderGroup = Common & {
     type: Type.folder_group;
+  };
+
+  export type Filter = Common & {
+    type: Type.filter;
+    selection:
+      | { method: "exact"; name: string }
+      //
+      | { method: "glob"; nameGlob: string }
+      | { method: "regex"; nameRegex: string };
   };
 
   export type ScriptExecution = Common & {

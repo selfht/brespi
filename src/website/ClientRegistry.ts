@@ -4,9 +4,9 @@ import { createContext } from "react";
 import { Class } from "@/types/Class";
 import { ProblemDetails } from "@/models/ProblemDetails";
 import { QueryClient } from "@tanstack/react-query";
-import { PipelineClient } from "./PipelineClient";
-import { StepClient } from "./StepClient.ts";
-import { ExecutionClient } from "./ExecutionClient";
+import { PipelineClient } from "./clients/PipelineClient";
+import { StepClient } from "./clients/StepClient.ts";
+import { ExecutionClient } from "./clients/ExecutionClient";
 
 export class ClientRegistry {
   /**

@@ -6,6 +6,7 @@ import { PostgresAdapter } from "./postgres/PostgresAdapter";
 import { EncryptionAdapter } from "./encyption/EncryptionAdapter";
 import { S3Adapter } from "./s3/S3Adapter";
 import { ScriptAdapter } from "./scripting/ScriptAdapter";
+import { FilterAdapter } from "./filter/FilterAdapter";
 
 type Handler<S extends Step> = (artifacts: Artifact[], options: S, history: Step[]) => Promise<Artifact[]>;
 
@@ -17,9 +18,10 @@ export class AdapterService {
   private readonly registry: InternalRegistry;
 
   public constructor(
-    compressionAdapter: CompressionAdapter,
     fileSystemAdapter: FilesystemAdapter,
+    compressionAdapter: CompressionAdapter,
     encryptionAdapter: EncryptionAdapter,
+    filterAdapter: FilterAdapter,
     scriptAdapter: ScriptAdapter,
     s3Adapter: S3Adapter,
     postgresAdapter: PostgresAdapter,
@@ -49,6 +51,9 @@ export class AdapterService {
       },
       [Step.Type.folder_group]: async (artifacts, options) => {
         return [await fileSystemAdapter.folderGroup(artifacts, options)];
+      },
+      [Step.Type.filter]: async (artifacts, options) => {
+        return await filterAdapter.filter(artifacts, options);
       },
       /**
        *

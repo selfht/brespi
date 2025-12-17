@@ -13,6 +13,7 @@ import { StepService } from "./services/StepService";
 import { ExecutionService } from "./services/ExecutionService";
 import { PipelineRepository } from "./repositories/PipelineRepository";
 import { ExecutionRepository } from "./repositories/ExecutionRepository";
+import { FilterAdapter } from "./adapters/filter/FilterAdapter";
 
 export class ServerRegistry {
   public static async bootstrap(): Promise<ServerRegistry> {
@@ -23,16 +24,18 @@ export class ServerRegistry {
 
   private constructor() {
     // Adapters
-    const compressionAdapter = (this.registry[CompressionAdapter.name] = new CompressionAdapter());
     const fileSystemAdapter = (this.registry[FilesystemAdapter.name] = new FilesystemAdapter());
+    const compressionAdapter = (this.registry[CompressionAdapter.name] = new CompressionAdapter());
     const encryptionAdapter = (this.registry[EncryptionAdapter.name] = new EncryptionAdapter());
+    const filterAdapter = (this.registry[FilterAdapter.name] = new FilterAdapter());
     const scriptAdapter = (this.registry[ScriptAdapter.name] = new ScriptAdapter());
     const s3Adapter = (this.registry[S3Adapter.name] = new S3Adapter());
     const postgresAdapter = (this.registry[PostgresAdapter.name] = new PostgresAdapter());
     const adapterService = (this.registry[AdapterService.name] = new AdapterService(
-      compressionAdapter,
       fileSystemAdapter,
+      compressionAdapter,
       encryptionAdapter,
+      filterAdapter,
       scriptAdapter,
       s3Adapter,
       postgresAdapter,

@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useEffect, useState } from "react";
 import { createBrowserRouter, replace, RouterProvider } from "react-router";
-import { ClientRegistry } from "./clients/ClientRegistry";
+import { ClientRegistry } from "./ClientRegistry";
 import { schedules } from "./pages/schedules";
 import { configuration } from "./pages/configuration";
 import { pipelines } from "./pages/pipelines";

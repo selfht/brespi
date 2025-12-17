@@ -23,8 +23,8 @@ export const Env = z
 export namespace Env {
   export type PublicPrefix = "O_BRESPI_";
 
-  type C = typeof Env;
+  type E = typeof Env;
   export type Public = {
-    [K in keyof C as K extends `${PublicPrefix}${string}` ? K : never]: C[K] extends z.ZodTypeAny ? z.infer<C[K]> : C[K];
+    [K in keyof E as K extends `${PublicPrefix}${string}` ? K : never]: E[K] extends z.ZodTypeAny ? z.infer<E[K]> : E[K];
   };
 }
