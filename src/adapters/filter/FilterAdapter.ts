@@ -22,9 +22,6 @@ export class FilterAdapter extends AbstractAdapter {
     }
   }
 
-  /**
-   * TODO: test!
-   */
   private globToRegex(pattern: string): RegExp {
     let regexPattern = pattern
       .replace(/[.+^${}()|[\]\\]/g, "\\$&")

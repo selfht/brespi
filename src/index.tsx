@@ -7,12 +7,13 @@ import { CleanupService } from "./services/CleanupService";
 /**
  * Initialize the env configuration
  */
-const env = Env.readAndRequireValidEnvironment();
+const env = Env.readAndValidateEnvironment();
 
 /**
  * Create the artifacts directory
  */
-await mkdir(env.artifactsRoot(), { recursive: true });
+console.log(env.X_BRESPI_ARTIFACTS_ROOT);
+await mkdir(env.X_BRESPI_ARTIFACTS_ROOT, { recursive: true });
 
 /**
  * Set up the registry

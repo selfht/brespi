@@ -1,10 +1,8 @@
-import { Temporal } from "@js-temporal/polyfill";
-import { mkdir } from "fs/promises";
 import { join } from "path";
 import { z } from "zod/v4";
 
 export namespace Env {
-  export function readAndRequireValidEnvironment() {
+  export function readAndValidateEnvironment() {
     return z
       .object({
         O_BRESPI_STAGE: z.enum(["development", "production"]),
@@ -12,18 +10,12 @@ export namespace Env {
       })
       .transform((conf) => ({
         ...conf,
-        artifactsRoot: () => join(conf.X_BRESPI_ROOT, "artifacts"),
-        createTempDir: async (): Promise<string> => {
-          const unixSeconds = Math.floor(Temporal.Now.instant().epochMilliseconds / 1000);
-          const folder = join(conf.X_BRESPI_ROOT, `tmp-${unixSeconds}-${Bun.randomUUIDv7()}`);
-          await mkdir(folder, { recursive: true });
-          return folder;
-        },
+        X_BRESPI_ARTIFACTS_ROOT: join(conf.X_BRESPI_ROOT, "artifacts"),
       }))
       .parse(Bun.env);
   }
 
-  export type Private = ReturnType<typeof readAndRequireValidEnvironment>;
+  export type Private = ReturnType<typeof readAndValidateEnvironment>;
 
   export type PublicPrefix = "O_BRESPI_";
   export type Public = {

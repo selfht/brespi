@@ -1,5 +1,5 @@
 import { ZodParser } from "@/helpers/ZodParser";
-import { Temporal } from "node_modules/@js-temporal/polyfill/index.cjs";
+import { Temporal } from "@js-temporal/polyfill";
 import z from "zod/v4";
 
 export type S3Manifest = {

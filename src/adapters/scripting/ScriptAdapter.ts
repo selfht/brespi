@@ -17,8 +17,8 @@ export class ScriptAdapter extends AbstractAdapter {
       return artifacts;
     }
 
-    const artifactsIn = await this.env.createTempDir();
-    const artifactsOut = await this.env.createTempDir();
+    const artifactsIn = await this.createTempDir();
+    const artifactsOut = await this.createTempDir();
     try {
       await this.moveArtifacts(artifacts, artifactsIn);
       await this.executeScript(options.path, {
