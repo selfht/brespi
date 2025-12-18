@@ -4,7 +4,6 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypt
 import { createReadStream, createWriteStream } from "fs";
 import { stat } from "fs/promises";
 import { pipeline } from "stream/promises";
-import { AdapterHelper } from "../AdapterHelper";
 
 export class EncryptionAdapter {
   private readonly key = "supersecretkey"; // TODO
@@ -16,7 +15,7 @@ export class EncryptionAdapter {
     const algorithm = this.translateAlgorithm(options.algorithm.implementation);
 
     const inputPath = artifact.path;
-    const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
+    const { outputId, outputPath } = Artifact.generateDestination();
 
     // Derive a 32-byte key from the hardcoded key using SHA-256
     const keyBuffer = createHash("sha256").update(this.key).digest();
@@ -45,7 +44,7 @@ export class EncryptionAdapter {
     const algorithm = this.translateAlgorithm(options.algorithm.implementation);
 
     const inputPath = artifact.path;
-    const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
+    const { outputId, outputPath } = Artifact.generateDestination();
 
     // Derive the same 32-byte key
     const keyBuffer = createHash("sha256").update(this.key).digest();

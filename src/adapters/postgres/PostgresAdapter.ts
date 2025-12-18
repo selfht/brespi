@@ -5,7 +5,6 @@ import { spawn } from "bun";
 import { rename, rm } from "fs/promises";
 import { join } from "path";
 import { z } from "zod/v4";
-import { AdapterHelper } from "../AdapterHelper";
 
 export class PostgresAdapter {
   private readonly opts: PostgresAdapter.ConstructorArgs;
@@ -87,7 +86,7 @@ export class PostgresAdapter {
       // Extract artifacts (only successful backups)
       const artifacts: Artifact[] = [];
       for (const db of output.databases.filter((db): db is Extract<typeof db, { status: "success" }> => db.status === "success")) {
-        const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
+        const { outputId, outputPath } = Artifact.generateDestination();
         await rename(db.path, outputPath);
         artifacts.push({
           id: outputId,

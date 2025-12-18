@@ -8,7 +8,7 @@ export class CleanupService {
   }
 
   private async cleanIllegalFilesAndFoldersWithinArtifactsDir() {
-    // TODO; perhaps the AdapterHelper should generate IDs which look like `${unixMillis}-${randomSuffix}`
+    // TODO; perhaps the destination generator should generate IDs which look like `${unixMillis}-${randomSuffix}`
   }
 
   private async cleanForgottenArtifacts() {

@@ -7,7 +7,6 @@ import { Temporal } from "@js-temporal/polyfill";
 import { S3Client } from "bun";
 import { stat } from "fs/promises";
 import { join } from "path";
-import { AdapterHelper } from "../AdapterHelper";
 
 export class S3Adapter {
   private static readonly MANIFEST_MUTEX = new Mutex();
@@ -79,7 +78,7 @@ export class S3Adapter {
       if (fileName === S3Adapter.META_FILE_NAME) {
         continue;
       }
-      const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
+      const { outputId, outputPath } = Artifact.generateDestination();
       await Bun.write(outputPath, client.file(item.key));
       const { size } = await stat(outputPath);
       artifacts.push({

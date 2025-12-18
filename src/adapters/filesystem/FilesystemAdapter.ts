@@ -2,14 +2,13 @@ import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { copyFile, cp, mkdir, readdir, rename, stat } from "fs/promises";
 import { basename, join } from "path";
-import { AdapterHelper } from "../AdapterHelper";
 
 export class FilesystemAdapter {
   /**
    * Read file(s) from filesystem and convert to artifacts
    */
   public async read(options: Step.FilesystemRead): Promise<Artifact> {
-    const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
+    const { outputId, outputPath } = Artifact.generateDestination();
     await cp(options.path, outputPath, { recursive: true });
 
     const stats = await stat(outputPath);
@@ -61,7 +60,7 @@ export class FilesystemAdapter {
   }
 
   public async folderGroup(artifacts: Artifact[], options: Step.FolderGroup): Promise<Artifact> {
-    const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
+    const { outputId, outputPath } = Artifact.generateDestination();
     await mkdir(outputPath);
     for (const artifact of artifacts) {
       await rename(artifact.path, join(outputPath, artifact.name));
@@ -80,7 +79,7 @@ export class FilesystemAdapter {
     for (const entry of entries) {
       const fullPath = join(dirPath, entry.name);
       if (entry.isFile()) {
-        const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
+        const { outputId, outputPath } = Artifact.generateDestination();
         await rename(fullPath, outputPath);
         const { size } = await stat(outputPath);
         artifacts.push({

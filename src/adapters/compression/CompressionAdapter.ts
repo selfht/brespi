@@ -2,14 +2,13 @@ import { Env } from "@/Env";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { spawn } from "bun";
-import { rename, rm, stat } from "fs/promises";
-import { basename, dirname } from "path";
-import { AdapterHelper } from "../AdapterHelper";
+import { readdir, rename, rm, stat } from "fs/promises";
+import { basename, dirname, join } from "path";
 
 export class CompressionAdapter {
   public async compress(artifact: Artifact, options: Step.Compression): Promise<Artifact> {
     const inputPath = artifact.path;
-    const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
+    const { outputId, outputPath } = Artifact.generateDestination();
 
     // Use tar with gzip for both files and directories
     // For files: tar -czf output.tar.gz -C /parent/dir filename
@@ -56,10 +55,10 @@ export class CompressionAdapter {
         throw new Error(`Failed to decompress: ${stderr}`);
       }
 
-      const singleChildPath = await AdapterHelper.findSingleChildPathWithinDirectory(tempPath);
-      const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
-
+      const singleChildPath = await this.findSingleChildPathWithinDirectory(tempPath);
+      const { outputId, outputPath } = Artifact.generateDestination();
       await rename(singleChildPath, outputPath);
+
       const stats = await stat(outputPath);
       if (stats.isDirectory()) {
         return {
@@ -80,5 +79,16 @@ export class CompressionAdapter {
     } finally {
       await rm(tempPath, { recursive: true, force: true });
     }
+  }
+
+  private async findSingleChildPathWithinDirectory(dirPath: string): Promise<string> {
+    const children = await readdir(dirPath);
+    if (children.length === 0) {
+      throw new Error(`Directory is empty: ${dirPath}`);
+    }
+    if (children.length > 1) {
+      throw new Error(`Directory contains more than one child: ${dirPath} (found ${children.length} children)`);
+    }
+    return join(dirPath, children[0]);
   }
 }

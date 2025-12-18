@@ -58,13 +58,6 @@ export class AdapterService {
       [Step.Type.script_execution]: async (artifacts, options) => {
         return await scriptAdapter.execute(artifacts, options);
       },
-      /**
-       *
-       *
-       * TODO: last 4
-       *
-       *
-       */
       [Step.Type.s3_upload]: async (artifacts, options, trail) => {
         await s3Adapter.upload(artifacts, options, trail);
         return [];
