@@ -34,7 +34,7 @@ export class Server {
          */
         "/api/env": {
           GET: async () => {
-            const response = Object.entries(Env)
+            const response = Object.entries(this.env)
               .filter(([key]) => key.startsWith("O_BRESPI_" satisfies Env.PublicPrefix))
               .map(([key, value]) => ({ [key]: value }))
               .reduce((kv1, kv2) => Object.assign({}, kv1, kv2), {});

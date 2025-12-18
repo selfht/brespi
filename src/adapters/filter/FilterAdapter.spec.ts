@@ -2,9 +2,10 @@ import { describe, it, expect } from "bun:test";
 import { FilterAdapter } from "./FilterAdapter";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
+import { Env } from "@/Env";
 
 describe(FilterAdapter.name, () => {
-  const adapter = new FilterAdapter();
+  const adapter = new FilterAdapter({} as Env.Private);
 
   describe("exact filtering", () => {
     it("matches exact name", async () => {

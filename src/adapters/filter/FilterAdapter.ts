@@ -1,7 +1,13 @@
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
+import { AbstractAdapter } from "../AbstractAdapter";
+import { Env } from "@/Env";
 
-export class FilterAdapter {
+export class FilterAdapter extends AbstractAdapter {
+  public constructor(protected readonly env: Env.Private) {
+    super(env);
+  }
+
   public async filter(artifacts: Artifact[], options: Step.Filter): Promise<Artifact[]> {
     const { selection } = options;
     switch (selection.method) {

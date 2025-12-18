@@ -7,7 +7,7 @@ import { CleanupService } from "./services/CleanupService";
 /**
  * Initialize the env configuration
  */
-const env = Env();
+const env = Env.readAndRequireValidEnvironment();
 
 /**
  * Create the artifacts directory
