@@ -47,7 +47,7 @@ export class CompressionAdapter extends AbstractAdapter {
     }
 
     const inputPath = artifact.path;
-    const tempPath = await this.createTempDir();
+    const tempPath = await this.createTempDirectory();
     try {
       // Use tar to extract (works for both single files and directories)
       // Will place the resulting "item" (file or folder) as the only child inside the temp dir

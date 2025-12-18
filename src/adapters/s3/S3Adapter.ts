@@ -32,12 +32,12 @@ export class S3Adapter extends AbstractAdapter {
     // 1. Update the global manifest for this base folder
     const timestamp = Temporal.Now.plainDateTimeISO();
     const relativeUploadPath = `${timestamp}-${this.generateShortRandomString()}`;
-    const manifest = await this.handleManifestExclusively(client, step.baseFolder, async (s3Manifest, s3Save) => {
+    await this.handleManifestExclusively(client, step.baseFolder, async (s3Manifest, s3Save) => {
       s3Manifest.uploads.push({
         isoTimestamp: timestamp.toString(),
         path: relativeUploadPath,
       });
-      return await s3Save(s3Manifest);
+      await s3Save(s3Manifest);
     });
 
     // 2. Write the meta for the current upload
@@ -111,16 +111,6 @@ export class S3Adapter extends AbstractAdapter {
     } finally {
       release();
     }
-  }
-
-  private generateShortRandomString(): string {
-    const length = 6;
-    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-    let id = "";
-    for (let i = 0; i < length; i++) {
-      id += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return id;
   }
 
   private findMatchingUpload(manifest: S3Manifest, selection: Step.S3Download["selection"]): S3Manifest.Upload {
