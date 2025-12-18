@@ -12,7 +12,6 @@ const env = Env.readAndValidateEnvironment();
 /**
  * Create the artifacts directory
  */
-console.log(env.X_BRESPI_ARTIFACTS_ROOT);
 await mkdir(env.X_BRESPI_ARTIFACTS_ROOT, { recursive: true });
 
 /**

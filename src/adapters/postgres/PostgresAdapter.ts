@@ -12,7 +12,7 @@ export class PostgresAdapter extends AbstractAdapter {
     super(env);
   }
 
-  public async backup(options: Step.PostgresBackup): Promise<Artifact[]> {
+  public async backup(step: Step.PostgresBackup): Promise<Artifact[]> {
     // TODO: add below to step, using a DB_REFERENCE, just like the S3 step
     const opts = {
       host: "postgres",
@@ -30,12 +30,12 @@ export class PostgresAdapter extends AbstractAdapter {
       PGUSER: opts.user,
       PGPASSWORD: opts.password,
       BACKUP_ROOT: tempDir,
-      SELECTION_MODE: options.databaseSelection.strategy,
-      ...(options.databaseSelection.strategy === "include" && {
-        INCLUDE_DBS: options.databaseSelection.include.join(" "),
+      SELECTION_MODE: step.databaseSelection.strategy,
+      ...(step.databaseSelection.strategy === "include" && {
+        INCLUDE_DBS: step.databaseSelection.include.join(" "),
       }),
-      ...(options.databaseSelection.strategy === "exclude" && {
-        EXCLUDE_DBS: options.databaseSelection.exclude.join(" "),
+      ...(step.databaseSelection.strategy === "exclude" && {
+        EXCLUDE_DBS: step.databaseSelection.exclude.join(" "),
       }),
     };
 
@@ -50,8 +50,8 @@ export class PostgresAdapter extends AbstractAdapter {
         stdout: "pipe",
         stderr: "pipe",
       });
-      await proc.exited;
       const stdout = await new Response(proc.stdout).text();
+      await proc.exited;
 
       if (proc.exitCode !== 0) {
         const stderr = await new Response(proc.stderr).text();
@@ -106,7 +106,7 @@ export class PostgresAdapter extends AbstractAdapter {
     }
   }
 
-  public async restore(artifacts: Artifact[], options: Step.PostgresRestore): Promise<void> {
+  public async restore(artifacts: Artifact[], step: Step.PostgresRestore): Promise<void> {
     throw new Error("TODO: Not implemented");
   }
 }

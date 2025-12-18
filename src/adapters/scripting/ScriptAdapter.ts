@@ -11,9 +11,9 @@ export class ScriptAdapter extends AbstractAdapter {
     super(env);
   }
 
-  public async execute(artifacts: Artifact[], options: Step.ScriptExecution): Promise<Artifact[]> {
-    if (options.passthrough) {
-      await this.executeScript(options.path);
+  public async execute(artifacts: Artifact[], step: Step.ScriptExecution): Promise<Artifact[]> {
+    if (step.passthrough) {
+      await this.executeScript(step.path);
       return artifacts;
     }
 
@@ -21,7 +21,7 @@ export class ScriptAdapter extends AbstractAdapter {
     const artifactsOut = await this.createTempDir();
     try {
       await this.moveArtifacts(artifacts, artifactsIn);
-      await this.executeScript(options.path, {
+      await this.executeScript(step.path, {
         BRESPI_ARTIFACTS_IN: artifactsIn,
         BRESPI_ARTIFACTS_OUT: artifactsOut,
       });

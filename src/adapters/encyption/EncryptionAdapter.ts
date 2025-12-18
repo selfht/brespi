@@ -14,11 +14,11 @@ export class EncryptionAdapter extends AbstractAdapter {
     super(env);
   }
 
-  public async encrypt(artifact: Artifact, options: Step.Encryption): Promise<Artifact> {
+  public async encrypt(artifact: Artifact, step: Step.Encryption): Promise<Artifact> {
     if (artifact.type !== "file") {
       throw new Error("Unsupported artifact type");
     }
-    const algorithm = this.translateAlgorithm(options.algorithm.implementation);
+    const algorithm = this.translateAlgorithm(step.algorithm.implementation);
 
     const inputPath = artifact.path;
     const { outputId, outputPath } = this.generateArtifactDestination();
@@ -43,11 +43,11 @@ export class EncryptionAdapter extends AbstractAdapter {
     };
   }
 
-  public async decrypt(artifact: Artifact, options: Step.Decryption): Promise<Artifact> {
+  public async decrypt(artifact: Artifact, step: Step.Decryption): Promise<Artifact> {
     if (artifact.type !== "file") {
       throw new Error("Unsupported artifact type");
     }
-    const algorithm = this.translateAlgorithm(options.algorithm.implementation);
+    const algorithm = this.translateAlgorithm(step.algorithm.implementation);
 
     const inputPath = artifact.path;
     const { outputId, outputPath } = this.generateArtifactDestination();

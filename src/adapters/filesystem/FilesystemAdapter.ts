@@ -13,12 +13,12 @@ export class FilesystemAdapter extends AbstractAdapter {
   /**
    * Read file(s) from filesystem and convert to artifacts
    */
-  public async read(options: Step.FilesystemRead): Promise<Artifact> {
+  public async read(step: Step.FilesystemRead): Promise<Artifact> {
     const { outputId, outputPath } = this.generateArtifactDestination();
-    await cp(options.path, outputPath, { recursive: true });
+    await cp(step.path, outputPath, { recursive: true });
 
     const stats = await stat(outputPath);
-    const name = basename(options.path);
+    const name = basename(step.path);
     if (stats.isFile()) {
       return {
         id: outputId,
@@ -40,11 +40,11 @@ export class FilesystemAdapter extends AbstractAdapter {
   /**
    * Write artifacts from pipeline to a directory on filesystem
    */
-  public async write(artifacts: Artifact[], options: Step.FilesystemWrite): Promise<void> {
+  public async write(artifacts: Artifact[], step: Step.FilesystemWrite): Promise<void> {
     // Ensure the destination folder
-    await mkdir(options.path, { recursive: true });
+    await mkdir(step.path, { recursive: true });
     for (const artifact of artifacts) {
-      const destinationPath = join(options.path, artifact.name);
+      const destinationPath = join(step.path, artifact.name);
       if (artifact.type === "file") {
         await copyFile(artifact.path, destinationPath);
       } else if (artifact.type === "directory") {
@@ -53,7 +53,7 @@ export class FilesystemAdapter extends AbstractAdapter {
     }
   }
 
-  public async folderFlatten(artifacts: Artifact[], options: Step.FolderFlatten): Promise<Artifact[]> {
+  public async folderFlatten(artifacts: Artifact[], step: Step.FolderFlatten): Promise<Artifact[]> {
     const result: Artifact[] = [];
     for (const artifact of artifacts) {
       if (artifact.type === "file") {
@@ -65,7 +65,7 @@ export class FilesystemAdapter extends AbstractAdapter {
     return result;
   }
 
-  public async folderGroup(artifacts: Artifact[], options: Step.FolderGroup): Promise<Artifact> {
+  public async folderGroup(artifacts: Artifact[], step: Step.FolderGroup): Promise<Artifact> {
     const { outputId, outputPath } = this.generateArtifactDestination();
     await mkdir(outputPath);
     for (const artifact of artifacts) {

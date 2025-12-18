@@ -1,14 +1,14 @@
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { CompressionAdapter } from "./compression/CompressionAdapter";
-import { FilesystemAdapter } from "./filesystem/FilesystemAdapter";
-import { PostgresAdapter } from "./postgres/PostgresAdapter";
 import { EncryptionAdapter } from "./encyption/EncryptionAdapter";
+import { FilesystemAdapter } from "./filesystem/FilesystemAdapter";
+import { FilterAdapter } from "./filter/FilterAdapter";
+import { PostgresAdapter } from "./postgres/PostgresAdapter";
 import { S3Adapter } from "./s3/S3Adapter";
 import { ScriptAdapter } from "./scripting/ScriptAdapter";
-import { FilterAdapter } from "./filter/FilterAdapter";
 
-type Handler<S extends Step> = (artifacts: Artifact[], options: S, history: Step[]) => Promise<Artifact[]>;
+type Handler<S extends Step> = (artifacts: Artifact[], step: S, history: Step[]) => Promise<Artifact[]>;
 
 type InternalRegistry = {
   [T in Step.Type]: Handler<Extract<Step, { type: T }>>;

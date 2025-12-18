@@ -11,7 +11,7 @@ export class CompressionAdapter extends AbstractAdapter {
     super(env);
   }
 
-  public async compress(artifact: Artifact, options: Step.Compression): Promise<Artifact> {
+  public async compress(artifact: Artifact, step: Step.Compression): Promise<Artifact> {
     const inputPath = artifact.path;
     const { outputId, outputPath } = this.generateArtifactDestination();
 
@@ -39,7 +39,7 @@ export class CompressionAdapter extends AbstractAdapter {
     };
   }
 
-  public async decompress(artifact: Artifact, options: Step.Decompression): Promise<Artifact> {
+  public async decompress(artifact: Artifact, step: Step.Decompression): Promise<Artifact> {
     if (artifact.type !== "file") {
       throw new Error(`Unsupported artifact type: ${artifact.type}`);
     }

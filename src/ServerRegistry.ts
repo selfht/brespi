@@ -54,6 +54,7 @@ export class ServerRegistry {
       stepService,
     ));
     const executionService = (this.registry[ExecutionService.name] = new ExecutionService(
+      env,
       executionRepository,
       pipelineRepository,
       adapterService,

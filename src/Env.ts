@@ -1,3 +1,4 @@
+import { Temporal } from "@js-temporal/polyfill";
 import { join } from "path";
 import { z } from "zod/v4";
 
@@ -8,9 +9,12 @@ export namespace Env {
         O_BRESPI_STAGE: z.enum(["development", "production"]),
         X_BRESPI_ROOT: z.string(),
       })
-      .transform((conf) => ({
-        ...conf,
-        X_BRESPI_ARTIFACTS_ROOT: join(conf.X_BRESPI_ROOT, "artifacts"),
+      .transform((env) => ({
+        ...env,
+        X_BRESPI_ARTIFACTS_ROOT: join(env.X_BRESPI_ROOT, "artifacts"),
+        X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from({
+          seconds: env.O_BRESPI_STAGE === "development" ? 5 : 0,
+        }),
       }))
       .parse(Bun.env);
   }

@@ -24,8 +24,7 @@ export namespace PipelineData {
         previousId: null,
         type: Step.Type.postgres_backup,
         databaseSelection: {
-          strategy: "include",
-          include: ["apple", "banana", "coconut"],
+          strategy: "all",
         },
       },
       {

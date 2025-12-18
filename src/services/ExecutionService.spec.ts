@@ -3,11 +3,18 @@ import { Pipeline } from "@/models/Pipeline";
 import { Step } from "@/models/Step";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { ExecutionService } from "./ExecutionService";
+import { Temporal } from "@js-temporal/polyfill";
+import { Env } from "@/Env";
 
 describe(ExecutionService.name, () => {
   const { inMemoryExecutionRepository, inMemoryPipelineRepository } = Test.RepoRegistry;
   const { adapterService } = Test.MockRegistry;
-  const service = new ExecutionService(inMemoryExecutionRepository, inMemoryPipelineRepository, Test.impl(adapterService));
+  const service = new ExecutionService(
+    { X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from({ seconds: 0 }) } as Env.Private,
+    inMemoryExecutionRepository,
+    inMemoryPipelineRepository,
+    Test.impl(adapterService),
+  );
 
   beforeEach(() => {
     inMemoryPipelineRepository.clear();

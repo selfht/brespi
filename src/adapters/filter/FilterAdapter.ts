@@ -8,8 +8,8 @@ export class FilterAdapter extends AbstractAdapter {
     super(env);
   }
 
-  public async filter(artifacts: Artifact[], options: Step.Filter): Promise<Artifact[]> {
-    const { selection } = options;
+  public async filter(artifacts: Artifact[], step: Step.Filter): Promise<Artifact[]> {
+    const { selection } = step;
     switch (selection.method) {
       case "exact":
         return artifacts.filter((artifact) => artifact.name === selection.name);

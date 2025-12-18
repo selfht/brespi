@@ -20,7 +20,7 @@ export class S3Adapter extends AbstractAdapter {
     super(env);
   }
 
-  public async upload(artifacts: Artifact[], options: Step.S3Upload, stepTrail: Step[]): Promise<void> {
+  public async upload(artifacts: Artifact[], step: Step.S3Upload, stepTrail: Step[]): Promise<void> {
     // TODO
     const client = new S3Client({
       accessKeyId: "kim",
@@ -32,7 +32,7 @@ export class S3Adapter extends AbstractAdapter {
     // 1. Update the global manifest for this base folder
     const timestamp = Temporal.Now.plainDateTimeISO();
     const relativeUploadPath = `${timestamp}-${this.generateShortRandomString()}`;
-    const manifest = await this.handleManifestExclusively(client, options.baseFolder, async (s3Manifest, s3Save) => {
+    const manifest = await this.handleManifestExclusively(client, step.baseFolder, async (s3Manifest, s3Save) => {
       s3Manifest.uploads.push({
         isoTimestamp: timestamp.toString(),
         path: relativeUploadPath,
@@ -41,7 +41,7 @@ export class S3Adapter extends AbstractAdapter {
     });
 
     // 2. Write the meta for the current upload
-    const absoluteUploadPath = join(options.baseFolder, relativeUploadPath);
+    const absoluteUploadPath = join(step.baseFolder, relativeUploadPath);
     await client.write(
       join(absoluteUploadPath, S3Adapter.META_FILE_NAME),
       JSON.stringify({
@@ -60,7 +60,7 @@ export class S3Adapter extends AbstractAdapter {
     }
   }
 
-  public async download(options: Step.S3Download): Promise<Artifact[]> {
+  public async download(step: Step.S3Download): Promise<Artifact[]> {
     const client = new S3Client({
       accessKeyId: "kim",
       secretAccessKey: "possible",
@@ -68,11 +68,11 @@ export class S3Adapter extends AbstractAdapter {
       endpoint: "http://minio:9000",
     });
 
-    const previousUpload = await this.handleManifestExclusively(client, options.baseFolder, (manifest) => {
-      return this.findMatchingUpload(manifest, options.selection);
+    const previousUpload = await this.handleManifestExclusively(client, step.baseFolder, (manifest) => {
+      return this.findMatchingUpload(manifest, step.selection);
     });
 
-    const previousUploadFolder = join(options.baseFolder, previousUpload.path);
+    const previousUploadFolder = join(step.baseFolder, previousUpload.path);
 
     const artifacts: Artifact[] = [];
     const listResponse = await client.list({ prefix: previousUploadFolder });

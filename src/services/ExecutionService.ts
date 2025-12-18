@@ -1,4 +1,5 @@
 import { AdapterService } from "@/adapters/AdapterService";
+import { Env } from "@/Env";
 import { ExecutionError } from "@/errors/ExecutionError";
 import { PipelineError } from "@/errors/PipelineError";
 import { ServerError } from "@/errors/ServerError";
@@ -17,6 +18,7 @@ import z from "zod/v4";
 
 export class ExecutionService {
   public constructor(
+    private readonly env: Env.Private,
     private readonly executionRepository: ExecutionRepository,
     private readonly pipelineRepository: PipelineRepository,
     private readonly adapterService: AdapterService,
@@ -121,6 +123,7 @@ export class ExecutionService {
         message: e instanceof Error ? e.message : String(e),
       };
     } finally {
+      await Bun.sleep(this.env.X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY.total("milliseconds"));
       await this.cleanupArtifacts({ input, output });
     }
     const completedAt = Temporal.Now.plainDateTimeISO();
