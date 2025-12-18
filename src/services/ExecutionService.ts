@@ -1,5 +1,4 @@
 import { AdapterService } from "@/adapters/AdapterService";
-import { Env } from "@/Env";
 import { ExecutionError } from "@/errors/ExecutionError";
 import { PipelineError } from "@/errors/PipelineError";
 import { ServerError } from "@/errors/ServerError";
@@ -13,7 +12,6 @@ import { Step } from "@/models/Step";
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { Temporal } from "@js-temporal/polyfill";
-import { exec } from "child_process";
 import { rm } from "fs/promises";
 import z from "zod/v4";
 
@@ -112,7 +110,7 @@ export class ExecutionService {
     let outcome: Outcome;
     let failure: Action.Failure | null;
     try {
-      output = await this.adapterService.submit(input, step, currentTrail);
+      output = this.ensureUniqueArtifactNames(await this.adapterService.submit(input, step, currentTrail));
       outcome = Outcome.success;
       failure = null;
     } catch (e) {
@@ -174,6 +172,43 @@ export class ExecutionService {
     }
 
     return execution;
+  }
+
+  /**
+   * If there are multiple artifacts named `foo`, `bar.sql` and `top.tar.gz`, rename them as such:
+   *  - `foo`, `foo(brespi-2)`, `foo(brespi-3)`
+   *  - `bar.sql`, `bar(brespi-2).sql`, `bar(brespi-3).sql`
+   *  - `top.tar.gz`, `top(brespi-2).tar.gz`, `top(brespi-3).tar.gz`
+   */
+  private ensureUniqueArtifactNames(artifacts: Artifact[]): Artifact[] {
+    const nameCountMap = new Map<string, number>();
+    return artifacts.map<Artifact>((artifact) => {
+      const { baseName, extension } = this.splitNameAndExtension(artifact.name);
+      const count = nameCountMap.get(baseName) || 0;
+      nameCountMap.set(baseName, count + 1);
+      if (count === 0) {
+        return artifact;
+      }
+      const newName = `${baseName}(brespi-${count + 1})${extension}`;
+      return {
+        ...artifact,
+        name: newName,
+      };
+    });
+  }
+
+  /**
+   * Split a filename into base name and extension at the first period
+   */
+  private splitNameAndExtension(name: string): { baseName: string; extension: string } {
+    const firstDotIndex = name.indexOf(".");
+    if (firstDotIndex === -1 || firstDotIndex === 0) {
+      return { baseName: name, extension: "" };
+    }
+    return {
+      baseName: name.slice(0, firstDotIndex),
+      extension: name.slice(firstDotIndex),
+    };
   }
 
   /**
