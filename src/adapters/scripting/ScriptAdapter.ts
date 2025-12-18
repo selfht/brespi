@@ -49,6 +49,9 @@ export class ScriptAdapter {
     }
   }
 
+  /**
+   * TODO THIS SHOULD BE A "MOVE" INSTEAD, NO NEED TO COPY
+   */
   private async copyArtifactsToDirectory(artifacts: Artifact[], targetDir: string): Promise<void> {
     for (const artifact of artifacts) {
       const targetPath = join(targetDir, artifact.name);

@@ -52,7 +52,7 @@ export class FilesystemAdapter {
     const result: Artifact[] = [];
     for (const artifact of artifacts) {
       if (artifact.type === "file") {
-        result.push(artifact); // Re-use is okay; this is checked during cleanup
+        result.push(artifact); // Re-use is okay; cleanup won't clean output artifacts
       } else {
         result.push(...(await this.readDirectoryRecursively(artifact.path)));
       }
