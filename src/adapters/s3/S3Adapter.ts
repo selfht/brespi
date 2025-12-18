@@ -1,3 +1,4 @@
+import { Env } from "@/Env";
 import { Mutex } from "@/helpers/Mutex";
 import { Artifact } from "@/models/Artifact";
 import { S3Manifest } from "@/models/s3/S3Manifest";
@@ -7,14 +8,17 @@ import { Temporal } from "@js-temporal/polyfill";
 import { S3Client } from "bun";
 import { stat } from "fs/promises";
 import { join } from "path";
+import { AbstractAdapter } from "../AbstractAdapter";
 
-export class S3Adapter {
+export class S3Adapter extends AbstractAdapter {
   private static readonly MANIFEST_MUTEX = new Mutex();
 
   private static readonly MANIFEST_FILE_NAME = "__brespi_manifest__.json";
   private static readonly META_FILE_NAME = "__brespi_meta__.json";
 
-  public constructor() {}
+  public constructor(protected readonly env: Env.Private) {
+    super(env);
+  }
 
   public async upload(artifacts: Artifact[], options: Step.S3Upload, stepTrail: Step[]): Promise<void> {
     // TODO
@@ -78,7 +82,7 @@ export class S3Adapter {
       if (fileName === S3Adapter.META_FILE_NAME) {
         continue;
       }
-      const { outputId, outputPath } = Artifact.generateDestination();
+      const { outputId, outputPath } = this.generateArtifactDestination();
       await Bun.write(outputPath, client.file(item.key));
       const { size } = await stat(outputPath);
       artifacts.push({

@@ -4,16 +4,21 @@ import { Step } from "@/models/Step";
 import { spawn } from "bun";
 import { readdir, rename, rm, stat } from "fs/promises";
 import { dirname, join } from "path";
+import { AbstractAdapter } from "../AbstractAdapter";
 
-export class ScriptAdapter {
+export class ScriptAdapter extends AbstractAdapter {
+  public constructor(protected readonly env: Env.Private) {
+    super(env);
+  }
+
   public async execute(artifacts: Artifact[], options: Step.ScriptExecution): Promise<Artifact[]> {
     if (options.passthrough) {
       await this.executeScript(options.path);
       return artifacts;
     }
 
-    const artifactsIn = await Env.createTempDir();
-    const artifactsOut = await Env.createTempDir();
+    const artifactsIn = await this.env.createTempDir();
+    const artifactsOut = await this.env.createTempDir();
     try {
       await this.moveArtifacts(artifacts, artifactsIn);
       await this.executeScript(options.path, {
@@ -59,7 +64,7 @@ export class ScriptAdapter {
     const entries = await readdir(dirPath, { withFileTypes: true });
     for (const entry of entries) {
       const inputPath = join(dirPath, entry.name);
-      const { outputId, outputPath } = Artifact.generateDestination();
+      const { outputId, outputPath } = this.generateArtifactDestination();
       await rename(inputPath, outputPath);
       if (entry.isFile()) {
         const { size } = await stat(outputPath);

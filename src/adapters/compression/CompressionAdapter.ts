@@ -4,11 +4,16 @@ import { Step } from "@/models/Step";
 import { spawn } from "bun";
 import { readdir, rename, rm, stat } from "fs/promises";
 import { basename, dirname, join } from "path";
+import { AbstractAdapter } from "../AbstractAdapter";
 
-export class CompressionAdapter {
+export class CompressionAdapter extends AbstractAdapter {
+  public constructor(protected readonly env: Env.Private) {
+    super(env);
+  }
+
   public async compress(artifact: Artifact, options: Step.Compression): Promise<Artifact> {
     const inputPath = artifact.path;
-    const { outputId, outputPath } = Artifact.generateDestination();
+    const { outputId, outputPath } = this.generateArtifactDestination();
 
     // Use tar with gzip for both files and directories
     // For files: tar -czf output.tar.gz -C /parent/dir filename
@@ -40,7 +45,7 @@ export class CompressionAdapter {
     }
 
     const inputPath = artifact.path;
-    const tempPath = await Env.createTempDir();
+    const tempPath = await this.env.createTempDir();
     try {
       // Use tar to extract (works for both single files and directories)
       // Will place the resulting "item" (file or folder) as the only child inside the temp dir
@@ -56,7 +61,7 @@ export class CompressionAdapter {
       }
 
       const singleChildPath = await this.findSingleChildPathWithinDirectory(tempPath);
-      const { outputId, outputPath } = Artifact.generateDestination();
+      const { outputId, outputPath } = this.generateArtifactDestination();
       await rename(singleChildPath, outputPath);
 
       const stats = await stat(outputPath);

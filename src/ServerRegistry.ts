@@ -14,23 +14,24 @@ import { ExecutionService } from "./services/ExecutionService";
 import { PipelineRepository } from "./repositories/PipelineRepository";
 import { ExecutionRepository } from "./repositories/ExecutionRepository";
 import { FilterAdapter } from "./adapters/filter/FilterAdapter";
+import { Env } from "./Env";
 
 export class ServerRegistry {
-  public static async bootstrap(): Promise<ServerRegistry> {
-    return new ServerRegistry();
+  public static async bootstrap(env: Env.Private): Promise<ServerRegistry> {
+    return new ServerRegistry(env);
   }
 
   private readonly registry: Record<string, any> = {};
 
-  private constructor() {
+  private constructor(env: Env.Private) {
     // Adapters
-    const fileSystemAdapter = (this.registry[FilesystemAdapter.name] = new FilesystemAdapter());
-    const compressionAdapter = (this.registry[CompressionAdapter.name] = new CompressionAdapter());
-    const encryptionAdapter = (this.registry[EncryptionAdapter.name] = new EncryptionAdapter());
+    const fileSystemAdapter = (this.registry[FilesystemAdapter.name] = new FilesystemAdapter(env));
+    const compressionAdapter = (this.registry[CompressionAdapter.name] = new CompressionAdapter(env));
+    const encryptionAdapter = (this.registry[EncryptionAdapter.name] = new EncryptionAdapter(env));
     const filterAdapter = (this.registry[FilterAdapter.name] = new FilterAdapter());
-    const scriptAdapter = (this.registry[ScriptAdapter.name] = new ScriptAdapter());
-    const s3Adapter = (this.registry[S3Adapter.name] = new S3Adapter());
-    const postgresAdapter = (this.registry[PostgresAdapter.name] = new PostgresAdapter());
+    const scriptAdapter = (this.registry[ScriptAdapter.name] = new ScriptAdapter(env));
+    const s3Adapter = (this.registry[S3Adapter.name] = new S3Adapter(env));
+    const postgresAdapter = (this.registry[PostgresAdapter.name] = new PostgresAdapter(env));
     const adapterService = (this.registry[AdapterService.name] = new AdapterService(
       fileSystemAdapter,
       compressionAdapter,
@@ -60,7 +61,7 @@ export class ServerRegistry {
     this.registry[CleanupService.name] = new CleanupService();
 
     // Server
-    this.registry[Server.name] = new Server(stepService, pipelineService, executionService);
+    this.registry[Server.name] = new Server(env, stepService, pipelineService, executionService);
   }
 
   public get<T>(klass: Class<T>): T {

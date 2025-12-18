@@ -11,6 +11,7 @@ import { PipelineView } from "./views/PipelineView";
 
 export class Server {
   public constructor(
+    private readonly env: Env.Private,
     private readonly stepService: StepService,
     private readonly pipelineService: PipelineService,
     private readonly executionService: ExecutionService,
@@ -18,7 +19,7 @@ export class Server {
 
   public listen() {
     const server = serve({
-      development: Env.O_BRESPI_STAGE === "development",
+      development: this.env.O_BRESPI_STAGE === "development",
       routes: {
         /**
          * Defaults

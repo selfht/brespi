@@ -68,8 +68,8 @@ export namespace StepTranslation {
         return {
           Selection: step.selection.method,
           Name: step.selection.method === "exact" ? step.selection.name : undefined,
-          Glob: step.selection.method === "glob" ? step.selection.nameGlob : undefined,
-          Regex: step.selection.method === "regex" ? step.selection.nameRegex : undefined,
+          "Name glob": step.selection.method === "glob" ? step.selection.nameGlob : undefined,
+          "Name regex": step.selection.method === "regex" ? step.selection.nameRegex : undefined,
         };
       case Step.Type.script_execution:
         return {

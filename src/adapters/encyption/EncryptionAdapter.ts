@@ -1,12 +1,18 @@
+import { Env } from "@/Env";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
 import { createReadStream, createWriteStream } from "fs";
 import { stat } from "fs/promises";
 import { pipeline } from "stream/promises";
+import { AbstractAdapter } from "../AbstractAdapter";
 
-export class EncryptionAdapter {
+export class EncryptionAdapter extends AbstractAdapter {
   private readonly key = "supersecretkey"; // TODO
+
+  public constructor(protected readonly env: Env.Private) {
+    super(env);
+  }
 
   public async encrypt(artifact: Artifact, options: Step.Encryption): Promise<Artifact> {
     if (artifact.type !== "file") {
@@ -15,7 +21,7 @@ export class EncryptionAdapter {
     const algorithm = this.translateAlgorithm(options.algorithm.implementation);
 
     const inputPath = artifact.path;
-    const { outputId, outputPath } = Artifact.generateDestination();
+    const { outputId, outputPath } = this.generateArtifactDestination();
 
     // Derive a 32-byte key from the hardcoded key using SHA-256
     const keyBuffer = createHash("sha256").update(this.key).digest();
@@ -44,7 +50,7 @@ export class EncryptionAdapter {
     const algorithm = this.translateAlgorithm(options.algorithm.implementation);
 
     const inputPath = artifact.path;
-    const { outputId, outputPath } = Artifact.generateDestination();
+    const { outputId, outputPath } = this.generateArtifactDestination();
 
     // Derive the same 32-byte key
     const keyBuffer = createHash("sha256").update(this.key).digest();

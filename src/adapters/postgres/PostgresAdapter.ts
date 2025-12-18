@@ -5,28 +5,30 @@ import { spawn } from "bun";
 import { rename, rm } from "fs/promises";
 import { join } from "path";
 import { z } from "zod/v4";
+import { AbstractAdapter } from "../AbstractAdapter";
 
-export class PostgresAdapter {
-  private readonly opts: PostgresAdapter.ConstructorArgs;
+export class PostgresAdapter extends AbstractAdapter {
+  public constructor(protected readonly env: Env.Private) {
+    super(env);
+  }
 
-  constructor() {
-    this.opts = {
+  public async backup(options: Step.PostgresBackup): Promise<Artifact[]> {
+    // TODO: add below to step, using a DB_REFERENCE, just like the S3 step
+    const opts = {
       host: "postgres",
       user: "postgres",
       password: "postgres",
     };
-  }
 
-  public async backup(options: Step.PostgresBackup): Promise<Artifact[]> {
     // Get the path to the backup script
     const scriptPath = join(import.meta.dir, "pg_backup.sh");
 
     // Prepare environment variables based on selection mode
-    const tempDir = await Env.createTempDir();
+    const tempDir = await this.env.createTempDir();
     const env = {
-      PGHOST: this.opts.host,
-      PGUSER: this.opts.user,
-      PGPASSWORD: this.opts.password,
+      PGHOST: opts.host,
+      PGUSER: opts.user,
+      PGPASSWORD: opts.password,
       BACKUP_ROOT: tempDir,
       SELECTION_MODE: options.databaseSelection.strategy,
       ...(options.databaseSelection.strategy === "include" && {
@@ -86,7 +88,7 @@ export class PostgresAdapter {
       // Extract artifacts (only successful backups)
       const artifacts: Artifact[] = [];
       for (const db of output.databases.filter((db): db is Extract<typeof db, { status: "success" }> => db.status === "success")) {
-        const { outputId, outputPath } = Artifact.generateDestination();
+        const { outputId, outputPath } = this.generateArtifactDestination();
         await rename(db.path, outputPath);
         artifacts.push({
           id: outputId,

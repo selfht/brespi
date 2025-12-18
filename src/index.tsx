@@ -5,14 +5,19 @@ import { ServerRegistry } from "./ServerRegistry";
 import { CleanupService } from "./services/CleanupService";
 
 /**
+ * Initialize the env configuration
+ */
+const env = Env();
+
+/**
  * Create the artifacts directory
  */
-await mkdir(Env.artifactsRoot(), { recursive: true });
+await mkdir(env.artifactsRoot(), { recursive: true });
 
 /**
  * Set up the registry
  */
-const registry = await ServerRegistry.bootstrap();
+const registry = await ServerRegistry.bootstrap(env);
 
 /**
  * Periodically clean up
