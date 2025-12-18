@@ -8,7 +8,7 @@ export namespace ExecutionData {
   const time3 = Temporal.Now.plainDateTimeISO().subtract({ days: 3 });
   const randomDuration = () =>
     Temporal.Duration.from({
-      seconds: Math.round(Math.random() * 500_000),
+      seconds: -Math.round(Math.random() * 500_000),
     });
 
   export const PENDING = (pipelineId: string): Execution => {

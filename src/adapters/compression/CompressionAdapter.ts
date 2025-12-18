@@ -7,6 +7,8 @@ import { basename, dirname, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 
 export class CompressionAdapter extends AbstractAdapter {
+  private readonly EXTENSION = ".tar.gz";
+
   public constructor(protected readonly env: Env.Private) {
     super(env);
   }
@@ -35,7 +37,7 @@ export class CompressionAdapter extends AbstractAdapter {
       path: outputPath,
       size: stats.size,
       type: "file",
-      name: artifact.name,
+      name: this.addExtension(artifact.name, this.EXTENSION),
     };
   }
 
@@ -65,12 +67,13 @@ export class CompressionAdapter extends AbstractAdapter {
       await rename(singleChildPath, outputPath);
 
       const stats = await stat(outputPath);
+      const name = this.stripExtension(artifact.name, this.EXTENSION);
       if (stats.isDirectory()) {
         return {
           id: outputId,
           type: "directory",
           path: outputPath,
-          name: artifact.name,
+          name,
         };
       } else {
         return {
@@ -78,7 +81,7 @@ export class CompressionAdapter extends AbstractAdapter {
           path: outputPath,
           type: "file",
           size: stats.size,
-          name: artifact.name,
+          name,
         };
       }
     } finally {

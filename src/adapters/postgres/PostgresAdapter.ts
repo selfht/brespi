@@ -8,6 +8,8 @@ import { z } from "zod/v4";
 import { AbstractAdapter } from "../AbstractAdapter";
 
 export class PostgresAdapter extends AbstractAdapter {
+  private readonly EXTENSION = ".sql";
+
   public constructor(protected readonly env: Env.Private) {
     super(env);
   }
@@ -94,7 +96,7 @@ export class PostgresAdapter extends AbstractAdapter {
           id: outputId,
           type: "file",
           path: outputPath,
-          name: db.name,
+          name: this.addExtension(db.name, this.EXTENSION),
           size: db.size,
         });
       }

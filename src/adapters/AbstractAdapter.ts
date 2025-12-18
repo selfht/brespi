@@ -6,6 +6,14 @@ import { join } from "path";
 export abstract class AbstractAdapter {
   protected constructor(protected readonly env: Env.Private) {}
 
+  protected addExtension(name: string, extension: string): string {
+    return name.endsWith(extension) ? name : `${name}${extension}`;
+  }
+
+  protected stripExtension(name: string, extension: string): string {
+    return name.endsWith(extension) ? name.slice(0, name.length - extension.length) : name;
+  }
+
   protected generateArtifactDestination(): { outputId: string; outputPath: string } {
     const outputId = Bun.randomUUIDv7();
     return {

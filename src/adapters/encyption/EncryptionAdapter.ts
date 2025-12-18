@@ -8,6 +8,7 @@ import { pipeline } from "stream/promises";
 import { AbstractAdapter } from "../AbstractAdapter";
 
 export class EncryptionAdapter extends AbstractAdapter {
+  private readonly EXTENSION = ".enc";
   private readonly key = "supersecretkey"; // TODO
 
   public constructor(protected readonly env: Env.Private) {
@@ -39,7 +40,7 @@ export class EncryptionAdapter extends AbstractAdapter {
       type: "file",
       path: outputPath,
       size: stats.size,
-      name: artifact.name,
+      name: this.addExtension(artifact.name, this.EXTENSION),
     };
   }
 
@@ -77,7 +78,7 @@ export class EncryptionAdapter extends AbstractAdapter {
       type: "file",
       path: outputPath,
       size: stats.size,
-      name: artifact.name,
+      name: this.stripExtension(artifact.name, this.EXTENSION),
     };
   }
 
