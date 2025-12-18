@@ -8,7 +8,6 @@ type Form = {
   accessKeyReference: string;
   secretKeyReference: string;
   baseFolder: string;
-  artifact: string;
   selectionTarget: "latest" | "specific";
   selectionSpecificVersion: string;
 };
@@ -26,7 +25,6 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
       accessKeyReference: existing?.accessKeyReference ?? "",
       secretKeyReference: existing?.secretKeyReference ?? "",
       baseFolder: existing?.baseFolder ?? "",
-      artifact: existing?.artifact ?? "",
       selectionTarget: existing?.selection.target ?? "latest",
       selectionSpecificVersion: existing?.selection.target === "specific" ? existing.selection.version : "",
     },
@@ -41,7 +39,6 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
         accessKeyReference: form.accessKeyReference,
         secretKeyReference: form.secretKeyReference,
         baseFolder: form.baseFolder,
-        artifact: form.artifact,
         selection:
           form.selectionTarget === "latest" ? { target: "latest" } : { target: "specific", version: form.selectionSpecificVersion },
       });
@@ -68,10 +65,6 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           <div className="flex items-center">
             <label className="w-72">Base Folder</label>
             <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("baseFolder")} />
-          </div>
-          <div className="flex items-center">
-            <label className="w-72">Artifact</label>
-            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("artifact")} />
           </div>
           <div className="flex items-center">
             <label className="w-72">Version Selection</label>

@@ -1,18 +1,23 @@
 import { Mutex } from "@/helpers/Mutex";
-import { NamingHelper } from "@/helpers/NamingHelper";
 import { Artifact } from "@/models/Artifact";
+import { S3Manifest } from "@/models/s3/S3Manifest";
+import { S3Meta } from "@/models/s3/S3Meta";
 import { Step } from "@/models/Step";
+import { Temporal } from "@js-temporal/polyfill";
 import { S3Client } from "bun";
 import { stat } from "fs/promises";
-import { basename, join } from "path";
-import { S3Manifest } from "./S3Manifest";
-import { S3Meta } from "./S3Meta";
+import { join } from "path";
+import { AdapterHelper } from "../AdapterHelper";
 
 export class S3Adapter {
   private static readonly MANIFEST_MUTEX = new Mutex();
 
+  private static readonly MANIFEST_FILE_NAME = "__brespi_manifest__.json";
+  private static readonly META_FILE_NAME = "__brespi_meta__.json";
+
   public constructor() {}
-  public async upload(artifacts: Artifact[], options: Step.S3Upload, trail: Step[]): Promise<void> {
+
+  public async upload(artifacts: Artifact[], options: Step.S3Upload, stepTrail: Step[]): Promise<void> {
     // TODO
     const client = new S3Client({
       accessKeyId: "kim",
@@ -21,32 +26,38 @@ export class S3Adapter {
       endpoint: "http://minio:9000",
     });
 
+    // 1. Update the global manifest for this base folder
+    const timestamp = Temporal.Now.plainDateTimeISO();
+    const relativeUploadPath = `${timestamp}-${this.generateShortRandomString()}`;
     const manifest = await this.handleManifestExclusively(client, options.baseFolder, async (s3Manifest, s3Save) => {
-      s3Manifest.uploads.unshift(
-        ...artifacts.map((artifact) => ({
-          name: artifact.name,
-          path: basename(NamingHelper.generatePath(artifact)),
-          timestamp: artifact.timestamp,
-        })),
-      );
-      return s3Save(s3Manifest);
+      s3Manifest.uploads.push({
+        isoTimestamp: timestamp.toString(),
+        path: relativeUploadPath,
+      });
+      return await s3Save(s3Manifest);
     });
 
-    for (const artifact of artifacts) {
-      const { path: s3Path } = manifest.uploads.find((a) => a.name === artifact.name)!;
-      const meta: S3Meta = {
+    // 2. Write the meta for the current upload
+    const absoluteUploadPath = join(options.baseFolder, relativeUploadPath);
+    await client.write(
+      join(absoluteUploadPath, S3Adapter.META_FILE_NAME),
+      JSON.stringify({
         version: 1,
         object: "meta",
-        name: artifact.name,
-        timestamp: artifact.timestamp,
-        trail,
-      };
-      await client.write(join(options.baseFolder, `${s3Path}.brespi.json`), JSON.stringify(meta));
-      await client.write(join(options.baseFolder, s3Path), Bun.file(artifact.path));
+        artifacts: artifacts.map((artifact) => ({
+          path: artifact.name, // (sic) `artifact.name` is unique in each batch (and artifact.path` refers to the current path on the filesystem)
+          stepTrail,
+        })),
+      } satisfies S3Meta),
+    );
+
+    // 3. Write the artifacts themselves
+    for (const artifact of artifacts) {
+      await client.write(join(absoluteUploadPath, artifact.name), Bun.file(artifact.path));
     }
   }
 
-  public async download(options: Step.S3Download): Promise<Artifact> {
+  public async download(options: Step.S3Download): Promise<Artifact[]> {
     const client = new S3Client({
       accessKeyId: "kim",
       secretAccessKey: "possible",
@@ -54,52 +65,83 @@ export class S3Adapter {
       endpoint: "http://minio:9000",
     });
 
-    const manifest: S3Manifest = await this.handleManifestExclusively(client, options.baseFolder, (manifest) => manifest);
-    const selection = options.selection;
-    const target =
-      selection.target === "latest"
-        ? manifest.uploads.find((u) => u.name === options.artifact)
-        : manifest.uploads.find((u) => u.name === options.artifact && u.path === selection.version);
-    if (!target) {
-      throw new Error(`Upload entry not found for options: ${JSON.stringify(options)}`);
-    }
-    const s3FileMeta = client.file(join(options.baseFolder, `${target.path}.brespi.json`));
-    if (!(await s3FileMeta.exists())) {
-      throw new Error(`Upload file meta not found for options: ${JSON.stringify(options)}`);
-    }
-    const s3File = client.file(join(options.baseFolder, target.path));
-    if (!(await s3File.exists())) {
-      throw new Error(`Upload file not found for options: ${JSON.stringify(options)}`);
-    }
+    const previousUpload = await this.handleManifestExclusively(client, options.baseFolder, (manifest) => {
+      return this.findMatchingUpload(manifest, options.selection);
+    });
 
-    const meta = S3Meta.parse(await s3FileMeta.json());
-    const path = NamingHelper.generatePath({ name: meta.name, timestamp: meta.timestamp });
-    await Bun.write(path, s3File);
+    const previousUploadFolder = join(options.baseFolder, previousUpload.path);
 
-    const { size } = await stat(path);
-    return {
-      path,
-      size,
-      type: "file",
-      name: meta.name,
-      timestamp: meta.timestamp,
-    };
+    const artifacts: Artifact[] = [];
+    const listResponse = await client.list({ prefix: previousUploadFolder });
+
+    for (const item of listResponse.contents ?? []) {
+      const fileName = item.key.split("/").pop() || "";
+      if (fileName === S3Adapter.META_FILE_NAME) {
+        continue;
+      }
+      const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
+      await Bun.write(outputPath, client.file(item.key));
+      const { size } = await stat(outputPath);
+      artifacts.push({
+        id: outputId,
+        type: "file",
+        name: fileName,
+        path: outputPath,
+        size,
+      });
+    }
+    return artifacts;
   }
 
   private async handleManifestExclusively<T>(
     client: S3Client,
     folder: string,
-    fn: (mani: S3Manifest, save: (mani: S3Manifest) => Promise<S3Manifest>) => T | Promise<T>,
+    fn: (mf: S3Manifest, save: (mani: S3Manifest) => Promise<S3Manifest>) => T | Promise<T>,
   ): Promise<Awaited<T>> {
     const release = await S3Adapter.MANIFEST_MUTEX.acquire();
     try {
-      const s3Path = join(folder, "__brespi__.json");
+      const s3Path = join(folder, S3Adapter.MANIFEST_FILE_NAME);
       const s3File = client.file(s3Path);
       const s3Manifest: S3Manifest = (await s3File.exists()) ? S3Manifest.parse(await s3File.json()) : S3Manifest.empty();
-      const s3Save = (mani: S3Manifest) => client.write(s3Path, JSON.stringify(s3Manifest)).then(() => mani);
+      const s3Save = (mf: S3Manifest) => client.write(s3Path, JSON.stringify(s3Manifest)).then(() => mf);
       return await fn(s3Manifest, s3Save);
     } finally {
       release();
+    }
+  }
+
+  private generateShortRandomString(): string {
+    const length = 6;
+    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let id = "";
+    for (let i = 0; i < length; i++) {
+      id += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return id;
+  }
+
+  private findMatchingUpload(manifest: S3Manifest, selection: Step.S3Download["selection"]): S3Manifest.Upload {
+    switch (selection.target) {
+      case "latest": {
+        const sortedUploads = manifest.uploads.toSorted(({ isoTimestamp: t1 }, { isoTimestamp: t2 }) => {
+          return Temporal.PlainDateTime.compare(Temporal.PlainDateTime.from(t1), Temporal.PlainDateTime.from(t2));
+        });
+        if (sortedUploads.length === 0) {
+          throw new Error("Latest upload could not be found");
+        }
+        return sortedUploads[0];
+      }
+      case "specific": {
+        const version = selection.version;
+        const matchingUploads = manifest.uploads.filter((u) => u.isoTimestamp === version || u.path === version);
+        if (matchingUploads.length === 0) {
+          throw new Error("Specific upload could not be found");
+        }
+        if (matchingUploads.length > 1) {
+          throw new Error(`Specific upload could not be identified uniquely; matches=${matchingUploads.length}`);
+        }
+        return matchingUploads[0];
+      }
     }
   }
 }

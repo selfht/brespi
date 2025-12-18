@@ -122,7 +122,6 @@ export namespace Step {
     accessKeyReference: string;
     secretKeyReference: string;
     baseFolder: string;
-    artifact: string;
     selection:
       | { target: "latest" }
       //
@@ -153,6 +152,7 @@ export namespace Step {
     [Step.Type.decryption]: Step.Category.transformer,
     [Step.Type.folder_flatten]: Step.Category.transformer,
     [Step.Type.folder_group]: Step.Category.transformer,
+    [Step.Type.filter]: Step.Category.transformer,
     [Step.Type.script_execution]: Step.Category.transformer,
     [Step.Type.s3_upload]: Step.Category.consumer,
     [Step.Type.s3_download]: Step.Category.producer,
@@ -235,6 +235,17 @@ export namespace Step {
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
+          type: z.literal(Type.filter),
+          selection: z.union([
+            z.object({ method: z.literal("exact"), name: z.string() }),
+            z.object({ method: z.literal("glob"), nameGlob: z.string() }),
+            z.object({ method: z.literal("regex"), nameRegex: z.string() }),
+          ]),
+        } satisfies SubSchema<Step.Filter>),
+
+        z.object({
+          id: z.string(),
+          previousId: z.string().nullable(),
           type: z.literal(Type.script_execution),
           path: z.string(),
           passthrough: z.boolean(),
@@ -256,7 +267,6 @@ export namespace Step {
           accessKeyReference: z.string(),
           secretKeyReference: z.string(),
           baseFolder: z.string(),
-          artifact: z.string(),
           selection: z.union([
             z.object({ target: z.literal("latest") }),
             //

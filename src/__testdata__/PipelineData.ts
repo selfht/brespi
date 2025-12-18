@@ -136,7 +136,6 @@ export namespace PipelineData {
         previousId: null,
         type: Step.Type.s3_download,
         baseFolder: "some-random-parent-folder",
-        artifact: "gamingworld",
         accessKeyReference: "ACCESS_KEY",
         secretKeyReference: "SECRET_KEY",
         selection: {

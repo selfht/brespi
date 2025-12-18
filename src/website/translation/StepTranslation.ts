@@ -4,17 +4,18 @@ import { Block } from "../canvas/Block";
 const types: Record<Step.Type, string> = {
   [Step.Type.filesystem_read]: "Filesystem Read",
   [Step.Type.filesystem_write]: "Filesystem Write",
-  [Step.Type.postgres_backup]: "Postgres Backup",
-  [Step.Type.postgres_restore]: "Postgres Restore",
   [Step.Type.compression]: "Compression",
   [Step.Type.decompression]: "Decompression",
   [Step.Type.encryption]: "Encryption",
   [Step.Type.decryption]: "Decryption",
   [Step.Type.folder_flatten]: "Folder Flatten",
   [Step.Type.folder_group]: "Folder Group",
+  [Step.Type.filter]: "Filter",
   [Step.Type.script_execution]: "Script Execution",
   [Step.Type.s3_upload]: "S3 Upload",
   [Step.Type.s3_download]: "S3 Download",
+  [Step.Type.postgres_backup]: "Postgres Backup",
+  [Step.Type.postgres_restore]: "Postgres Restore",
 };
 
 const categories: Record<Step.Category, string> = {
@@ -63,6 +64,13 @@ export namespace StepTranslation {
         return {};
       case Step.Type.folder_group:
         return {};
+      case Step.Type.filter:
+        return {
+          Selection: step.selection.method,
+          Name: step.selection.method === "exact" ? step.selection.name : undefined,
+          Glob: step.selection.method === "glob" ? step.selection.nameGlob : undefined,
+          Regex: step.selection.method === "regex" ? step.selection.nameRegex : undefined,
+        };
       case Step.Type.script_execution:
         return {
           Path: step.path,
@@ -79,7 +87,6 @@ export namespace StepTranslation {
           "Access key reference": step.accessKeyReference,
           "Secret key reference": step.secretKeyReference,
           "Base folder": step.baseFolder,
-          Artifact: step.artifact,
           Selection: step.selection.target,
           "Selection version": step.selection.target === "specific" ? step.selection.version : undefined,
         };

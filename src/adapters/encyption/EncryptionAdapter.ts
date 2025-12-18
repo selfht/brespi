@@ -1,10 +1,9 @@
 import { Artifact } from "@/models/Artifact";
-import { NamingHelper } from "@/helpers/NamingHelper";
+import { Step } from "@/models/Step";
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
 import { createReadStream, createWriteStream } from "fs";
 import { stat } from "fs/promises";
-import { createCipheriv, createDecipheriv, randomBytes, createHash } from "crypto";
 import { pipeline } from "stream/promises";
-import { Step } from "@/models/Step";
 import { AdapterHelper } from "../AdapterHelper";
 
 export class EncryptionAdapter {

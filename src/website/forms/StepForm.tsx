@@ -15,6 +15,7 @@ import { S3UploadForm } from "./step/S3UploadForm";
 import { ScriptExecutionForm } from "./step/ScriptExecutionForm";
 import { useRegistry } from "../hooks/useRegistry";
 import { StepClient } from "../clients/StepClient.ts";
+import { FilterForm } from "./step/FilterForm";
 
 type Props = {
   id: string;
@@ -48,6 +49,8 @@ export function StepForm({ type, existing, onSave, ...props }: Props): JSX.Eleme
       return <FolderFlattenForm existing={existing as Step.FolderFlatten} onSave={validateAndSave} {...props} />;
     case Step.Type.folder_group:
       return <FolderGroupForm existing={existing as Step.FolderGroup} onSave={validateAndSave} {...props} />;
+    case Step.Type.filter:
+      return <FilterForm existing={existing as Step.Filter} onSave={validateAndSave} {...props} />;
     case Step.Type.script_execution:
       return <ScriptExecutionForm existing={existing as Step.ScriptExecution} onSave={validateAndSave} {...props} />;
     case Step.Type.s3_upload:

@@ -1,8 +1,3 @@
-import { Env } from "@/Env";
-import { NamingHelper } from "@/helpers/NamingHelper";
-import { readdir, rm } from "fs/promises";
-import { join } from "path";
-
 export class CleanupService {
   public async periodicallyKeepThingsClean() {
     setInterval(() => {
@@ -13,13 +8,7 @@ export class CleanupService {
   }
 
   private async cleanIllegalFilesAndFoldersWithinArtifactsDir() {
-    const entries = await readdir(Env.artifactsRoot(), { withFileTypes: true });
-    for (const entry of entries) {
-      const path = join(Env.artifactsRoot(), entry.name);
-      if (!NamingHelper.isValidFilename(entry.name)) {
-        await rm(path, { recursive: true, force: true });
-      }
-    }
+    // TODO; perhaps the AdapterHelper should generate IDs which look like `${unixMillis}-${randomSuffix}`
   }
 
   private async cleanForgottenArtifacts() {

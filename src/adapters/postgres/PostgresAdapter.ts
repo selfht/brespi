@@ -1,15 +1,15 @@
 import { Env } from "@/Env";
-import { NamingHelper } from "@/helpers/NamingHelper";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
-import { Temporal } from "@js-temporal/polyfill";
 import { spawn } from "bun";
 import { rename, rm } from "fs/promises";
 import { join } from "path";
 import { z } from "zod/v4";
+import { AdapterHelper } from "../AdapterHelper";
 
 export class PostgresAdapter {
   private readonly opts: PostgresAdapter.ConstructorArgs;
+
   constructor() {
     this.opts = {
       host: "postgres",
@@ -49,9 +49,8 @@ export class PostgresAdapter {
         stdout: "pipe",
         stderr: "pipe",
       });
-
-      const stdout = await new Response(proc.stdout).text();
       await proc.exited;
+      const stdout = await new Response(proc.stdout).text();
 
       if (proc.exitCode !== 0) {
         const stderr = await new Response(proc.stderr).text();
@@ -86,17 +85,16 @@ export class PostgresAdapter {
         .parse(JSON.parse(stdout));
 
       // Extract artifacts (only successful backups)
-      const timestamp = Math.floor(Temporal.Now.instant().epochMilliseconds / 1000);
       const artifacts: Artifact[] = [];
       for (const db of output.databases.filter((db): db is Extract<typeof db, { status: "success" }> => db.status === "success")) {
-        const newPath = NamingHelper.generatePath({ name: db.name, timestamp });
-        await rename(db.path, newPath);
+        const { outputId, outputPath } = AdapterHelper.generateArtifactPath();
+        await rename(db.path, outputPath);
         artifacts.push({
-          path: newPath,
-          size: db.size,
+          id: outputId,
           type: "file",
+          path: outputPath,
           name: db.name,
-          timestamp,
+          size: db.size,
         });
       }
       return artifacts;
@@ -108,7 +106,7 @@ export class PostgresAdapter {
   }
 
   public async restore(artifacts: Artifact[], options: Step.PostgresRestore): Promise<void> {
-    throw new Error("Not implemented");
+    throw new Error("TODO: Not implemented");
   }
 }
 

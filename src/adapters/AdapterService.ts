@@ -70,7 +70,7 @@ export class AdapterService {
         return [];
       },
       [Step.Type.s3_download]: async (_, options) => {
-        return [await s3Adapter.download(options)];
+        return await s3Adapter.download(options);
       },
       [Step.Type.postgres_backup]: async (_, options) => {
         return await postgresAdapter.backup(options);

@@ -2,7 +2,7 @@ import { Env } from "@/Env";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { spawn } from "bun";
-import { cp, mkdir, readdir, rename, stat } from "fs/promises";
+import { mkdir, readdir, rename, rm, stat } from "fs/promises";
 import { dirname, join } from "path";
 import { AdapterHelper } from "../AdapterHelper";
 
@@ -15,19 +15,18 @@ export class ScriptAdapter {
 
     const artifactsIn = await Env.createTempDir();
     const artifactsOut = await Env.createTempDir();
-
     try {
-      // Copy input artifacts to the IN directory
-      await this.copyArtifactsToDirectory(artifacts, artifactsIn);
-      // Execute the script with environment variables
+      await this.moveArtifacts(artifacts, artifactsIn);
       await this.executeScript(options.path, {
         BRESPI_ARTIFACTS_IN: artifactsIn,
         BRESPI_ARTIFACTS_OUT: artifactsOut,
       });
-      // Read and return artifacts from the OUT directory
       return await this.readArtifactsFromDirectory(artifactsOut);
     } catch (error) {
       throw new Error(`Script execution failed: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      await rm(artifactsIn, { recursive: true, force: true });
+      await rm(artifactsOut, { recursive: true, force: true });
     }
   }
 
@@ -49,13 +48,10 @@ export class ScriptAdapter {
     }
   }
 
-  /**
-   * TODO THIS SHOULD BE A "MOVE" INSTEAD, NO NEED TO COPY
-   */
-  private async copyArtifactsToDirectory(artifacts: Artifact[], targetDir: string): Promise<void> {
+  private async moveArtifacts(artifacts: Artifact[], targetDir: string): Promise<void> {
     for (const artifact of artifacts) {
       const targetPath = join(targetDir, artifact.name);
-      await cp(artifact.path, targetPath, { recursive: true });
+      await rename(artifact.path, targetPath);
     }
   }
 
