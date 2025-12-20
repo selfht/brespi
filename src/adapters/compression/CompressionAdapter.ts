@@ -31,12 +31,10 @@ export class CompressionAdapter extends AbstractAdapter {
       throw new Error(`Failed to compress: ${stderr}`);
     }
 
-    const stats = await stat(outputPath);
     return {
       id: outputId,
-      path: outputPath,
-      size: stats.size,
       type: "file",
+      path: outputPath,
       name: this.addExtension(artifact.name, this.EXTENSION),
     };
   }
@@ -47,7 +45,7 @@ export class CompressionAdapter extends AbstractAdapter {
     }
 
     const inputPath = artifact.path;
-    const tempPath = await this.createTempDirectory();
+    const tempPath = await this.createTempDestination();
     try {
       // Use tar to extract (works for both single files and directories)
       // Will place the resulting "item" (file or folder) as the only child inside the temp dir
@@ -68,22 +66,12 @@ export class CompressionAdapter extends AbstractAdapter {
 
       const stats = await stat(outputPath);
       const name = this.stripExtension(artifact.name, this.EXTENSION);
-      if (stats.isDirectory()) {
-        return {
-          id: outputId,
-          type: "directory",
-          path: outputPath,
-          name,
-        };
-      } else {
-        return {
-          id: outputId,
-          path: outputPath,
-          type: "file",
-          size: stats.size,
-          name,
-        };
-      }
+      return {
+        id: outputId,
+        type: stats.isFile() ? "file" : "directory",
+        path: outputPath,
+        name,
+      };
     } finally {
       await rm(tempPath, { recursive: true, force: true });
     }

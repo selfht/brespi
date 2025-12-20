@@ -34,12 +34,10 @@ export class EncryptionAdapter extends AbstractAdapter {
     outputStream.write(iv);
     await pipeline(createReadStream(inputPath), cipher, outputStream);
 
-    const stats = await stat(outputPath);
     return {
       id: outputId,
       type: "file",
       path: outputPath,
-      size: stats.size,
       name: this.addExtension(artifact.name, this.EXTENSION),
     };
   }
@@ -77,7 +75,6 @@ export class EncryptionAdapter extends AbstractAdapter {
       id: outputId,
       type: "file",
       path: outputPath,
-      size: stats.size,
       name: this.stripExtension(artifact.name, this.EXTENSION),
     };
   }

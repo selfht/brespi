@@ -98,8 +98,7 @@ export namespace Step {
   export type Filter = Common & {
     type: Type.filter;
     selection:
-      | { method: "exact"; name: string }
-      //
+      | { method: "exact"; name: string } //
       | { method: "glob"; nameGlob: string }
       | { method: "regex"; nameRegex: string };
   };
@@ -123,18 +122,15 @@ export namespace Step {
     secretKeyReference: string;
     baseFolder: string;
     selection:
-      | { target: "latest" }
-      //
+      | { target: "latest" } //
       | { target: "specific"; version: string };
   };
 
   export type PostgresBackup = Common & {
     type: Type.postgres_backup;
     databaseSelection:
-      | { strategy: "all" }
-      //
+      | { strategy: "all" } //
       | { strategy: "include"; include: string[] }
-      //
       | { strategy: "exclude"; exclude: string[] };
   };
 
@@ -268,8 +264,7 @@ export namespace Step {
           secretKeyReference: z.string(),
           baseFolder: z.string(),
           selection: z.union([
-            z.object({ target: z.literal("latest") }),
-            //
+            z.object({ target: z.literal("latest") }), //
             z.object({ target: z.literal("specific"), version: z.string() }),
           ]),
         } satisfies SubSchema<Step.S3Download>),

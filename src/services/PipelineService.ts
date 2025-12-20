@@ -30,10 +30,10 @@ export class PipelineService {
     return await this.enhance(pipeline);
   }
 
-  public async create(unknown: z.infer<typeof PipelineService.UpsertPipelineRequest>): Promise<PipelineView> {
+  public async create(unknown: z.infer<typeof PipelineService.Upsert>): Promise<PipelineView> {
     const pipeline = this.validate({
       id: Bun.randomUUIDv7(),
-      ...PipelineService.UpsertPipelineRequest.parse(unknown),
+      ...PipelineService.Upsert.parse(unknown),
     });
     if (!(await this.pipelineRepository.create(pipeline))) {
       throw PipelineError.already_exists();
@@ -41,10 +41,10 @@ export class PipelineService {
     return await this.enhance(pipeline);
   }
 
-  public async update(id: string, unknown: z.infer<typeof PipelineService.UpsertPipelineRequest>): Promise<PipelineView> {
+  public async update(id: string, unknown: z.infer<typeof PipelineService.Upsert>): Promise<PipelineView> {
     const pipeline = this.validate({
       id,
-      ...PipelineService.UpsertPipelineRequest.parse(unknown),
+      ...PipelineService.Upsert.parse(unknown),
     });
     if (!(await this.pipelineRepository.update(pipeline))) {
       throw PipelineError.not_found();
@@ -101,7 +101,7 @@ export class PipelineService {
 }
 
 export namespace PipelineService {
-  export const UpsertPipelineRequest = z
+  export const Upsert = z
     .object({
       name: z.string(),
       steps: z.array(Step.parse.SCHEMA),

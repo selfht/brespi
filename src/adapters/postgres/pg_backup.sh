@@ -128,8 +128,7 @@ for db in ${ALL_DBS}; do
         pg_dump -h ${PGHOST} -U ${PGUSER} ${db} > "${BACKUP_FILE}" 2>/dev/null
 
         if [ $? -eq 0 ]; then
-            SIZE=$(stat -f%z "${BACKUP_FILE}" 2>/dev/null || stat -c%s "${BACKUP_FILE}" 2>/dev/null)
-            echo -n "    {\"name\": \"${db}\", \"status\": \"success\", \"size\": ${SIZE}, \"path\": \"${BACKUP_FILE}\"}"
+            echo -n "    {\"name\": \"${db}\", \"status\": \"success\", \"path\": \"${BACKUP_FILE}\"}"
         else
             echo -n "    {\"name\": \"${db}\", \"status\": \"error\", \"error\": \"pg_dump failed\"}"
         fi

@@ -1,9 +1,9 @@
+import { Env } from "@/Env";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { copyFile, cp, mkdir, readdir, rename, stat } from "fs/promises";
 import { basename, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
-import { Env } from "@/Env";
 
 export class FilesystemAdapter extends AbstractAdapter {
   public constructor(protected readonly env: Env.Private) {
@@ -19,22 +19,12 @@ export class FilesystemAdapter extends AbstractAdapter {
 
     const stats = await stat(outputPath);
     const name = basename(step.path);
-    if (stats.isFile()) {
-      return {
-        id: outputId,
-        type: "file",
-        path: outputPath,
-        size: stats.size,
-        name,
-      };
-    } else {
-      return {
-        id: outputId,
-        type: "directory",
-        path: outputPath,
-        name,
-      };
-    }
+    return {
+      id: outputId,
+      type: stats.isFile() ? "file" : "directory",
+      path: outputPath,
+      name,
+    };
   }
 
   /**
@@ -87,13 +77,11 @@ export class FilesystemAdapter extends AbstractAdapter {
       if (entry.isFile()) {
         const { outputId, outputPath } = this.generateArtifactDestination();
         await rename(fullPath, outputPath);
-        const { size } = await stat(outputPath);
         artifacts.push({
           id: outputId,
           type: "file",
-          name: entry.name,
           path: outputPath,
-          size,
+          name: entry.name,
         });
       } else if (entry.isDirectory()) {
         const subArtifacts = await this.readDirectoryRecursively(fullPath);

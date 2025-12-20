@@ -10,9 +10,13 @@ import { CleanupService } from "./services/CleanupService";
 const env = Env.readAndValidateEnvironment();
 
 /**
- * Create the artifacts directory
+ * Create the main directories
  */
-await mkdir(env.X_BRESPI_ARTIFACTS_ROOT, { recursive: true });
+await Promise.all([
+  mkdir(env.X_BRESPI_TMP_ROOT, { recursive: true }),
+  mkdir(env.X_BRESPI_DATA_ROOT, { recursive: true }),
+  mkdir(env.X_BRESPI_ARTIFACT_ROOT, { recursive: true }),
+]);
 
 /**
  * Set up the registry

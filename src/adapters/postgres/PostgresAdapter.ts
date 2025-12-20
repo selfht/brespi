@@ -26,7 +26,7 @@ export class PostgresAdapter extends AbstractAdapter {
     const scriptPath = join(import.meta.dir, "pg_backup.sh");
 
     // Prepare environment variables based on selection mode
-    const tempDir = await this.createTempDirectory();
+    const tempDir = await this.createTempDestination();
     const env = {
       PGHOST: opts.host,
       PGUSER: opts.user,
@@ -70,7 +70,6 @@ export class PostgresAdapter extends AbstractAdapter {
               z.object({
                 name: z.string(),
                 status: z.literal("success"),
-                size: z.number(),
                 path: z.string(),
               }),
               z.object({
@@ -97,7 +96,6 @@ export class PostgresAdapter extends AbstractAdapter {
           type: "file",
           path: outputPath,
           name: this.addExtension(db.name, this.EXTENSION),
-          size: db.size,
         });
       }
       return artifacts;

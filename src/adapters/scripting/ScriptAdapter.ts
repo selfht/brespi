@@ -17,8 +17,10 @@ export class ScriptAdapter extends AbstractAdapter {
       return artifacts;
     }
 
-    const artifactsIn = await this.createTempDirectory();
-    const artifactsOut = await this.createTempDirectory();
+    const [artifactsIn, artifactsOut] = await Promise.all([
+      this.createTempDestination(), //
+      this.createTempDestination(),
+    ]);
     try {
       await this.moveArtifacts(artifacts, artifactsIn);
       await this.executeScript(step.path, {
@@ -29,8 +31,10 @@ export class ScriptAdapter extends AbstractAdapter {
     } catch (error) {
       throw new Error(`Script execution failed: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
-      await rm(artifactsIn, { recursive: true, force: true });
-      await rm(artifactsOut, { recursive: true, force: true });
+      await Promise.all([
+        rm(artifactsIn, { recursive: true, force: true }), //
+        rm(artifactsOut, { recursive: true, force: true }),
+      ]);
     }
   }
 
@@ -66,23 +70,12 @@ export class ScriptAdapter extends AbstractAdapter {
       const inputPath = join(dirPath, entry.name);
       const { outputId, outputPath } = this.generateArtifactDestination();
       await rename(inputPath, outputPath);
-      if (entry.isFile()) {
-        const { size } = await stat(outputPath);
-        artifacts.push({
-          id: outputId,
-          type: "file",
-          name: entry.name,
-          path: outputPath,
-          size,
-        });
-      } else if (entry.isDirectory()) {
-        artifacts.push({
-          id: outputId,
-          type: "directory",
-          name: entry.name,
-          path: outputPath,
-        });
-      }
+      artifacts.push({
+        id: outputId,
+        type: entry.isFile() ? "file" : "directory",
+        path: outputPath,
+        name: entry.name,
+      });
     }
     return artifacts;
   }

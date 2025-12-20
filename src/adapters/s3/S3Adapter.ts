@@ -9,6 +9,7 @@ import { S3Client } from "bun";
 import { stat } from "fs/promises";
 import { join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
+import { Generate } from "@/helpers/Generate";
 
 export class S3Adapter extends AbstractAdapter {
   private static readonly MANIFEST_MUTEX = new Mutex();
@@ -31,7 +32,7 @@ export class S3Adapter extends AbstractAdapter {
 
     // 1. Update the global manifest for this base folder
     const timestamp = Temporal.Now.plainDateTimeISO();
-    const relativeUploadPath = `${timestamp}-${this.generateShortRandomString()}`;
+    const relativeUploadPath = `${timestamp}-${Generate.shortRandomString()}`;
     await this.handleManifestExclusively(client, step.baseFolder, async (s3Manifest, s3Save) => {
       s3Manifest.uploads.push({
         isoTimestamp: timestamp.toString(),
@@ -68,29 +69,22 @@ export class S3Adapter extends AbstractAdapter {
       endpoint: "http://minio:9000",
     });
 
-    const previousUpload = await this.handleManifestExclusively(client, step.baseFolder, (manifest) => {
+    const upload = await this.handleManifestExclusively(client, step.baseFolder, (manifest) => {
       return this.findMatchingUpload(manifest, step.selection);
     });
 
-    const previousUploadFolder = join(step.baseFolder, previousUpload.path);
+    const uploadFolder = join(step.baseFolder, upload.path);
+    const meta = S3Meta.parse(await client.file(join(uploadFolder, S3Adapter.META_FILE_NAME)).json());
 
     const artifacts: Artifact[] = [];
-    const listResponse = await client.list({ prefix: previousUploadFolder });
-
-    for (const item of listResponse.contents ?? []) {
-      const fileName = item.key.split("/").pop() || "";
-      if (fileName === S3Adapter.META_FILE_NAME) {
-        continue;
-      }
+    for (const { path: name } of meta.artifacts) {
       const { outputId, outputPath } = this.generateArtifactDestination();
-      await Bun.write(outputPath, client.file(item.key));
-      const { size } = await stat(outputPath);
+      await Bun.write(outputPath, client.file(join(uploadFolder, name)));
       artifacts.push({
         id: outputId,
         type: "file",
-        name: fileName,
         path: outputPath,
-        size,
+        name,
       });
     }
     return artifacts;

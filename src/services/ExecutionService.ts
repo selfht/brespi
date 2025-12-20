@@ -3,6 +3,8 @@ import { Env } from "@/Env";
 import { ExecutionError } from "@/errors/ExecutionError";
 import { PipelineError } from "@/errors/PipelineError";
 import { ServerError } from "@/errors/ServerError";
+import { Generate } from "@/helpers/Generate";
+import { Mutex } from "@/helpers/Mutex";
 import { ZodProblem } from "@/helpers/ZodIssues";
 import { Action } from "@/models/Action";
 import { Artifact } from "@/models/Artifact";
@@ -13,6 +15,7 @@ import { Step } from "@/models/Step";
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { Temporal } from "@js-temporal/polyfill";
+import { copyFile } from "fs/promises";
 import { rm } from "fs/promises";
 import z from "zod/v4";
 
@@ -36,19 +39,26 @@ export class ExecutionService {
     return execution;
   }
 
-  public async create(unknown: z.infer<typeof ExecutionService.CreateExecutionRequest>): Promise<Execution> {
-    const { pipelineId } = ExecutionService.CreateExecutionRequest.parse(unknown);
-    const execution: Execution = {
-      id: Bun.randomUUIDv7(),
-      pipelineId,
-      startedAt: Temporal.Now.plainDateTimeISO(),
-      actions: [],
-      result: null,
-    };
+  public async create(unknown: z.infer<typeof ExecutionService.Create>): Promise<Execution> {
+    const { pipelineId } = ExecutionService.Create.parse(unknown);
     const pipeline = await this.pipelineRepository.findById(pipelineId);
     if (!pipeline) {
       throw PipelineError.not_found();
     }
+
+    const execution: Execution = {
+      id: Bun.randomUUIDv7(),
+      pipelineId,
+      startedAt: Temporal.Now.plainDateTimeISO(),
+      actions: pipeline.steps.map((step) => ({
+        stepId: step.id,
+        previousStepId: step.previousId,
+        stepType: step.type,
+        startedAt: null,
+        result: null,
+      })),
+      result: null,
+    };
     if (!(await this.executionRepository.create(execution))) {
       throw ExecutionError.already_exists();
     }
@@ -73,16 +83,19 @@ export class ExecutionService {
     }
 
     // Execute from root, walking the tree
-    const execution = await this.executeTreeRecursively({
+    const mutex = new Mutex();
+    await this.executeTreeRecursively({
       executionId,
       step: startingStep,
       input: [],
       trail: [],
       childrenMap,
+      mutex,
     });
+    const execution = (await this.executionRepository.findById(executionId))!;
 
     // Set final result
-    const hasError = execution.actions.some((a) => a.outcome === Outcome.error);
+    const hasError = execution.actions.some((a) => a.result?.outcome === Outcome.error);
     const completedAt = Temporal.Now.plainDateTimeISO();
     execution.result = {
       outcome: hasError ? Outcome.error : Outcome.success,
@@ -98,15 +111,23 @@ export class ExecutionService {
     input,
     trail,
     childrenMap,
+    mutex,
   }: {
     executionId: string;
     step: Step;
     input: Artifact[];
     trail: Step[];
     childrenMap: Map<string | null, Step[]>;
-  }): Promise<Execution> {
+    mutex: Mutex;
+  }): Promise<void> {
     const startedAt = Temporal.Now.plainDateTimeISO();
     const currentTrail = [...trail, step];
+    await this.updateExecutionAction({
+      executionId,
+      actionStepId: step.id,
+      mutex,
+      updateFn: (action) => ({ ...action, startedAt }),
+    });
 
     let output: Artifact[] = [];
     let outcome: Outcome;
@@ -129,26 +150,22 @@ export class ExecutionService {
     const completedAt = Temporal.Now.plainDateTimeISO();
     const duration = startedAt.until(completedAt);
 
-    const action: Action = {
-      stepId: step.id,
-      previousStepId: step.previousId,
-      stepType: step.type,
-      outcome,
-      startedAt,
-      completedAt,
-      duration,
-      artifactsConsumed: input.length,
-      artifactsProduced: output.length,
-      failure,
-    };
-
-    const execution = await this.executionRepository.findById(executionId);
-    if (!execution) {
-      throw new Error("Illegal state: missing execution");
-    }
-    execution.actions.push(action);
-    await this.executionRepository.update(execution);
-
+    await this.updateExecutionAction({
+      executionId,
+      actionStepId: step.id,
+      mutex,
+      updateFn: (action) => ({
+        ...action,
+        result: {
+          outcome,
+          duration,
+          completedAt,
+          consumed: input.map(({ type, name }) => ({ type, name })),
+          produced: output.map(({ type, name }) => ({ type, name })),
+          failure,
+        },
+      }),
+    });
     if (outcome === Outcome.success) {
       // Only execute children if the current parent step succeeded
       const children = childrenMap.get(step.id) || [];
@@ -169,12 +186,39 @@ export class ExecutionService {
             input: childrenInput.get(child.id)!,
             trail: currentTrail,
             childrenMap,
+            mutex,
           }),
         ),
       );
     }
+  }
 
-    return execution;
+  private async updateExecutionAction({
+    executionId,
+    actionStepId,
+    mutex,
+    updateFn,
+  }: {
+    executionId: string;
+    actionStepId: string;
+    mutex: Mutex;
+    updateFn: (action: Action) => Action;
+  }): Promise<void> {
+    const release = await mutex.acquire();
+    try {
+      const execution = await this.executionRepository.findById(executionId);
+      if (!execution) {
+        throw new Error(`Illegal state: missing execution; id=${executionId}`);
+      }
+      const actionIndex = execution.actions.findIndex((a) => a.stepId === actionStepId);
+      if (actionIndex < 0) {
+        throw new Error(`Illegal state: missing action; stepId=${actionStepId}`);
+      }
+      execution.actions.splice(actionIndex, 1, updateFn(execution.actions[actionIndex]));
+      await this.executionRepository.update(execution);
+    } finally {
+      release();
+    }
   }
 
   /**
@@ -192,7 +236,7 @@ export class ExecutionService {
       if (count === 0) {
         return artifact;
       }
-      const newName = `${baseName}(brespi-${count + 1})${extension}`;
+      const newName = `${baseName.trim()}(brespi-${count + 1})${extension.trim()}`;
       return {
         ...artifact,
         name: newName,
@@ -225,12 +269,22 @@ export class ExecutionService {
   }
 
   private async copyArtifacts(artifacts: Artifact[]): Promise<Artifact[]> {
-    throw new Error("Not implemented");
+    const result: Artifact[] = [];
+    for (const artifact of artifacts) {
+      const { outputId, outputPath } = Generate.artifactDestination(this.env);
+      await copyFile(artifact.path, outputPath);
+      result.push({
+        ...artifact,
+        id: outputId,
+        path: outputPath,
+      });
+    }
+    return result;
   }
 }
 
 export namespace ExecutionService {
-  export const CreateExecutionRequest = z
+  export const Create = z
     .object({
       pipelineId: z.string(),
     })
