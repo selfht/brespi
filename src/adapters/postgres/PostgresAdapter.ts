@@ -26,7 +26,7 @@ export class PostgresAdapter extends AbstractAdapter {
     const scriptPath = join(import.meta.dir, "pg_backup.sh");
 
     // Prepare environment variables based on selection mode
-    const tempDir = await this.createTempDestination();
+    const tempDir = await this.createTmpDestination();
     const env = {
       PGHOST: opts.host,
       PGUSER: opts.user,

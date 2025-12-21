@@ -271,12 +271,12 @@ export class ExecutionService {
   private async copyArtifacts(artifacts: Artifact[]): Promise<Artifact[]> {
     const result: Artifact[] = [];
     for (const artifact of artifacts) {
-      const { outputId, outputPath } = Generate.artifactDestination(this.env);
-      await copyFile(artifact.path, outputPath);
+      const { destinationId, destinationPath } = Generate.tmpDestination(this.env);
+      await copyFile(artifact.path, destinationPath);
       result.push({
         ...artifact,
-        id: outputId,
-        path: outputPath,
+        id: destinationId,
+        path: destinationPath,
       });
     }
     return result;

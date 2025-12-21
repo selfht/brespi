@@ -52,7 +52,7 @@ export function ExecutionPanel({ query }: Props) {
       {query.data.length > 0 && (
         <div className="flex-1 p-6">
           <h2 className="mb-6 text-xl font-extralight">Execution Details</h2>
-          <p className="text-c-dim font-extralight">Select an execution to see its details.</p>
+          <p className="text-c-dim font-extralight">Select an execution on the left to see its details.</p>
         </div>
       )}
     </div>

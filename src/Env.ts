@@ -13,7 +13,6 @@ export namespace Env {
         ...env,
         X_BRESPI_TMP_ROOT: join(env.X_BRESPI_ROOT, "tmp"),
         X_BRESPI_DATA_ROOT: join(env.X_BRESPI_ROOT, "data"),
-        X_BRESPI_ARTIFACT_ROOT: join(env.X_BRESPI_ROOT, "artifacts"),
         X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from({
           seconds: env.O_BRESPI_STAGE === "development" ? 3 : 0,
         }),

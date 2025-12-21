@@ -18,8 +18,8 @@ export class ScriptAdapter extends AbstractAdapter {
     }
 
     const [artifactsIn, artifactsOut] = await Promise.all([
-      this.createTempDestination(), //
-      this.createTempDestination(),
+      this.createTmpDestination(), //
+      this.createTmpDestination(),
     ]);
     try {
       await this.moveArtifacts(artifacts, artifactsIn);

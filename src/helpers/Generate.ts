@@ -17,15 +17,11 @@ export namespace Generate {
     return `${Temporal.Now.instant().epochMilliseconds}-${shortRandomString()}`;
   }
 
-  export function artifactDestination(env: Env.Private) {
-    const outputId = uniqueEpochBasedId();
-    return {
-      outputId,
-      outputPath: join(env.X_BRESPI_ARTIFACT_ROOT, outputId),
-    };
-  }
-
   export function tmpDestination(env: Env.Private) {
-    return join(env.X_BRESPI_TMP_ROOT, uniqueEpochBasedId());
+    const destinationId = uniqueEpochBasedId();
+    return {
+      destinationId: destinationId,
+      destinationPath: join(env.X_BRESPI_TMP_ROOT, destinationId),
+    };
   }
 }

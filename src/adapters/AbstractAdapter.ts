@@ -14,12 +14,16 @@ export abstract class AbstractAdapter {
   }
 
   protected generateArtifactDestination() {
-    return Generate.artifactDestination(this.env);
+    const { destinationId, destinationPath } = Generate.tmpDestination(this.env);
+    return {
+      outputId: destinationId,
+      outputPath: destinationPath,
+    };
   }
 
-  protected async createTempDestination() {
-    const path = Generate.tmpDestination(this.env);
-    await mkdir(path, { recursive: true });
-    return path;
+  protected async createTmpDestination(): Promise<string> {
+    const { destinationPath } = Generate.tmpDestination(this.env);
+    await mkdir(destinationPath, { recursive: true });
+    return destinationPath;
   }
 }
