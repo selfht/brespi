@@ -46,7 +46,9 @@ export function ExecutionPanel({ query, selectedExecution, onSelect, onDeselect 
         {query.data.map((execution) => (
           <button
             key={execution.id}
-            className="mt-4 flex items-center text-left gap-4 group cursor-pointer"
+            className={clsx("mt-4 flex items-center text-left gap-4 group cursor-pointer", {
+              "opacity-40": selectedExecution && execution.id !== selectedExecution.id,
+            })}
             onClick={() => onExecutionClick(execution)}
           >
             <SquareIcon

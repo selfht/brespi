@@ -1,6 +1,7 @@
 import { Step } from "@/models/Step";
 import { Block } from "../canvas/Block";
 import { Action } from "@/models/Action";
+import { Temporal } from "@js-temporal/polyfill";
 
 const types: Record<Step.Type, string> = {
   [Step.Type.filesystem_read]: "Filesystem Read",
@@ -105,20 +106,38 @@ export namespace StepTranslation {
   }
   export function actionDetails(action: Action): Block.Details | null {
     const result: Block.Details = {};
-    if (action.result) {
-      result["Duration"] = `${action.result.duration.total("seconds")}s`;
-      const maxLength = 10;
-      for (const category of ["consumed", "produced"] as const) {
-        const artifacts = action.result[category].slice(0, maxLength).map(({ name }) => name);
-        const artifactsRemainder = Math.min(0, action.result[category].length - maxLength);
-        if (artifactsRemainder > 0) {
-          artifacts.push(`+${artifactsRemainder}`);
-        }
-        const capitalizedCategory = `${category[0].toUpperCase()}${category.slice(1)}`;
-        result[capitalizedCategory] = artifacts;
-      }
-    } else if (action.startedAt) {
+    const prettyFormat = (duration: Temporal.Duration): string => {
+      const parts: string[] = [];
+      const days = Math.floor(duration.total("days"));
+      const hours = Math.floor(duration.total("hours")) % 24;
+      const minutes = Math.floor(duration.total("minutes")) % 60;
+      const seconds = Math.floor(duration.total("seconds")) % 60;
+
+      if (days > 0) parts.push(`${days}d`);
+      if (hours > 0) parts.push(`${hours}h`);
+      if (minutes > 0) parts.push(`${minutes}m`);
+      if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+
+      return parts.join(" ");
+    };
+    if (action.startedAt) {
       result["Started"] = action.startedAt.toLocaleString();
+      if (action.result) {
+        result["Completed"] = action.result.completedAt.toLocaleString();
+        result["Duration"] = prettyFormat(action.result.duration);
+        const maxLength = 10;
+        for (const category of ["consumed", "produced"] as const) {
+          const artifacts = action.result[category].slice(0, maxLength).map(({ name }) => name);
+          const artifactsRemainder = Math.min(0, action.result[category].length - maxLength);
+          if (artifactsRemainder > 0) {
+            artifacts.push(`+${artifactsRemainder}`);
+          }
+          if (artifacts.length > 0) {
+            const capitalizedCategory = `${category[0].toUpperCase()}${category.slice(1)}`;
+            result[capitalizedCategory] = artifacts;
+          }
+        }
+      }
     }
     return Object.entries(result).length > 0 ? result : null;
   }

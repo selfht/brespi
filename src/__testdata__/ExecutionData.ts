@@ -4,12 +4,12 @@ import { Step } from "@/models/Step";
 import { Temporal } from "@js-temporal/polyfill";
 
 export namespace ExecutionData {
-  const time1 = Temporal.Now.plainDateTimeISO().subtract({ days: 1 });
-  const time2 = Temporal.Now.plainDateTimeISO().subtract({ days: 2 });
-  const time3 = Temporal.Now.plainDateTimeISO().subtract({ days: 3 });
+  const time1 = Temporal.Now.plainDateTimeISO().subtract({ days: 1, months: 6 });
+  const time2 = Temporal.Now.plainDateTimeISO().subtract({ days: 2, months: 6 });
+  const time3 = Temporal.Now.plainDateTimeISO().subtract({ days: 3, months: 6 });
   const randomDuration = () =>
     Temporal.Duration.from({
-      seconds: -Math.round(Math.random() * 500_000),
+      seconds: Math.round(Math.random() * 500_000),
     });
 
   export const PENDING = (pipelineId: string): Execution => {
