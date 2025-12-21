@@ -54,7 +54,7 @@ export function createCell(block: JointBlock) {
   // Body overlay (TODO: support icons for the individual steps)
   let imageOverlay: ReactNode = null;
   if (block.theme === "busy") {
-    imageOverlay = <Spinner className="border-c-dim! border-t-c-dim/0!" />;
+    imageOverlay = <Spinner className="border-c-info! border-t-c-info/0!" />;
   }
 
   // Main

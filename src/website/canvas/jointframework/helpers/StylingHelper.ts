@@ -11,7 +11,7 @@ export namespace StylingHelper {
       selected: "fill-c-dark stroke-c-info",
       success: "fill-green-300 stroke-green-500",
       error: "fill-red-300 stroke-red-500",
-      busy: "fill-gray-100 stroke-c-dim",
+      busy: "fill-gray-100 stroke-c-info",
       unused: "fill-c-canvasblock-unused-inner stroke-c-canvasblock-unused-outer",
     } satisfies { selected: string } & Record<typeof theme, string>;
 
