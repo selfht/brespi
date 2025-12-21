@@ -26,6 +26,8 @@ export namespace StylingHelper {
     cell.attr("body/class", className.main);
     (cell as dia.Element).portProp(Block.Handle.input, "attrs/rect/class", className.input);
     (cell as dia.Element).portProp(Block.Handle.output, "attrs/rect/class", className.output);
+    cell.attr("spinner/display", theme === "busy" ? "block" : "none");
+
     return cell;
   }
 }

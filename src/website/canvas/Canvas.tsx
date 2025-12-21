@@ -174,11 +174,13 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
         throw new Error(`Could not find block or cell; block=${Boolean(block)}, cell=${Boolean(cell)}`);
       }
       changes = {
+        theme: changes.theme,
         label: changes.label,
         details: changes.details,
         // manually copy to prevent extra properties
       };
       Object.assign(block, changes);
+      StylingHelper.synchronizeBlockStylingWithCell(block, cell);
       internal.notifyBlocksChange(CanvasEvent.update);
     },
     remove(id) {
@@ -337,7 +339,7 @@ export namespace Canvas {
     format: () => void;
     // crud
     insert: (block: BetterOmit<Block, "incomingId">) => void;
-    update: (id: string, changes: Pick<Block, "label" | "details">) => void;
+    update: (id: string, changes: Pick<Block, "theme" | "label" | "details">) => void;
     remove: (id: string) => void;
     // selection
     select: (id: string) => void;

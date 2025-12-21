@@ -51,12 +51,6 @@ export function createCell(block: JointBlock) {
     },
   };
 
-  // Body overlay (TODO: support icons for the individual steps)
-  let imageOverlay: ReactNode = null;
-  if (block.theme === "busy") {
-    imageOverlay = <Spinner className="border-c-info! border-t-c-info/0!" />;
-  }
-
   // Main
   return StylingHelper.synchronizeBlockStylingWithCell(
     block,
@@ -69,7 +63,7 @@ export function createCell(block: JointBlock) {
       },
       markup: [
         { tagName: "rect", selector: "body" },
-        { tagName: "foreignObject", selector: "bodyOverlay" },
+        { tagName: "foreignObject", selector: "spinner" },
         { tagName: "text", selector: "label" },
         { tagName: "foreignObject", selector: "callout" },
       ],
@@ -81,14 +75,15 @@ export function createCell(block: JointBlock) {
           width: "calc(w)",
           height: "calc(h)",
         },
-        bodyOverlay: {
+        spinner: {
+          display: "none",
           x: 0,
           y: 0,
           width: "calc(w)",
           height: "calc(h)",
           html: renderToString(
             <div className="h-full flex justify-center items-center border-transparent" style={{ borderWidth: Sizing.BLOCK_STROKE_WIDTH }}>
-              {imageOverlay}
+              <Spinner className="border-c-info! border-t-c-info/0!" />
             </div>,
           ),
         },

@@ -79,7 +79,6 @@ export function pipelines_$id() {
    * Forms
    */
   const mainForm = useForm<Form>();
-  const { interactivity, name, steps } = mainForm.watch();
   const [stepForm, setStepForm] = useState<{ id: string; type: Step.Type; existingStep?: Step }>();
 
   /**
@@ -123,7 +122,10 @@ export function pipelines_$id() {
   const execute = useCallback(async () => {
     if (pipelineQuery.data !== "new") {
       const lastExecution = await executionClient.create({ pipelineId: id! });
-      await Promise.all([queryClient.setQueryData(executionsQueryKey, (data: Execution[]): Execution[] => [lastExecution, ...data])]);
+      await Promise.all([
+        queryClient.setQueryData(executionsQueryKey, (data: Execution[]): Execution[] => [...data, lastExecution].sort(Execution.sort)),
+      ]);
+      selectExecution(lastExecution);
     }
   }, [pipelineQuery.data]);
 
@@ -310,9 +312,26 @@ export function pipelines_$id() {
     }
   }, [pipelineQuery.data, mainForm]);
 
+  const previousActionStatuses = useRef<Internal.ExecutionStatusOverview>(null);
+  useEffect(() => {
+    if (executionsQuery.data) {
+      const oldStatuses = previousActionStatuses.current;
+      const { newStatuses, differingActions } = Internal.extractDifferingActions({
+        executions: executionsQuery.data,
+        selectedExecution,
+        oldStatuses,
+      });
+      previousActionStatuses.current = newStatuses;
+      differingActions.forEach((action) => {
+        canvasApi.current!.update(action.stepId, Internal.convertActionToBlock(action));
+      });
+    }
+  }, [executionsQuery.data, selectedExecution]);
+
   /**
    * Render
    */
+  const { interactivity, name, steps } = mainForm.watch();
   const buttonGroups = useMemo(() => Internal.getButtonGroups(), []);
   return (
     <Skeleton>
@@ -506,6 +525,71 @@ namespace Internal {
     return handles[Step.getCategory({ type })];
   }
 
+  type ActionStatusOverview = Map<string, Block["theme"]>;
+  export type ExecutionStatusOverview = Map<string, ActionStatusOverview>;
+
+  function extractStatusOverview(executions: Execution[]): ExecutionStatusOverview {
+    const executionsMap: ExecutionStatusOverview = new Map();
+    executions.forEach((execution) => {
+      const actionsMap: ActionStatusOverview = new Map();
+      execution.actions.forEach((action) => {
+        const theme: Block["theme"] = !action.startedAt
+          ? "unused"
+          : !action.result
+            ? "busy"
+            : action.result?.outcome === Outcome.success
+              ? "success"
+              : "error";
+        actionsMap.set(action.stepId, theme);
+      });
+      executionsMap.set(execution.id, actionsMap);
+    });
+    return executionsMap;
+  }
+
+  export function extractDifferingActions({
+    executions,
+    selectedExecution,
+    oldStatuses,
+  }: {
+    executions: Execution[];
+    selectedExecution: Execution | undefined;
+    oldStatuses: ExecutionStatusOverview | null;
+  }): {
+    newStatuses: ExecutionStatusOverview;
+    differingActions: Action[];
+  } {
+    const newStatuses = extractStatusOverview(executions);
+    if (!oldStatuses || !selectedExecution) {
+      return { newStatuses, differingActions: [] };
+    }
+
+    const oldExecution = oldStatuses.get(selectedExecution.id);
+    const newExecution = newStatuses.get(selectedExecution.id);
+    if (!oldExecution || !newExecution) {
+      return { newStatuses, differingActions: [] };
+    }
+
+    const oldActionIds = [...oldExecution.keys()];
+    const newActionIds = [...newExecution.keys()];
+    if (oldActionIds.length !== newActionIds.length || !oldActionIds.every((id) => newActionIds.includes(id))) {
+      // This should never happen, because the action IDs are determined once when the action gets created
+      throw new Error("Illegal state; old and new execution have different action ids");
+    }
+    // `oldActionIds` and `newActionIds` are the same at this point
+    const differingActions: Action[] = oldActionIds
+      .filter((id) => {
+        const oldStatus = oldExecution.get(id)!;
+        const newStatus = newExecution.get(id)!;
+        return oldStatus !== newStatus;
+      })
+      .map((id) => {
+        const differingAction = executions.find((e) => e.id === selectedExecution.id)!.actions.find((a) => a.stepId === id)!;
+        return differingAction;
+      });
+    return { newStatuses, differingActions };
+  }
+
   type ButtonGroup = {
     category: Step.Category;
     categoryLabel: string;
@@ -514,6 +598,7 @@ namespace Internal {
       typeLabel: string;
     }>;
   };
+
   export function getButtonGroups(): ButtonGroup[] {
     const buttonGroups: ButtonGroup[] = [];
     const categoryOrder: Step.Category[] = [
