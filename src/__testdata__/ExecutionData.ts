@@ -13,12 +13,48 @@ export namespace ExecutionData {
     });
 
   export const PENDING = (pipelineId: string): Execution => {
+    const duration = randomDuration();
     return {
       id: Bun.randomUUIDv7(),
       object: "execution",
       pipelineId,
       startedAt: time1,
-      actions: [],
+      actions: [
+        {
+          stepId: "A",
+          previousStepId: null,
+          object: "action",
+          stepType: Step.Type.filesystem_read,
+          startedAt: time1,
+          result: {
+            outcome: Outcome.success,
+            duration,
+            completedAt: time1.add(duration),
+            consumed: [],
+            produced: [
+              { name: "notes.txt", type: "file" },
+              { name: "backups.doc", type: "file" },
+            ],
+            failure: null,
+          },
+        },
+        {
+          stepId: "B",
+          previousStepId: "A",
+          object: "action",
+          stepType: Step.Type.compression,
+          startedAt: time1,
+          result: null,
+        },
+        {
+          stepId: "C",
+          previousStepId: "B",
+          object: "action",
+          stepType: Step.Type.encryption,
+          startedAt: null,
+          result: null,
+        },
+      ],
       result: null,
     };
   };
@@ -74,10 +110,10 @@ export namespace ExecutionData {
           stepId: "C",
           previousStepId: "B",
           object: "action",
-          stepType: Step.Type.s3_upload,
+          stepType: Step.Type.encryption,
           startedAt: time2,
           result: {
-            outcome: Outcome.success,
+            outcome: Outcome.error,
             duration,
             completedAt: time2.add(duration),
             consumed: [
@@ -85,8 +121,19 @@ export namespace ExecutionData {
               { name: "gamingworld.sql.tar.gz", type: "file" },
             ],
             produced: [],
-            failure: null,
+            failure: {
+              problem: "Unknown error",
+              message: "somethign went wrong, don't know what",
+            },
           },
+        },
+        {
+          stepId: "D",
+          previousStepId: "C",
+          object: "action",
+          stepType: Step.Type.s3_upload,
+          startedAt: null,
+          result: null,
         },
       ],
       result: {

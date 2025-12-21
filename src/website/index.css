@@ -78,8 +78,10 @@
     --color-c-info: #8585f6;
     --color-c-dim: #979797;
     --color-c-dark: #2d2c32;
-    --color-c-artifact-fill: #b0cee6;
-    --color-c-artifact-stroke: #6c9bc2;
+    --color-c-canvasblock-default-inner: #b0cee6;
+    --color-c-canvasblock-default-outer: #6c9bc2;
+    --color-c-canvasblock-unused-inner: #f3f4f6;
+    --color-c-canvasblock-unused-outer: #979797;
 }
 /* DESKTOP FIRST / PART B -> https://stackoverflow.com/a/79607480 */
 @custom-variant 2xl (@media (max-width: 1535px));

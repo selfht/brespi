@@ -2,35 +2,25 @@ import { dia } from "@joint/core";
 import { Block } from "../../Block";
 
 export namespace StylingHelper {
-  export function synchronizeBlockStylingWithCell({ selected, handles }: Block, cell: dia.Cell): dia.Cell {
+  export function synchronizeBlockStylingWithCell({ theme, selected, handles }: Block, cell: dia.Cell): dia.Cell {
     const hasInput = handles.includes(Block.Handle.input);
     const hasOutput = handles.includes(Block.Handle.output);
 
-    const defaultClass = "fill-c-artifact-fill stroke-c-artifact-stroke";
-    const defaultUnusedClass = "fill-gray-100 stroke-c-dim";
-    const selectedClass = "fill-c-dark stroke-c-info";
-    const selectedUnusedClass = "fill-gray-100 stroke-c-info";
+    const catalogue = {
+      default: "fill-c-canvasblock-default-inner stroke-c-canvasblock-default-outer",
+      selected: "fill-c-dark stroke-c-info",
+      success: "fill-green-300 stroke-green-500",
+      error: "fill-red-300 stroke-red-500",
+      busy: "fill-gray-100 stroke-c-dim",
+      unused: "fill-c-canvasblock-unused-inner stroke-c-canvasblock-unused-outer",
+    } satisfies { selected: string } & Record<typeof theme, string>;
+
+    const activeStyle: "selected" | typeof theme = theme === "default" && selected ? "selected" : theme;
 
     const className = {
-      main: selected ? selectedClass : defaultClass,
-      input: selected
-        ? //
-          hasInput
-          ? selectedClass
-          : selectedUnusedClass
-        : //
-          hasInput
-          ? defaultClass
-          : defaultUnusedClass,
-      output: selected
-        ? //
-          hasOutput
-          ? selectedClass
-          : selectedUnusedClass
-        : //
-          hasOutput
-          ? defaultClass
-          : defaultUnusedClass,
+      main: catalogue[activeStyle],
+      input: catalogue[hasInput ? activeStyle : "unused"],
+      output: catalogue[hasOutput ? activeStyle : "unused"],
     };
 
     cell.attr("body/class", className.main);

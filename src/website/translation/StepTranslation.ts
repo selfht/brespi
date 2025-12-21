@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { Block } from "../canvas/Block";
 import { Action } from "@/models/Action";
 import { Temporal } from "@js-temporal/polyfill";
+import { Outcome } from "@/models/Outcome";
 
 const types: Record<Step.Type, string> = {
   [Step.Type.filesystem_read]: "Filesystem Read",
@@ -125,16 +126,25 @@ export namespace StepTranslation {
       if (action.result) {
         result["Completed"] = action.result.completedAt.toLocaleString();
         result["Duration"] = prettyFormat(action.result.duration);
-        const maxLength = 10;
-        for (const category of ["consumed", "produced"] as const) {
-          const artifacts = action.result[category].slice(0, maxLength).map(({ name }) => name);
-          const artifactsRemainder = Math.min(0, action.result[category].length - maxLength);
-          if (artifactsRemainder > 0) {
-            artifacts.push(`+${artifactsRemainder}`);
+        switch (action.result.outcome) {
+          case Outcome.success: {
+            const maxLength = 10;
+            for (const category of ["consumed", "produced"] as const) {
+              const artifacts = action.result[category].slice(0, maxLength).map(({ name }) => name);
+              const artifactsRemainder = Math.min(0, action.result[category].length - maxLength);
+              if (artifactsRemainder > 0) {
+                artifacts.push(`+${artifactsRemainder}`);
+              }
+              if (artifacts.length > 0) {
+                const capitalizedCategory = `${category[0].toUpperCase()}${category.slice(1)}`;
+                result[capitalizedCategory] = artifacts;
+              }
+            }
+            break;
           }
-          if (artifacts.length > 0) {
-            const capitalizedCategory = `${category[0].toUpperCase()}${category.slice(1)}`;
-            result[capitalizedCategory] = artifacts;
+          case Outcome.error: {
+            result["Error"] = "Details below ...";
+            break;
           }
         }
       }

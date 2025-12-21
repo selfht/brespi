@@ -140,6 +140,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
     insert(block) {
       block = {
         id: block.id,
+        theme: block.theme,
         label: block.label,
         details: block.details,
         handles: block.handles,
@@ -208,6 +209,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
           const targetCell = graphRef.current!.getCell(id);
           if (targetCell && targetBlock.details) {
             CalloutHelper.showDetails(targetCell, {
+              theme: targetBlock.theme,
               label: targetBlock.label,
               details: targetBlock.details,
             });

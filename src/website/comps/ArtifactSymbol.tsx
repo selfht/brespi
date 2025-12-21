@@ -11,14 +11,14 @@ export function ArtifactSymbol({ variant }: Props) {
     <div className="flex items-center gap-0.5">
       <div
         className={clsx("size-4 border-2 rounded-md", {
-          "bg-c-artifact-fill border-c-artifact-stroke": hasInput,
+          "bg-c-canvasblock-default-inner border-c-canvasblock-default-outer": hasInput,
           "bg-c-dim/30 border-c-dim": !hasInput,
         })}
       />
-      <div className="w-10 h-8 bg-c-artifact-fill border-2 border-c-artifact-stroke rounded-lg" />
+      <div className="w-10 h-8 bg-c-canvasblock-default-inner border-2 border-c-canvasblock-default-outer rounded-lg" />
       <div
         className={clsx("size-4 border-2 rounded-md", {
-          "bg-c-artifact-fill border-c-artifact-stroke": hasOutput,
+          "bg-c-canvasblock-default-inner border-c-canvasblock-default-outer": hasOutput,
           "bg-c-dim/30 border-c-dim": !hasOutput,
         })}
       />

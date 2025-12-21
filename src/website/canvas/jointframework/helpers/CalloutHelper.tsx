@@ -29,7 +29,7 @@ export namespace CalloutHelper {
     );
   }
 
-  export function showDetails(cell: dia.Cell, block: Pick<RequireNoNulls<JointBlock>, "label" | "details">) {
+  export function showDetails(cell: dia.Cell, { theme, label, details }: Pick<RequireNoNulls<JointBlock>, "theme" | "label" | "details">) {
     // Bring to front
     cell.toFront();
     // Hide label
@@ -39,9 +39,21 @@ export namespace CalloutHelper {
     cell.attr(
       "callout/html",
       renderToString(
-        <div className="flex flex-col gap-3 border-3 border-c-info rounded-lg bg-c-dark p-2 pb-4">
-          <h1 className="font-light text-lg text-c-dim">{block.label}</h1>
-          {Object.entries(block.details)
+        <div
+          className={clsx(
+            "flex flex-col gap-3 border-3 rounded-lg bg-c-dark p-2 pb-4",
+            theme === "success" ? "border-green-500" : theme === "error" ? "border-red-500" : "border-c-info",
+          )}
+        >
+          <h1
+            className={clsx(
+              "font-light text-lg",
+              theme === "success" ? "text-green-300" : theme === "error" ? "text-red-300" : "text-c-dim",
+            )}
+          >
+            {label}
+          </h1>
+          {Object.entries(details)
             .filter(([_, value]) => value !== undefined)
             .map(([key, value]) => (
               <div key={key} className="text-sm flex flex-col">

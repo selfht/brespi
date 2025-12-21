@@ -31,6 +31,7 @@ import bgCanvas from "../images/bg-canvas.svg";
 import { StepTranslation } from "../translation/StepTranslation";
 import { Pipeline } from "@/models/Pipeline";
 import { Action } from "@/models/Action";
+import { Outcome } from "@/models/Outcome";
 
 type Form = {
   interactivity: Interactivity;
@@ -147,11 +148,6 @@ export function pipelines_$id() {
       resetCanvas(pipelineQuery.data);
     }
   }, [pipelineQuery.data]);
-  useEffect(() => {
-    if (interactivity === Interactivity.editing && selectedExecution) {
-      deselectExecution();
-    }
-  }, [interactivity, selectedExecution, deselectExecution]);
 
   /**
    * Main form API
@@ -203,6 +199,7 @@ export function pipelines_$id() {
       if (!existingStep) {
         canvasApi.current?.insert({
           id: stepId,
+          theme: "default",
           label: StepTranslation.type(type),
           details: {},
           handles: Internal.convertTypeToHandles(type),
@@ -351,10 +348,12 @@ export function pipelines_$id() {
               <div className="flex items-center gap-4">
                 {interactivity === Interactivity.viewing ? (
                   <>
-                    <Button icon={isExecuting ? "loading" : "play"} onClick={execute} disabled={isExecuting}>
+                    <Button icon={isExecuting ? "loading" : "play"} onClick={execute} disabled={Boolean(selectedExecution) || isExecuting}>
                       {isExecuting ? "Executing" : "Execute"}
                     </Button>
-                    <Button onClick={() => mainForm.setValue("interactivity", Interactivity.editing)}>Edit</Button>
+                    <Button onClick={() => mainForm.setValue("interactivity", Interactivity.editing)} disabled={Boolean(selectedExecution)}>
+                      Edit
+                    </Button>
                   </>
                 ) : (
                   <>
@@ -465,6 +464,7 @@ namespace Internal {
     return {
       id: step.id,
       incomingId: step.previousId,
+      theme: "default",
       label: StepTranslation.type(step.type),
       details: StepTranslation.stepDetails(step),
       handles: convertTypeToHandles(step.type),
@@ -475,6 +475,13 @@ namespace Internal {
     return {
       id: action.stepId,
       incomingId: action.previousStepId,
+      theme: !action.startedAt
+        ? "unused"
+        : action.startedAt && !action.result
+          ? "busy"
+          : action.result?.outcome === Outcome.success
+            ? "success"
+            : "error",
       label: Step.TypeInstance(action.stepType) ? StepTranslation.type(action.stepType) : action.stepType,
       details: StepTranslation.actionDetails(action),
       handles: Step.TypeInstance(action.stepType) ? convertTypeToHandles(action.stepType) : [Block.Handle.input, Block.Handle.output],
