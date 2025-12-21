@@ -29,7 +29,7 @@ export namespace Sizing {
   /**
    * Callout (details popup) sizing
    */
-  export const CALLOUT_WIDTH = 200;
+  export const CALLOUT_WIDTH = 240;
   export const CALLOUT_Y_OFFSET = 10; // Distance below label
 
   /**
@@ -48,7 +48,7 @@ export namespace Sizing {
   /**
    * Grid layout spacing for positioning blocks
    */
-  export const GRID_START_X = 80;
+  export const GRID_START_X = 100;
   export const GRID_START_Y = 50;
   export const GRID_HORIZONTAL_SPACING = 140;
   export const GRID_VERTICAL_SPACING = 70;

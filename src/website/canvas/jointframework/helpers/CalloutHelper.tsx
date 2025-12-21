@@ -29,7 +29,7 @@ export namespace CalloutHelper {
     );
   }
 
-  export function showBlockDetails(cell: dia.Cell, block: Pick<RequireNoNulls<JointBlock>, "label" | "details">) {
+  export function showDetails(cell: dia.Cell, block: Pick<RequireNoNulls<JointBlock>, "label" | "details">) {
     // Bring to front
     cell.toFront();
     // Hide label
@@ -64,10 +64,6 @@ export namespace CalloutHelper {
         </div>,
       ),
     );
-  }
-
-  export function showExecutionDetails(cell: dia.Cell) {
-    throw new Error("not implemented");
   }
 
   export function hideDetails(cell: dia.Cell) {

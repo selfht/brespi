@@ -78,6 +78,7 @@ export function pipelines_$id() {
    * Forms
    */
   const mainForm = useForm<Form>();
+  const { interactivity, name, steps } = mainForm.watch();
   const [stepForm, setStepForm] = useState<{ id: string; type: Step.Type; existingStep?: Step }>();
 
   /**
@@ -110,7 +111,7 @@ export function pipelines_$id() {
     } else if (source.object === "pipeline") {
       blocks = source.steps.map(Internal.convertStepToBlock);
     } else {
-      blocks = [];
+      blocks = source.actions.map(Internal.convertActionToBlock);
     }
     canvasApi.current!.reset(blocks);
   };
@@ -125,9 +126,7 @@ export function pipelines_$id() {
     }
   }, [pipelineQuery.data]);
 
-  /**
-   * Keep refetching during execution
-   */
+  // Refresh during execution
   const isExecuting = executionsQuery.data?.some((e) => !e.result) || false;
   useEffect(() => {
     if (isExecuting) {
@@ -135,6 +134,24 @@ export function pipelines_$id() {
       return () => clearInterval(interval);
     }
   }, [isExecuting]);
+
+  // Keep track of selected executions
+  const [selectedExecution, setSelectedExecution] = useState<Execution>();
+  const selectExecution = (execution: Execution) => {
+    setSelectedExecution(execution);
+    resetCanvas(execution);
+  };
+  const deselectExecution = useCallback(() => {
+    setSelectedExecution(undefined);
+    if (pipelineQuery.data) {
+      resetCanvas(pipelineQuery.data);
+    }
+  }, [pipelineQuery.data]);
+  useEffect(() => {
+    if (interactivity === Interactivity.editing && selectedExecution) {
+      deselectExecution();
+    }
+  }, [interactivity, selectedExecution, deselectExecution]);
 
   /**
    * Main form API
@@ -280,7 +297,7 @@ export function pipelines_$id() {
   };
 
   /**
-   * Initialze (reset) the main form
+   * Initializers and listeners
    */
   useEffect(() => {
     if (pipelineQuery.data) {
@@ -291,7 +308,6 @@ export function pipelines_$id() {
   /**
    * Render
    */
-  const { interactivity, name, steps } = mainForm.watch();
   const buttonGroups = useMemo(() => Internal.getButtonGroups(), []);
   return (
     <Skeleton>
@@ -404,7 +420,12 @@ export function pipelines_$id() {
             </div>
             {/* DETAILS */}
             {interactivity === Interactivity.viewing ? (
-              <ExecutionPanel query={executionsQuery} />
+              <ExecutionPanel
+                query={executionsQuery}
+                selectedExecution={selectedExecution}
+                onSelect={selectExecution}
+                onDeselect={deselectExecution}
+              />
             ) : stepForm === undefined ? (
               <div className="flex items-start">
                 {buttonGroups.map((bg) => (

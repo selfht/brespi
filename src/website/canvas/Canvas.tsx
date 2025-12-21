@@ -201,7 +201,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
         if (interactivityRef.current === Interactivity.viewing) {
           const targetCell = graphRef.current!.getCell(id);
           if (targetCell && targetBlock.details) {
-            CalloutHelper.showBlockDetails(targetCell, {
+            CalloutHelper.showDetails(targetCell, {
               label: targetBlock.label,
               details: targetBlock.details,
             });
@@ -261,7 +261,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
     setupBlockInteractions({
       graph,
       paper,
-      interactivityRef: interactivityRef,
+      interactivityRef,
       blocksRef,
       select: api.select,
       deselect: api.deselect,

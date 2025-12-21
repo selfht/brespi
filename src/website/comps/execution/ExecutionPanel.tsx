@@ -5,11 +5,26 @@ import { UseQueryResult } from "@tanstack/react-query";
 import { ErrorDump } from "../ErrorDump";
 import { Spinner } from "../Spinner";
 import { SquareIcon } from "../SquareIcon";
+import { useCallback } from "react";
+import clsx from "clsx";
 
 type Props = {
   query: UseQueryResult<Execution[], ProblemDetails>;
+  selectedExecution: Execution | undefined;
+  onSelect: (execution: Execution) => unknown;
+  onDeselect: () => unknown;
 };
-export function ExecutionPanel({ query }: Props) {
+export function ExecutionPanel({ query, selectedExecution, onSelect, onDeselect }: Props) {
+  const onExecutionClick = useCallback(
+    (execution: Execution) => {
+      if (execution.id === selectedExecution?.id) {
+        onDeselect();
+      } else {
+        onSelect(execution);
+      }
+    },
+    [selectedExecution?.id],
+  );
   if (query.error) {
     return (
       <div className="p-6 text-center">
@@ -29,10 +44,23 @@ export function ExecutionPanel({ query }: Props) {
       <div className="flex-1 p-6">
         <h2 className="mb-6 text-xl font-extralight">Execution History</h2>
         {query.data.map((execution) => (
-          <button key={execution.id} className="mt-4 flex items-center text-left gap-4 group cursor-pointer">
-            <SquareIcon variant={execution.result?.outcome || "loading"} className="group-hover:border-white group-hover:bg-c-dim/20" />
+          <button
+            key={execution.id}
+            className="mt-4 flex items-center text-left gap-4 group cursor-pointer"
+            onClick={() => onExecutionClick(execution)}
+          >
+            <SquareIcon
+              variant={execution.result?.outcome || "loading"}
+              className={clsx("group-hover:border-white group-hover:bg-c-dim/20", {
+                "border-white bg-c-dim/20": execution.id === selectedExecution?.id,
+              })}
+            />
             <div>
-              <h3 className="text-base font-medium group-hover:text-white">
+              <h3
+                className={clsx("text-base font-medium group-hover:text-white", {
+                  "text-white": execution.id === selectedExecution?.id,
+                })}
+              >
                 {execution.result
                   ? execution.result.outcome === Outcome.success
                     ? "Successfully executed"
