@@ -103,6 +103,7 @@ export class PipelineService {
 export namespace PipelineService {
   export const Upsert = z
     .object({
+      object: z.literal("pipeline"),
       name: z.string(),
       steps: z.array(Step.parse.SCHEMA),
     })

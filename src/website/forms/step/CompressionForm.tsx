@@ -33,6 +33,7 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
       await onSave({
         id,
         previousId: existing?.previousId || null,
+        object: "step",
         type: Step.Type.compression,
         algorithm: {
           implementation: form.algorithmImplementation,

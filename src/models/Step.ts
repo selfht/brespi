@@ -34,6 +34,9 @@ export namespace Step {
     postgres_backup = "postgres_backup",
     postgres_restore = "postgres_restore",
   }
+  export function TypeInstance(value: string): value is Type {
+    return Object.values(Type).includes(value as Type);
+  }
 
   export enum Category {
     producer = "producer",
@@ -44,6 +47,7 @@ export namespace Step {
   type Common = {
     id: string;
     previousId: string | null;
+    object: "step";
   };
 
   export type FilesystemRead = Common & {
@@ -166,6 +170,7 @@ export namespace Step {
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
+          object: z.literal("step"),
           type: z.literal(Type.filesystem_read),
           path: z.string(),
         } satisfies SubSchema<Step.FilesystemRead>),
@@ -173,6 +178,7 @@ export namespace Step {
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
+          object: z.literal("step"),
           type: z.literal(Type.filesystem_write),
           path: z.string(),
         } satisfies SubSchema<Step.FilesystemWrite>),
@@ -180,6 +186,7 @@ export namespace Step {
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
+          object: z.literal("step"),
           type: z.literal(Type.compression),
           algorithm: z.object({
             implementation: z.literal("targzip"),
@@ -190,6 +197,7 @@ export namespace Step {
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
+          object: z.literal("step"),
           type: z.literal(Type.decompression),
           algorithm: z.object({
             implementation: z.literal("targzip"),
@@ -199,6 +207,7 @@ export namespace Step {
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
+          object: z.literal("step"),
           type: z.literal(Type.encryption),
           keyReference: z.string(),
           algorithm: z.object({
@@ -209,6 +218,7 @@ export namespace Step {
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
+          object: z.literal("step"),
           type: z.literal(Type.decryption),
           keyReference: z.string(),
           algorithm: z.object({
@@ -219,18 +229,21 @@ export namespace Step {
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
+          object: z.literal("step"),
           type: z.literal(Type.folder_flatten),
         } satisfies SubSchema<Step.FolderFlatten>),
 
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
+          object: z.literal("step"),
           type: z.literal(Type.folder_group),
         } satisfies SubSchema<Step.FolderGroup>),
 
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
+          object: z.literal("step"),
           type: z.literal(Type.filter),
           selection: z.union([
             z.object({ method: z.literal("exact"), name: z.string() }),
@@ -242,6 +255,7 @@ export namespace Step {
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
+          object: z.literal("step"),
           type: z.literal(Type.script_execution),
           path: z.string(),
           passthrough: z.boolean(),
@@ -250,6 +264,7 @@ export namespace Step {
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
+          object: z.literal("step"),
           type: z.literal(Type.s3_upload),
           accessKeyReference: z.string(),
           secretKeyReference: z.string(),
@@ -259,6 +274,7 @@ export namespace Step {
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
+          object: z.literal("step"),
           type: z.literal(Type.s3_download),
           accessKeyReference: z.string(),
           secretKeyReference: z.string(),
@@ -272,6 +288,7 @@ export namespace Step {
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
+          object: z.literal("step"),
           type: z.literal(Type.postgres_backup),
           databaseSelection: z.union([
             z.object({ strategy: z.literal("all") }),
@@ -283,6 +300,7 @@ export namespace Step {
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
+          object: z.literal("step"),
           type: z.literal(Type.postgres_restore),
           database: z.string(),
         } satisfies SubSchema<Step.PostgresRestore>),

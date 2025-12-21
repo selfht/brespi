@@ -48,11 +48,13 @@ export class ExecutionService {
 
     const execution: Execution = {
       id: Bun.randomUUIDv7(),
+      object: "execution",
       pipelineId,
       startedAt: Temporal.Now.plainDateTimeISO(),
       actions: pipeline.steps.map((step) => ({
         stepId: step.id,
         previousStepId: step.previousId,
+        object: "action",
         stepType: step.type,
         startedAt: null,
         result: null,

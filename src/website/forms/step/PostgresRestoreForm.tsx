@@ -27,6 +27,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
       await onSave({
         id,
         previousId: existing?.previousId || null,
+        object: "step",
         type: Step.Type.postgres_restore,
         database: form.database,
       });

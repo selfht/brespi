@@ -15,6 +15,7 @@ export namespace ExecutionData {
   export const PENDING = (pipelineId: string): Execution => {
     return {
       id: Bun.randomUUIDv7(),
+      object: "execution",
       pipelineId,
       startedAt: time1,
       actions: [],
@@ -26,12 +27,14 @@ export namespace ExecutionData {
     const duration = randomDuration();
     return {
       id: Bun.randomUUIDv7(),
+      object: "execution",
       pipelineId,
       startedAt: time2,
       actions: [
         {
           stepId: "A",
           previousStepId: null,
+          object: "action",
           stepType: Step.Type.postgres_backup,
           startedAt: time2,
           result: {
@@ -49,6 +52,7 @@ export namespace ExecutionData {
         {
           stepId: "B",
           previousStepId: "A",
+          object: "action",
           stepType: Step.Type.compression,
           startedAt: time2,
           result: {
@@ -69,6 +73,7 @@ export namespace ExecutionData {
         {
           stepId: "C",
           previousStepId: "B",
+          object: "action",
           stepType: Step.Type.s3_upload,
           startedAt: time2,
           result: {
@@ -96,6 +101,7 @@ export namespace ExecutionData {
     const duration = randomDuration();
     return {
       id: Bun.randomUUIDv7(),
+      object: "execution",
       pipelineId,
       startedAt: time3,
       actions: [],

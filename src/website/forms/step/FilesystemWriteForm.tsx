@@ -27,6 +27,7 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
       await onSave({
         id,
         previousId: existing?.previousId || null,
+        object: "step",
         type: Step.Type.filesystem_write,
         path: form.path,
       });

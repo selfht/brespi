@@ -4,12 +4,14 @@ import { Step } from "../models/Step";
 export namespace PipelineData {
   export const WORK_IN_PROGRESS: Pipeline = {
     id: "2c4204f8-e503-48dd-9ba6-33caa572920a",
+    object: "pipeline",
     name: "This is just a work in progress",
     steps: [
       {
         id: Bun.randomUUIDv7(),
-        previousId: null,
         type: Step.Type.filesystem_read,
+        object: "step",
+        previousId: null,
         path: "/etc",
       },
     ],
@@ -17,11 +19,13 @@ export namespace PipelineData {
 
   export const POSTGRES: Pipeline = {
     id: "e8b97a79-c187-477e-a03d-bb16a4560e72",
+    object: "pipeline",
     name: "My Postgres Backup Pipeline",
     steps: [
       {
         id: "019b1e40-bc72-7001-80e4-c76ff6f1244e",
         previousId: null,
+        object: "step",
         type: Step.Type.postgres_backup,
         databaseSelection: {
           strategy: "all",
@@ -30,6 +34,7 @@ export namespace PipelineData {
       {
         id: "019b1e40-bc72-7002-8177-3d26094656c8",
         previousId: "019b1e40-bc72-7001-80e4-c76ff6f1244e",
+        object: "step",
         type: Step.Type.compression,
         algorithm: {
           implementation: "targzip",
@@ -39,6 +44,7 @@ export namespace PipelineData {
       {
         id: "019b1e40-bc72-7003-af23-dd2773f7bc70",
         previousId: "019b1e40-bc72-7002-8177-3d26094656c8",
+        object: "step",
         type: Step.Type.encryption,
         keyReference: "SYMMETRIC_KEY_TUCKED_FAR_AWAY",
         algorithm: {
@@ -48,6 +54,7 @@ export namespace PipelineData {
       {
         id: "019b1e40-bc72-7004-a622-09aaf21057ba",
         previousId: "019b1e40-bc72-7003-af23-dd2773f7bc70",
+        object: "step",
         type: Step.Type.s3_upload,
         accessKeyReference: "ACCESS_KEY",
         secretKeyReference: "SECRET_KEY",
@@ -58,17 +65,20 @@ export namespace PipelineData {
 
   export const WORDPRESS: Pipeline = {
     id: "6c827a56-be44-498e-8891-4d6cdde32e81",
+    object: "pipeline",
     name: "My Wordpress Pipeline for /wp-uploads",
     steps: [
       {
         id: "kpwmqemdrxyz",
         previousId: "yfdqipzrjpka",
+        object: "step",
         type: Step.Type.filesystem_write,
         path: "",
       },
       {
         id: "dlxhvcsgumze",
         previousId: "yfdqipzrjpka",
+        object: "step",
         type: Step.Type.s3_upload,
         accessKeyReference: "",
         secretKeyReference: "",
@@ -77,12 +87,14 @@ export namespace PipelineData {
       {
         id: "xalkneycatmp",
         previousId: "yfdqipzrjpka",
+        object: "step",
         type: Step.Type.postgres_restore,
         database: "",
       },
       {
         id: "agunfwvnftwr",
         previousId: "kwclogopzrec",
+        object: "step",
         type: Step.Type.compression,
         algorithm: {
           implementation: "targzip",
@@ -92,6 +104,7 @@ export namespace PipelineData {
       {
         id: "yfdqipzrjpka",
         previousId: "agunfwvnftwr",
+        object: "step",
         type: Step.Type.encryption,
         keyReference: "",
         algorithm: {
@@ -101,6 +114,7 @@ export namespace PipelineData {
       {
         id: "kwclogopzrec",
         previousId: null,
+        object: "step",
         type: Step.Type.postgres_backup,
         databaseSelection: {
           strategy: "all",
@@ -109,6 +123,7 @@ export namespace PipelineData {
       {
         id: "httkqpjuluef",
         previousId: "agunfwvnftwr",
+        object: "step",
         type: Step.Type.script_execution,
         path: "",
         passthrough: false,
@@ -116,11 +131,13 @@ export namespace PipelineData {
       {
         id: "qgbyxvjsfmhu",
         previousId: "httkqpjuluef",
+        object: "step",
         type: Step.Type.folder_group,
       },
       {
         id: "amuhvjqcyrjn",
         previousId: "qgbyxvjsfmhu",
+        object: "step",
         type: Step.Type.folder_flatten,
       },
     ],
@@ -128,11 +145,13 @@ export namespace PipelineData {
 
   export const RESTORE: Pipeline = {
     id: "539d032f-af2a-41f3-8c11-4759c6e73512",
+    object: "pipeline",
     name: "My Restore Pipeline",
     steps: [
       {
         id: Bun.randomUUIDv7(),
         previousId: null,
+        object: "step",
         type: Step.Type.s3_download,
         baseFolder: "some-random-parent-folder",
         accessKeyReference: "ACCESS_KEY",
@@ -144,6 +163,7 @@ export namespace PipelineData {
       {
         id: Bun.randomUUIDv7(),
         previousId: null,
+        object: "step",
         type: Step.Type.decryption,
         keyReference: "SYMMETRIC_KEY",
         algorithm: {
@@ -153,6 +173,7 @@ export namespace PipelineData {
       {
         id: Bun.randomUUIDv7(),
         previousId: null,
+        object: "step",
         type: Step.Type.decompression,
         algorithm: {
           implementation: "targzip",

@@ -14,8 +14,9 @@ describe(FilterAdapter.name, () => {
       // when
       const filtered = await adapter.filter(artifacts, {
         id: "test",
-        type: Step.Type.filter,
         previousId: null,
+        object: "step",
+        type: Step.Type.filter,
         selection: {
           method: "exact",
           name: "backup-db",
@@ -31,8 +32,9 @@ describe(FilterAdapter.name, () => {
       // when
       const filtered = await adapter.filter(artifacts, {
         id: "test",
-        type: Step.Type.filter,
         previousId: null,
+        object: "step",
+        type: Step.Type.filter,
         selection: {
           method: "exact",
           name: "not-found",
@@ -48,8 +50,9 @@ describe(FilterAdapter.name, () => {
       // when
       const filtered = await adapter.filter(artifacts, {
         id: "test",
-        type: Step.Type.filter,
         previousId: null,
+        object: "step",
+        type: Step.Type.filter,
         selection: {
           method: "exact",
           name: "backup",
@@ -115,8 +118,9 @@ describe(FilterAdapter.name, () => {
       const filteredNames = await adapter
         .filter(artifacts, {
           id: `${Math.random()}`,
-          type: Step.Type.filter,
           previousId: null,
+          object: "step",
+          type: Step.Type.filter,
           selection: {
             method: "glob",
             nameGlob: pattern,
@@ -135,8 +139,9 @@ describe(FilterAdapter.name, () => {
       // when
       const filtered = await adapter.filter(artifacts, {
         id: "test",
-        type: Step.Type.filter,
         previousId: null,
+        object: "step",
+        type: Step.Type.filter,
         selection: {
           method: "regex",
           nameRegex: "^backup-\\d+$",
@@ -152,8 +157,9 @@ describe(FilterAdapter.name, () => {
       // when
       const filtered = await adapter.filter(artifacts, {
         id: "test",
-        type: Step.Type.filter,
         previousId: null,
+        object: "step",
+        type: Step.Type.filter,
         selection: {
           method: "regex",
           nameRegex: "^file-\\d{4}-\\d{2}-\\d{2}\\.tar$",
@@ -169,8 +175,9 @@ describe(FilterAdapter.name, () => {
       // when
       const filtered = await adapter.filter(artifacts, {
         id: "test",
-        type: Step.Type.filter,
         previousId: null,
+        object: "step",
+        type: Step.Type.filter,
         selection: {
           method: "regex",
           nameRegex: "^backup$",
@@ -186,8 +193,9 @@ describe(FilterAdapter.name, () => {
       // when
       const filtered = await adapter.filter(artifacts, {
         id: "test",
-        type: Step.Type.filter,
         previousId: null,
+        object: "step",
+        type: Step.Type.filter,
         selection: {
           method: "regex",
           nameRegex: "backup",

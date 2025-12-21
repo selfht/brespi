@@ -27,6 +27,7 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
       await onSave({
         id,
         previousId: existing?.previousId || null,
+        object: "step",
         type: Step.Type.decompression,
         algorithm: {
           implementation: form.algorithmImplementation,

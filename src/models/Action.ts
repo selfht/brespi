@@ -7,6 +7,7 @@ import { Outcome } from "./Outcome";
 export type Action = {
   stepId: string;
   previousStepId: string | null;
+  object: "action";
   stepType: string;
   startedAt: Temporal.PlainDateTime | null;
   result: {
@@ -41,6 +42,7 @@ export namespace Action {
       z.object({
         stepId: z.string(),
         previousStepId: z.string().nullable(),
+        object: z.literal("action"),
         stepType: z.string(),
         startedAt: z
           .string()

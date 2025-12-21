@@ -27,6 +27,7 @@ export function FileSystemReadForm({ id, existing, onSave, onDelete, onCancel, c
       await onSave({
         id,
         previousId: existing?.previousId || null,
+        object: "step",
         type: Step.Type.filesystem_read,
         path: form.path,
       });

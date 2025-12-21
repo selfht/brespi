@@ -21,6 +21,7 @@ export function FolderGroupForm({ id, existing, onSave, onDelete, onCancel, clas
       await onSave({
         id,
         previousId: existing?.previousId || null,
+        object: "step",
         type: Step.Type.folder_group,
       });
     } catch (error) {

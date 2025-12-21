@@ -29,6 +29,8 @@ import { useFullScreen } from "../hooks/useFullScreen";
 import { useRegistry } from "../hooks/useRegistry";
 import bgCanvas from "../images/bg-canvas.svg";
 import { StepTranslation } from "../translation/StepTranslation";
+import { Pipeline } from "@/models/Pipeline";
+import { Action } from "@/models/Action";
 
 type Form = {
   interactivity: Interactivity;
@@ -99,7 +101,17 @@ export function pipelines_$id() {
     // Close the step form
     setStepForm(undefined);
     // Reset the canvas based on the currently available steps
-    const blocks = initial === "new" ? [] : initial.steps.map(Internal.convertStepToBlock);
+    resetCanvas(initial);
+  };
+  const resetCanvas = (source: Pipeline | "new" | Execution) => {
+    let blocks: Block[];
+    if (source === "new") {
+      blocks = [];
+    } else if (source.object === "pipeline") {
+      blocks = source.steps.map(Internal.convertStepToBlock);
+    } else {
+      blocks = [];
+    }
     canvasApi.current!.reset(blocks);
   };
 
@@ -134,6 +146,7 @@ export function pipelines_$id() {
       try {
         if (id === "new") {
           const pipeline = await pipelineClient.create({
+            object: "pipeline",
             name: form.name,
             steps: form.steps,
           });
@@ -141,6 +154,7 @@ export function pipelines_$id() {
         } else {
           const pipeline = await pipelineClient.update(id!, {
             id: id!,
+            object: "pipeline",
             name: form.name,
             steps: form.steps,
           });
@@ -436,6 +450,17 @@ namespace Internal {
       selected: false,
     };
   }
+  export function convertActionToBlock(action: Action): Block {
+    return {
+      id: action.stepId,
+      incomingId: action.previousStepId,
+      label: Step.TypeInstance(action.stepType) ? StepTranslation.type(action.stepType) : action.stepType,
+      details: {}, // TODO
+      handles: Step.TypeInstance(action.stepType) ? convertTypeToHandles(action.stepType) : [Block.Handle.input, Block.Handle.output],
+      selected: false,
+    };
+  }
+
   export function convertTypeToHandles(type: Step.Type): Block["handles"] {
     const handles: Record<Step.Category, Block.Handle[]> = {
       [Step.Category.producer]: [Block.Handle.output],
@@ -455,9 +480,11 @@ namespace Internal {
   };
   export function getButtonGroups(): ButtonGroup[] {
     const buttonGroups: ButtonGroup[] = [];
-
-    const categoryOrder: Step.Category[] = [Step.Category.producer, Step.Category.transformer, Step.Category.consumer];
-
+    const categoryOrder: Step.Category[] = [
+      Step.Category.producer, //
+      Step.Category.transformer,
+      Step.Category.consumer,
+    ];
     const typeOrder: Step.Type[] = [
       // Producers
       Step.Type.filesystem_read,

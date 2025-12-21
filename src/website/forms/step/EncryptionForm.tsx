@@ -29,6 +29,7 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
       await onSave({
         id,
         previousId: existing?.previousId || null,
+        object: "step",
         type: Step.Type.encryption,
         keyReference: form.keyReference,
         algorithm: {

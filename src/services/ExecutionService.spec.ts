@@ -38,11 +38,13 @@ describe(ExecutionService.name, () => {
   function linearPipeline(): Pipeline {
     return {
       id: "-",
+      object: "pipeline",
       name: "my pipeline",
       steps: [
         {
           id: "A",
           previousId: null,
+          object: "step",
           type: Step.Type.postgres_backup,
           databaseSelection: {
             strategy: "all",
@@ -51,6 +53,7 @@ describe(ExecutionService.name, () => {
         {
           id: "B",
           previousId: "A",
+          object: "step",
           type: Step.Type.compression,
           algorithm: {
             implementation: "targzip",
@@ -60,6 +63,7 @@ describe(ExecutionService.name, () => {
         {
           id: "C",
           previousId: "B",
+          object: "step",
           type: Step.Type.encryption,
           keyReference: "MY_KEY",
           algorithm: {
@@ -69,6 +73,7 @@ describe(ExecutionService.name, () => {
         {
           id: "D",
           previousId: "C",
+          object: "step",
           type: Step.Type.s3_upload,
           baseFolder: "/backups",
           accessKeyReference: "AK",

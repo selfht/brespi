@@ -35,6 +35,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
       await onSave({
         id,
         previousId: existing?.previousId || null,
+        object: "step",
         type: Step.Type.s3_download,
         accessKeyReference: form.accessKeyReference,
         secretKeyReference: form.secretKeyReference,

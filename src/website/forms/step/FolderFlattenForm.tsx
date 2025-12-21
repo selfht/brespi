@@ -21,6 +21,7 @@ export function FolderFlattenForm({ id, existing, onSave, onDelete, onCancel, cl
       await onSave({
         id,
         previousId: existing?.previousId || null,
+        object: "step",
         type: Step.Type.folder_flatten,
       });
     } catch (error) {

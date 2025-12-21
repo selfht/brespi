@@ -31,6 +31,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
       await onSave({
         id,
         previousId: existing?.previousId || null,
+        object: "step",
         type: Step.Type.s3_upload,
         accessKeyReference: form.accessKeyReference,
         secretKeyReference: form.secretKeyReference,

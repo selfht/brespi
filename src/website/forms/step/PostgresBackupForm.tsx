@@ -39,6 +39,7 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
       await onSave({
         id,
         previousId: existing?.previousId || null,
+        object: "step",
         type: Step.Type.postgres_backup,
         databaseSelection:
           form.databaseSelectionStrategy === "all"

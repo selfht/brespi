@@ -29,6 +29,7 @@ export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, 
       await onSave({
         id,
         previousId: existing?.previousId || null,
+        object: "step",
         type: Step.Type.script_execution,
         path: form.path,
         passthrough: form.passthrough,

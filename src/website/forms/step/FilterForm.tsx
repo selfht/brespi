@@ -32,6 +32,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
       await onSave({
         id,
         previousId: existing?.previousId || null,
+        object: "step",
         type: Step.Type.filter,
         selection:
           form.selectionMethod === "exact"

@@ -6,6 +6,7 @@ import { Action } from "./Action";
 
 export type Execution = {
   id: string;
+  object: "execution";
   pipelineId: string;
   startedAt: Temporal.PlainDateTime;
   actions: Action[];
@@ -42,6 +43,7 @@ export namespace Execution {
     .ensureSchemaMatchesType(
       z.object({
         id: z.string(),
+        object: z.literal("execution"),
         pipelineId: z.string(),
         startedAt: z.string().transform((x) => Temporal.PlainDateTime.from(x)),
         actions: z.array(Action.parse.SCHEMA),
