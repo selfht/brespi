@@ -1,4 +1,7 @@
+import { Spinner } from "@/website/comps/Spinner";
 import { dia, shapes } from "@joint/core";
+import { ReactNode } from "react";
+import { renderToString } from "react-dom/server";
 import { Block } from "../Block";
 import { StylingHelper } from "./helpers/StylingHelper";
 import { JointBlock } from "./models/JointBlock";
@@ -48,26 +51,46 @@ export function createCell(block: JointBlock) {
     },
   };
 
-  // Main body
+  // Body overlay (TODO: support icons for the individual steps)
+  let imageOverlay: ReactNode = null;
+  if (block.theme === "busy") {
+    imageOverlay = <Spinner className="border-c-dim! border-t-c-dim/0!" />;
+  }
+
+  // Main
   return StylingHelper.synchronizeBlockStylingWithCell(
     block,
     new shapes.standard.Rectangle({
       id: block.id,
       position: block.coordinates,
-      size: { width: Sizing.BLOCK_WIDTH, height: Sizing.BLOCK_HEIGHT },
+      size: {
+        width: Sizing.BLOCK_WIDTH,
+        height: Sizing.BLOCK_HEIGHT,
+      },
       markup: [
         { tagName: "rect", selector: "body" },
+        { tagName: "foreignObject", selector: "bodyOverlay" },
         { tagName: "text", selector: "label" },
         { tagName: "foreignObject", selector: "callout" },
       ],
       attrs: {
         body: {
-          class: "",
           strokeWidth: Sizing.BLOCK_STROKE_WIDTH,
           rx: Sizing.BLOCK_BORDER_RADIUS,
           ry: Sizing.BLOCK_BORDER_RADIUS,
           width: "calc(w)",
           height: "calc(h)",
+        },
+        bodyOverlay: {
+          x: 0,
+          y: 0,
+          width: "calc(w)",
+          height: "calc(h)",
+          html: renderToString(
+            <div className="h-full flex justify-center items-center border-transparent" style={{ borderWidth: Sizing.BLOCK_STROKE_WIDTH }}>
+              {imageOverlay}
+            </div>,
+          ),
         },
         label: {
           text: block.label,
