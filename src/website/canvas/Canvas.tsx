@@ -36,6 +36,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
   const paperRef = useRef<dia.Paper>(null);
   const blocksRef = useRef<JointBlock[]>([]);
   const interactivityRef = useRef<Interactivity>(interactivity);
+  const suppressEventsRef = useRef<boolean>(false);
 
   /**
    * Initialization
@@ -48,6 +49,9 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
    */
   const internal = {
     notifyBlocksChange(event: CanvasEvent) {
+      if (suppressEventsRef.current) {
+        return; // Skip event notifications during imperative operations
+      }
       const graph = graphRef.current!;
       const links = graph.getLinks();
       const updatedBlocks = blocksRef.current.map((block) => {
@@ -117,7 +121,9 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
   const api: Canvas.Api = {
     async reset(blocks) {
       await dimensionsMeasuredPromiseRef.current.promise;
+      suppressEventsRef.current = true;
       blocksRef.current = internal.performInitialDraw(blocks);
+      suppressEventsRef.current = false;
     },
     format() {
       blocksRef.current = PositioningHelper.performSmartPositioning(blocksRef.current, {
