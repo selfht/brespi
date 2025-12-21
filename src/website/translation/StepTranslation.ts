@@ -137,10 +137,8 @@ export namespace StepTranslation {
               if (artifactsRemainder > 0) {
                 artifacts.push(`+${artifactsRemainder}`);
               }
-              if (artifacts.length > 0) {
-                const capitalizedCategory = `${category[0].toUpperCase()}${category.slice(1)}`;
-                result[capitalizedCategory] = artifacts;
-              }
+              const capitalizedCategory = `${category[0].toUpperCase()}${category.slice(1)}`;
+              result[capitalizedCategory] = artifacts.length > 0 ? artifacts : { custom: "empty_array" };
             }
             break;
           }

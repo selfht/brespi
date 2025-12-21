@@ -2,9 +2,10 @@ import { dia } from "@joint/core";
 import clsx from "clsx";
 import { renderToString } from "react-dom/server";
 import { JointBlock } from "../models/JointBlock";
+import { Block } from "../../Block";
 
 export namespace CalloutHelper {
-  function Value({ v }: { v: string | number | boolean | null }) {
+  function Value({ v }: { v: Block.PrimitiveField | Block.CustomField | null }) {
     const displayValue =
       v === null
         ? "(absent)"
@@ -14,11 +15,19 @@ export namespace CalloutHelper {
             : "No"
           : typeof v === "string" && v.trim() === ""
             ? "\u00A0" // Non-breaking space to preserve vertical height
-            : v;
+            : typeof v === "string"
+              ? v
+              : typeof v === "number"
+                ? v
+                : v.custom === "empty_array"
+                  ? "(none)"
+                  : "";
+    const somethingAbsent = v === null || (v as Block.CustomField).custom === "empty_array";
     return (
       <code
-        className={clsx("break-all p-0.5 bg-c-dim/20 rounded", {
-          italic: v === null,
+        className={clsx("break-all p-0.5 rounded", {
+          "bg-c-dim/20": !somethingAbsent,
+          italic: somethingAbsent,
           "text-c-info": typeof v === "number",
           "text-c-success": typeof v === "boolean" && v,
           "text-c-error": typeof v === "boolean" && !v,
@@ -55,24 +64,27 @@ export namespace CalloutHelper {
           </h1>
           {Object.entries(details)
             .filter(([_, value]) => value !== undefined)
-            .map(([key, value]) => (
-              <div key={key} className="text-sm flex flex-col">
-                <strong className="pb-1">{key}</strong>
-                {Array.isArray(value) ? (
-                  <ul className="list-disc list-inside pl-1 flex flex-col gap-1">
-                    {value
-                      .filter((v) => v !== undefined)
-                      .map((v, index) => (
-                        <li key={index}>
-                          <Value v={v} />
-                        </li>
-                      ))}
-                  </ul>
-                ) : (
-                  <Value v={value as string | number | boolean | null} /> /* undefined is already filtered out */
-                )}
-              </div>
-            ))}
+            .map(([key, value]) => {
+              if (value === undefined) return null;
+              return (
+                <div key={key} className="text-sm flex flex-col">
+                  <strong className="pb-1">{key}</strong>
+                  {Array.isArray(value) ? (
+                    <ul className="list-disc list-inside pl-1 flex flex-col gap-1">
+                      {value
+                        .filter((v) => v !== undefined)
+                        .map((v, index) => (
+                          <li key={index}>
+                            <Value v={v} />
+                          </li>
+                        ))}
+                    </ul>
+                  ) : (
+                    <Value v={value} /> /* undefined is already filtered out */
+                  )}
+                </div>
+              );
+            })}
         </div>,
       ),
     );

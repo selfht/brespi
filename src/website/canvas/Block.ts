@@ -13,5 +13,10 @@ export namespace Block {
     input = "input",
     output = "output",
   }
-  export type Details = Record<string, string | number | boolean | null | undefined | Array<string | number | boolean | null | undefined>>;
+
+  export type PrimitiveField = string | number | boolean | null;
+  export type CustomField = {
+    custom: "empty_array";
+  };
+  export type Details = Record<string, PrimitiveField | undefined | Array<PrimitiveField | undefined> | CustomField>;
 }
