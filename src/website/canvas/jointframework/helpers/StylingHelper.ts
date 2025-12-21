@@ -2,7 +2,7 @@ import { dia } from "@joint/core";
 import { Block } from "../../Block";
 
 export namespace StylingHelper {
-  export function synchronizeBlockStylingWithCell({ theme, selected, handles }: Block, cell: dia.Cell): dia.Cell {
+  export function synchronizeBlockStylingWithCell(cell: dia.Cell, { theme, selected, handles }: Block): dia.Cell {
     const hasInput = handles.includes(Block.Handle.input);
     const hasOutput = handles.includes(Block.Handle.output);
 

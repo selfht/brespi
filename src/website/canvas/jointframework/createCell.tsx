@@ -1,6 +1,5 @@
 import { Spinner } from "@/website/comps/Spinner";
 import { dia, shapes } from "@joint/core";
-import { ReactNode } from "react";
 import { renderToString } from "react-dom/server";
 import { Block } from "../Block";
 import { StylingHelper } from "./helpers/StylingHelper";
@@ -53,7 +52,6 @@ export function createCell(block: JointBlock) {
 
   // Main
   return StylingHelper.synchronizeBlockStylingWithCell(
-    block,
     new shapes.standard.Rectangle({
       id: block.id,
       position: block.coordinates,
@@ -112,5 +110,6 @@ export function createCell(block: JointBlock) {
         items,
       },
     }),
+    block,
   );
 }

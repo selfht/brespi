@@ -180,7 +180,14 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
         // manually copy to prevent extra properties
       };
       Object.assign(block, changes);
-      StylingHelper.synchronizeBlockStylingWithCell(block, cell);
+      StylingHelper.synchronizeBlockStylingWithCell(cell, block);
+      if (block.selected && changes.details) {
+        CalloutHelper.showDetails(cell, {
+          label: changes.label,
+          theme: changes.theme,
+          details: changes.details,
+        });
+      }
       internal.notifyBlocksChange(CanvasEvent.update);
     },
     remove(id) {
@@ -200,7 +207,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
           block.selected = block.id === id ? true : false;
           const cell = graphRef.current!.getCell(block.id);
           if (cell) {
-            StylingHelper.synchronizeBlockStylingWithCell(block, cell);
+            StylingHelper.synchronizeBlockStylingWithCell(cell, block);
             if (block.id !== id) {
               CalloutHelper.hideDetails(cell);
             }
@@ -226,7 +233,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
         block.selected = false;
         const cell = graphRef.current!.getCell(id);
         if (cell) {
-          StylingHelper.synchronizeBlockStylingWithCell(block, cell);
+          StylingHelper.synchronizeBlockStylingWithCell(cell, block);
           CalloutHelper.hideDetails(cell);
           internal.notifyBlocksChange(CanvasEvent.deselect);
         }
