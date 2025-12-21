@@ -107,17 +107,19 @@ export namespace StepTranslation {
   }
   export function actionDetails(action: Action): Block.Details | null {
     const result: Block.Details = {};
-    const prettyFormat = (duration: Temporal.Duration): string => {
+    const prettyDuration = (duration: Temporal.Duration): string => {
       const parts: string[] = [];
       const days = Math.floor(duration.total("days"));
       const hours = Math.floor(duration.total("hours")) % 24;
       const minutes = Math.floor(duration.total("minutes")) % 60;
       const seconds = Math.floor(duration.total("seconds")) % 60;
+      const milliSeconds = Math.floor(duration.total("milliseconds")) % 1000;
 
       if (days > 0) parts.push(`${days}d`);
       if (hours > 0) parts.push(`${hours}h`);
       if (minutes > 0) parts.push(`${minutes}m`);
-      if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+      if (seconds > 0) parts.push(`${seconds}s`);
+      if ((seconds < 10 && milliSeconds > 0) || parts.length === 0) parts.push(`${milliSeconds}ms`);
 
       return parts.join(" ");
     };
@@ -125,7 +127,7 @@ export namespace StepTranslation {
       result["Started"] = action.startedAt.toLocaleString();
       if (action.result) {
         result["Completed"] = action.result.completedAt.toLocaleString();
-        result["Duration"] = prettyFormat(action.result.duration);
+        result["Duration"] = prettyDuration(action.result.duration);
         switch (action.result.outcome) {
           case Outcome.success: {
             const maxLength = 10;
