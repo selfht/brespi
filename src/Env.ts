@@ -24,7 +24,7 @@ export namespace Env {
       .parse(Bun.env);
   }
 
-  export type Private = ReturnType<typeof readAndValidateEnvironment>;
+  export type Private = ReturnType<typeof initialize>;
 
   export type Public = Readonly<{
     [K in keyof Private as K extends `${PublicPrefix}${string}` ? K : never]: Private[K] extends z.ZodTypeAny
