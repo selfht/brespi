@@ -2,7 +2,7 @@ export type Block = {
   id: string;
   incomingId: string | null;
   label: string;
-  details: Record<string, string | number | boolean | null | undefined | Array<string | number | boolean | null | undefined>>;
+  details: Block.Details | null;
   handles: Block.Handle[];
   selected: boolean;
 };
@@ -12,4 +12,5 @@ export namespace Block {
     input = "input",
     output = "output",
   }
+  export type Details = Record<string, string | number | boolean | null | undefined | Array<string | number | boolean | null | undefined>>;
 }

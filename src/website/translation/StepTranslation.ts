@@ -1,5 +1,6 @@
 import { Step } from "@/models/Step";
 import { Block } from "../canvas/Block";
+import { Action } from "@/models/Action";
 
 const types: Record<Step.Type, string> = {
   [Step.Type.filesystem_read]: "Filesystem Read",
@@ -31,7 +32,7 @@ export namespace StepTranslation {
   export function category(category: Step.Category): string {
     return categories[category];
   }
-  export function details(step: Step): Block["details"] {
+  export function stepDetails(step: Step): Block.Details {
     switch (step.type) {
       case Step.Type.filesystem_read:
         return {
@@ -101,5 +102,24 @@ export namespace StepTranslation {
           Database: step.database,
         };
     }
+  }
+  export function actionDetails(action: Action): Block.Details | null {
+    const result: Block.Details = {};
+    if (action.result) {
+      result["Duration"] = `${action.result.duration.total("seconds")}s`;
+      const maxLength = 10;
+      for (const category of ["consumed", "produced"] as const) {
+        const artifacts = action.result[category].slice(0, maxLength).map(({ name }) => name);
+        const artifactsRemainder = Math.min(0, action.result[category].length - maxLength);
+        if (artifactsRemainder > 0) {
+          artifacts.push(`+${artifactsRemainder}`);
+        }
+        const capitalizedCategory = `${category[0].toUpperCase()}${category.slice(1)}`;
+        result[capitalizedCategory] = artifacts;
+      }
+    } else if (action.startedAt) {
+      result["Started"] = action.startedAt.toLocaleString();
+    }
+    return Object.entries(result).length > 0 ? result : null;
   }
 }

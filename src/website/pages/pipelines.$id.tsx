@@ -445,7 +445,7 @@ namespace Internal {
       id: step.id,
       incomingId: step.previousId,
       label: StepTranslation.type(step.type),
-      details: StepTranslation.details(step),
+      details: StepTranslation.stepDetails(step),
       handles: convertTypeToHandles(step.type),
       selected: false,
     };
@@ -455,7 +455,7 @@ namespace Internal {
       id: action.stepId,
       incomingId: action.previousStepId,
       label: Step.TypeInstance(action.stepType) ? StepTranslation.type(action.stepType) : action.stepType,
-      details: {}, // TODO
+      details: StepTranslation.actionDetails(action),
       handles: Step.TypeInstance(action.stepType) ? convertTypeToHandles(action.stepType) : [Block.Handle.input, Block.Handle.output],
       selected: false,
     };

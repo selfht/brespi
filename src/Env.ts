@@ -1,9 +1,13 @@
 import { Temporal } from "@js-temporal/polyfill";
+import { read } from "fs";
 import { join } from "path";
 import { z } from "zod/v4";
 
 export namespace Env {
-  export function readAndValidateEnvironment() {
+  export function initialize(): Readonly<ReturnType<typeof readAndValidateEnvironment>> {
+    return readAndValidateEnvironment();
+  }
+  function readAndValidateEnvironment() {
     return z
       .object({
         O_BRESPI_STAGE: z.enum(["development", "production"]),
@@ -22,10 +26,10 @@ export namespace Env {
 
   export type Private = ReturnType<typeof readAndValidateEnvironment>;
 
-  export type PublicPrefix = "O_BRESPI_";
-  export type Public = {
+  export type Public = Readonly<{
     [K in keyof Private as K extends `${PublicPrefix}${string}` ? K : never]: Private[K] extends z.ZodTypeAny
       ? z.infer<Private[K]>
       : Private[K];
-  };
+  }>;
+  export type PublicPrefix = "O_BRESPI_";
 }

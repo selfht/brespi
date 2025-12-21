@@ -200,8 +200,11 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
         // Show callout for selected block after all others are hidden
         if (interactivityRef.current === Interactivity.viewing) {
           const targetCell = graphRef.current!.getCell(id);
-          if (targetCell) {
-            CalloutHelper.showBlockDetails(targetCell, targetBlock);
+          if (targetCell && targetBlock.details) {
+            CalloutHelper.showBlockDetails(targetCell, {
+              label: targetBlock.label,
+              details: targetBlock.details,
+            });
           }
         }
         internal.notifyBlocksChange(CanvasEvent.select);

@@ -7,7 +7,7 @@ import { CleanupService } from "./services/CleanupService";
 /**
  * Initialize the env configuration
  */
-const env = Env.readAndValidateEnvironment();
+const env = Env.initialize();
 
 /**
  * Create the main directories

@@ -29,7 +29,7 @@ export namespace CalloutHelper {
     );
   }
 
-  export function showBlockDetails(cell: dia.Cell, block: JointBlock) {
+  export function showBlockDetails(cell: dia.Cell, block: Pick<RequireNoNulls<JointBlock>, "label" | "details">) {
     // Bring to front
     cell.toFront();
     // Hide label
