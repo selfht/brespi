@@ -12,6 +12,7 @@ import { Execution } from "@/models/Execution";
 import { Outcome } from "@/models/Outcome";
 import { Pipeline } from "@/models/Pipeline";
 import { Step } from "@/models/Step";
+import { TrailStep } from "@/models/TrailStep";
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { Temporal } from "@js-temporal/polyfill";
@@ -118,12 +119,11 @@ export class ExecutionService {
     executionId: string;
     step: Step;
     input: Artifact[];
-    trail: Step[];
+    trail: TrailStep[];
     childrenMap: Map<string | null, Step[]>;
     mutex: Mutex;
   }): Promise<void> {
     const startedAt = Temporal.Now.plainDateTimeISO();
-    const currentTrail = [...trail, step];
     await this.updateExecutionAction({
       executionId,
       actionStepId: step.id,
@@ -132,10 +132,13 @@ export class ExecutionService {
     });
 
     let output: Artifact[] = [];
+    let outputTrail: TrailStep[] = [];
     let outcome: Outcome;
     let failure: Action.Failure | null;
     try {
-      output = this.ensureUniqueArtifactNames(await this.adapterService.submit(input, step, currentTrail));
+      const { artifacts, runtimeInformation } = await this.adapterService.submit(input, step, trail);
+      output = this.ensureUniqueArtifactNames(artifacts);
+      outputTrail = [...trail, { ...step, runtimeInformation }];
       outcome = Outcome.success;
       failure = null;
     } catch (e) {
@@ -186,7 +189,7 @@ export class ExecutionService {
             executionId,
             step: child,
             input: childrenInput.get(child.id)!,
-            trail: currentTrail,
+            trail: outputTrail,
             childrenMap,
             mutex,
           }),

@@ -7,8 +7,11 @@ import { FilterAdapter } from "./filter/FilterAdapter";
 import { PostgresAdapter } from "./postgres/PostgresAdapter";
 import { S3Adapter } from "./s3/S3Adapter";
 import { ScriptAdapter } from "./scripting/ScriptAdapter";
+import { Json } from "@/types/Json";
+import { TrailStep } from "@/models/TrailStep";
+import { AdapterResult } from "./AdapterResult";
 
-type Handler<S extends Step> = (artifacts: Artifact[], step: S, history: Step[]) => Promise<Artifact[]>;
+type Handler<S extends Step> = (artifacts: Artifact[], step: S, trail: TrailStep[]) => Promise<AdapterResult>;
 
 type InternalRegistry = {
   [T in Step.Type]: Handler<Extract<Step, { type: T }>>;
@@ -28,54 +31,54 @@ export class AdapterService {
   ) {
     this.registry = {
       [Step.Type.filesystem_read]: async (_, options) => {
-        return [await fileSystemAdapter.read(options)];
+        return AdapterResult.create([await fileSystemAdapter.read(options)]);
       },
       [Step.Type.filesystem_write]: async (artifacts, options) => {
         await fileSystemAdapter.write(artifacts, options);
-        return [];
+        return AdapterResult.create();
       },
       [Step.Type.compression]: async (artifacts, options) => {
-        return await this.spreadAndCollect(artifacts, (a) => compressionAdapter.compress(a, options));
+        return AdapterResult.create(await this.spreadAndCollect(artifacts, (a) => compressionAdapter.compress(a, options)));
       },
       [Step.Type.decompression]: async (artifacts, options) => {
-        return await this.spreadAndCollect(artifacts, (a) => compressionAdapter.decompress(a, options));
+        return AdapterResult.create(await this.spreadAndCollect(artifacts, (a) => compressionAdapter.decompress(a, options)));
       },
       [Step.Type.encryption]: async (artifacts, options) => {
-        return await this.spreadAndCollect(artifacts, (a) => encryptionAdapter.encrypt(a, options));
+        return AdapterResult.create(await this.spreadAndCollect(artifacts, (a) => encryptionAdapter.encrypt(a, options)));
       },
       [Step.Type.decryption]: async (artifacts, options) => {
-        return await this.spreadAndCollect(artifacts, (a) => encryptionAdapter.decrypt(a, options));
+        return AdapterResult.create(await this.spreadAndCollect(artifacts, (a) => encryptionAdapter.decrypt(a, options)));
       },
       [Step.Type.folder_flatten]: async (artifacts, options) => {
-        return await fileSystemAdapter.folderFlatten(artifacts, options);
+        return AdapterResult.create(await fileSystemAdapter.folderFlatten(artifacts, options));
       },
       [Step.Type.folder_group]: async (artifacts, options) => {
-        return [await fileSystemAdapter.folderGroup(artifacts, options)];
+        return AdapterResult.create([await fileSystemAdapter.folderGroup(artifacts, options)]);
       },
       [Step.Type.filter]: async (artifacts, options) => {
-        return await filterAdapter.filter(artifacts, options);
+        return AdapterResult.create(await filterAdapter.filter(artifacts, options));
       },
       [Step.Type.script_execution]: async (artifacts, options) => {
-        return await scriptAdapter.execute(artifacts, options);
+        return AdapterResult.create(await scriptAdapter.execute(artifacts, options));
       },
       [Step.Type.s3_upload]: async (artifacts, options, trail) => {
         await s3Adapter.upload(artifacts, options, trail);
-        return [];
+        return AdapterResult.create();
       },
       [Step.Type.s3_download]: async (_, options) => {
-        return await s3Adapter.download(options);
+        return AdapterResult.create(await s3Adapter.download(options));
       },
       [Step.Type.postgres_backup]: async (_, options) => {
-        return await postgresAdapter.backup(options);
+        return AdapterResult.create(await postgresAdapter.backup(options));
       },
       [Step.Type.postgres_restore]: async (artifacts, options) => {
         await postgresAdapter.restore(artifacts, options);
-        return [];
+        return AdapterResult.create();
       },
     };
   }
 
-  public async submit<S extends Step>(artifacts: Artifact[], step: S, trail: Step[]): Promise<Artifact[]> {
+  public async submit<S extends Step>(artifacts: Artifact[], step: S, trail: TrailStep[]): Promise<AdapterResult> {
     const handler = this.registry[step.type] as Handler<S>;
     if (!handler) {
       throw new Error(`Unknown step type: ${step.type}`);

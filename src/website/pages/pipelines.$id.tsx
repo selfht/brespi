@@ -375,12 +375,16 @@ export function pipelines_$id() {
               <div className="flex items-center gap-4">
                 {interactivity === Interactivity.viewing ? (
                   <>
-                    <Button icon={isExecuting ? "loading" : "play"} onClick={execute} disabled={Boolean(selectedExecution) || isExecuting}>
-                      {isExecuting ? "Executing" : "Execute"}
-                    </Button>
-                    <Button onClick={() => mainForm.setValue("interactivity", Interactivity.editing)} disabled={Boolean(selectedExecution)}>
-                      Edit
-                    </Button>
+                    {selectedExecution ? (
+                      <Button onClick={deselectExecution}>Close execution view</Button>
+                    ) : (
+                      <>
+                        <Button icon={isExecuting ? "loading" : "play"} onClick={execute} disabled={isExecuting}>
+                          {isExecuting ? "Executing" : "Execute"}
+                        </Button>
+                        <Button onClick={() => mainForm.setValue("interactivity", Interactivity.editing)}>Edit</Button>
+                      </>
+                    )}
                   </>
                 ) : (
                   <>
