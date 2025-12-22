@@ -1,12 +1,13 @@
-import { Yesttp } from "yesttp";
 import { Env } from "@/Env";
-import { createContext } from "react";
-import { Class } from "@/types/Class";
 import { ProblemDetails } from "@/models/ProblemDetails";
+import { Class } from "@/types/Class";
 import { QueryClient } from "@tanstack/react-query";
-import { PipelineClient } from "./clients/PipelineClient";
-import { StepClient } from "./clients/StepClient.ts";
+import { createContext } from "react";
+import { Yesttp } from "yesttp";
 import { ExecutionClient } from "./clients/ExecutionClient";
+import { PipelineClient } from "./clients/PipelineClient";
+import { SocketClient } from "./clients/SocketClient";
+import { StepClient } from "./clients/StepClient.ts";
 
 export class ClientRegistry {
   /**
@@ -30,6 +31,7 @@ export class ClientRegistry {
         return Promise.reject(response?.body);
       },
     }));
+    this.registry[SocketClient.name] = new SocketClient();
     this.registry[StepClient.name] = new StepClient(yesttp);
     this.registry[PipelineClient.name] = new PipelineClient(yesttp);
     this.registry[PipelineClient.name] = new PipelineClient(yesttp);

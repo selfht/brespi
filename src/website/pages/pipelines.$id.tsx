@@ -1,5 +1,9 @@
+import { Action } from "@/models/Action";
 import { Execution } from "@/models/Execution";
+import { Outcome } from "@/models/Outcome";
+import { Pipeline } from "@/models/Pipeline";
 import { ProblemDetails } from "@/models/ProblemDetails";
+import { ServerMessage } from "@/models/socket/ServerMessage";
 import { Step } from "@/models/Step";
 import { PipelineView } from "@/views/PipelineView";
 import { Temporal } from "@js-temporal/polyfill";
@@ -15,6 +19,7 @@ import { Interactivity } from "../canvas/Interactivity";
 import { ExecutionClient } from "../clients/ExecutionClient";
 import { PipelineClient } from "../clients/PipelineClient";
 import { QueryKey } from "../clients/QueryKey";
+import { SocketClient } from "../clients/SocketClient";
 import { ArtifactSymbol } from "../comps/ArtifactSymbol";
 import { Button } from "../comps/Button";
 import { ErrorDump } from "../comps/ErrorDump";
@@ -29,9 +34,6 @@ import { useFullScreen } from "../hooks/useFullScreen";
 import { useRegistry } from "../hooks/useRegistry";
 import bgCanvas from "../images/bg-canvas.svg";
 import { StepTranslation } from "../translation/StepTranslation";
-import { Pipeline } from "@/models/Pipeline";
-import { Action } from "@/models/Action";
-import { Outcome } from "@/models/Outcome";
 
 type Form = {
   interactivity: Interactivity;
@@ -45,6 +47,7 @@ export function pipelines_$id() {
   const queryClient = useRegistry(QueryClient);
   const pipelineClient = useRegistry(PipelineClient);
   const executionClient = useRegistry(ExecutionClient);
+  const socketClient = useRegistry(SocketClient);
 
   /**
    * Data
@@ -62,8 +65,12 @@ export function pipelines_$id() {
   const executionsQueryKey = [QueryKey.executions];
   const executionsQuery = useQuery<Execution[], ProblemDetails>({
     queryKey: executionsQueryKey,
-    queryFn: () => executionClient.query({ pipelineId: id! }),
+    queryFn: () =>
+      executionClient.query({ pipelineId: id! }).then((executions) => {
+        return (executionsRef.current = executions);
+      }),
   });
+  const executionsRef = useRef<Execution[]>([]); // ugly but practical
 
   /**
    * Full screen
@@ -119,37 +126,61 @@ export function pipelines_$id() {
   /**
    * Execute a pipeline (causes a data refresh)
    */
-  const execute = useCallback(async () => {
-    if (pipelineQuery.data !== "new") {
-      const lastExecution = await executionClient.create({ pipelineId: id! });
-      await Promise.all([
-        queryClient.setQueryData(executionsQueryKey, (data: Execution[]): Execution[] => [...data, lastExecution].sort(Execution.sort)),
-      ]);
-      selectExecution(lastExecution);
-    }
-  }, [pipelineQuery.data]);
+  const isCurrentlyExecuting = executionsQuery.data?.some((e) => !e.result) || false;
 
-  // Refresh during execution
-  const isExecuting = executionsQuery.data?.some((e) => !e.result) || false;
-  useEffect(() => {
-    if (isExecuting) {
-      const interval = setInterval(() => executionsQuery.refetch(), 1000);
-      return () => clearInterval(interval);
+  const [selectedExecutionId, setSelectedExecutionId] = useState<string>();
+  const selectExecution = (executionId: string) => {
+    const execution = executionsRef.current.find(({ id }) => id === executionId);
+    if (!execution) {
+      throw new Error("Illegal state: could not find selected execution");
     }
-  }, [isExecuting]);
-
-  // Keep track of selected executions
-  const [selectedExecution, setSelectedExecution] = useState<Execution>();
-  const selectExecution = (execution: Execution) => {
-    setSelectedExecution(execution);
+    setSelectedExecutionId(executionId);
     resetCanvas(execution);
   };
   const deselectExecution = useCallback(() => {
-    setSelectedExecution(undefined);
+    setSelectedExecutionId(undefined);
     if (pipelineQuery.data) {
       resetCanvas(pipelineQuery.data);
     }
   }, [pipelineQuery.data]);
+
+  // Actually execute
+  const execute = useCallback(async () => {
+    if (pipelineQuery.data !== "new") {
+      const lastExecution = await executionClient.create({ pipelineId: id! });
+      await queryClient.setQueryData(executionsQueryKey, (data: Execution[]): Execution[] => {
+        const updatedExecutions = [...data, lastExecution].sort(Execution.sort);
+        executionsRef.current = updatedExecutions;
+        return updatedExecutions;
+      });
+      selectExecution(lastExecution.id);
+    }
+  }, [pipelineQuery.data]);
+
+  // Listen for (socket) execution updates
+  useEffect(() => {
+    const token = socketClient.subscribe(ServerMessage.Type.execution_update, ({ execution: newExecution }) => {
+      const oldExecution = executionsRef.current.find(({ id }) => id === selectedExecutionId);
+      // Update the local overview
+      queryClient.setQueryData(executionsQueryKey, (data: Execution[]): Execution[] => {
+        const newExecutions = data.map((execution) => {
+          if (execution.id === newExecution.id) {
+            return newExecution;
+          }
+          return execution;
+        });
+        return (executionsRef.current = newExecutions);
+      });
+      // Update the canvas
+      if (oldExecution && selectedExecutionId === newExecution.id) {
+        const { differingActions } = Internal.extractDifferingActions({ oldExecution, newExecution });
+        differingActions.forEach((action) => {
+          canvasApi.current!.update(action.stepId, Internal.convertActionToBlock(action));
+        });
+      }
+    });
+    return () => socketClient.unsubscribe(token);
+  }, [selectedExecutionId]);
 
   /**
    * Main form API
@@ -312,22 +343,6 @@ export function pipelines_$id() {
     }
   }, [pipelineQuery.data, mainForm]);
 
-  const previousActionStatuses = useRef<Internal.ExecutionStatusOverview>(null);
-  useEffect(() => {
-    if (executionsQuery.data) {
-      const oldStatuses = previousActionStatuses.current;
-      const { newStatuses, differingActions } = Internal.extractDifferingActions({
-        executions: executionsQuery.data,
-        selectedExecution,
-        oldStatuses,
-      });
-      previousActionStatuses.current = newStatuses;
-      differingActions.forEach((action) => {
-        canvasApi.current!.update(action.stepId, Internal.convertActionToBlock(action));
-      });
-    }
-  }, [executionsQuery.data, selectedExecution]);
-
   /**
    * Render
    */
@@ -375,12 +390,12 @@ export function pipelines_$id() {
               <div className="flex items-center gap-4">
                 {interactivity === Interactivity.viewing ? (
                   <>
-                    {selectedExecution ? (
+                    {selectedExecutionId ? (
                       <Button onClick={deselectExecution}>Close execution view</Button>
                     ) : (
                       <>
-                        <Button icon={isExecuting ? "loading" : "play"} onClick={execute} disabled={isExecuting}>
-                          {isExecuting ? "Executing" : "Execute"}
+                        <Button icon={isCurrentlyExecuting ? "loading" : "play"} onClick={execute} disabled={isCurrentlyExecuting}>
+                          {isCurrentlyExecuting ? "Executing" : "Execute"}
                         </Button>
                         <Button onClick={() => mainForm.setValue("interactivity", Interactivity.editing)}>Edit</Button>
                       </>
@@ -452,7 +467,7 @@ export function pipelines_$id() {
             {interactivity === Interactivity.viewing ? (
               <ExecutionPanel
                 query={executionsQuery}
-                selectedExecution={selectedExecution}
+                selectedExecutionId={selectedExecutionId}
                 onSelect={selectExecution}
                 onDeselect={deselectExecution}
               />
@@ -530,68 +545,46 @@ namespace Internal {
   }
 
   type ActionStatusOverview = Map<string, Block["theme"]>;
-  export type ExecutionStatusOverview = Map<string, ActionStatusOverview>;
 
-  function extractStatusOverview(executions: Execution[]): ExecutionStatusOverview {
-    const executionsMap: ExecutionStatusOverview = new Map();
-    executions.forEach((execution) => {
-      const actionsMap: ActionStatusOverview = new Map();
-      execution.actions.forEach((action) => {
-        const theme: Block["theme"] = !action.startedAt
-          ? "unused"
-          : !action.result
-            ? "busy"
-            : action.result?.outcome === Outcome.success
-              ? "success"
-              : "error";
-        actionsMap.set(action.stepId, theme);
-      });
-      executionsMap.set(execution.id, actionsMap);
+  function extractActionStatuses(execution: Execution): ActionStatusOverview {
+    const actionsMap: ActionStatusOverview = new Map();
+    execution.actions.forEach((action) => {
+      const theme: Block["theme"] = !action.startedAt
+        ? "unused"
+        : !action.result
+          ? "busy"
+          : action.result?.outcome === Outcome.success
+            ? "success"
+            : "error";
+      actionsMap.set(action.stepId, theme);
     });
-    return executionsMap;
+    return actionsMap;
   }
 
-  export function extractDifferingActions({
-    executions,
-    selectedExecution,
-    oldStatuses,
-  }: {
-    executions: Execution[];
-    selectedExecution: Execution | undefined;
-    oldStatuses: ExecutionStatusOverview | null;
-  }): {
-    newStatuses: ExecutionStatusOverview;
+  export function extractDifferingActions({ oldExecution, newExecution }: { oldExecution: Execution; newExecution: Execution }): {
     differingActions: Action[];
   } {
-    const newStatuses = extractStatusOverview(executions);
-    if (!oldStatuses || !selectedExecution) {
-      return { newStatuses, differingActions: [] };
-    }
+    const oldActionStatuses = extractActionStatuses(oldExecution);
+    const newActionStatuses = extractActionStatuses(newExecution);
 
-    const oldExecution = oldStatuses.get(selectedExecution.id);
-    const newExecution = newStatuses.get(selectedExecution.id);
-    if (!oldExecution || !newExecution) {
-      return { newStatuses, differingActions: [] };
-    }
-
-    const oldActionIds = [...oldExecution.keys()];
-    const newActionIds = [...newExecution.keys()];
+    const oldActionIds = [...oldActionStatuses.keys()];
+    const newActionIds = [...newActionStatuses.keys()];
     if (oldActionIds.length !== newActionIds.length || !oldActionIds.every((id) => newActionIds.includes(id))) {
       // This should never happen, because the action IDs are determined once when the action gets created
-      throw new Error("Illegal state; old and new execution have different action ids");
+      throw new Error("Illegal state: old and new execution have different action ids");
     }
     // `oldActionIds` and `newActionIds` are the same at this point
     const differingActions: Action[] = oldActionIds
       .filter((id) => {
-        const oldStatus = oldExecution.get(id)!;
-        const newStatus = newExecution.get(id)!;
+        const oldStatus = oldActionStatuses.get(id)!;
+        const newStatus = newActionStatuses.get(id)!;
         return oldStatus !== newStatus;
       })
       .map((id) => {
-        const differingAction = executions.find((e) => e.id === selectedExecution.id)!.actions.find((a) => a.stepId === id)!;
+        const differingAction = newExecution.actions.find((a) => a.stepId === id)!;
         return differingAction;
       });
-    return { newStatuses, differingActions };
+    return { differingActions };
   }
 
   type ButtonGroup = {

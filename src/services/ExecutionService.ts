@@ -11,22 +11,44 @@ import { Artifact } from "@/models/Artifact";
 import { Execution } from "@/models/Execution";
 import { Outcome } from "@/models/Outcome";
 import { Pipeline } from "@/models/Pipeline";
+import { ServerMessage } from "@/models/socket/ServerMessage";
+import { Socket } from "@/models/socket/Socket";
 import { Step } from "@/models/Step";
 import { TrailStep } from "@/models/TrailStep";
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { Temporal } from "@js-temporal/polyfill";
-import { copyFile } from "fs/promises";
-import { rm } from "fs/promises";
+import { copyFile, rm } from "fs/promises";
 import z from "zod/v4";
 
 export class ExecutionService {
+  private readonly sockets: Socket[] = [];
+
   public constructor(
     private readonly env: Env.Private,
     private readonly executionRepository: ExecutionRepository,
     private readonly pipelineRepository: PipelineRepository,
     private readonly adapterService: AdapterService,
   ) {}
+
+  public registerSocket = (socket: Socket) => {
+    this.sockets.push(socket);
+  };
+
+  public unregisterSocket = (socket: Socket) => {
+    const index = this.sockets.findIndex((s) => s.data.clientId === socket.data.clientId);
+    if (index >= 0) {
+      this.sockets.splice(index, 1);
+    }
+  };
+
+  private notifySockets = (execution: Execution) => {
+    const message: ServerMessage = {
+      type: ServerMessage.Type.execution_update,
+      execution,
+    };
+    this.sockets.forEach((socket) => socket.send(JSON.stringify(message)));
+  };
 
   public async query(q: { pipelineId: string }): Promise<Execution[]> {
     return await this.executionRepository.query({ pipelineId: q.pipelineId });
@@ -106,6 +128,7 @@ export class ExecutionService {
       completedAt,
     };
     await this.executionRepository.update(execution);
+    this.notifySockets(execution);
   }
 
   private async executeTreeRecursively({
@@ -124,7 +147,7 @@ export class ExecutionService {
     mutex: Mutex;
   }): Promise<void> {
     const startedAt = Temporal.Now.plainDateTimeISO();
-    await this.updateExecutionAction({
+    await this.updateActionAndNotifySockets({
       executionId,
       actionStepId: step.id,
       mutex,
@@ -155,7 +178,7 @@ export class ExecutionService {
     const completedAt = Temporal.Now.plainDateTimeISO();
     const duration = startedAt.until(completedAt);
 
-    await this.updateExecutionAction({
+    await this.updateActionAndNotifySockets({
       executionId,
       actionStepId: step.id,
       mutex,
@@ -198,7 +221,7 @@ export class ExecutionService {
     }
   }
 
-  private async updateExecutionAction({
+  private async updateActionAndNotifySockets({
     executionId,
     actionStepId,
     mutex,
@@ -221,6 +244,7 @@ export class ExecutionService {
       }
       execution.actions.splice(actionIndex, 1, updateFn(execution.actions[actionIndex]));
       await this.executionRepository.update(execution);
+      this.notifySockets(execution);
     } finally {
       release();
     }

@@ -2,14 +2,18 @@ import { Env } from "@/Env";
 import { Exception } from "@/errors/Exception";
 import { ServerError } from "@/errors/ServerError";
 import index from "@/website/index.html";
-import { ErrorLike, serve } from "bun";
+import { ErrorLike } from "bun";
+import { Generate } from "./helpers/Generate";
 import { Execution } from "./models/Execution";
+import { Socket } from "./models/socket/Socket";
 import { ExecutionService } from "./services/ExecutionService";
 import { PipelineService } from "./services/PipelineService";
 import { StepService } from "./services/StepService";
 import { PipelineView } from "./views/PipelineView";
 
 export class Server {
+  private static readonly SOCKET_ENDPOINT = "/socket";
+
   public constructor(
     private readonly env: Env.Private,
     private readonly stepService: StepService,
@@ -18,8 +22,35 @@ export class Server {
   ) {}
 
   public listen() {
-    const server = serve({
+    const server: Bun.Server<Socket.Context> = Bun.serve({
       development: this.env.O_BRESPI_STAGE === "development",
+      /**
+       * Websockets
+       */
+      fetch: (request, server) => {
+        const { pathname } = new URL(request.url);
+        if (pathname === Server.SOCKET_ENDPOINT) {
+          const context: Socket.Context = {
+            clientId: Generate.shortRandomString(),
+          };
+          if (server.upgrade(request, { data: context })) {
+            return new Response(null, { status: 200 });
+          }
+          return Response.json(ServerError.socket_upgrade_failed());
+        }
+        return Response.json(ServerError.route_not_found());
+      },
+      websocket: {
+        message: () => {
+          // Ignore any incoming client messages
+        },
+        open: (socket) => {
+          this.executionService.registerSocket(socket);
+        },
+        close: (socket) => {
+          this.executionService.unregisterSocket(socket);
+        },
+      },
       routes: {
         /**
          * Defaults

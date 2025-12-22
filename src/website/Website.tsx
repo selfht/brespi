@@ -3,10 +3,11 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useEffect, useState } from "react";
 import { createBrowserRouter, replace, RouterProvider } from "react-router";
 import { ClientRegistry } from "./ClientRegistry";
-import { schedules } from "./pages/schedules";
+import { SocketClient } from "./clients/SocketClient";
 import { configuration } from "./pages/configuration";
 import { pipelines } from "./pages/pipelines";
 import { pipelines_$id } from "./pages/pipelines.$id";
+import { schedules } from "./pages/schedules";
 import { settings } from "./pages/settings";
 
 const router = createBrowserRouter([
@@ -39,7 +40,10 @@ const router = createBrowserRouter([
 export function Website() {
   const [registry, setRegistry] = useState<ClientRegistry>();
   useEffect(() => {
-    ClientRegistry.bootstrap().then(setRegistry);
+    ClientRegistry.bootstrap().then((r) => {
+      setRegistry(r);
+      r.get(SocketClient).initialize();
+    });
   }, []);
   if (registry) {
     return (

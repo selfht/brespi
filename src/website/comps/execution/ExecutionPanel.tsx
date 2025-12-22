@@ -2,28 +2,28 @@ import { Execution } from "@/models/Execution";
 import { Outcome } from "@/models/Outcome";
 import { ProblemDetails } from "@/models/ProblemDetails";
 import { UseQueryResult } from "@tanstack/react-query";
+import clsx from "clsx";
+import { useCallback } from "react";
 import { ErrorDump } from "../ErrorDump";
 import { Spinner } from "../Spinner";
 import { SquareIcon } from "../SquareIcon";
-import { useCallback } from "react";
-import clsx from "clsx";
 
 type Props = {
   query: UseQueryResult<Execution[], ProblemDetails>;
-  selectedExecution: Execution | undefined;
-  onSelect: (execution: Execution) => unknown;
+  selectedExecutionId: string | undefined;
+  onSelect: (executionId: string) => unknown;
   onDeselect: () => unknown;
 };
-export function ExecutionPanel({ query, selectedExecution, onSelect, onDeselect }: Props) {
+export function ExecutionPanel({ query, selectedExecutionId, onSelect, onDeselect }: Props) {
   const onExecutionClick = useCallback(
     (execution: Execution) => {
-      if (execution.id === selectedExecution?.id) {
+      if (execution.id === selectedExecutionId) {
         onDeselect();
       } else {
-        onSelect(execution);
+        onSelect(execution.id);
       }
     },
-    [selectedExecution?.id],
+    [selectedExecutionId],
   );
   if (query.error) {
     return (
@@ -47,20 +47,20 @@ export function ExecutionPanel({ query, selectedExecution, onSelect, onDeselect 
           <button
             key={execution.id}
             className={clsx("mt-4 flex items-center text-left gap-4 group cursor-pointer", {
-              "opacity-40": selectedExecution && execution.id !== selectedExecution.id,
+              "opacity-40": selectedExecutionId && execution.id !== selectedExecutionId,
             })}
             onClick={() => onExecutionClick(execution)}
           >
             <SquareIcon
               variant={execution.result?.outcome || "loading"}
               className={clsx("group-hover:border-white group-hover:bg-c-dim/20", {
-                "border-white bg-c-dim/20": execution.id === selectedExecution?.id,
+                "border-white bg-c-dim/20": execution.id === selectedExecutionId,
               })}
             />
             <div>
               <h3
                 className={clsx("text-base font-medium group-hover:text-white", {
-                  "text-white": execution.id === selectedExecution?.id,
+                  "text-white": execution.id === selectedExecutionId,
                 })}
               >
                 {execution.result
