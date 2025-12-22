@@ -409,7 +409,7 @@ export function pipelines_$id() {
               </div>
             </div>
             {/* CANVAS */}
-            <div className={clsx("flex flex-col px-6", isFullScreen ? "flex-1 min-h-0" : "h-120")}>
+            <div className={clsx("flex flex-col px-6", isFullScreen ? "flex-1 min-h-120" : "h-120")}>
               <div
                 className={clsx("h-full relative rounded-lg overflow-hidden", {
                   "bg-white bg-none!": interactivity === Interactivity.viewing,
