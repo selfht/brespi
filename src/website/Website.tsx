@@ -38,19 +38,19 @@ const router = createBrowserRouter([
 ]);
 
 export function Website() {
-  const [registry, setRegistry] = useState<ClientRegistry>();
+  const [clientRegistry, setClientRegistry] = useState<ClientRegistry>();
   useEffect(() => {
-    ClientRegistry.bootstrap().then((r) => {
-      setRegistry(r);
-      r.get(SocketClient).initialize();
+    ClientRegistry.bootstrap().then((registry) => {
+      setClientRegistry(registry);
+      registry.get(SocketClient).initialize();
     });
   }, []);
-  if (registry) {
+  if (clientRegistry) {
     return (
-      <ClientRegistry.Context.Provider value={registry}>
-        <QueryClientProvider client={registry.get(QueryClient)}>
+      <ClientRegistry.Context.Provider value={clientRegistry}>
+        <QueryClientProvider client={clientRegistry.get(QueryClient)}>
           <RouterProvider router={router} />
-          {registry.getEnv().O_BRESPI_STAGE === "development" && <ReactQueryDevtools />}
+          {clientRegistry.getEnv().O_BRESPI_STAGE === "development" && <ReactQueryDevtools />}
         </QueryClientProvider>
       </ClientRegistry.Context.Provider>
     );
