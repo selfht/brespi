@@ -1,12 +1,11 @@
 import { Step } from "@/models/Step";
-import clsx from "clsx";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 type Form = {
   path: string;
-  passthrough: boolean;
+  passthrough: "true" | "false";
 };
 type Props = {
   id: string;
@@ -17,10 +16,10 @@ type Props = {
   className?: string;
 };
 export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
+  const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       path: existing?.path ?? "",
-      passthrough: existing?.passthrough ?? false,
+      passthrough: `${existing?.passthrough ?? false}`,
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -32,7 +31,7 @@ export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, 
         object: "step",
         type: Step.Type.script_execution,
         path: form.path,
-        passthrough: form.passthrough,
+        passthrough: form.passthrough === "true",
       });
     } catch (error) {
       setError("root", {
@@ -40,6 +39,7 @@ export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, 
       });
     }
   };
+  const passThrough = watch("passthrough");
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.script_execution}>
@@ -50,7 +50,10 @@ export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, 
           </div>
           <div className="flex items-center">
             <label className="w-72">Passthrough?</label>
-            <input type="checkbox" className="rounded p-2 bg-c-dim/20" {...register("passthrough")} />
+            <select className="rounded p-2 bg-c-dim/20" {...register("passthrough")}>
+              <option value="true">yes</option>
+              <option value="false">no</option>
+            </select>
           </div>
         </fieldset>
         <FormElements.ButtonBar

@@ -28,7 +28,7 @@ export namespace CalloutHelper {
         className={clsx("break-all p-0.5 rounded", {
           "bg-c-dim/20": !somethingAbsent,
           italic: somethingAbsent,
-          "text-c-info": typeof v === "number",
+          "text-c-info brightness-150": typeof v === "number",
           "text-c-success": typeof v === "boolean" && v,
           "text-c-error": typeof v === "boolean" && !v,
         })}
