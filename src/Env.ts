@@ -16,9 +16,12 @@ export namespace Env {
         ...env,
         X_BRESPI_TMP_ROOT: join(env.X_BRESPI_ROOT, "tmp"),
         X_BRESPI_DATA_ROOT: join(env.X_BRESPI_ROOT, "data"),
-        X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from({
-          seconds: env.O_BRESPI_STAGE === "development" ? 1 : 0,
-        }),
+        X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from(
+          env.O_BRESPI_STAGE === "development" ? { seconds: 1 } : { seconds: 0 }, //
+        ),
+        X_BRESPI_TMP_ITEMS_RETENTION_PERIOD: Temporal.Duration.from(
+          env.O_BRESPI_STAGE === "development" ? { minutes: 5 } : { days: 3 }, //
+        ),
       }))
       .parse(Bun.env);
   }

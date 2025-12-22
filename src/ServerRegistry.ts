@@ -1,20 +1,20 @@
 import { Class } from "@/types/Class";
-import { Server } from "./Server";
 import { AdapterService } from "./adapters/AdapterService";
 import { CompressionAdapter } from "./adapters/compression/CompressionAdapter";
-import { FilesystemAdapter } from "./adapters/filesystem/FilesystemAdapter";
-import { PostgresAdapter } from "./adapters/postgres/PostgresAdapter";
-import { PipelineService } from "./services/PipelineService";
-import { CleanupService } from "./services/CleanupService";
 import { EncryptionAdapter } from "./adapters/encyption/EncryptionAdapter";
+import { FilesystemAdapter } from "./adapters/filesystem/FilesystemAdapter";
+import { FilterAdapter } from "./adapters/filter/FilterAdapter";
+import { PostgresAdapter } from "./adapters/postgres/PostgresAdapter";
 import { S3Adapter } from "./adapters/s3/S3Adapter";
 import { ScriptAdapter } from "./adapters/scripting/ScriptAdapter";
-import { StepService } from "./services/StepService";
-import { ExecutionService } from "./services/ExecutionService";
-import { PipelineRepository } from "./repositories/PipelineRepository";
-import { ExecutionRepository } from "./repositories/ExecutionRepository";
-import { FilterAdapter } from "./adapters/filter/FilterAdapter";
 import { Env } from "./Env";
+import { ExecutionRepository } from "./repositories/ExecutionRepository";
+import { PipelineRepository } from "./repositories/PipelineRepository";
+import { Server } from "./Server";
+import { CleanupService } from "./services/CleanupService";
+import { ExecutionService } from "./services/ExecutionService";
+import { PipelineService } from "./services/PipelineService";
+import { StepService } from "./services/StepService";
 
 export class ServerRegistry {
   public static async bootstrap(env: Env.Private): Promise<ServerRegistry> {
@@ -59,7 +59,7 @@ export class ServerRegistry {
       pipelineRepository,
       adapterService,
     ));
-    this.registry[CleanupService.name] = new CleanupService();
+    this.registry[CleanupService.name] = new CleanupService(env);
 
     // Server
     this.registry[Server.name] = new Server(env, stepService, pipelineService, executionService);
