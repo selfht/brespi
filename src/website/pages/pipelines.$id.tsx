@@ -159,25 +159,28 @@ export function pipelines_$id() {
 
   // Listen for (socket) execution updates
   useEffect(() => {
-    const token = socketClient.subscribe(ServerMessage.Type.execution_update, ({ execution: newExecution }) => {
-      const oldExecution = executionsRef.current.find(({ id }) => id === selectedExecutionId);
-      // Update the local overview
-      queryClient.setQueryData(executionsQueryKey, (data: Execution[]): Execution[] => {
-        const newExecutions = data.map((execution) => {
-          if (execution.id === newExecution.id) {
-            return newExecution;
-          }
-          return execution;
+    const token = socketClient.subscribe({
+      type: ServerMessage.Type.execution_update,
+      callback({ execution: newExecution }) {
+        const oldExecution = executionsRef.current.find(({ id }) => id === selectedExecutionId);
+        // Update the local overview
+        queryClient.setQueryData(executionsQueryKey, (data: Execution[]): Execution[] => {
+          const newExecutions = data.map((execution) => {
+            if (execution.id === newExecution.id) {
+              return newExecution;
+            }
+            return execution;
+          });
+          return (executionsRef.current = newExecutions);
         });
-        return (executionsRef.current = newExecutions);
-      });
-      // Update the canvas
-      if (oldExecution && selectedExecutionId === newExecution.id) {
-        const { differingActions } = Internal.extractDifferingActions({ oldExecution, newExecution });
-        differingActions.forEach((action) => {
-          canvasApi.current!.update(action.stepId, Internal.convertActionToBlock(action));
-        });
-      }
+        // Update the canvas
+        if (oldExecution && selectedExecutionId === newExecution.id) {
+          const { differingActions } = Internal.extractDifferingActions({ oldExecution, newExecution });
+          differingActions.forEach((action) => {
+            canvasApi.current!.update(action.stepId, Internal.convertActionToBlock(action));
+          });
+        }
+      },
     });
     return () => socketClient.unsubscribe(token);
   }, [selectedExecutionId]);

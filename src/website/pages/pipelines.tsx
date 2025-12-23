@@ -1,44 +1,50 @@
+import { Outcome } from "@/models/Outcome";
 import { ProblemDetails } from "@/models/ProblemDetails";
 import { PipelineView } from "@/views/PipelineView";
-import { useQuery } from "@tanstack/react-query";
+import { Temporal } from "@js-temporal/polyfill";
+import { QueryClient, useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
+import { useEffect } from "react";
 import { Link } from "react-router";
 import { PipelineClient } from "../clients/PipelineClient";
 import { QueryKey } from "../clients/QueryKey";
+import { SocketClient } from "../clients/SocketClient";
 import { ErrorDump } from "../comps/ErrorDump";
 import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
 import { SquareIcon } from "../comps/SquareIcon";
 import { useRegistry } from "../hooks/useRegistry";
-import { Outcome } from "@/models/Outcome";
-import { useEffect } from "react";
 
 export function pipelines() {
   const pipelineClient = useRegistry(PipelineClient);
+  const queryClient = useRegistry(QueryClient);
+  const socketClient = useRegistry(SocketClient);
 
   const queryKey = [QueryKey.pipelines];
-  const query = useQuery<PipelineVisualization[], ProblemDetails>({
+  const query = useQuery<Internal.PipelineVisualization[], ProblemDetails>({
     queryKey,
     queryFn: () =>
-      pipelineClient.query().then<PipelineVisualization[]>((pipelines) => [
-        ...pipelines.map(PipelineVisualization.convert),
+      pipelineClient.query().then<Internal.PipelineVisualization[]>((pipelines) => [
+        ...pipelines.map(Internal.convertToVisualization),
         {
           link: "/pipelines/new",
           title: "New Pipeline ...",
           squareIcon: "new",
-          isExecuting: false,
+          currentlyExecutingId: null,
         },
       ]),
+    refetchInterval: 5000,
   });
 
-  const isExecuting = query.data?.some((pipeline) => pipeline.isExecuting) || false;
+  const isSomePipelineExecuting = query.data?.some((pipeline) => pipeline.squareIcon === "loading") || false;
   useEffect(() => {
-    if (isExecuting) {
-      const interval = setInterval(() => query.refetch(), 1000);
-      return () => clearInterval(interval);
-    }
-  }, [isExecuting]);
+    const interval = Temporal.Duration.from({
+      seconds: isSomePipelineExecuting ? 2 : 20,
+    });
+    const token = setInterval(() => query.refetch(), interval.total("milliseconds"));
+    return () => clearInterval(token);
+  }, [isSomePipelineExecuting]);
 
   return (
     <Skeleton>
@@ -74,33 +80,33 @@ export function pipelines() {
   );
 }
 
-type PipelineVisualization = {
-  link: string;
-  title: string;
-  subtitle?: string;
-  squareIcon: SquareIcon.Props["variant"];
-  isExecuting: boolean;
-};
-namespace PipelineVisualization {
-  export function convert({ id, name, lastExecution }: PipelineView): PipelineVisualization {
+export namespace Internal {
+  export type PipelineVisualization = {
+    link: string;
+    title: string;
+    subtitle?: string;
+    squareIcon: SquareIcon.Props["variant"];
+  };
+  export function convertToVisualization({ id, name, lastExecution }: PipelineView): PipelineVisualization {
     let subtitle = "";
-    let isExecuting = false;
+    let squareIcon: PipelineVisualization["squareIcon"];
     if (lastExecution) {
       if (lastExecution.result) {
         subtitle = `${lastExecution.result.outcome === Outcome.success ? "Successfully executed" : "Failed to execute"} on ${lastExecution.result.completedAt.toLocaleString()}`;
+        squareIcon = lastExecution.result.outcome;
       } else {
         subtitle = `Started executing on ${lastExecution.startedAt.toLocaleString()} ...`;
-        isExecuting = true;
+        squareIcon = "loading";
       }
     } else {
       subtitle = "Last execution: N/A";
+      squareIcon = "no_data";
     }
     return {
       link: `/pipelines/${id}`,
       title: name,
       subtitle,
-      squareIcon: lastExecution ? (lastExecution.result ? lastExecution.result.outcome : "loading") : "no_data",
-      isExecuting,
+      squareIcon,
     };
   }
 }

@@ -1,8 +1,8 @@
+import { Prettify } from "@/helpers/Prettify";
+import { Action } from "@/models/Action";
+import { Outcome } from "@/models/Outcome";
 import { Step } from "@/models/Step";
 import { Block } from "../canvas/Block";
-import { Action } from "@/models/Action";
-import { Temporal } from "@js-temporal/polyfill";
-import { Outcome } from "@/models/Outcome";
 
 const types: Record<Step.Type, string> = {
   [Step.Type.filesystem_read]: "Filesystem Read",
@@ -107,27 +107,11 @@ export namespace StepTranslation {
   }
   export function actionDetails(action: Action): Block.Details | null {
     const result: Block.Details = {};
-    const prettyDuration = (duration: Temporal.Duration): string => {
-      const parts: string[] = [];
-      const days = Math.floor(duration.total("days"));
-      const hours = Math.floor(duration.total("hours")) % 24;
-      const minutes = Math.floor(duration.total("minutes")) % 60;
-      const seconds = Math.floor(duration.total("seconds")) % 60;
-      const milliSeconds = Math.floor(duration.total("milliseconds")) % 1000;
-
-      if (days > 0) parts.push(`${days}d`);
-      if (hours > 0) parts.push(`${hours}h`);
-      if (minutes > 0) parts.push(`${minutes}m`);
-      if (seconds > 0) parts.push(`${seconds}s`);
-      if ((seconds < 10 && milliSeconds > 0) || parts.length === 0) parts.push(`${milliSeconds}ms`);
-
-      return parts.join(" ");
-    };
     if (action.startedAt) {
       result["Started"] = action.startedAt.toLocaleString();
       if (action.result) {
         result["Completed"] = action.result.completedAt.toLocaleString();
-        result["Duration"] = prettyDuration(action.result.duration);
+        result["Duration"] = Prettify.duration(action.result.duration);
         switch (action.result.outcome) {
           case Outcome.success: {
             const maxLength = 10;

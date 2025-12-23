@@ -1,3 +1,4 @@
+import { Prettify } from "@/helpers/Prettify";
 import { Execution } from "@/models/Execution";
 import { Outcome } from "@/models/Outcome";
 import { ProblemDetails } from "@/models/ProblemDetails";
@@ -15,6 +16,7 @@ type Props = {
   onDeselect: () => unknown;
 };
 export function ExecutionPanel({ query, selectedExecutionId, onSelect, onDeselect }: Props) {
+  const selectedExecution = query.data?.find((e) => e.id === selectedExecutionId);
   const onExecutionClick = useCallback(
     (execution: Execution) => {
       if (execution.id === selectedExecutionId) {
@@ -82,7 +84,36 @@ export function ExecutionPanel({ query, selectedExecutionId, onSelect, onDeselec
       {query.data.length > 0 && (
         <div className="flex-1 p-6">
           <h2 className="mb-6 text-xl font-extralight">Execution Details</h2>
-          <p className="text-c-dim font-extralight">Select an execution on the left to see its details.</p>
+          {selectedExecution ? (
+            <div className="flex flex-col gap-4">
+              {selectedExecution.result ? (
+                <p>
+                  Started on <span className="text-c-info">{Prettify.timestamp(selectedExecution.startedAt)}</span> and completed on{" "}
+                  <span className="text-c-info">{Prettify.timestamp(selectedExecution.result.completedAt)}</span> for a total duration of{" "}
+                  <span className="text-c-info">{Prettify.duration(selectedExecution.result.duration)}</span>
+                </p>
+              ) : (
+                <p>
+                  Started on <span className="font-semibold">{Prettify.timestamp(selectedExecution.startedAt)}</span>
+                </p>
+              )}
+              {selectedExecution.result && (
+                <p>
+                  {selectedExecution.result.outcome === Outcome.success ? (
+                    <span>
+                      All steps in this pipeline have <span className="text-c-success">succeeded</span>.
+                    </span>
+                  ) : (
+                    <span>
+                      Some steps in this pipeline have <span className="text-c-error">failed</span>. See details below.
+                    </span>
+                  )}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-c-dim font-extralight">Select an execution on the left to see its details.</p>
+          )}
         </div>
       )}
     </div>

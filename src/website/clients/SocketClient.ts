@@ -15,14 +15,20 @@ export class SocketClient {
     });
   }
 
-  public subscribe = <T extends ServerMessage.Type>(type: T, callback: (message: Extract<ServerMessage, { type: T }>) => void): string => {
+  public subscribe = <T extends ServerMessage.Type>({
+    type,
+    callback,
+    replayLatestMessage = false,
+  }: SocketClient.SubscribeOptions<T>): string => {
     const id = `CB${Generate.shortRandomString()}`;
     this.callbacks[type as ServerMessage.Type][id] = (message) => {
       callback(message as Extract<ServerMessage, { type: T }>);
     };
-    const latestMessage = this.latestMessages[type];
-    if (latestMessage) {
-      callback(latestMessage as Extract<ServerMessage, { type: T }>);
+    if (replayLatestMessage) {
+      const latestMessage = this.latestMessages[type];
+      if (latestMessage) {
+        callback(latestMessage as Extract<ServerMessage, { type: T }>);
+      }
     }
     return id;
   };
@@ -33,5 +39,13 @@ export class SocketClient {
         delete category[id];
       }
     });
+  };
+}
+
+export namespace SocketClient {
+  export type SubscribeOptions<T extends ServerMessage.Type> = {
+    type: T;
+    callback(message: Extract<ServerMessage, { type: T }>): void;
+    replayLatestMessage?: boolean;
   };
 }

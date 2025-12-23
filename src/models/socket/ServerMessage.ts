@@ -2,14 +2,14 @@ import { ZodParser } from "@/helpers/ZodParser";
 import z from "zod/v4";
 import { Execution } from "../Execution";
 
-export type ServerMessage = ServerMessage.PipelineUpdate;
+export type ServerMessage = ServerMessage.ExecutionUpdate;
 
 export namespace ServerMessage {
   export enum Type {
     execution_update = "execution_update",
   }
 
-  export type PipelineUpdate = {
+  export type ExecutionUpdate = {
     type: Type.execution_update;
     execution: Execution;
   };
