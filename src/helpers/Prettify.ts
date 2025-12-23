@@ -2,45 +2,15 @@ import { Temporal } from "@js-temporal/polyfill";
 
 export namespace Prettify {
   export function timestamp(value: Temporal.PlainDateTime): string {
-    const monthNames = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-
-    const getOrdinalSuffix = (day: number): string => {
-      if (day > 3 && day < 21) return "th";
-      switch (day % 10) {
-        case 1:
-          return "st";
-        case 2:
-          return "nd";
-        case 3:
-          return "rd";
-        default:
-          return "th";
-      }
-    };
-
-    const month = monthNames[value.month - 1];
-    const day = value.day;
-    const ordinal = getOrdinalSuffix(day);
+    const month = String(value.month).padStart(2, "0");
+    const day = String(value.day).padStart(2, "0");
     const year = value.year;
 
     const hours = String(value.hour).padStart(2, "0");
     const minutes = String(value.minute).padStart(2, "0");
     const seconds = String(value.second).padStart(2, "0");
 
-    return `${month} ${day}${ordinal}, ${year} (${hours}:${minutes}:${seconds})`;
+    return `${year}-${month}-${day} at ${hours}:${minutes}:${seconds}`;
   }
 
   export function duration(value: Temporal.Duration): string {

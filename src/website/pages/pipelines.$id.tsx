@@ -34,6 +34,7 @@ import { useFullScreen } from "../hooks/useFullScreen";
 import { useRegistry } from "../hooks/useRegistry";
 import bgCanvas from "../images/bg-canvas.svg";
 import { StepTranslation } from "../translation/StepTranslation";
+import { Prettify } from "@/helpers/Prettify";
 
 type Form = {
   interactivity: Interactivity;
@@ -96,7 +97,7 @@ export function pipelines_$id() {
     if (initial === "new") {
       mainForm.reset({
         interactivity: Interactivity.editing,
-        name: `My New Pipeline (${Temporal.Now.plainTimeISO().toLocaleString()})`,
+        name: `My New Pipeline (${Prettify.timestamp(Temporal.Now.plainDateTimeISO())})`,
         steps: [],
       });
     } else {

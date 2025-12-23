@@ -15,6 +15,7 @@ import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
 import { SquareIcon } from "../comps/SquareIcon";
 import { useRegistry } from "../hooks/useRegistry";
+import { Prettify } from "@/helpers/Prettify";
 
 export function pipelines() {
   const pipelineClient = useRegistry(PipelineClient);
@@ -92,10 +93,10 @@ export namespace Internal {
     let squareIcon: PipelineVisualization["squareIcon"];
     if (lastExecution) {
       if (lastExecution.result) {
-        subtitle = `${lastExecution.result.outcome === Outcome.success ? "Successfully executed" : "Failed to execute"} on ${lastExecution.result.completedAt.toLocaleString()}`;
+        subtitle = `${lastExecution.result.outcome === Outcome.success ? "Successfully executed" : "Failed to execute"} on ${Prettify.timestamp(lastExecution.result.completedAt)}`;
         squareIcon = lastExecution.result.outcome;
       } else {
-        subtitle = `Started executing on ${lastExecution.startedAt.toLocaleString()} ...`;
+        subtitle = `Started executing on ${Prettify.timestamp(lastExecution.startedAt)} ...`;
         squareIcon = "loading";
       }
     } else {

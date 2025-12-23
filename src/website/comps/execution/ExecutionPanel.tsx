@@ -73,8 +73,8 @@ export function ExecutionPanel({ query, selectedExecutionId, onSelect, onDeselec
               </h3>
               <p className="font-light italic text-c-dim">
                 {execution.result
-                  ? `Completed on ${execution.result.completedAt.toLocaleString()}`
-                  : `Started on ${execution.startedAt.toLocaleString()}`}
+                  ? `Completed on ${Prettify.timestamp(execution.result.completedAt)}`
+                  : `Started on ${Prettify.timestamp(execution.startedAt)}`}
               </p>
             </div>
           </button>

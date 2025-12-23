@@ -108,9 +108,9 @@ export namespace StepTranslation {
   export function actionDetails(action: Action): Block.Details | null {
     const result: Block.Details = {};
     if (action.startedAt) {
-      result["Started"] = action.startedAt.toLocaleString();
+      result["Started"] = Prettify.timestamp(action.startedAt);
       if (action.result) {
-        result["Completed"] = action.result.completedAt.toLocaleString();
+        result["Completed"] = Prettify.timestamp(action.result.completedAt);
         result["Duration"] = Prettify.duration(action.result.duration);
         switch (action.result.outcome) {
           case Outcome.success: {
