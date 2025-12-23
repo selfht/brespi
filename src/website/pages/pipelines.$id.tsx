@@ -31,9 +31,9 @@ import { FormHelper } from "../forms/FormHelper";
 import { StepForm } from "../forms/StepForm";
 import { useFullScreen } from "../hooks/useFullScreen";
 import { useRegistry } from "../hooks/useRegistry";
+import { useYesQuery } from "../hooks/useYesQuery";
 import bgCanvas from "../images/bg-canvas.svg";
 import { StepTranslation } from "../translation/StepTranslation";
-import { useYesQuery } from "../translation/useYesQuery";
 
 type Form = {
   interactivity: Interactivity;
@@ -52,15 +52,22 @@ export function pipelines_$id() {
    * Data
    */
   const pipelineQuery = useYesQuery<"new" | PipelineView, ProblemDetails>({
-    queryFn: () => {
+    async queryFn() {
       if (id === "new") {
         return "new";
       }
-      return pipelineClient.find(id!);
+      return await pipelineClient.find(id!);
     },
+    queryFnDependencies: [id],
   });
   const executionsQuery = useYesQuery<Execution[], ProblemDetails>({
-    queryFn: () => executionClient.query({ pipelineId: id! }),
+    async queryFn() {
+      if (id === "new") {
+        return [];
+      }
+      return await executionClient.query({ pipelineId: id! });
+    },
+    queryFnDependencies: [id],
   });
 
   /**

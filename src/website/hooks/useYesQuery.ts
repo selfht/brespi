@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from "react";
 
 type Maybe<T> = T | undefined;
 
-export function useYesQuery<D, E = unknown>({ queryFn, initialData }: useYesQuery.Options<D>): useYesQuery.Result<D, E> {
+export function useYesQuery<D, E = unknown>({
+  queryFn,
+  queryFnDependencies = [],
+  initialData,
+}: useYesQuery.Options<D>): useYesQuery.Result<D, E> {
   const internalDataRef = useRef<Maybe<D>>(initialData);
   const internalErrorRef = useRef<Maybe<E>>(undefined);
   const [internalData, setInternalData] = useState<Maybe<D>>(initialData);
@@ -32,7 +36,7 @@ export function useYesQuery<D, E = unknown>({ queryFn, initialData }: useYesQuer
   }
   useEffect(() => {
     reload();
-  }, []);
+  }, queryFnDependencies);
 
   return {
     data: internalData,
@@ -48,9 +52,10 @@ export function useYesQuery<D, E = unknown>({ queryFn, initialData }: useYesQuer
 export namespace useYesQuery {
   export type Options<D> = {
     queryFn: () => Maybe<D> | Promise<Maybe<D>>;
+    queryFnDependencies?: unknown[];
     initialData?: Maybe<D>;
   };
-  export type Result<D, E> = {
+  export type Result<D, E = unknown> = {
     data: Maybe<D>;
     error: Maybe<E>;
     reload(): Promise<Maybe<D>>;

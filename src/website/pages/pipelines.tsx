@@ -13,7 +13,7 @@ import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
 import { SquareIcon } from "../comps/SquareIcon";
 import { useRegistry } from "../hooks/useRegistry";
-import { useYesQuery } from "../translation/useYesQuery";
+import { useYesQuery } from "../hooks/useYesQuery";
 
 export function pipelines() {
   const pipelineClient = useRegistry(PipelineClient);

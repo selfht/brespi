@@ -2,7 +2,7 @@ import { Prettify } from "@/helpers/Prettify";
 import { Execution } from "@/models/Execution";
 import { Outcome } from "@/models/Outcome";
 import { ProblemDetails } from "@/models/ProblemDetails";
-import { useYesQuery } from "@/website/translation/useYesQuery";
+import { useYesQuery } from "@/website/hooks/useYesQuery";
 import clsx from "clsx";
 import { useCallback } from "react";
 import { ErrorDump } from "../ErrorDump";
