@@ -1,3 +1,4 @@
+import { Prettify } from "@/helpers/Prettify";
 import { Action } from "@/models/Action";
 import { Execution } from "@/models/Execution";
 import { Outcome } from "@/models/Outcome";
@@ -7,9 +8,8 @@ import { ServerMessage } from "@/models/socket/ServerMessage";
 import { Step } from "@/models/Step";
 import { PipelineView } from "@/views/PipelineView";
 import { Temporal } from "@js-temporal/polyfill";
-import { QueryClient, useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Form, useNavigate, useParams } from "react-router";
 import { Block } from "../canvas/Block";
@@ -18,7 +18,6 @@ import { CanvasEvent } from "../canvas/CanvasEvent";
 import { Interactivity } from "../canvas/Interactivity";
 import { ExecutionClient } from "../clients/ExecutionClient";
 import { PipelineClient } from "../clients/PipelineClient";
-import { QueryKey } from "../clients/QueryKey";
 import { SocketClient } from "../clients/SocketClient";
 import { ArtifactSymbol } from "../comps/ArtifactSymbol";
 import { Button } from "../comps/Button";
@@ -34,7 +33,7 @@ import { useFullScreen } from "../hooks/useFullScreen";
 import { useRegistry } from "../hooks/useRegistry";
 import bgCanvas from "../images/bg-canvas.svg";
 import { StepTranslation } from "../translation/StepTranslation";
-import { Prettify } from "@/helpers/Prettify";
+import { useYesQuery } from "../translation/useYesQuery";
 
 type Form = {
   interactivity: Interactivity;
@@ -45,7 +44,6 @@ type Form = {
 export function pipelines_$id() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useRegistry(QueryClient);
   const pipelineClient = useRegistry(PipelineClient);
   const executionClient = useRegistry(ExecutionClient);
   const socketClient = useRegistry(SocketClient);
@@ -53,9 +51,7 @@ export function pipelines_$id() {
   /**
    * Data
    */
-  const pipelineQueryKey = [QueryKey.pipelines, id];
-  const pipelineQuery = useQuery<"new" | PipelineView, ProblemDetails>({
-    queryKey: pipelineQueryKey,
+  const pipelineQuery = useYesQuery<"new" | PipelineView, ProblemDetails>({
     queryFn: () => {
       if (id === "new") {
         return "new";
@@ -63,15 +59,9 @@ export function pipelines_$id() {
       return pipelineClient.find(id!);
     },
   });
-  const executionsQueryKey = [QueryKey.executions];
-  const executionsQuery = useQuery<Execution[], ProblemDetails>({
-    queryKey: executionsQueryKey,
-    queryFn: () =>
-      executionClient.query({ pipelineId: id! }).then((executions) => {
-        return (executionsRef.current = executions);
-      }),
+  const executionsQuery = useYesQuery<Execution[], ProblemDetails>({
+    queryFn: () => executionClient.query({ pipelineId: id! }),
   });
-  const executionsRef = useRef<Execution[]>([]); // ugly but practical
 
   /**
    * Full screen
@@ -131,49 +121,46 @@ export function pipelines_$id() {
 
   const [selectedExecutionId, setSelectedExecutionId] = useState<string>();
   const selectExecution = (executionId: string) => {
-    const execution = executionsRef.current.find(({ id }) => id === executionId);
+    const execution = executionsQuery.getData()?.find(({ id }) => id === executionId);
     if (!execution) {
       throw new Error("Illegal state: could not find selected execution");
     }
     setSelectedExecutionId(executionId);
     resetCanvas(execution);
   };
-  const deselectExecution = useCallback(() => {
+  const deselectExecution = () => {
     setSelectedExecutionId(undefined);
-    if (pipelineQuery.data) {
-      resetCanvas(pipelineQuery.data);
+    const pipeline = pipelineQuery.getData();
+    if (pipeline) {
+      resetCanvas(pipeline);
     }
-  }, [pipelineQuery.data]);
+  };
 
   // Actually execute
-  const execute = useCallback(async () => {
-    if (pipelineQuery.data !== "new") {
+  const execute = async () => {
+    if (pipelineQuery.getData() !== "new") {
       const lastExecution = await executionClient.create({ pipelineId: id! });
-      await queryClient.setQueryData(executionsQueryKey, (data: Execution[]): Execution[] => {
-        const updatedExecutions = [...data, lastExecution].sort(Execution.sort);
-        executionsRef.current = updatedExecutions;
-        return updatedExecutions;
-      });
+      executionsQuery.setData([...(executionsQuery.getData() || []), lastExecution].sort(Execution.sort));
       selectExecution(lastExecution.id);
     }
-  }, [pipelineQuery.data]);
+  };
 
   // Listen for (socket) execution updates
   useEffect(() => {
     const token = socketClient.subscribe({
       type: ServerMessage.Type.execution_update,
       callback({ execution: newExecution }) {
-        const oldExecution = executionsRef.current.find(({ id }) => id === selectedExecutionId);
+        const executions = executionsQuery.getData() || [];
+        const oldExecution = executions.find(({ id }) => id === selectedExecutionId);
         // Update the local overview
-        queryClient.setQueryData(executionsQueryKey, (data: Execution[]): Execution[] => {
-          const newExecutions = data.map((execution) => {
-            if (execution.id === newExecution.id) {
+        executionsQuery.setData(
+          executions.map((e) => {
+            if (e.id === newExecution.id) {
               return newExecution;
             }
-            return execution;
-          });
-          return (executionsRef.current = newExecutions);
-        });
+            return e;
+          }),
+        );
         // Update the canvas
         if (oldExecution && selectedExecutionId === newExecution.id) {
           const { differingActions } = Internal.extractDifferingActions({ oldExecution, newExecution });
@@ -208,7 +195,7 @@ export function pipelines_$id() {
             name: form.name,
             steps: form.steps,
           });
-          queryClient.setQueryData(pipelineQueryKey, pipeline);
+          pipelineQuery.setData(pipeline);
           // Implicitly leads to a "reset" via the effect listener on "query.data"
         }
       } catch (error) {

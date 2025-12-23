@@ -1,30 +1,24 @@
+import { Prettify } from "@/helpers/Prettify";
 import { Outcome } from "@/models/Outcome";
 import { ProblemDetails } from "@/models/ProblemDetails";
 import { PipelineView } from "@/views/PipelineView";
 import { Temporal } from "@js-temporal/polyfill";
-import { QueryClient, useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { PipelineClient } from "../clients/PipelineClient";
-import { QueryKey } from "../clients/QueryKey";
-import { SocketClient } from "../clients/SocketClient";
 import { ErrorDump } from "../comps/ErrorDump";
 import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
 import { SquareIcon } from "../comps/SquareIcon";
 import { useRegistry } from "../hooks/useRegistry";
-import { Prettify } from "@/helpers/Prettify";
+import { useYesQuery } from "../translation/useYesQuery";
 
 export function pipelines() {
   const pipelineClient = useRegistry(PipelineClient);
-  const queryClient = useRegistry(QueryClient);
-  const socketClient = useRegistry(SocketClient);
 
-  const queryKey = [QueryKey.pipelines];
-  const query = useQuery<Internal.PipelineVisualization[], ProblemDetails>({
-    queryKey,
+  const query = useYesQuery<Internal.PipelineVisualization[], ProblemDetails>({
     queryFn: () =>
       pipelineClient.query().then<Internal.PipelineVisualization[]>((pipelines) => [
         ...pipelines.map(Internal.convertToVisualization),
@@ -35,7 +29,6 @@ export function pipelines() {
           currentlyExecutingId: null,
         },
       ]),
-    refetchInterval: 5000,
   });
 
   const isSomePipelineExecuting = query.data?.some((pipeline) => pipeline.squareIcon === "loading") || false;
@@ -43,7 +36,7 @@ export function pipelines() {
     const interval = Temporal.Duration.from({
       seconds: isSomePipelineExecuting ? 2 : 20,
     });
-    const token = setInterval(() => query.refetch(), interval.total("milliseconds"));
+    const token = setInterval(() => query.reload(), interval.total("milliseconds"));
     return () => clearInterval(token);
   }, [isSomePipelineExecuting]);
 

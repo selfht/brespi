@@ -8,6 +8,7 @@ export class SocketClient {
   private readonly latestMessages: Partial<Record<ServerMessage.Type, ServerMessage>> = {};
 
   public initialize() {
+    // TODO: automatically try reconnecting on close !
     new WebSocket("/socket").addEventListener("message", ({ data }) => {
       const message = ServerMessage.parse(JSON.parse(data));
       Object.values(this.callbacks[message.type]).forEach((callback) => callback(message));

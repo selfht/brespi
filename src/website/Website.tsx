@@ -1,5 +1,3 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useEffect, useState } from "react";
 import { createBrowserRouter, replace, RouterProvider } from "react-router";
 import { ClientRegistry } from "./ClientRegistry";
@@ -48,10 +46,7 @@ export function Website() {
   if (clientRegistry) {
     return (
       <ClientRegistry.Context.Provider value={clientRegistry}>
-        <QueryClientProvider client={clientRegistry.get(QueryClient)}>
-          <RouterProvider router={router} />
-          {clientRegistry.getEnv().O_BRESPI_STAGE === "development" && <ReactQueryDevtools />}
-        </QueryClientProvider>
+        <RouterProvider router={router} />
       </ClientRegistry.Context.Provider>
     );
   }

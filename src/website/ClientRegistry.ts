@@ -1,7 +1,6 @@
 import { Env } from "@/Env";
 import { ProblemDetails } from "@/models/ProblemDetails";
 import { Class } from "@/types/Class";
-import { QueryClient } from "@tanstack/react-query";
 import { createContext } from "react";
 import { Yesttp } from "yesttp";
 import { ExecutionClient } from "./clients/ExecutionClient";
@@ -36,13 +35,6 @@ export class ClientRegistry {
     this.registry[PipelineClient.name] = new PipelineClient(yesttp);
     this.registry[PipelineClient.name] = new PipelineClient(yesttp);
     this.registry[ExecutionClient.name] = new ExecutionClient(yesttp);
-    this.registry[QueryClient.name] = new QueryClient({
-      defaultOptions: {
-        queries: {
-          retry: false,
-        },
-      },
-    });
   }
 
   public getEnv() {

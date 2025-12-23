@@ -2,7 +2,7 @@ import { Prettify } from "@/helpers/Prettify";
 import { Execution } from "@/models/Execution";
 import { Outcome } from "@/models/Outcome";
 import { ProblemDetails } from "@/models/ProblemDetails";
-import { UseQueryResult } from "@tanstack/react-query";
+import { useYesQuery } from "@/website/translation/useYesQuery";
 import clsx from "clsx";
 import { useCallback } from "react";
 import { ErrorDump } from "../ErrorDump";
@@ -10,7 +10,7 @@ import { Spinner } from "../Spinner";
 import { SquareIcon } from "../SquareIcon";
 
 type Props = {
-  query: UseQueryResult<Execution[], ProblemDetails>;
+  query: useYesQuery.Result<Execution[], ProblemDetails>;
   selectedExecutionId: string | undefined;
   onSelect: (executionId: string) => unknown;
   onDeselect: () => unknown;
