@@ -31,6 +31,7 @@ import { FormHelper } from "../forms/FormHelper";
 import { StepForm } from "../forms/StepForm";
 import { useFullScreen } from "../hooks/useFullScreen";
 import { useRegistry } from "../hooks/useRegistry";
+import { useStateRef } from "../hooks/useStateRef";
 import { useYesQuery } from "../hooks/useYesQuery";
 import bgCanvas from "../images/bg-canvas.svg";
 import { StepTranslation } from "../translation/StepTranslation";
@@ -126,7 +127,7 @@ export function pipelines_$id() {
    */
   const isCurrentlyExecuting = executionsQuery.data?.some((e) => !e.result) || false;
 
-  const [selectedExecutionId, setSelectedExecutionId] = useState<string>();
+  const [selectedExecutionId, selectedExecutionIdRef, setSelectedExecutionId] = useStateRef<string>();
   const selectExecution = (executionId: string) => {
     const execution = executionsQuery.getData()?.find(({ id }) => id === executionId);
     if (!execution) {
@@ -146,19 +147,29 @@ export function pipelines_$id() {
   // Actually execute
   const execute = async () => {
     if (pipelineQuery.getData() !== "new") {
-      const lastExecution = await executionClient.create({ pipelineId: id! });
-      executionsQuery.setData([...(executionsQuery.getData() || []), lastExecution].sort(Execution.sort));
-      selectExecution(lastExecution.id);
+      try {
+        /**
+         * TODO: we have to temporarily pause and buffer incoming execution updates during the creation ...
+         * otherwise the socket updates come in too early, before we've even received an HTTP response on our `create` endpoint
+         */
+        socketClient.pauseAndBuffer(socketSubscriptionRef.current!);
+        const lastExecution = await executionClient.create({ pipelineId: id! });
+        executionsQuery.setData([...(executionsQuery.getData() || []), lastExecution].sort(Execution.sort));
+        selectExecution(lastExecution.id);
+      } finally {
+        socketClient.continueAndDrain(socketSubscriptionRef.current!);
+      }
     }
   };
 
   // Listen for (socket) execution updates
+  const socketSubscriptionRef = useRef<string>(undefined);
   useEffect(() => {
-    const token = socketClient.subscribe({
+    socketSubscriptionRef.current = socketClient.subscribe({
       type: ServerMessage.Type.execution_update,
       callback({ execution: newExecution }) {
         const executions = executionsQuery.getData() || [];
-        const oldExecution = executions.find(({ id }) => id === selectedExecutionId);
+        const oldExecution = executions.find(({ id }) => id === selectedExecutionIdRef.current);
         // Update the local overview
         executionsQuery.setData(
           executions.map((e) => {
@@ -169,7 +180,7 @@ export function pipelines_$id() {
           }),
         );
         // Update the canvas
-        if (oldExecution && selectedExecutionId === newExecution.id) {
+        if (oldExecution && selectedExecutionIdRef.current === newExecution.id) {
           const { differingActions } = Internal.extractDifferingActions({ oldExecution, newExecution });
           differingActions.forEach((action) => {
             canvasApi.current!.update(action.stepId, Internal.convertActionToBlock(action));
@@ -177,8 +188,11 @@ export function pipelines_$id() {
         }
       },
     });
-    return () => socketClient.unsubscribe(token);
-  }, [selectedExecutionId]);
+    return () => {
+      socketClient.unsubscribe(socketSubscriptionRef.current!);
+      socketSubscriptionRef.current = undefined;
+    };
+  }, []);
 
   /**
    * Main form API
