@@ -51,24 +51,28 @@ export function pipelines_$id() {
   /**
    * Data
    */
-  const pipelineQuery = useYesQuery<"new" | PipelineView, ProblemDetails>({
-    async queryFn() {
-      if (id === "new") {
-        return "new";
-      }
-      return await pipelineClient.find(id!);
+  const pipelineQuery = useYesQuery<"new" | PipelineView, ProblemDetails>(
+    {
+      async queryFn() {
+        if (id === "new") {
+          return "new";
+        }
+        return await pipelineClient.find(id!);
+      },
     },
-    queryFnDependencies: [id],
-  });
-  const executionsQuery = useYesQuery<Execution[], ProblemDetails>({
-    async queryFn() {
-      if (id === "new") {
-        return [];
-      }
-      return await executionClient.query({ pipelineId: id! });
+    [id],
+  );
+  const executionsQuery = useYesQuery<Execution[], ProblemDetails>(
+    {
+      async queryFn() {
+        if (id === "new") {
+          return [];
+        }
+        return await executionClient.query({ pipelineId: id! });
+      },
     },
-    queryFnDependencies: [id],
-  });
+    [id],
+  );
 
   /**
    * Full screen
