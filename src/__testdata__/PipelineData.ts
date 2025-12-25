@@ -47,7 +47,7 @@ export namespace PipelineData {
         previousId: "019b1e40-bc72-7002-8177-3d26094656c8",
         object: "step",
         type: Step.Type.encryption,
-        keyReference: "SYMMETRIC_KEY_TUCKED_FAR_AWAY",
+        keyReference: "MY_TEST_ENCRYPTION_KEY",
         algorithm: {
           implementation: "aes256cbc",
         },
@@ -108,7 +108,7 @@ export namespace PipelineData {
         previousId: "agunfwvnftwr",
         object: "step",
         type: Step.Type.encryption,
-        keyReference: "",
+        keyReference: "MY_TEST_ENCRYPTION_KEY",
         algorithm: {
           implementation: "aes256cbc",
         },
@@ -168,7 +168,7 @@ export namespace PipelineData {
         previousId: null,
         object: "step",
         type: Step.Type.decryption,
-        keyReference: "SYMMETRIC_KEY",
+        keyReference: "MY_TEST_ENCRYPTION_KEY",
         algorithm: {
           implementation: "aes256cbc",
         },
