@@ -25,6 +25,7 @@ export function pipelines() {
         {
           link: "/pipelines/new",
           title: "New Pipeline ...",
+          titleUnderline: true,
           squareIcon: "new",
           currentlyExecutingId: null,
         },
@@ -52,7 +53,7 @@ export function pipelines() {
             <Spinner />
           </div>
         ) : (
-          query.data.map(({ link, title, subtitle, squareIcon }, index, { length }) => (
+          query.data.map(({ link, title, titleUnderline, subtitle, squareIcon }, index, { length }) => (
             <Link
               key={link}
               to={link}
@@ -63,7 +64,11 @@ export function pipelines() {
             >
               <SquareIcon variant={squareIcon} />
               <div>
-                <h3 className="text-lg font-medium">{title}</h3>
+                <h3
+                  className={clsx("text-lg font-medium", titleUnderline && "underline underline-offset-2 decoration-2 decoration-c-info")}
+                >
+                  {title}
+                </h3>
                 {subtitle && <p className="font-light italic text-c-dim">{subtitle}</p>}
               </div>
             </Link>
@@ -78,6 +83,7 @@ export namespace Internal {
   export type PipelineVisualization = {
     link: string;
     title: string;
+    titleUnderline: boolean;
     subtitle?: string;
     squareIcon: SquareIcon.Props["variant"];
   };
@@ -99,6 +105,7 @@ export namespace Internal {
     return {
       link: `/pipelines/${id}`,
       title: name,
+      titleUnderline: false,
       subtitle,
       squareIcon,
     };

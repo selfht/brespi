@@ -127,7 +127,7 @@ export namespace StepTranslation {
             break;
           }
           case Outcome.error: {
-            result["Error"] = "Details below ...";
+            result["Error"] = action.result.errorMessage;
             break;
           }
         }

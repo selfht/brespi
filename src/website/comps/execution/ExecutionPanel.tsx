@@ -45,7 +45,7 @@ export function ExecutionPanel({ query, selectedExecutionId, onSelect, onDeselec
   return (
     <div className="flex items-start">
       <div className="flex-1 p-6">
-        <h2 className="mb-6 text-xl font-extralight">Execution History</h2>
+        <h2 className="mb-6 text-xl font-extralight">Execution history</h2>
         {query.data.map((execution) => (
           <button
             key={execution.id}
@@ -84,7 +84,23 @@ export function ExecutionPanel({ query, selectedExecutionId, onSelect, onDeselec
       </div>
       {query.data.length > 0 && (
         <div className="flex-1 p-6">
-          <h2 className="mb-6 text-xl font-extralight">Execution Details</h2>
+          <h2 className="mb-6 text-xl font-extralight">
+            {selectedExecution && !selectedExecution.result ? (
+              <span>
+                This execution is <span className="text-sky-100 font-semibold">busy</span> ...
+              </span>
+            ) : selectedExecution?.result?.outcome === Outcome.success ? (
+              <span>
+                This execution has <span className="text-c-success font-semibold">succeeded</span>
+              </span>
+            ) : selectedExecution?.result?.outcome === Outcome.error ? (
+              <span>
+                This execution has <span className="text-c-error font-semibold">failed</span>
+              </span>
+            ) : (
+              <span>Execution details</span>
+            )}
+          </h2>
           {selectedExecution ? (
             <ExecutionDetails execution={selectedExecution} />
           ) : (

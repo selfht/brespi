@@ -157,26 +157,31 @@ export class ExecutionService {
     let output: Artifact[] = [];
     let outputTrail: TrailStep[] = [];
     let outcome: Outcome;
-    let failure: Action.Failure | null;
+    let errorMessage: string | null;
     try {
       const { artifacts, runtimeInformation } = await this.adapterService.submit(input, step, trail);
       output = this.ensureUniqueArtifactNames(artifacts);
       outputTrail = [...trail, { ...step, runtimeInformation }];
       outcome = Outcome.success;
-      failure = null;
+      errorMessage = null;
     } catch (e) {
       output = [];
       outcome = Outcome.error;
-      failure = {
-        problem: e instanceof Error ? e.name : "UnknownError",
-        message: e instanceof Error ? e.message : String(e),
-      };
+      errorMessage = e instanceof Error ? e.message : String(e);
     } finally {
       await Bun.sleep(this.env.X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY.total("milliseconds"));
       await this.cleanupArtifacts({ input, output });
     }
     const completedAt = Temporal.Now.plainDateTimeISO();
     const duration = startedAt.until(completedAt);
+
+    const stepCategory = Step.getCategory(step);
+    const consumed = [Step.Category.consumer, Step.Category.transformer].includes(stepCategory)
+      ? input.map(({ type, name }) => ({ type, name }))
+      : [];
+    const produced = [Step.Category.producer, Step.Category.transformer].includes(stepCategory)
+      ? output.map(({ type, name }) => ({ type, name }))
+      : [];
 
     await this.updateActionAndNotifySockets({
       executionId,
@@ -188,9 +193,9 @@ export class ExecutionService {
           outcome,
           duration,
           completedAt,
-          consumed: input.map(({ type, name }) => ({ type, name })),
-          produced: output.map(({ type, name }) => ({ type, name })),
-          failure,
+          consumed,
+          produced,
+          errorMessage,
         },
       }),
     });

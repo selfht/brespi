@@ -35,7 +35,7 @@ export namespace ExecutionData {
               { name: "notes.txt", type: "file" },
               { name: "backups.doc", type: "file" },
             ],
-            failure: null,
+            errorMessage: null,
           },
         },
         {
@@ -82,7 +82,7 @@ export namespace ExecutionData {
               { name: "bakingworld.sql", type: "file" },
               { name: "gamingworld.sql", type: "file" },
             ],
-            failure: null,
+            errorMessage: null,
           },
         },
         {
@@ -103,7 +103,7 @@ export namespace ExecutionData {
               { name: "bakingworld.sql.tar.gz", type: "file" },
               { name: "gamingworld.sql.tar.gz", type: "file" },
             ],
-            failure: null,
+            errorMessage: null,
           },
         },
         {
@@ -121,10 +121,7 @@ export namespace ExecutionData {
               { name: "gamingworld.sql.tar.gz", type: "file" },
             ],
             produced: [],
-            failure: {
-              problem: "Unknown error",
-              message: "somethign went wrong, don't know what",
-            },
+            errorMessage: "somethign went wrong, don't know what",
           },
         },
         {
