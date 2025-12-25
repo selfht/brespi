@@ -54,13 +54,15 @@ export class SocketClient {
   }
 
   public continueAndDrain(id: string): void {
-    const subscription = this.subscriptions.find((sub) => sub.id === id);
     const bufferedMessages = this.pauseBuffers.get(id);
-    if (subscription && bufferedMessages) {
+    if (bufferedMessages) {
       this.pauseBuffers.delete(id);
-      setTimeout(() => {
-        bufferedMessages.forEach((message) => this.deliverMessage(message, subscription));
-      });
+      const subscription = this.subscriptions.find((sub) => sub.id === id);
+      if (subscription) {
+        setTimeout(() => {
+          bufferedMessages.forEach((message) => this.deliverMessage(message, subscription));
+        });
+      }
     }
   }
 
