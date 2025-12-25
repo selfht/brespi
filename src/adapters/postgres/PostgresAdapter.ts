@@ -19,7 +19,7 @@ export class PostgresAdapter extends AbstractAdapter {
 
   public async backup(step: Step.PostgresBackup): Promise<Artifact[]> {
     const scriptPath = join(import.meta.dir, "pg_backup.sh");
-    const { username, password, host, port } = this.parseUrl(this.readEnvironmentVariable(step.connectionUrlReference));
+    const { username, password, host, port } = this.parseUrl(this.readEnvironmentVariable(step.connectionReference));
     const tempDir = await this.createTmpDestination();
 
     const env: Record<string, string | undefined> = {

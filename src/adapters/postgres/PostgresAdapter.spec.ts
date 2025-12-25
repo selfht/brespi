@@ -22,7 +22,7 @@ describe(PostgresAdapter.name, async () => {
       });
       // when
       const step: Partial<Step.PostgresBackup> = {
-        connectionUrlReference: "DATABASE_URL",
+        connectionReference: "DATABASE_URL",
         databaseSelection: {
           strategy: "all",
         },

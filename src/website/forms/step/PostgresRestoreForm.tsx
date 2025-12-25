@@ -18,7 +18,7 @@ type Props = {
 export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      connectionUrlReference: existing?.connectionUrlReference ?? "",
+      connectionUrlReference: existing?.connectionReference ?? "",
       database: existing?.database ?? "",
     },
   });
@@ -30,7 +30,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
         previousId: existing?.previousId || null,
         object: "step",
         type: Step.Type.postgres_restore,
-        connectionUrlReference: form.connectionUrlReference,
+        connectionReference: form.connectionUrlReference,
         database: form.database,
       });
     } catch (error) {

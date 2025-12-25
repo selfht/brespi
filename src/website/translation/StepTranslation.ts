@@ -95,12 +95,14 @@ export namespace StepTranslation {
         };
       case Step.Type.postgres_backup:
         return {
+          "Connection reference": step.connectionReference,
           Selection: step.databaseSelection.strategy,
           "Selection include": step.databaseSelection.strategy === "include" ? step.databaseSelection.include : undefined,
           "Selection exclude": step.databaseSelection.strategy === "exclude" ? step.databaseSelection.exclude : undefined,
         };
       case Step.Type.postgres_restore:
         return {
+          "Connection reference": step.connectionReference,
           Database: step.database,
         };
     }

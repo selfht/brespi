@@ -25,7 +25,7 @@ type Props = {
 export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      connectionUrlReference: existing?.connectionUrlReference ?? "",
+      connectionUrlReference: existing?.connectionReference ?? "",
       databaseSelectionStrategy: existing?.databaseSelection.strategy ?? "all",
       databaseSelectionInclude: {
         include: existing?.databaseSelection.strategy === "include" ? existing?.databaseSelection.include : [],
@@ -43,7 +43,7 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
         previousId: existing?.previousId || null,
         object: "step",
         type: Step.Type.postgres_backup,
-        connectionUrlReference: form.connectionUrlReference,
+        connectionReference: form.connectionUrlReference,
         databaseSelection:
           form.databaseSelectionStrategy === "all"
             ? {
