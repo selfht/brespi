@@ -11,13 +11,20 @@ export class SocketClient {
   private readonly subscriptions: Subscription[] = [];
   private readonly pauseBuffers: Map<string, ServerMessage[]> = new Map();
   private readonly latestMessages: Partial<Record<ServerMessage.Type, ServerMessage>> = {};
+  private socket: WebSocket | null = null;
 
-  public initialize() {
-    // TODO: automatically try reconnecting on close !
-    new WebSocket("/socket").addEventListener("message", ({ data }) => {
+  public connect() {
+    this.socket = new WebSocket("/socket");
+    this.socket.addEventListener("message", ({ data }) => {
       const message = ServerMessage.parse(JSON.parse(data));
       this.latestMessages[message.type] = message;
       this.deliverMessage(message);
+    });
+    this.socket.addEventListener("close", () => {
+      setTimeout(() => this.connect(), 100);
+    });
+    this.socket.addEventListener("error", () => {
+      this.socket?.close();
     });
   }
 
@@ -56,13 +63,13 @@ export class SocketClient {
   public continueAndDrain(id: string): void {
     const bufferedMessages = this.pauseBuffers.get(id);
     if (bufferedMessages) {
-      this.pauseBuffers.delete(id);
       const subscription = this.subscriptions.find((sub) => sub.id === id);
       if (subscription) {
         setTimeout(() => {
           bufferedMessages.forEach((message) => this.deliverMessage(message, subscription));
         });
       }
+      this.pauseBuffers.delete(id);
     }
   }
 

@@ -1,7 +1,7 @@
 import { Env } from "@/Env";
+import { CommandHelper } from "@/helpers/CommandHelper";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
-import { spawn } from "bun";
 import { rename, rm } from "fs/promises";
 import { join } from "path";
 import { z } from "zod/v4";
@@ -10,7 +10,10 @@ import { AbstractAdapter } from "../AbstractAdapter";
 export class PostgresAdapter extends AbstractAdapter {
   private readonly EXTENSION = ".sql";
 
-  public constructor(protected readonly env: Env.Private) {
+  public constructor(
+    protected readonly env: Env.Private,
+    private readonly commandExecutionFn = CommandHelper.execute,
+  ) {
     super(env);
   }
 
@@ -42,22 +45,15 @@ export class PostgresAdapter extends AbstractAdapter {
     };
 
     try {
-      // Execute the backup script using Bun's spawn with proper environment
-      const proc = spawn({
+      const { exitCode, stdout, stderr } = await this.commandExecutionFn({
         cmd: ["bash", scriptPath],
         env: {
           ...process.env,
           ...env,
         },
-        stdout: "pipe",
-        stderr: "pipe",
       });
-      const stdout = await new Response(proc.stdout).text();
-      await proc.exited;
-
-      if (proc.exitCode !== 0) {
-        const stderr = await new Response(proc.stderr).text();
-        throw new Error(`Script exited with code ${proc.exitCode}: ${stderr}`);
+      if (exitCode !== 0) {
+        throw new Error(`Script exited with code ${exitCode}: ${stderr}`);
       }
 
       // Parse and validate the JSON output with Zod
@@ -108,6 +104,47 @@ export class PostgresAdapter extends AbstractAdapter {
 
   public async restore(artifacts: Artifact[], step: Step.PostgresRestore): Promise<void> {
     throw new Error("TODO: Not implemented");
+  }
+
+  public static parseUrl(url: string): { username: string; password: string; host: string; port?: number } {
+    try {
+      const parsedUrl = new URL(url);
+      // Validate protocol
+      if (parsedUrl.protocol !== "postgresql:" && parsedUrl.protocol !== "postgres:") {
+        throw new Error(`Invalid protocol: ${parsedUrl.protocol}. Expected 'postgresql:' or 'postgres:'`);
+      }
+      // Extract username and password
+      const username = decodeURIComponent(parsedUrl.username);
+      const password = decodeURIComponent(parsedUrl.password);
+      if (!username) {
+        throw new Error("Username is required in connection URL");
+      }
+      if (!password) {
+        throw new Error("Password is required in connection URL");
+      }
+      // Extract host (strip brackets from IPv6 addresses)
+      let host = parsedUrl.hostname;
+      if (!host) {
+        throw new Error("Host is required in connection URL");
+      }
+      // Remove brackets from IPv6 addresses
+      if (host.startsWith("[") && host.endsWith("]")) {
+        host = host.slice(1, -1);
+      }
+      // Extract port (if specified)
+      const port = parsedUrl.port ? parseInt(parsedUrl.port, 10) : undefined;
+      return {
+        username,
+        password,
+        host,
+        ...(port !== undefined && { port }),
+      };
+    } catch (error) {
+      if (error instanceof TypeError) {
+        throw new Error(`Invalid URL format: ${error.message}`);
+      }
+      throw error;
+    }
   }
 }
 

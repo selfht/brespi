@@ -34,6 +34,9 @@ services:
     volumes:
       - .:/app
     working_dir: /app
+    environment:
+      MY_TEST_ENCRYPTION_KEY: unicorn
+      MY_POSTGRES_CONNECTION_URL: postgresql://postgres:postgres@postgres
     networks:
       - app-network
 

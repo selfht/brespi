@@ -152,7 +152,7 @@ export function pipelines_$id() {
     if (pipelineQuery.getData() !== "new") {
       try {
         /**
-         * TODO: we have to temporarily pause and buffer incoming execution updates during the creation ...
+         * We have to temporarily pause and buffer incoming execution updates during the creation ...
          * otherwise the socket updates come in too early, before we've even received an HTTP response on our `create` endpoint
          */
         socketClient.pauseAndBuffer(socketSubscriptionRef.current!);

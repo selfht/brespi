@@ -40,7 +40,7 @@ export function Website() {
   useEffect(() => {
     ClientRegistry.bootstrap().then((registry) => {
       setClientRegistry(registry);
-      registry.get(SocketClient).initialize();
+      registry.get(SocketClient).connect();
     });
   }, []);
   if (clientRegistry) {

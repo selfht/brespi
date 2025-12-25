@@ -9,7 +9,6 @@ import { AbstractAdapter } from "../AbstractAdapter";
 
 export class EncryptionAdapter extends AbstractAdapter {
   private readonly EXTENSION = ".enc";
-  private readonly key = "supersecretkey"; // TODO
 
   public constructor(protected readonly env: Env.Private) {
     super(env);
@@ -17,15 +16,16 @@ export class EncryptionAdapter extends AbstractAdapter {
 
   public async encrypt(artifact: Artifact, step: Step.Encryption): Promise<Artifact> {
     if (artifact.type !== "file") {
-      throw new Error("Unsupported artifact type");
+      throw new Error(`Unsupported artifact type: ${artifact.type}`);
     }
+    const key = this.readEncryptionKey(step.keyReference);
     const algorithm = this.translateAlgorithm(step.algorithm.implementation);
 
     const inputPath = artifact.path;
     const { outputId, outputPath } = this.generateArtifactDestination();
 
     // Derive a 32-byte key from the hardcoded key using SHA-256
-    const keyBuffer = createHash("sha256").update(this.key).digest();
+    const keyBuffer = createHash("sha256").update(key).digest();
 
     // Encrypt
     const iv = randomBytes(16);
@@ -44,15 +44,16 @@ export class EncryptionAdapter extends AbstractAdapter {
 
   public async decrypt(artifact: Artifact, step: Step.Decryption): Promise<Artifact> {
     if (artifact.type !== "file") {
-      throw new Error("Unsupported artifact type");
+      throw new Error(`Unsupported artifact type: ${artifact.type}`);
     }
+    const key = this.readEncryptionKey(step.keyReference);
     const algorithm = this.translateAlgorithm(step.algorithm.implementation);
 
     const inputPath = artifact.path;
     const { outputId, outputPath } = this.generateArtifactDestination();
 
     // Derive the same 32-byte key
-    const keyBuffer = createHash("sha256").update(this.key).digest();
+    const keyBuffer = createHash("sha256").update(key).digest();
 
     // Decrypt
     const inputStream = createReadStream(inputPath);
@@ -70,13 +71,20 @@ export class EncryptionAdapter extends AbstractAdapter {
     const decipher = createDecipheriv(algorithm, keyBuffer, iv);
     await pipeline(inputStream, decipher, createWriteStream(outputPath));
 
-    const stats = await stat(outputPath);
     return {
       id: outputId,
       type: "file",
       path: outputPath,
       name: this.stripExtension(artifact.name, this.EXTENSION),
     };
+  }
+
+  private readEncryptionKey(reference: string): string {
+    const encryptionKey = process.env[reference];
+    if (!encryptionKey) {
+      throw new Error(`Missing environment variable: ${reference}`);
+    }
+    return encryptionKey;
   }
 
   private translateAlgorithm(algorithm: string): string {
