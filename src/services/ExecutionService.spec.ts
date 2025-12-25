@@ -46,6 +46,7 @@ describe(ExecutionService.name, () => {
           previousId: null,
           object: "step",
           type: Step.Type.postgres_backup,
+          connectionUrlReference: "DATABASE_URL",
           databaseSelection: {
             strategy: "all",
           },

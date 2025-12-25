@@ -18,7 +18,7 @@ export class EncryptionAdapter extends AbstractAdapter {
     if (artifact.type !== "file") {
       throw new Error(`Unsupported artifact type: ${artifact.type}`);
     }
-    const key = this.readEncryptionKey(step.keyReference);
+    const key = this.readEnvironmentVariable(step.keyReference);
     const algorithm = this.translateAlgorithm(step.algorithm.implementation);
 
     const inputPath = artifact.path;
@@ -46,7 +46,7 @@ export class EncryptionAdapter extends AbstractAdapter {
     if (artifact.type !== "file") {
       throw new Error(`Unsupported artifact type: ${artifact.type}`);
     }
-    const key = this.readEncryptionKey(step.keyReference);
+    const key = this.readEnvironmentVariable(step.keyReference);
     const algorithm = this.translateAlgorithm(step.algorithm.implementation);
 
     const inputPath = artifact.path;
@@ -77,14 +77,6 @@ export class EncryptionAdapter extends AbstractAdapter {
       path: outputPath,
       name: this.stripExtension(artifact.name, this.EXTENSION),
     };
-  }
-
-  private readEncryptionKey(reference: string): string {
-    const encryptionKey = process.env[reference];
-    if (!encryptionKey) {
-      throw new Error(`Missing environment variable: ${reference}`);
-    }
-    return encryptionKey;
   }
 
   private translateAlgorithm(algorithm: string): string {

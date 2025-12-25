@@ -132,6 +132,7 @@ export namespace Step {
 
   export type PostgresBackup = Common & {
     type: Type.postgres_backup;
+    connectionUrlReference: string;
     databaseSelection:
       | { strategy: "all" } //
       | { strategy: "include"; include: string[] }
@@ -140,6 +141,7 @@ export namespace Step {
 
   export type PostgresRestore = Common & {
     type: Type.postgres_restore;
+    connectionUrlReference: string;
     database: string;
   };
 
@@ -290,6 +292,7 @@ export namespace Step {
           previousId: z.string().nullable(),
           object: z.literal("step"),
           type: z.literal(Type.postgres_backup),
+          connectionUrlReference: z.string(),
           databaseSelection: z.union([
             z.object({ strategy: z.literal("all") }),
             z.object({ strategy: z.literal("include"), include: z.array(z.string()) }),
@@ -302,6 +305,7 @@ export namespace Step {
           previousId: z.string().nullable(),
           object: z.literal("step"),
           type: z.literal(Type.postgres_restore),
+          connectionUrlReference: z.string(),
           database: z.string(),
         } satisfies SubSchema<Step.PostgresRestore>),
       ]),

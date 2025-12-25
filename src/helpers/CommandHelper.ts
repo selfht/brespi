@@ -1,14 +1,15 @@
-export namespace CommandHelper {
-  type Options = {
-    cmd: string[];
-    env?: Record<string, string>;
-  };
-  type Result = {
-    exitCode: number;
-    stdout: string;
-    stderr: string;
-  };
-  export async function execute({ cmd, env }: Options): Promise<Result> {
+type Options = {
+  cmd: string[];
+  env?: Record<string, string | undefined>;
+};
+type Result = {
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+};
+
+export class CommandHelper {
+  public async execute({ cmd, env }: Options): Promise<Result> {
     const proc = Bun.spawn({
       cmd,
       env,

@@ -26,4 +26,12 @@ export abstract class AbstractAdapter {
     await mkdir(destinationPath, { recursive: true });
     return destinationPath;
   }
+
+  protected readEnvironmentVariable(reference: string): string {
+    const value = process.env[reference];
+    if (!value) {
+      throw new Error(`Missing environment variable: ${reference}`);
+    }
+    return value;
+  }
 }

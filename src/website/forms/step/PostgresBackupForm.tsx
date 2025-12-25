@@ -5,6 +5,7 @@ import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 type Form = {
+  connectionUrlReference: string;
   databaseSelectionStrategy: "all" | "include" | "exclude";
   databaseSelectionInclude: {
     include: string[];
@@ -24,6 +25,7 @@ type Props = {
 export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
+      connectionUrlReference: existing?.connectionUrlReference ?? "",
       databaseSelectionStrategy: existing?.databaseSelection.strategy ?? "all",
       databaseSelectionInclude: {
         include: existing?.databaseSelection.strategy === "include" ? existing?.databaseSelection.include : [],
@@ -41,6 +43,7 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
         previousId: existing?.previousId || null,
         object: "step",
         type: Step.Type.postgres_backup,
+        connectionUrlReference: form.connectionUrlReference,
         databaseSelection:
           form.databaseSelectionStrategy === "all"
             ? {
@@ -68,6 +71,10 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.postgres_backup}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
+          <div className="flex items-center">
+            <label className="w-72">Connection URL Reference</label>
+            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("connectionUrlReference")} />
+          </div>
           <div className="flex items-center">
             <label className="w-72">Database selection</label>
             <select className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("databaseSelectionStrategy")}>

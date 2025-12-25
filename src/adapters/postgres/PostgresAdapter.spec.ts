@@ -1,25 +1,52 @@
+import { Test } from "@/helpers/Test.spec";
+import { Step } from "@/models/Step";
 import { describe, expect, it } from "bun:test";
 import { PostgresAdapter } from "./PostgresAdapter";
 
-describe(PostgresAdapter.name, () => {
+describe(PostgresAdapter.name, async () => {
+  const { commandHelper } = Test.MockRegistry;
+  const adapter = new PostgresAdapter(await Test.env(), commandHelper);
+
   describe("url parsing", () => {
-    type GlobTestCase = {
+    async function performSimpleBackup(url: string) {
+      // given
+      process.env.DATABASE_URL = url;
+      commandHelper.execute.mockResolvedValue({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          timestamp: "",
+          backupDir: "",
+          databases: [],
+        }),
+        stderr: "",
+      });
+      // when
+      const step: Partial<Step.PostgresBackup> = {
+        connectionUrlReference: "DATABASE_URL",
+        databaseSelection: {
+          strategy: "all",
+        },
+      };
+      await adapter.backup(step as Step.PostgresBackup);
+    }
+
+    type SuccessTestCase = {
       url: string;
       expectation: {
         username: string;
         password: string;
         host: string;
-        port?: number;
+        port?: string;
       };
     };
-    it.each<GlobTestCase>([
+    it.each<SuccessTestCase>([
       {
         url: "postgresql://kim:possible@magicalhost.com:9482/database",
         expectation: {
           username: "kim",
           password: "possible",
           host: "magicalhost.com",
-          port: 9482,
+          port: "9482",
         },
       },
       {
@@ -28,7 +55,7 @@ describe(PostgresAdapter.name, () => {
           username: "user",
           password: "pass",
           host: "localhost",
-          port: 5432,
+          port: "5432",
         },
       },
       {
@@ -45,7 +72,7 @@ describe(PostgresAdapter.name, () => {
           username: "user",
           password: "pass",
           host: "db.example.com",
-          port: 5433,
+          port: "5433",
         },
       },
       {
@@ -54,7 +81,7 @@ describe(PostgresAdapter.name, () => {
           username: "admin",
           password: "p@ssw0rd!",
           host: "db-server.io",
-          port: 5432,
+          port: "5432",
         },
       },
       {
@@ -71,7 +98,7 @@ describe(PostgresAdapter.name, () => {
           username: "user",
           password: "pass",
           host: "192.168.1.100",
-          port: 5432,
+          port: "5432",
         },
       },
       {
@@ -80,7 +107,7 @@ describe(PostgresAdapter.name, () => {
           username: "user",
           password: "pass",
           host: "::1",
-          port: 5432,
+          port: "5432",
         },
       },
       {
@@ -89,7 +116,7 @@ describe(PostgresAdapter.name, () => {
           username: "user",
           password: "pass",
           host: "2001:db8::1",
-          port: 5432,
+          port: "5432",
         },
       },
       {
@@ -106,46 +133,58 @@ describe(PostgresAdapter.name, () => {
           username: "user",
           password: "pass",
           host: "host.com",
-          port: 5432,
+          port: "5432",
         },
       },
-    ])("$url", async ({ url, expectation }) => {
+    ])("success $url", async ({ url, expectation }) => {
       // when
-      const options = PostgresAdapter.parseUrl(url);
+      await performSimpleBackup(url);
       // then
-      expect(options).toEqual(expectation);
+      type ExecuteArg = Parameters<typeof commandHelper.execute>[0];
+      expect(commandHelper.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          env: expect.objectContaining({
+            PGHOST: expectation.host,
+            PGPORT: expectation.port,
+            PGUSER: expectation.username,
+            PGPASSWORD: expectation.password,
+          }),
+        } satisfies Partial<ExecuteArg>),
+      );
     });
 
-    describe("error cases", () => {
-      it("throws error for missing username", () => {
-        expect(() => {
-          PostgresAdapter.parseUrl("postgresql://:password@host.com:5432");
-        }).toThrow("Username is required in connection URL");
-      });
-
-      it("throws error for missing password", () => {
-        expect(() => {
-          PostgresAdapter.parseUrl("postgresql://user@host.com:5432");
-        }).toThrow("Password is required in connection URL");
-      });
-
-      it("throws error for missing host", () => {
-        expect(() => {
-          PostgresAdapter.parseUrl("postgresql://user:pass@:5432");
-        }).toThrow("Invalid URL format");
-      });
-
-      it("throws error for invalid protocol", () => {
-        expect(() => {
-          PostgresAdapter.parseUrl("mysql://user:pass@host.com:3306");
-        }).toThrow("Invalid protocol: mysql:. Expected 'postgresql:' or 'postgres:'");
-      });
-
-      it("throws error for completely invalid URL", () => {
-        expect(() => {
-          PostgresAdapter.parseUrl("not a url at all");
-        }).toThrow("Invalid URL format");
-      });
+    type ErrorTestCase = {
+      url: string;
+      expectation: {
+        error: string;
+      };
+    };
+    it.each<ErrorTestCase>([
+      {
+        url: "postgresql://:password@host.com:5432",
+        expectation: { error: "Username is required in connection URL" },
+      },
+      {
+        url: "postgresql://user@host.com:5432",
+        expectation: { error: "Password is required in connection URL" },
+      },
+      {
+        url: "postgresql://user:pass@:5432",
+        expectation: { error: "Invalid URL format" },
+      },
+      {
+        url: "mysql://user:pass@host.com:3306",
+        expectation: { error: "Invalid protocol: mysql:. Expected 'postgresql:' or 'postgres:'" },
+      },
+      {
+        url: "not a url at all",
+        expectation: { error: "Invalid URL format" },
+      },
+    ])("error $url", async ({ url, expectation }) => {
+      // when
+      const action = () => performSimpleBackup(url);
+      // then
+      expect(action()).rejects.toThrow(expectation.error);
     });
   });
 });

@@ -1,10 +1,10 @@
 import { Step } from "@/models/Step";
-import clsx from "clsx";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 type Form = {
+  connectionUrlReference: string;
   database: string;
 };
 type Props = {
@@ -18,6 +18,7 @@ type Props = {
 export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
+      connectionUrlReference: existing?.connectionUrlReference ?? "",
       database: existing?.database ?? "",
     },
   });
@@ -29,6 +30,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
         previousId: existing?.previousId || null,
         object: "step",
         type: Step.Type.postgres_restore,
+        connectionUrlReference: form.connectionUrlReference,
         database: form.database,
       });
     } catch (error) {
@@ -41,6 +43,10 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.postgres_restore}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
+          <div className="flex items-center">
+            <label className="w-72">Connection URL Reference</label>
+            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("connectionUrlReference")} />
+          </div>
           <div className="flex items-center">
             <label className="w-72">Database</label>
             <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("database")} />

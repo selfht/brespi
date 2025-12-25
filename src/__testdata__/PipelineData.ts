@@ -27,6 +27,7 @@ export namespace PipelineData {
         previousId: null,
         object: "step",
         type: Step.Type.postgres_backup,
+        connectionUrlReference: "MY_POSTGRES_CONNECTION_URL",
         databaseSelection: {
           strategy: "all",
         },
@@ -89,6 +90,7 @@ export namespace PipelineData {
         previousId: "yfdqipzrjpka",
         object: "step",
         type: Step.Type.postgres_restore,
+        connectionUrlReference: "MY_POSTGRES_CONNECTION_URL",
         database: "",
       },
       {
@@ -116,6 +118,7 @@ export namespace PipelineData {
         previousId: null,
         object: "step",
         type: Step.Type.postgres_backup,
+        connectionUrlReference: "MY_POSTGRES_CONNECTION_URL",
         databaseSelection: {
           strategy: "all",
         },

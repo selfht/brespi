@@ -12,40 +12,33 @@ export class PostgresAdapter extends AbstractAdapter {
 
   public constructor(
     protected readonly env: Env.Private,
-    private readonly commandExecutionFn = CommandHelper.execute,
+    private readonly commandHelper: CommandHelper,
   ) {
     super(env);
   }
 
   public async backup(step: Step.PostgresBackup): Promise<Artifact[]> {
-    // TODO: add below to step, using a DB_REFERENCE, just like the S3 step
-    const opts = {
-      host: "postgres",
-      user: "postgres",
-      password: "postgres",
-    };
-
-    // Get the path to the backup script
     const scriptPath = join(import.meta.dir, "pg_backup.sh");
-
-    // Prepare environment variables based on selection mode
+    const { username, password, host, port } = this.parseUrl(this.readEnvironmentVariable(step.connectionUrlReference));
     const tempDir = await this.createTmpDestination();
-    const env = {
-      PGHOST: opts.host,
-      PGUSER: opts.user,
-      PGPASSWORD: opts.password,
+
+    const env: Record<string, string | undefined> = {
+      PGUSER: username,
+      PGPASSWORD: password,
+      PGHOST: host,
+      PGPORT: port,
       BACKUP_ROOT: tempDir,
       SELECTION_MODE: step.databaseSelection.strategy,
-      ...(step.databaseSelection.strategy === "include" && {
-        INCLUDE_DBS: step.databaseSelection.include.join(" "),
-      }),
-      ...(step.databaseSelection.strategy === "exclude" && {
-        EXCLUDE_DBS: step.databaseSelection.exclude.join(" "),
-      }),
     };
+    if (step.databaseSelection.strategy === "include") {
+      env.INCLUDE_DBS = step.databaseSelection.include.join(" ");
+    }
+    if (step.databaseSelection.strategy === "exclude") {
+      env.EXCLUDE_DBS = step.databaseSelection.exclude.join(" ");
+    }
 
     try {
-      const { exitCode, stdout, stderr } = await this.commandExecutionFn({
+      const { exitCode, stdout, stderr } = await this.commandHelper.execute({
         cmd: ["bash", scriptPath],
         env: {
           ...process.env,
@@ -106,7 +99,7 @@ export class PostgresAdapter extends AbstractAdapter {
     throw new Error("TODO: Not implemented");
   }
 
-  public static parseUrl(url: string): { username: string; password: string; host: string; port?: number } {
+  private parseUrl(url: string): { username: string; password: string; host: string; port?: string } {
     try {
       const parsedUrl = new URL(url);
       // Validate protocol
@@ -132,12 +125,12 @@ export class PostgresAdapter extends AbstractAdapter {
         host = host.slice(1, -1);
       }
       // Extract port (if specified)
-      const port = parsedUrl.port ? parseInt(parsedUrl.port, 10) : undefined;
+      const port = parsedUrl.port;
       return {
         username,
         password,
         host,
-        ...(port !== undefined && { port }),
+        port: port || undefined,
       };
     } catch (error) {
       if (error instanceof TypeError) {
