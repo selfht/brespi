@@ -8,6 +8,7 @@ import { useCallback } from "react";
 import { ErrorDump } from "../ErrorDump";
 import { Spinner } from "../Spinner";
 import { SquareIcon } from "../SquareIcon";
+import { ExecutionDetails } from "./ExecutionDetails";
 
 type Props = {
   query: useYesQuery.Result<Execution[], ProblemDetails>;
@@ -85,32 +86,7 @@ export function ExecutionPanel({ query, selectedExecutionId, onSelect, onDeselec
         <div className="flex-1 p-6">
           <h2 className="mb-6 text-xl font-extralight">Execution Details</h2>
           {selectedExecution ? (
-            <div className="flex flex-col gap-4">
-              {selectedExecution.result ? (
-                <p>
-                  Started on <span className="text-c-info">{Prettify.timestamp(selectedExecution.startedAt)}</span> and completed on{" "}
-                  <span className="text-c-info">{Prettify.timestamp(selectedExecution.result.completedAt)}</span> for a total duration of{" "}
-                  <span className="text-c-info">{Prettify.duration(selectedExecution.result.duration)}</span>
-                </p>
-              ) : (
-                <p>
-                  Started on <span className="font-semibold">{Prettify.timestamp(selectedExecution.startedAt)}</span>
-                </p>
-              )}
-              {selectedExecution.result && (
-                <p>
-                  {selectedExecution.result.outcome === Outcome.success ? (
-                    <span>
-                      All steps in this pipeline have <span className="text-c-success">succeeded</span>.
-                    </span>
-                  ) : (
-                    <span>
-                      Some steps in this pipeline have <span className="text-c-error">failed</span>. See details below.
-                    </span>
-                  )}
-                </p>
-              )}
-            </div>
+            <ExecutionDetails execution={selectedExecution} />
           ) : (
             <p className="text-c-dim font-extralight">Select an execution on the left to see its details.</p>
           )}

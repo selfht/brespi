@@ -33,7 +33,6 @@ import { useFullScreen } from "../hooks/useFullScreen";
 import { useRegistry } from "../hooks/useRegistry";
 import { useStateRef } from "../hooks/useStateRef";
 import { useYesQuery } from "../hooks/useYesQuery";
-import bgCanvas from "../images/bg-canvas.svg";
 import { StepTranslation } from "../translation/StepTranslation";
 
 type Form = {
@@ -359,6 +358,7 @@ export function pipelines_$id() {
    * Render
    */
   const { interactivity, name, steps } = mainForm.watch();
+  const selectedExecution = executionsQuery.data?.find((e) => e.id === selectedExecutionId);
   const buttonGroups = useMemo(() => Internal.getButtonGroups(), []);
   return (
     <Skeleton>
@@ -439,10 +439,20 @@ export function pipelines_$id() {
             <div className={clsx("flex flex-col px-6", isFullScreen ? "flex-1 min-h-120" : "h-120")}>
               <div
                 className={clsx("h-full relative rounded-lg overflow-hidden", {
-                  "bg-white bg-none!": interactivity === Interactivity.viewing,
-                  "bg-white/95": interactivity === Interactivity.editing,
+                  "bg-white": interactivity === Interactivity.viewing && !selectedExecution,
+                  "bg-sky-100": interactivity === Interactivity.viewing && selectedExecution && !selectedExecution.result,
+                  "bg-emerald-100":
+                    interactivity === Interactivity.viewing &&
+                    selectedExecution &&
+                    selectedExecution.result &&
+                    selectedExecution.result.outcome === Outcome.success,
+                  "bg-rose-100":
+                    interactivity === Interactivity.viewing &&
+                    selectedExecution &&
+                    selectedExecution.result &&
+                    selectedExecution.result.outcome === Outcome.error,
+                  "bg-gray-200": interactivity === Interactivity.editing,
                 })}
-                style={{ backgroundImage: `url(${bgCanvas})`, backgroundSize: 10 }}
               >
                 {mainForm.formState.errors.root?.message && (
                   <div className="absolute left-2 right-2 top-2 rounded-lg z-10 p-5 bg-black border-3 border-c-error flex justify-between items-start">
