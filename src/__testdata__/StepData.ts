@@ -110,7 +110,13 @@ export namespace StepData {
       case Step.Type.s3_upload: {
         const step: Step.S3Upload = {
           type: Step.Type.s3_upload,
-          bucketReference: "S3_BUCKET_URL",
+          connection: {
+            bucket: "my-bucket",
+            endpoint: "https://s3.amazonaws.com",
+            region: "us-east-1",
+            accessKeyReference: "S3_ACCESS_KEY",
+            secretKeyReference: "S3_SECRET_KEY",
+          },
           baseFolder: "/backups",
           ...common,
         };
@@ -119,7 +125,13 @@ export namespace StepData {
       case Step.Type.s3_download: {
         const step: Step.S3Download = {
           type: Step.Type.s3_download,
-          bucketReference: "S3_BUCKET_URL",
+          connection: {
+            bucket: "my-bucket",
+            endpoint: "https://s3.amazonaws.com",
+            region: "us-east-1",
+            accessKeyReference: "S3_ACCESS_KEY",
+            secretKeyReference: "S3_SECRET_KEY",
+          },
           baseFolder: "/backups",
           selection: {
             target: "latest",

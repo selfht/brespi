@@ -21,7 +21,7 @@ export class S3Adapter extends AbstractAdapter {
   }
 
   public async upload(artifacts: Artifact[], step: Step.S3Upload, stepTrail: Step[]): Promise<void> {
-    const client = this.constructClient(step.bucketReference);
+    const client = this.constructClient(step.connection);
 
     // 1. Update the global manifest for this base folder
     const timestamp = Temporal.Now.plainDateTimeISO();
@@ -55,7 +55,7 @@ export class S3Adapter extends AbstractAdapter {
   }
 
   public async download(step: Step.S3Download): Promise<Artifact[]> {
-    const client = this.constructClient(step.bucketReference);
+    const client = this.constructClient(step.connection);
 
     const upload = await this.handleManifestExclusively(client, step.baseFolder, (manifest) => {
       return this.findMatchingUpload(manifest, step.selection);
@@ -78,9 +78,16 @@ export class S3Adapter extends AbstractAdapter {
     return artifacts;
   }
 
-  private constructClient(bucketReference: string): S3Client {
-    const url = this.readEnvironmentVariable(bucketReference);
-    return new S3Client(UrlParser.s3(url));
+  private constructClient(connection: Step.S3Upload["connection"]): S3Client {
+    const accessKeyId = this.readEnvironmentVariable(connection.accessKeyReference);
+    const secretAccessKey = this.readEnvironmentVariable(connection.secretKeyReference);
+    return new S3Client({
+      bucket: connection.bucket,
+      endpoint: connection.endpoint,
+      region: connection.region ?? undefined,
+      accessKeyId,
+      secretAccessKey,
+    });
   }
 
   private async handleManifestExclusively<T>(

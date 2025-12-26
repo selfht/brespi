@@ -34,7 +34,13 @@ export namespace PipelineData {
       StepData.createStep(Step.Type.s3_upload, {
         id: "019b1e40-bc72-7004-a622-09aaf21057ba",
         previousId: "019b1e40-bc72-7003-af23-dd2773f7bc70",
-        bucketReference: "s3+http://AK:SK@localhost/my-bucket",
+        connection: {
+          bucket: "my-bucket",
+          endpoint: "http://localhost",
+          region: null,
+          accessKeyReference: "S3_ACCESS_KEY",
+          secretKeyReference: "S3_SECRET_KEY",
+        },
         baseFolder: "some-random-parent-folder",
       }),
     ],
@@ -53,7 +59,13 @@ export namespace PipelineData {
       StepData.createStep(Step.Type.s3_upload, {
         id: "dlxhvcsgumze",
         previousId: "yfdqipzrjpka",
-        bucketReference: "s3+http://AK:SK@localhost/my-bucket",
+        connection: {
+          bucket: "my-bucket",
+          endpoint: "http://localhost",
+          region: null,
+          accessKeyReference: "S3_ACCESS_KEY",
+          secretKeyReference: "S3_SECRET_KEY",
+        },
         baseFolder: "",
       }),
       StepData.createStep(Step.Type.postgres_restore, {
@@ -96,7 +108,13 @@ export namespace PipelineData {
     name: "My Restore Pipeline",
     steps: [
       StepData.createStep(Step.Type.s3_download, {
-        bucketReference: "s3+http://AK:SK@localhost/my-bucket",
+        connection: {
+          bucket: "my-bucket",
+          endpoint: "http://localhost",
+          region: null,
+          accessKeyReference: "S3_ACCESS_KEY",
+          secretKeyReference: "S3_SECRET_KEY",
+        },
         baseFolder: "some-random-parent-folder",
       }),
       StepData.createStep(Step.Type.decryption),

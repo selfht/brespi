@@ -5,7 +5,11 @@ import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 type Form = {
-  bucketReference: string;
+  bucket: string;
+  endpoint: string;
+  region: string;
+  accessKeyReference: string;
+  secretKeyReference: string;
   baseFolder: string;
 };
 type Props = {
@@ -19,7 +23,11 @@ type Props = {
 export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      bucketReference: existing?.bucketReference ?? "",
+      bucket: existing?.connection.bucket ?? "",
+      endpoint: existing?.connection.endpoint ?? "",
+      region: existing?.connection.region ?? "",
+      accessKeyReference: existing?.connection.accessKeyReference ?? "",
+      secretKeyReference: existing?.connection.secretKeyReference ?? "",
       baseFolder: existing?.baseFolder ?? "",
     },
   });
@@ -31,7 +39,13 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
         previousId: existing?.previousId || null,
         object: "step",
         type: Step.Type.s3_upload,
-        bucketReference: form.bucketReference,
+        connection: {
+          bucket: form.bucket,
+          endpoint: form.endpoint,
+          region: form.region || null,
+          accessKeyReference: form.accessKeyReference,
+          secretKeyReference: form.secretKeyReference,
+        },
         baseFolder: form.baseFolder,
       });
     } catch (error) {
@@ -45,8 +59,24 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
       <FormElements.Left stepType={Step.Type.s3_upload}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label className="w-72">Bucket Reference</label>
-            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("bucketReference")} />
+            <label className="w-72">Bucket</label>
+            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("bucket")} />
+          </div>
+          <div className="flex items-center">
+            <label className="w-72">Endpoint</label>
+            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("endpoint")} />
+          </div>
+          <div className="flex items-center">
+            <label className="w-72">Region</label>
+            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("region")} />
+          </div>
+          <div className="flex items-center">
+            <label className="w-72">Access Key Reference</label>
+            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("accessKeyReference")} />
+          </div>
+          <div className="flex items-center">
+            <label className="w-72">Secret Key Reference</label>
+            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("secretKeyReference")} />
           </div>
           <div className="flex items-center">
             <label className="w-72">Base Folder</label>

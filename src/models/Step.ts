@@ -50,6 +50,14 @@ export namespace Step {
     object: "step";
   };
 
+  type S3Connection = {
+    bucket: string;
+    endpoint: string;
+    region: string | null;
+    accessKeyReference: string;
+    secretKeyReference: string;
+  };
+
   export type FilesystemRead = Common & {
     type: Type.filesystem_read;
     path: string;
@@ -115,13 +123,13 @@ export namespace Step {
 
   export type S3Upload = Common & {
     type: Type.s3_upload;
-    bucketReference: string;
+    connection: S3Connection;
     baseFolder: string;
   };
 
   export type S3Download = Common & {
     type: Type.s3_download;
-    bucketReference: string;
+    connection: S3Connection;
     baseFolder: string;
     selection:
       | { target: "latest" } //
@@ -167,6 +175,14 @@ export namespace Step {
 
   export const parse = ZodParser.forType<Step>()
     .ensureSchemaMatchesType(() => {
+      const s3Connection = z.object({
+        bucket: z.string(),
+        endpoint: z.string(),
+        region: z.string().nullable(),
+        accessKeyReference: z.string(),
+        secretKeyReference: z.string(),
+      });
+
       return z.discriminatedUnion("type", [
         z.object({
           id: z.string(),
@@ -267,7 +283,7 @@ export namespace Step {
           previousId: z.string().nullable(),
           object: z.literal("step"),
           type: z.literal(Type.s3_upload),
-          bucketReference: z.string(),
+          connection: s3Connection,
           baseFolder: z.string(),
         } satisfies SubSchema<Step.S3Upload>),
 
@@ -276,7 +292,7 @@ export namespace Step {
           previousId: z.string().nullable(),
           object: z.literal("step"),
           type: z.literal(Type.s3_download),
-          bucketReference: z.string(),
+          connection: s3Connection,
           baseFolder: z.string(),
           selection: z.union([
             z.object({ target: z.literal("latest") }), //

@@ -81,12 +81,20 @@ export namespace StepTranslation {
         };
       case Step.Type.s3_upload:
         return {
-          "Bucket reference": step.bucketReference,
+          Bucket: step.connection.bucket,
+          Endpoint: step.connection.endpoint,
+          Region: step.connection.region,
+          "Access key reference": step.connection.accessKeyReference,
+          "Secret key reference": step.connection.secretKeyReference,
           "Base folder": step.baseFolder,
         };
       case Step.Type.s3_download:
         return {
-          "Bucket reference": step.bucketReference,
+          Bucket: step.connection.bucket,
+          Endpoint: step.connection.endpoint,
+          Region: step.connection.region,
+          "Access key reference": step.connection.accessKeyReference,
+          "Secret key reference": step.connection.secretKeyReference,
           "Base folder": step.baseFolder,
           Selection: step.selection.target,
           "Selection version": step.selection.target === "specific" ? step.selection.version : undefined,
