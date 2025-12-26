@@ -37,6 +37,8 @@ services:
     environment:
       MY_TEST_ENCRYPTION_KEY: unicorn
       MY_POSTGRES_CONNECTION_URL: postgresql://postgres:postgres@postgres
+      MY_S3_ACCESS_KEY: kim
+      MY_S3_SECRET_KEY: possible
     networks:
       - app-network
 

@@ -111,11 +111,11 @@ export namespace StepData {
         const step: Step.S3Upload = {
           type: Step.Type.s3_upload,
           connection: {
-            bucket: "my-bucket",
-            endpoint: "https://s3.amazonaws.com",
-            region: "us-east-1",
-            accessKeyReference: "S3_ACCESS_KEY",
-            secretKeyReference: "S3_SECRET_KEY",
+            bucket: "my-backups",
+            endpoint: "http://minio:9000",
+            region: null,
+            accessKeyReference: "MY_S3_ACCESS_KEY",
+            secretKeyReference: "MY_S3_SECRET_KEY",
           },
           baseFolder: "/backups",
           ...common,
@@ -129,8 +129,8 @@ export namespace StepData {
             bucket: "my-bucket",
             endpoint: "https://s3.amazonaws.com",
             region: "us-east-1",
-            accessKeyReference: "S3_ACCESS_KEY",
-            secretKeyReference: "S3_SECRET_KEY",
+            accessKeyReference: "MY_S3_ACCESS_KEY",
+            secretKeyReference: "MY_S3_SECRET_KEY",
           },
           baseFolder: "/backups",
           selection: {

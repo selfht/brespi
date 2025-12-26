@@ -34,14 +34,6 @@ export namespace PipelineData {
       StepData.createStep(Step.Type.s3_upload, {
         id: "019b1e40-bc72-7004-a622-09aaf21057ba",
         previousId: "019b1e40-bc72-7003-af23-dd2773f7bc70",
-        connection: {
-          bucket: "my-bucket",
-          endpoint: "http://localhost",
-          region: null,
-          accessKeyReference: "S3_ACCESS_KEY",
-          secretKeyReference: "S3_SECRET_KEY",
-        },
-        baseFolder: "some-random-parent-folder",
       }),
     ],
   };
@@ -59,20 +51,12 @@ export namespace PipelineData {
       StepData.createStep(Step.Type.s3_upload, {
         id: "dlxhvcsgumze",
         previousId: "yfdqipzrjpka",
-        connection: {
-          bucket: "my-bucket",
-          endpoint: "http://localhost",
-          region: null,
-          accessKeyReference: "S3_ACCESS_KEY",
-          secretKeyReference: "S3_SECRET_KEY",
-        },
         baseFolder: "",
       }),
       StepData.createStep(Step.Type.postgres_restore, {
         id: "xalkneycatmp",
         previousId: "yfdqipzrjpka",
         connectionReference: "MY_POSTGRES_CONNECTION_URL",
-        database: "",
       }),
       StepData.createStep(Step.Type.compression, {
         id: "agunfwvnftwr",
