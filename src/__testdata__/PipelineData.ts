@@ -1,5 +1,6 @@
 import { Pipeline } from "../models/Pipeline";
 import { Step } from "../models/Step";
+import { StepData } from "./StepData";
 
 export namespace PipelineData {
   export const WORK_IN_PROGRESS: Pipeline = {
@@ -7,13 +8,9 @@ export namespace PipelineData {
     object: "pipeline",
     name: "This is just a work in progress",
     steps: [
-      {
-        id: Bun.randomUUIDv7(),
-        type: Step.Type.filesystem_read,
-        object: "step",
-        previousId: null,
+      StepData.createStep(Step.Type.filesystem_read, {
         path: "/etc",
-      },
+      }),
     ],
   };
 
@@ -22,44 +19,24 @@ export namespace PipelineData {
     object: "pipeline",
     name: "My Postgres Backup Pipeline",
     steps: [
-      {
+      StepData.createStep(Step.Type.postgres_backup, {
         id: "019b1e40-bc72-7001-80e4-c76ff6f1244e",
-        previousId: null,
-        object: "step",
-        type: Step.Type.postgres_backup,
         connectionReference: "MY_POSTGRES_CONNECTION_URL",
-        databaseSelection: {
-          strategy: "all",
-        },
-      },
-      {
+      }),
+      StepData.createStep(Step.Type.compression, {
         id: "019b1e40-bc72-7002-8177-3d26094656c8",
         previousId: "019b1e40-bc72-7001-80e4-c76ff6f1244e",
-        object: "step",
-        type: Step.Type.compression,
-        algorithm: {
-          implementation: "targzip",
-          level: 9,
-        },
-      },
-      {
+      }),
+      StepData.createStep(Step.Type.encryption, {
         id: "019b1e40-bc72-7003-af23-dd2773f7bc70",
         previousId: "019b1e40-bc72-7002-8177-3d26094656c8",
-        object: "step",
-        type: Step.Type.encryption,
-        keyReference: "MY_TEST_ENCRYPTION_KEY",
-        algorithm: {
-          implementation: "aes256cbc",
-        },
-      },
-      {
+      }),
+      StepData.createStep(Step.Type.s3_upload, {
         id: "019b1e40-bc72-7004-a622-09aaf21057ba",
         previousId: "019b1e40-bc72-7003-af23-dd2773f7bc70",
-        object: "step",
-        type: Step.Type.s3_upload,
         bucketReference: "s3+http://AK:SK@localhost/my-bucket",
         baseFolder: "some-random-parent-folder",
-      },
+      }),
     ],
   };
 
@@ -68,79 +45,48 @@ export namespace PipelineData {
     object: "pipeline",
     name: "My Wordpress Pipeline for /wp-uploads",
     steps: [
-      {
+      StepData.createStep(Step.Type.filesystem_write, {
         id: "kpwmqemdrxyz",
         previousId: "yfdqipzrjpka",
-        object: "step",
-        type: Step.Type.filesystem_write,
         path: "",
-      },
-      {
+      }),
+      StepData.createStep(Step.Type.s3_upload, {
         id: "dlxhvcsgumze",
         previousId: "yfdqipzrjpka",
-        object: "step",
-        type: Step.Type.s3_upload,
         bucketReference: "s3+http://AK:SK@localhost/my-bucket",
         baseFolder: "",
-      },
-      {
+      }),
+      StepData.createStep(Step.Type.postgres_restore, {
         id: "xalkneycatmp",
         previousId: "yfdqipzrjpka",
-        object: "step",
-        type: Step.Type.postgres_restore,
         connectionReference: "MY_POSTGRES_CONNECTION_URL",
         database: "",
-      },
-      {
+      }),
+      StepData.createStep(Step.Type.compression, {
         id: "agunfwvnftwr",
         previousId: "kwclogopzrec",
-        object: "step",
-        type: Step.Type.compression,
-        algorithm: {
-          implementation: "targzip",
-          level: 9,
-        },
-      },
-      {
+      }),
+      StepData.createStep(Step.Type.encryption, {
         id: "yfdqipzrjpka",
         previousId: "agunfwvnftwr",
-        object: "step",
-        type: Step.Type.encryption,
-        keyReference: "MY_TEST_ENCRYPTION_KEY",
-        algorithm: {
-          implementation: "aes256cbc",
-        },
-      },
-      {
+      }),
+      StepData.createStep(Step.Type.postgres_backup, {
         id: "kwclogopzrec",
-        previousId: null,
-        object: "step",
-        type: Step.Type.postgres_backup,
         connectionReference: "MY_POSTGRES_CONNECTION_URL",
-        databaseSelection: {
-          strategy: "all",
-        },
-      },
-      {
+      }),
+      StepData.createStep(Step.Type.script_execution, {
         id: "httkqpjuluef",
         previousId: "agunfwvnftwr",
-        object: "step",
-        type: Step.Type.script_execution,
         path: "",
-        passthrough: false,
-      },
-      {
+      }),
+      StepData.createStep(Step.Type.folder_group, {
         id: "qgbyxvjsfmhu",
         previousId: "httkqpjuluef",
-        object: "step",
-        type: Step.Type.folder_group,
-      },
-      {
+      }),
+      StepData.createStep(Step.Type.folder_flatten, {
         id: "amuhvjqcyrjn",
         previousId: "qgbyxvjsfmhu",
-        object: "step",
-        type: Step.Type.folder_flatten,
-      },
+      }),
     ],
   };
 
@@ -149,36 +95,12 @@ export namespace PipelineData {
     object: "pipeline",
     name: "My Restore Pipeline",
     steps: [
-      {
-        id: Bun.randomUUIDv7(),
-        previousId: null,
-        object: "step",
-        type: Step.Type.s3_download,
+      StepData.createStep(Step.Type.s3_download, {
         bucketReference: "s3+http://AK:SK@localhost/my-bucket",
         baseFolder: "some-random-parent-folder",
-        selection: {
-          target: "latest",
-        },
-      },
-      {
-        id: Bun.randomUUIDv7(),
-        previousId: null,
-        object: "step",
-        type: Step.Type.decryption,
-        keyReference: "MY_TEST_ENCRYPTION_KEY",
-        algorithm: {
-          implementation: "aes256cbc",
-        },
-      },
-      {
-        id: Bun.randomUUIDv7(),
-        previousId: null,
-        object: "step",
-        type: Step.Type.decompression,
-        algorithm: {
-          implementation: "targzip",
-        },
-      },
+      }),
+      StepData.createStep(Step.Type.decryption),
+      StepData.createStep(Step.Type.decompression),
     ],
   };
 }

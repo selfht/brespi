@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it } from "bun:test";
 import { ExecutionService } from "./ExecutionService";
 import { Outcome } from "@/models/Outcome";
 import { Action } from "@/models/Action";
+import { StepData } from "@/__testdata__/StepData";
 
 describe(ExecutionService.name, async () => {
   const { inMemoryExecutionRepository, inMemoryPipelineRepository } = Test.RepoRegistry;
@@ -35,7 +36,8 @@ describe(ExecutionService.name, async () => {
       artifacts: [],
       runtimeInformation: {},
     });
-    const pipeline = await inMemoryPipelineRepository.create(linearPipeline());
+    const steps = [Step.Type.postgres_backup, Step.Type.compression, Step.Type.encryption, Step.Type.s3_upload];
+    const pipeline = await inMemoryPipelineRepository.create(linearPipeline(steps));
     // when
     const { id } = await service.create({ pipelineId: pipeline!.id });
     const completedExecution = await Test.waitUntil(
@@ -52,7 +54,7 @@ describe(ExecutionService.name, async () => {
     expect(completedExecution.result?.completedAt).toBeTruthy();
     expect(completedExecution.result?.duration).toBeTruthy();
     // then (expectedAdapterInvocations)
-    [Step.Type.postgres_backup, Step.Type.compression, Step.Type.encryption, Step.Type.s3_upload].forEach((type, index) => {
+    steps.forEach((type, index) => {
       expect(adapterService.submit).toHaveBeenNthCalledWith(
         index + 1,
         expect.anything(),
@@ -64,51 +66,17 @@ describe(ExecutionService.name, async () => {
     });
   });
 
-  function linearPipeline(): Pipeline {
+  function linearPipeline(steps: Step.Type[]): Pipeline {
     return {
       id: "-",
       object: "pipeline",
       name: "my pipeline",
-      steps: [
-        {
-          id: "A",
-          previousId: null,
-          object: "step",
-          type: Step.Type.postgres_backup,
-          connectionReference: "DATABASE_URL",
-          databaseSelection: {
-            strategy: "all",
-          },
-        },
-        {
-          id: "B",
-          previousId: "A",
-          object: "step",
-          type: Step.Type.compression,
-          algorithm: {
-            implementation: "targzip",
-            level: 9,
-          },
-        },
-        {
-          id: "C",
-          previousId: "B",
-          object: "step",
-          type: Step.Type.encryption,
-          keyReference: "MY_KEY",
-          algorithm: {
-            implementation: "aes256cbc",
-          },
-        },
-        {
-          id: "D",
-          previousId: "C",
-          object: "step",
-          type: Step.Type.s3_upload,
-          bucketReference: "s3+http://AK:SK@localhost/my-bucket",
-          baseFolder: "/backups",
-        },
-      ],
+      steps: steps.map((type, index) =>
+        StepData.createStep(type, {
+          id: `${index}`,
+          previousId: index > 0 ? `${index - 1}` : null,
+        }),
+      ),
     };
   }
 });
