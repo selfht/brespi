@@ -22,9 +22,8 @@ export namespace Test {
   export async function waitUntil<T>(
     fn: () => T | Promise<T>,
     condition: (result: T) => boolean,
-    options: { timeout?: number; interval?: number } = {},
+    { timeout = 5000, interval = 50 }: { timeout?: number; interval?: number } = {},
   ): Promise<T> {
-    const { timeout = 5000, interval = 50 } = options;
     const startTime = Date.now();
 
     while (true) {

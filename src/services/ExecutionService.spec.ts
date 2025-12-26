@@ -1,10 +1,10 @@
 import { Test } from "@/helpers/Test.spec";
+import { Execution } from "@/models/Execution";
 import { Pipeline } from "@/models/Pipeline";
 import { Step } from "@/models/Step";
 import { Temporal } from "@js-temporal/polyfill";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { ExecutionService } from "./ExecutionService";
-import { Execution } from "@/models/Execution";
 
 describe(ExecutionService.name, async () => {
   const { inMemoryExecutionRepository, inMemoryPipelineRepository } = Test.RepoRegistry;
@@ -35,14 +35,12 @@ describe(ExecutionService.name, async () => {
     });
     const pipeline = await inMemoryPipelineRepository.create(linearPipeline());
     // when
-    const execution = await service.create({ pipelineId: pipeline!.id });
-    // then - wait for execution to complete
+    const { id } = await service.create({ pipelineId: pipeline!.id });
+    // then
     const completedExecution = await Test.waitUntil(
-      () => inMemoryExecutionRepository.findById(execution.id) as Promise<Execution>,
-      (exec) => exec?.result !== undefined,
-      { timeout: 5000, interval: 100 },
+      () => inMemoryExecutionRepository.findById(id) as Promise<Execution>,
+      (x) => Boolean(x?.result),
     );
-    expect(completedExecution.result).toBeDefined();
   });
 
   function linearPipeline(): Pipeline {
