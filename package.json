@@ -9,7 +9,8 @@
     "tc": "bunx tsc --noEmit",
     "dev": "bun --env-file=.env.development --hot src/index.ts",
     "start": "NODE_ENV=production bun --env-file=.env.production src/index.ts",
-    "build": "bun run build.ts"
+    "build": "bun run build.ts",
+    "playwright": "playwright"
   },
   "dependencies": {
     "@joint/core": "^4.2.1",
@@ -25,8 +26,10 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/bun": "latest",
+    "@types/node": "^25.0.3",
     "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@types/bun": "latest"
+    "@types/react-dom": "^19"
   }
 }
