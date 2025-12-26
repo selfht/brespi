@@ -76,9 +76,8 @@ describe(ExecutionService.name, () => {
           previousId: "C",
           object: "step",
           type: Step.Type.s3_upload,
+          bucketReference: "s3+http://AK:SK@localhost/my-bucket",
           baseFolder: "/backups",
-          accessKeyReference: "AK",
-          secretKeyReference: "SK",
         },
       ],
     };

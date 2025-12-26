@@ -1,19 +1,18 @@
 import { Env } from "@/Env";
+import { Generate } from "@/helpers/Generate";
 import { Mutex } from "@/helpers/Mutex";
+import { UrlParser } from "@/helpers/UrlParser";
 import { Artifact } from "@/models/Artifact";
 import { S3Manifest } from "@/models/s3/S3Manifest";
 import { S3Meta } from "@/models/s3/S3Meta";
 import { Step } from "@/models/Step";
 import { Temporal } from "@js-temporal/polyfill";
 import { S3Client } from "bun";
-import { stat } from "fs/promises";
 import { join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
-import { Generate } from "@/helpers/Generate";
 
 export class S3Adapter extends AbstractAdapter {
   private static readonly MANIFEST_MUTEX = new Mutex();
-
   private static readonly MANIFEST_FILE_NAME = "__brespi_manifest__.json";
   private static readonly META_FILE_NAME = "__brespi_meta__.json";
 
@@ -22,13 +21,7 @@ export class S3Adapter extends AbstractAdapter {
   }
 
   public async upload(artifacts: Artifact[], step: Step.S3Upload, stepTrail: Step[]): Promise<void> {
-    // TODO
-    const client = new S3Client({
-      accessKeyId: "kim",
-      secretAccessKey: "possible",
-      bucket: "my-backups",
-      endpoint: "http://minio:9000",
-    });
+    const client = this.constructClient(step.bucketReference);
 
     // 1. Update the global manifest for this base folder
     const timestamp = Temporal.Now.plainDateTimeISO();
@@ -62,12 +55,7 @@ export class S3Adapter extends AbstractAdapter {
   }
 
   public async download(step: Step.S3Download): Promise<Artifact[]> {
-    const client = new S3Client({
-      accessKeyId: "kim",
-      secretAccessKey: "possible",
-      bucket: "my-backups",
-      endpoint: "http://minio:9000",
-    });
+    const client = this.constructClient(step.bucketReference);
 
     const upload = await this.handleManifestExclusively(client, step.baseFolder, (manifest) => {
       return this.findMatchingUpload(manifest, step.selection);
@@ -88,6 +76,11 @@ export class S3Adapter extends AbstractAdapter {
       });
     }
     return artifacts;
+  }
+
+  private constructClient(bucketReference: string): S3Client {
+    const url = this.readEnvironmentVariable(bucketReference);
+    return new S3Client(UrlParser.s3(url));
   }
 
   private async handleManifestExclusively<T>(

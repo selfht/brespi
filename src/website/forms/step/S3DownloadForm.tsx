@@ -5,8 +5,7 @@ import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 type Form = {
-  accessKeyReference: string;
-  secretKeyReference: string;
+  bucketReference: string;
   baseFolder: string;
   selectionTarget: "latest" | "specific";
   selectionSpecificVersion: string;
@@ -22,8 +21,7 @@ type Props = {
 export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      accessKeyReference: existing?.accessKeyReference ?? "",
-      secretKeyReference: existing?.secretKeyReference ?? "",
+      bucketReference: existing?.bucketReference ?? "",
       baseFolder: existing?.baseFolder ?? "",
       selectionTarget: existing?.selection.target ?? "latest",
       selectionSpecificVersion: existing?.selection.target === "specific" ? existing.selection.version : "",
@@ -37,8 +35,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
         previousId: existing?.previousId || null,
         object: "step",
         type: Step.Type.s3_download,
-        accessKeyReference: form.accessKeyReference,
-        secretKeyReference: form.secretKeyReference,
+        bucketReference: form.bucketReference,
         baseFolder: form.baseFolder,
         selection:
           form.selectionTarget === "latest" ? { target: "latest" } : { target: "specific", version: form.selectionSpecificVersion },
@@ -56,12 +53,8 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
       <FormElements.Left stepType={Step.Type.s3_download}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label className="w-72">Access Key Reference</label>
-            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("accessKeyReference")} />
-          </div>
-          <div className="flex items-center">
-            <label className="w-72">Secret Key Reference</label>
-            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("secretKeyReference")} />
+            <label className="w-72">Bucket Reference</label>
+            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("bucketReference")} />
           </div>
           <div className="flex items-center">
             <label className="w-72">Base Folder</label>

@@ -5,8 +5,7 @@ import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 type Form = {
-  accessKeyReference: string;
-  secretKeyReference: string;
+  bucketReference: string;
   baseFolder: string;
 };
 type Props = {
@@ -20,8 +19,7 @@ type Props = {
 export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      accessKeyReference: existing?.accessKeyReference ?? "",
-      secretKeyReference: existing?.secretKeyReference ?? "",
+      bucketReference: existing?.bucketReference ?? "",
       baseFolder: existing?.baseFolder ?? "",
     },
   });
@@ -33,8 +31,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
         previousId: existing?.previousId || null,
         object: "step",
         type: Step.Type.s3_upload,
-        accessKeyReference: form.accessKeyReference,
-        secretKeyReference: form.secretKeyReference,
+        bucketReference: form.bucketReference,
         baseFolder: form.baseFolder,
       });
     } catch (error) {
@@ -48,12 +45,8 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
       <FormElements.Left stepType={Step.Type.s3_upload}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label className="w-72">Access Key Reference</label>
-            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("accessKeyReference")} />
-          </div>
-          <div className="flex items-center">
-            <label className="w-72">Secret Key Reference</label>
-            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("secretKeyReference")} />
+            <label className="w-72">Bucket Reference</label>
+            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("bucketReference")} />
           </div>
           <div className="flex items-center">
             <label className="w-72">Base Folder</label>

@@ -115,15 +115,13 @@ export namespace Step {
 
   export type S3Upload = Common & {
     type: Type.s3_upload;
-    accessKeyReference: string;
-    secretKeyReference: string;
+    bucketReference: string;
     baseFolder: string;
   };
 
   export type S3Download = Common & {
     type: Type.s3_download;
-    accessKeyReference: string;
-    secretKeyReference: string;
+    bucketReference: string;
     baseFolder: string;
     selection:
       | { target: "latest" } //
@@ -268,8 +266,7 @@ export namespace Step {
           previousId: z.string().nullable(),
           object: z.literal("step"),
           type: z.literal(Type.s3_upload),
-          accessKeyReference: z.string(),
-          secretKeyReference: z.string(),
+          bucketReference: z.string(),
           baseFolder: z.string(),
         } satisfies SubSchema<Step.S3Upload>),
 
@@ -278,8 +275,7 @@ export namespace Step {
           previousId: z.string().nullable(),
           object: z.literal("step"),
           type: z.literal(Type.s3_download),
-          accessKeyReference: z.string(),
-          secretKeyReference: z.string(),
+          bucketReference: z.string(),
           baseFolder: z.string(),
           selection: z.union([
             z.object({ target: z.literal("latest") }), //
