@@ -1,16 +1,18 @@
 import { Test } from "@/helpers/Test.spec";
 import { Pipeline } from "@/models/Pipeline";
 import { Step } from "@/models/Step";
+import { Temporal } from "@js-temporal/polyfill";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { ExecutionService } from "./ExecutionService";
-import { Temporal } from "@js-temporal/polyfill";
-import { Env } from "@/Env";
+import { Execution } from "@/models/Execution";
 
-describe(ExecutionService.name, () => {
+describe(ExecutionService.name, async () => {
   const { inMemoryExecutionRepository, inMemoryPipelineRepository } = Test.RepoRegistry;
   const { adapterService } = Test.MockRegistry;
   const service = new ExecutionService(
-    { X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from({ seconds: 0 }) } as Env.Private,
+    await Test.env({
+      X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from({ seconds: 0 }),
+    }),
     inMemoryExecutionRepository,
     inMemoryPipelineRepository,
     Test.impl(adapterService),
@@ -27,12 +29,20 @@ describe(ExecutionService.name, () => {
 
   it("executes a simple linear pipeline", async () => {
     // given
+    adapterService.submit.mockResolvedValue({
+      artifacts: [],
+      runtimeInformation: {},
+    });
     const pipeline = await inMemoryPipelineRepository.create(linearPipeline());
     // when
-    await service.create({ pipelineId: pipeline!.id });
-    // TODO
-    // TODO
-    // TODO
+    const execution = await service.create({ pipelineId: pipeline!.id });
+    // then - wait for execution to complete
+    const completedExecution = await Test.waitUntil(
+      () => inMemoryExecutionRepository.findById(execution.id) as Promise<Execution>,
+      (exec) => exec?.result !== undefined,
+      { timeout: 5000, interval: 100 },
+    );
+    expect(completedExecution.result).toBeDefined();
   });
 
   function linearPipeline(): Pipeline {

@@ -9,13 +9,14 @@ import { S3Adapter } from "./adapters/s3/S3Adapter";
 import { ScriptAdapter } from "./adapters/scripting/ScriptAdapter";
 import { Env } from "./Env";
 import { ExecutionRepository } from "./repositories/ExecutionRepository";
-import { PipelineRepository } from "./repositories/PipelineRepository";
+import { PipelineRepositoryDefault } from "./repositories/implementations/PipelineRepositoryDefault";
 import { Server } from "./Server";
 import { CleanupService } from "./services/CleanupService";
 import { ExecutionService } from "./services/ExecutionService";
 import { PipelineService } from "./services/PipelineService";
 import { StepService } from "./services/StepService";
 import { CommandHelper } from "./helpers/CommandHelper";
+import { ExecutionRepositoryDefault } from "./repositories/implementations/ExecutionRepositoryDefault";
 
 export class ServerRegistry {
   public static async bootstrap(env: Env.Private): Promise<ServerRegistry> {
@@ -27,6 +28,7 @@ export class ServerRegistry {
   private constructor(env: Env.Private) {
     // Helpers
     const commandHelper = (this.registry[CommandHelper.name] = new CommandHelper());
+
     // Adapters
     const fileSystemAdapter = (this.registry[FilesystemAdapter.name] = new FilesystemAdapter(env));
     const compressionAdapter = (this.registry[CompressionAdapter.name] = new CompressionAdapter(env));
@@ -46,20 +48,20 @@ export class ServerRegistry {
     ));
 
     // Repositories
-    const pipelineRepository = (this.registry[PipelineRepository.name] = new PipelineRepository());
-    const executionRepository = (this.registry[ExecutionRepository.name] = new ExecutionRepository());
+    const pipelineRepositoryDefault = (this.registry[PipelineRepositoryDefault.name] = new PipelineRepositoryDefault());
+    const executionRepositoryDefault = (this.registry[ExecutionRepositoryDefault.name] = new ExecutionRepositoryDefault());
 
     // Services
     const stepService = (this.registry[StepService.name] = new StepService());
     const pipelineService = (this.registry[PipelineService.name] = new PipelineService(
-      pipelineRepository,
-      executionRepository,
+      pipelineRepositoryDefault,
+      executionRepositoryDefault,
       stepService,
     ));
     const executionService = (this.registry[ExecutionService.name] = new ExecutionService(
       env,
-      executionRepository,
-      pipelineRepository,
+      executionRepositoryDefault,
+      pipelineRepositoryDefault,
       adapterService,
     ));
     this.registry[CleanupService.name] = new CleanupService(env);

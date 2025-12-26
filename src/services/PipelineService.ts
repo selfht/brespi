@@ -1,7 +1,6 @@
 import { PipelineError } from "@/errors/PipelineError";
 import { ServerError } from "@/errors/ServerError";
 import { ZodProblem } from "@/helpers/ZodIssues";
-import { Execution } from "@/models/Execution";
 import { Pipeline } from "@/models/Pipeline";
 import { Step } from "@/models/Step";
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";

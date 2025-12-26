@@ -1,5 +1,5 @@
-export class InMemoryRepository<T extends { id: string }> {
-  public constructor(protected readonly storage: T[] = []) {}
+export class GenericInMemoryRepository<T extends { id: string }> {
+  public constructor(public readonly storage: T[] = []) {}
 
   public async list(): Promise<T[]> {
     return this.storage;
@@ -33,9 +33,5 @@ export class InMemoryRepository<T extends { id: string }> {
     }
     const [pipeline] = this.storage.splice(existingIndex, 1);
     return pipeline;
-  }
-
-  public clear(): void {
-    this.storage.splice(0, this.storage.length);
   }
 }

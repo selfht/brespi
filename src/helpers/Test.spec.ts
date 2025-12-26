@@ -2,12 +2,13 @@ import { AdapterService } from "@/adapters/AdapterService";
 import { Execution } from "@/models/Execution";
 import { Pipeline } from "@/models/Pipeline";
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";
-import { InMemoryRepository } from "@/repositories/InMemoryRepository";
-import { PipelineRepository } from "@/repositories/PipelineRepository";
+import { GenericInMemoryRepository } from "@/repositories/implementations/GenericInMemoryRepository";
+import { PipelineRepositoryDefault } from "@/repositories/implementations/PipelineRepositoryDefault";
 import { mock, Mock } from "bun:test";
 import { CommandHelper } from "./CommandHelper";
 import { Env } from "@/Env";
 import { join } from "path";
+import { PipelineRepository } from "@/repositories/PipelineRepository";
 
 export namespace Test {
   export type Mocked<T> = {
@@ -16,6 +17,29 @@ export namespace Test {
 
   export function impl<T extends Mocked<any>>(mock: T) {
     return mock as T extends Mocked<infer U> ? U : never;
+  }
+
+  export async function waitUntil<T>(
+    fn: () => T | Promise<T>,
+    condition: (result: T) => boolean,
+    options: { timeout?: number; interval?: number } = {},
+  ): Promise<T> {
+    const { timeout = 5000, interval = 50 } = options;
+    const startTime = Date.now();
+
+    while (true) {
+      const result = await fn();
+
+      if (condition(result)) {
+        return result;
+      }
+
+      if (Date.now() - startTime >= timeout) {
+        throw new Error(`waitUntil timeout after ${timeout}ms`);
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
   }
 
   export async function env(env = {} as Partial<Env.Private>) {
@@ -55,20 +79,21 @@ export namespace Test {
   }
 
   export namespace RepoRegistry {
-    export const inMemoryPipelineRepository: PipelineRepository = new InMemoryRepository<Pipeline>();
-    export const inMemoryExecutionRepository: ExecutionRepository =
-      new (class InMemoryExecutionRepository extends InMemoryRepository<Execution> {
-        public async query(q: { pipelineId: string }): Promise<Execution[]> {
-          return super.storage.filter((e) => e.pipelineId === q.pipelineId);
-        }
-        public async queryMostRecentExecutions(q: { pipelineIds: string[] }): Promise<Map<string, Execution | null>> {
-          const result = new Map<string, Execution | null>();
-          for (const pipelineId of q.pipelineIds) {
-            const lastExecution = super.storage.find((e) => e.pipelineId === pipelineId);
-            result.set(pipelineId, lastExecution || null);
-          }
-          return result;
-        }
-      })();
+    export const inMemoryPipelineRepository = new (class inMemoryPipelineRepository extends GenericInMemoryRepository<Pipeline> {
+      public clear(): void {
+        this.storage.splice(0, this.storage.length);
+      }
+    })();
+    export const inMemoryExecutionRepository = new (class InMemoryExecutionRepository extends GenericInMemoryRepository<Execution> {
+      public async query(q: { pipelineId: string }): Promise<Execution[]> {
+        throw new Error("Not implemented");
+      }
+      public async queryMostRecentExecutions(q: { pipelineIds: string[] }): Promise<Map<string, Execution | null>> {
+        throw new Error("Not implemented");
+      }
+      public clear(): void {
+        this.storage.splice(0, this.storage.length);
+      }
+    })();
   }
 }
