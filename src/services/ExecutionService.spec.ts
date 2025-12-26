@@ -5,6 +5,8 @@ import { Step } from "@/models/Step";
 import { Temporal } from "@js-temporal/polyfill";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { ExecutionService } from "./ExecutionService";
+import { Outcome } from "@/models/Outcome";
+import { Action } from "@/models/Action";
 
 describe(ExecutionService.name, async () => {
   const { inMemoryExecutionRepository, inMemoryPipelineRepository } = Test.RepoRegistry;
@@ -36,11 +38,30 @@ describe(ExecutionService.name, async () => {
     const pipeline = await inMemoryPipelineRepository.create(linearPipeline());
     // when
     const { id } = await service.create({ pipelineId: pipeline!.id });
-    // then
     const completedExecution = await Test.waitUntil(
       () => inMemoryExecutionRepository.findById(id) as Promise<Execution>,
       (x) => Boolean(x?.result),
     );
+    // then (validate results)
+    completedExecution.actions.forEach((action) => {
+      expect(action.result?.outcome).toEqual(Outcome.success);
+      expect(action.result?.completedAt).toBeTruthy();
+      expect(action.result?.duration).toBeTruthy();
+    });
+    expect(completedExecution.result?.outcome).toEqual(Outcome.success);
+    expect(completedExecution.result?.completedAt).toBeTruthy();
+    expect(completedExecution.result?.duration).toBeTruthy();
+    // then (expectedAdapterInvocations)
+    [Step.Type.postgres_backup, Step.Type.compression, Step.Type.encryption, Step.Type.s3_upload].forEach((type, index) => {
+      expect(adapterService.submit).toHaveBeenNthCalledWith(
+        index + 1,
+        expect.anything(),
+        expect.objectContaining({
+          type,
+        }),
+        expect.anything(),
+      );
+    });
   });
 
   function linearPipeline(): Pipeline {

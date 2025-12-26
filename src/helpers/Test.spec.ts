@@ -25,18 +25,14 @@ export namespace Test {
     { timeout = 5000, interval = 50 }: { timeout?: number; interval?: number } = {},
   ): Promise<T> {
     const startTime = Date.now();
-
     while (true) {
       const result = await fn();
-
       if (condition(result)) {
         return result;
       }
-
       if (Date.now() - startTime >= timeout) {
         throw new Error(`waitUntil timeout after ${timeout}ms`);
       }
-
       await new Promise((resolve) => setTimeout(resolve, interval));
     }
   }
