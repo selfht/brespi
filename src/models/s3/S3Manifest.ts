@@ -23,7 +23,7 @@ export namespace S3Manifest {
   }
 
   export const parse = ZodParser.forType<S3Manifest>()
-    .ensureSchemaMatchesType(
+    .ensureSchemaMatchesType(() =>
       z.object({
         version: z.literal(1),
         object: z.literal("manifest"),

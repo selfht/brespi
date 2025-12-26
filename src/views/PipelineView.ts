@@ -9,7 +9,7 @@ export type PipelineView = Pipeline & {
 
 export namespace PipelineView {
   export const parse = ZodParser.forType<PipelineView>()
-    .ensureSchemaMatchesType(
+    .ensureSchemaMatchesType(() =>
       Pipeline.parse.SCHEMA.and(
         z.object({
           lastExecution: Execution.parse.SCHEMA.nullable(),

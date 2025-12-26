@@ -40,7 +40,7 @@ export namespace Execution {
   };
 
   export const parse = ZodParser.forType<Execution>()
-    .ensureSchemaMatchesType(
+    .ensureSchemaMatchesType(() =>
       z.object({
         id: z.string(),
         object: z.literal("execution"),

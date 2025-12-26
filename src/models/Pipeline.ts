@@ -11,7 +11,7 @@ export type Pipeline = {
 
 export namespace Pipeline {
   export const parse = ZodParser.forType<Pipeline>()
-    .ensureSchemaMatchesType(
+    .ensureSchemaMatchesType(() =>
       z.object({
         id: z.string(),
         object: z.literal("pipeline"),

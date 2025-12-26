@@ -164,9 +164,10 @@ export namespace Step {
   }
 
   type SubSchema<T extends Step> = Record<keyof T, z.ZodType>;
+
   export const parse = ZodParser.forType<Step>()
-    .ensureSchemaMatchesType(
-      z.discriminatedUnion("type", [
+    .ensureSchemaMatchesType(() => {
+      return z.discriminatedUnion("type", [
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
@@ -304,7 +305,7 @@ export namespace Step {
           connectionReference: z.string(),
           database: z.string(),
         } satisfies SubSchema<Step.PostgresRestore>),
-      ]),
-    )
+      ]);
+    })
     .ensureTypeMatchesSchema();
 }

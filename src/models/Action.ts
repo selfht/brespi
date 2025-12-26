@@ -28,7 +28,7 @@ export namespace Action {
     type: z.union([z.literal("file"), z.literal("directory")]),
   });
   export const parse = ZodParser.forType<Action>()
-    .ensureSchemaMatchesType(
+    .ensureSchemaMatchesType(() =>
       z.object({
         stepId: z.string(),
         previousStepId: z.string().nullable(),

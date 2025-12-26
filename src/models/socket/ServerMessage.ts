@@ -15,7 +15,7 @@ export namespace ServerMessage {
   };
 
   export const parse = ZodParser.forType<ServerMessage>()
-    .ensureSchemaMatchesType(
+    .ensureSchemaMatchesType(() =>
       z.object({
         type: z.enum([Type.execution_update]),
         execution: Execution.parse.SCHEMA,

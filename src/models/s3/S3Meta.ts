@@ -12,7 +12,7 @@ export type S3Meta = {
 
 export namespace S3Meta {
   export const parse = ZodParser.forType<S3Meta>()
-    .ensureSchemaMatchesType(
+    .ensureSchemaMatchesType(() =>
       z.object({
         version: z.literal(1),
         object: z.literal("meta"),
