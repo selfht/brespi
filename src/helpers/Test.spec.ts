@@ -64,13 +64,32 @@ export namespace Test {
     return cwd;
   }
 
-  export namespace MockRegistry {
-    export const adapterService: Mocked<AdapterService> = {
+  export class MockRegistry {
+    public static readonly adapterService: Mocked<AdapterService> = {
       submit: mock(),
     };
-    export const commandHelper: Mocked<CommandHelper> = {
+    public static readonly commandHelper: Mocked<CommandHelper> = {
       execute: mock(),
     };
+
+    public static resetAllMocks() {
+      // Iterate through all static properties
+      for (const serviceKey of Object.keys(MockRegistry)) {
+        const potentialMock = MockRegistry[serviceKey as keyof typeof MockRegistry];
+        // Skip if it's a function (like resetAllMocks itself)
+        if (typeof potentialMock === "function") {
+          continue;
+        }
+        // Iterate through all methods in the service
+        if (typeof potentialMock === "object" && Boolean(potentialMock)) {
+          for (const method of Object.values(potentialMock)) {
+            if (typeof method === "function" && "mockClear" in method) {
+              (method as Mock<any>).mockClear();
+            }
+          }
+        }
+      }
+    }
   }
 
   export namespace RepoRegistry {
