@@ -96,7 +96,49 @@ export class PostgresAdapter extends AbstractAdapter {
   }
 
   public async restore(artifacts: Artifact[], step: Step.PostgresRestore): Promise<void> {
-    throw new Error("TODO: Not implemented");
+    if (artifacts.length !== 1) {
+      throw new Error(`Restore requires exactly 1 artifact; amount=${artifacts.length}`);
+    }
+    const artifact = artifacts[0];
+    if (artifact.type !== "file") {
+      throw new Error(`Invalid artifact type: ${artifact.type}`);
+    }
+
+    const scriptPath = join(import.meta.dir, "pg_restore.sh");
+    const { username, password, host, port } = this.parseUrl(this.readEnvironmentVariable(step.connectionReference));
+
+    const env: Record<string, string | undefined> = {
+      PGUSER: username,
+      PGPASSWORD: password,
+      PGHOST: host,
+      PGPORT: port,
+      RESTORE_FILE: artifact.path,
+      DATABASE: step.database,
+    };
+
+    try {
+      const { exitCode, stdout, stderr } = await this.commandHelper.execute({
+        cmd: ["bash", scriptPath],
+        env: {
+          ...process.env,
+          ...env,
+        },
+      });
+
+      if (exitCode !== 0) {
+        throw new Error(`Script exited with code ${exitCode}: ${stderr}`);
+      }
+
+      // Parse and validate the JSON output with Zod
+      const output = z
+        .object({
+          status: z.literal("success"),
+          database: z.string(),
+        })
+        .parse(JSON.parse(stdout));
+    } catch (error) {
+      throw new Error(`Restore failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   private parseUrl(url: string): { username: string; password: string; host: string; port?: string } {
