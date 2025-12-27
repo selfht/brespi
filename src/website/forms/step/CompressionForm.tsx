@@ -3,11 +3,13 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
+enum Field {
+  algorithmImplementation = "algorithmImplementation",
+  algorithmTargzip_level = "algorithmTargzip_level",
+}
 type Form = {
-  algorithmImplementation: "targzip";
-  algorithmTargzip: {
-    level: number;
-  };
+  [Field.algorithmImplementation]: "targzip";
+  [Field.algorithmTargzip_level]: number;
 };
 type Props = {
   id: string;
@@ -20,10 +22,8 @@ type Props = {
 export function CompressionForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      algorithmImplementation: existing?.algorithm.implementation ?? "targzip",
-      algorithmTargzip: {
-        level: existing?.algorithm.level ?? 9,
-      },
+      [Field.algorithmImplementation]: existing?.algorithm.implementation ?? "targzip",
+      [Field.algorithmTargzip_level]: existing?.algorithm.level ?? 9,
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -35,8 +35,8 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
         object: "step",
         type: Step.Type.compression,
         algorithm: {
-          implementation: form.algorithmImplementation,
-          level: form.algorithmTargzip?.level,
+          implementation: form[Field.algorithmImplementation],
+          level: form[Field.algorithmTargzip_level],
         },
       });
     } catch (error) {
@@ -50,17 +50,22 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
       <FormElements.Left stepType={Step.Type.compression}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label className="w-72">Algorithm</label>
-            <select className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("algorithmImplementation")}>
+            <label htmlFor={Field.algorithmImplementation} className="w-72">
+              Algorithm
+            </label>
+            <select id={Field.algorithmImplementation} className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.algorithmImplementation)}>
               <option value="targzip">targzip</option>
             </select>
           </div>
           <div className="flex items-center">
-            <label className="w-72">Compression level</label>
+            <label htmlFor={Field.algorithmTargzip_level} className="w-72">
+              Compression level
+            </label>
             <input
+              id={Field.algorithmTargzip_level}
               type="number"
               className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register("algorithmTargzip.level", {
+              {...register(Field.algorithmTargzip_level, {
                 valueAsNumber: true,
               })}
             />

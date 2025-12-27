@@ -3,9 +3,13 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
+enum Field {
+  connectionReference = "connectionReference",
+  database = "database",
+}
 type Form = {
-  connectionUrlReference: string;
-  database: string;
+  [Field.connectionReference]: string;
+  [Field.database]: string;
 };
 type Props = {
   id: string;
@@ -18,8 +22,8 @@ type Props = {
 export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      connectionUrlReference: existing?.connectionReference ?? "",
-      database: existing?.database ?? "",
+      [Field.connectionReference]: existing?.connectionReference ?? "",
+      [Field.database]: existing?.database ?? "",
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -30,8 +34,8 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
         previousId: existing?.previousId || null,
         object: "step",
         type: Step.Type.postgres_restore,
-        connectionReference: form.connectionUrlReference,
-        database: form.database,
+        connectionReference: form[Field.connectionReference],
+        database: form[Field.database],
       });
     } catch (error) {
       setError("root", {
@@ -44,12 +48,21 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
       <FormElements.Left stepType={Step.Type.postgres_restore}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label className="w-72">Connection URL Reference</label>
-            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("connectionUrlReference")} />
+            <label htmlFor={Field.connectionReference} className="w-72">
+              Connection Reference
+            </label>
+            <input
+              id={Field.connectionReference}
+              type="text"
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.connectionReference)}
+            />
           </div>
           <div className="flex items-center">
-            <label className="w-72">Database</label>
-            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("database")} />
+            <label htmlFor={Field.database} className="w-72">
+              Database
+            </label>
+            <input id={Field.database} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.database)} />
           </div>
         </fieldset>
         <FormElements.ButtonBar

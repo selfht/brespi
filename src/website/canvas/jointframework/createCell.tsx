@@ -66,6 +66,9 @@ export function createCell(block: JointBlock) {
         { tagName: "foreignObject", selector: "callout" },
       ],
       attrs: {
+        root: {
+          "data-testid": block.label.replace(/\s+/g, "_"),
+        },
         body: {
           strokeWidth: Sizing.BLOCK_STROKE_WIDTH,
           rx: Sizing.BLOCK_BORDER_RADIUS,

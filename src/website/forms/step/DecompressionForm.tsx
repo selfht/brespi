@@ -4,8 +4,11 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
+enum Field {
+  algorithmImplementation = "algorithmImplementation",
+}
 type Form = {
-  algorithmImplementation: "targzip";
+  [Field.algorithmImplementation]: "targzip";
 };
 type Props = {
   id: string;
@@ -18,7 +21,7 @@ type Props = {
 export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      algorithmImplementation: existing?.algorithm.implementation ?? "targzip",
+      [Field.algorithmImplementation]: existing?.algorithm.implementation ?? "targzip",
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -30,7 +33,7 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
         object: "step",
         type: Step.Type.decompression,
         algorithm: {
-          implementation: form.algorithmImplementation,
+          implementation: form[Field.algorithmImplementation],
         },
       });
     } catch (error) {
@@ -44,8 +47,14 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
       <FormElements.Left stepType={Step.Type.decompression}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label className="w-72">Algorithm</label>
-            <select className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("algorithmImplementation")}>
+            <label htmlFor={Field.algorithmImplementation} className="w-72">
+              Algorithm
+            </label>
+            <select
+              id={Field.algorithmImplementation}
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.algorithmImplementation)}
+            >
               <option value="targzip">targzip</option>
             </select>
           </div>

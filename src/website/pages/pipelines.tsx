@@ -14,8 +14,11 @@ import { Spinner } from "../comps/Spinner";
 import { SquareIcon } from "../comps/SquareIcon";
 import { useRegistry } from "../hooks/useRegistry";
 import { useYesQuery } from "../hooks/useYesQuery";
+import { MetaFunction } from "react-router";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 export function pipelines() {
+  useDocumentTitle("Pipelines | Brespi");
   const pipelineClient = useRegistry(PipelineClient);
 
   const query = useYesQuery<Internal.PipelineVisualization[], ProblemDetails>({

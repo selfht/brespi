@@ -337,7 +337,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
   /**
    * Render
    */
-  return <div ref={elementRef} className={className} />;
+  return <div data-testid="canvas" ref={elementRef} className={className} />;
 }
 
 export namespace Canvas {

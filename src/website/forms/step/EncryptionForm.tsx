@@ -4,9 +4,13 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
+enum Field {
+  keyReference = "keyReference",
+  algorithmImplementation = "algorithmImplementation",
+}
 type Form = {
-  keyReference: string;
-  algorithmImplementation: "aes256cbc";
+  [Field.keyReference]: string;
+  [Field.algorithmImplementation]: "aes256cbc";
 };
 type Props = {
   id: string;
@@ -19,8 +23,8 @@ type Props = {
 export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      keyReference: existing?.keyReference ?? "",
-      algorithmImplementation: existing?.algorithm.implementation ?? "aes256cbc",
+      [Field.keyReference]: existing?.keyReference ?? "",
+      [Field.algorithmImplementation]: existing?.algorithm.implementation ?? "aes256cbc",
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -31,9 +35,9 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
         previousId: existing?.previousId || null,
         object: "step",
         type: Step.Type.encryption,
-        keyReference: form.keyReference,
+        keyReference: form[Field.keyReference],
         algorithm: {
-          implementation: form.algorithmImplementation,
+          implementation: form[Field.algorithmImplementation],
         },
       });
     } catch (error) {
@@ -47,12 +51,20 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
       <FormElements.Left stepType={Step.Type.encryption}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label className="w-72">Key Reference</label>
-            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("keyReference")} />
+            <label htmlFor={Field.keyReference} className="w-72">
+              Key Reference
+            </label>
+            <input id={Field.keyReference} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.keyReference)} />
           </div>
           <div className="flex items-center">
-            <label className="w-72">Algorithm</label>
-            <select className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("algorithmImplementation")}>
+            <label htmlFor={Field.algorithmImplementation} className="w-72">
+              Algorithm
+            </label>
+            <select
+              id={Field.algorithmImplementation}
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.algorithmImplementation)}
+            >
               <option value="aes256cbc">aes256cbc</option>
             </select>
           </div>

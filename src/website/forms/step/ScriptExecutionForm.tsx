@@ -3,9 +3,13 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
+enum Field {
+  path = "path",
+  passthrough = "passthrough",
+}
 type Form = {
-  path: string;
-  passthrough: "true" | "false";
+  [Field.path]: string;
+  [Field.passthrough]: "true" | "false";
 };
 type Props = {
   id: string;
@@ -18,8 +22,8 @@ type Props = {
 export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      path: existing?.path ?? "",
-      passthrough: `${existing?.passthrough ?? false}`,
+      [Field.path]: existing?.path ?? "",
+      [Field.passthrough]: `${existing?.passthrough ?? false}`,
     },
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -30,8 +34,8 @@ export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, 
         previousId: existing?.previousId || null,
         object: "step",
         type: Step.Type.script_execution,
-        path: form.path,
-        passthrough: form.passthrough === "true",
+        path: form[Field.path],
+        passthrough: form[Field.passthrough] === "true",
       });
     } catch (error) {
       setError("root", {
@@ -39,18 +43,22 @@ export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, 
       });
     }
   };
-  const passThrough = watch("passthrough");
+  const passThrough = watch(Field.passthrough);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.script_execution}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label className="w-72">Script path</label>
-            <input type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("path")} />
+            <label htmlFor={Field.path} className="w-72">
+              Script path
+            </label>
+            <input id={Field.path} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.path)} />
           </div>
           <div className="flex items-center">
-            <label className="w-72">Passthrough?</label>
-            <select className="rounded p-2 bg-c-dim/20" {...register("passthrough")}>
+            <label htmlFor={Field.passthrough} className="w-72">
+              Passthrough?
+            </label>
+            <select id={Field.passthrough} className="rounded p-2 bg-c-dim/20" {...register(Field.passthrough)}>
               <option value="true">yes</option>
               <option value="false">no</option>
             </select>

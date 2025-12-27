@@ -34,6 +34,7 @@ import { useRegistry } from "../hooks/useRegistry";
 import { useStateRef } from "../hooks/useStateRef";
 import { useYesQuery } from "../hooks/useYesQuery";
 import { StepTranslation } from "../translation/StepTranslation";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 type Form = {
   interactivity: Interactivity;
@@ -72,6 +73,10 @@ export function pipelines_$id() {
       },
     },
     [id],
+  );
+
+  useDocumentTitle(
+    pipelineQuery.data ? `${pipelineQuery.data === "new" ? "New" : pipelineQuery.data.name} | Pipelines | Brespi` : "Pipelines | Brespi",
   );
 
   /**
