@@ -7,10 +7,9 @@ import { GenericInMemoryRepository } from "./GenericInMemoryRepository";
 export class ExecutionRepositoryDefault implements ExecutionRepository {
   private readonly delegate = new GenericInMemoryRepository<Execution>(
     [
-      ExecutionData.PENDING(PipelineData.WORK_IN_PROGRESS.id),
-      ExecutionData.SUCCESS(PipelineData.POSTGRES.id),
-      ExecutionData.SUCCESS(PipelineData.POSTGRES.id),
-      ExecutionData.ERROR(PipelineData.POSTGRES.id),
+      ExecutionData.SUCCESS(PipelineData.POSTGRES_BACKUP.id),
+      ExecutionData.SUCCESS(PipelineData.POSTGRES_BACKUP.id),
+      ExecutionData.ERROR(PipelineData.POSTGRES_BACKUP.id),
       ExecutionData.ERROR(PipelineData.WORDPRESS.id),
       ExecutionData.SUCCESS(PipelineData.WORDPRESS.id),
     ].sort(Execution.sort),

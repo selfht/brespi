@@ -5,10 +5,9 @@ import { PipelineRepository } from "../PipelineRepository";
 
 export class PipelineRepositoryDefault implements PipelineRepository {
   private readonly delegate = new GenericInMemoryRepository<Pipeline>([
-    PipelineData.WORK_IN_PROGRESS,
-    PipelineData.POSTGRES,
+    PipelineData.POSTGRES_BACKUP,
+    PipelineData.POSTGRES_RESTORE,
     PipelineData.WORDPRESS,
-    PipelineData.RESTORE,
   ]);
 
   public list(): Promise<Pipeline[]> {

@@ -46,6 +46,9 @@ fi
 
 # Drop database if it exists
 if [ ! -z "$(echo $DB_EXISTS | xargs)" ]; then
+    # Forcefully terminate all connections to the database
+    psql -h ${PGHOST} -U ${PGUSER} -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '${DATABASE}' AND pid <> pg_backend_pid();" >/dev/null 2>&1
+
     dropdb -h ${PGHOST} -U ${PGUSER} ${DATABASE} 2>&1
     if [ $? -ne 0 ]; then
         echo "{\"status\": \"error\", \"error\": \"Failed to drop existing database\"}"

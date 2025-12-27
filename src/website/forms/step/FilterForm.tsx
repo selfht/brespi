@@ -49,6 +49,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
   };
 
   const selectionMethod = watch("selectionMethod");
+  const selectionMethodOptions: Array<typeof selectionMethod> = ["exact", "glob", "regex"];
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.filter}>
@@ -56,7 +57,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
           <div className="flex items-center">
             <label className="w-72">Selection method</label>
             <select className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register("selectionMethod")}>
-              {["all", "include", "exclude"].map((value) => (
+              {selectionMethodOptions.map((value) => (
                 <option key={value} value={value}>
                   {value}
                 </option>

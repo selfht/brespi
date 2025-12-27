@@ -25,7 +25,7 @@ export namespace StepData {
       case Step.Type.filesystem_write: {
         const step: Step.FilesystemWrite = {
           type: Step.Type.filesystem_write,
-          path: "/tmp/output",
+          path: "/app/opt/files",
           ...common,
         };
         return step as Extract<Step, { type: T }>;
@@ -54,7 +54,7 @@ export namespace StepData {
       case Step.Type.encryption: {
         const step: Step.Encryption = {
           type: Step.Type.encryption,
-          keyReference: "MY_TEST_ENCRYPTION_KEY",
+          keyReference: "MY_ENCRYPTION_KEY",
           algorithm: {
             implementation: "aes256cbc",
           },
@@ -65,7 +65,7 @@ export namespace StepData {
       case Step.Type.decryption: {
         const step: Step.Decryption = {
           type: Step.Type.decryption,
-          keyReference: "MY_TEST_ENCRYPTION_KEY",
+          keyReference: "MY_ENCRYPTION_KEY",
           algorithm: {
             implementation: "aes256cbc",
           },
@@ -126,9 +126,9 @@ export namespace StepData {
         const step: Step.S3Download = {
           type: Step.Type.s3_download,
           connection: {
-            bucket: "my-bucket",
-            endpoint: "https://s3.amazonaws.com",
-            region: "us-east-1",
+            bucket: "bucko",
+            endpoint: "http://s3:4566",
+            region: null,
             accessKeyReference: "MY_S3_ACCESS_KEY",
             secretKeyReference: "MY_S3_SECRET_KEY",
           },
@@ -143,7 +143,7 @@ export namespace StepData {
       case Step.Type.postgres_backup: {
         const step: Step.PostgresBackup = {
           type: Step.Type.postgres_backup,
-          connectionReference: "POSTGRES_URL",
+          connectionReference: "MY_POSTGRES_CONNECTION_URL",
           databaseSelection: {
             strategy: "all",
           },
@@ -154,7 +154,7 @@ export namespace StepData {
       case Step.Type.postgres_restore: {
         const step: Step.PostgresRestore = {
           type: Step.Type.postgres_restore,
-          connectionReference: "POSTGRES_URL",
+          connectionReference: "MY_POSTGRES_CONNECTION_URL",
           database: "test_db",
           ...common,
         };
