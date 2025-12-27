@@ -6,16 +6,57 @@ export namespace EditorFlow {
     previousId?: string;
   };
   type StepOptions =
-    | (StepCommon & { type: "Postgres Backup"; connectionReference?: string })
+    | (StepCommon & { type: "Filesystem Read"; path?: string })
+    | (StepCommon & { type: "Filesystem Write"; path?: string })
     | (StepCommon & { type: "Compression"; level?: string })
+    | (StepCommon & { type: "Decompression" })
     | (StepCommon & { type: "Encryption"; keyReference?: string })
+    | (StepCommon & { type: "Decryption"; keyReference?: string })
+    | (StepCommon & { type: "Folder Flatten" })
+    | (StepCommon & { type: "Folder Group" })
+    | (StepCommon & {
+        type: "Filter";
+        selectionMethod?: "exact" | "glob" | "regex";
+        selectionName?: string;
+        selectionNameGlob?: string;
+        selectionNameRegex?: string;
+      })
+    | (StepCommon & {
+        type: "Script Execution";
+        path?: string;
+        passthrough?: "true" | "false";
+      })
     | (StepCommon & {
         type: "S3 Upload";
         bucket?: string;
         endpoint?: string;
+        region?: string;
         accessKeyReference?: string;
         secretKeyReference?: string;
         baseFolder?: string;
+      })
+    | (StepCommon & {
+        type: "S3 Download";
+        bucket?: string;
+        endpoint?: string;
+        region?: string;
+        accessKeyReference?: string;
+        secretKeyReference?: string;
+        baseFolder?: string;
+        selectionTarget?: "latest" | "specific";
+        selectionSpecificVersion?: string;
+      })
+    | (StepCommon & {
+        type: "Postgres Backup";
+        connectionReference?: string;
+        databaseSelectionStrategy?: "all" | "include" | "exclude";
+        databaseSelectionInclude?: string;
+        databaseSelectionExclude?: string;
+      })
+    | (StepCommon & {
+        type: "Postgres Restore";
+        connectionReference?: string;
+        database?: string;
       });
   export type CreatePipelineOptions = {
     name: string;
@@ -52,7 +93,8 @@ export namespace EditorFlow {
     // Add and position each step
     for (let i = 0; i < options.steps.length; i++) {
       const step = options.steps[i];
-      await addStep(page, step);
+      await fillStepForm(page, step);
+      await page.getByText("Add Step").click();
 
       const stepId = step.id || `step-${i}`;
       const stepLocator = page.getByTestId(`BLOCK:${step.type}`);
@@ -99,32 +141,100 @@ export namespace EditorFlow {
     };
   }
 
-  async function addStep(page: Page, step: StepOptions) {
+  async function fillStepForm(page: Page, step: StepOptions): Promise<null> {
     await page.getByText(step.type, { exact: true }).click();
     switch (step.type) {
-      case "Postgres Backup":
-        if (step.connectionReference) {
-          await page.getByLabel("Connection Reference").fill(step.connectionReference);
+      case "Filesystem Read": {
+        if (step.path) await page.getByLabel("Path").fill(step.path);
+        return null;
+      }
+      case "Filesystem Write": {
+        if (step.path) await page.getByLabel("Path").fill(step.path);
+        return null;
+      }
+      case "Compression": {
+        if (step.level) await page.getByLabel("Compression level").fill(step.level);
+        return null;
+      }
+      case "Decompression": {
+        // No configurable fields
+        return null;
+      }
+      case "Encryption": {
+        if (step.keyReference) await page.getByLabel("Key Reference").fill(step.keyReference);
+        return null;
+      }
+      case "Decryption": {
+        if (step.keyReference) await page.getByLabel("Key Reference").fill(step.keyReference);
+        return null;
+      }
+      case "Folder Flatten": {
+        // No configurable fields
+        return null;
+      }
+      case "Folder Group": {
+        // No configurable fields
+        return null;
+      }
+      case "Filter": {
+        if (step.selectionMethod) {
+          await page.getByLabel("Selection method").selectOption(step.selectionMethod);
+          if (step.selectionMethod === "exact" && step.selectionName) {
+            await page.getByLabel("Name", { exact: true }).fill(step.selectionName);
+          } else if (step.selectionMethod === "glob" && step.selectionNameGlob) {
+            await page.getByLabel("Name glob").fill(step.selectionNameGlob);
+          } else if (step.selectionMethod === "regex" && step.selectionNameRegex) {
+            await page.getByLabel("Name regex").fill(step.selectionNameRegex);
+          }
         }
-        break;
-      case "Compression":
-        if (step.level) {
-          await page.getByLabel("Compression level").fill(step.level);
-        }
-        break;
-      case "Encryption":
-        if (step.keyReference) {
-          await page.getByLabel("Key Reference").fill(step.keyReference);
-        }
-        break;
-      case "S3 Upload":
+        return null;
+      }
+      case "Script Execution": {
+        if (step.path) await page.getByLabel("Script path").fill(step.path);
+        if (step.passthrough) await page.getByLabel("Passthrough?").selectOption(step.passthrough);
+        return null;
+      }
+      case "S3 Upload": {
         if (step.bucket) await page.getByLabel("Bucket").fill(step.bucket);
         if (step.endpoint) await page.getByLabel("Endpoint").fill(step.endpoint);
+        if (step.region) await page.getByLabel("Region").fill(step.region);
         if (step.accessKeyReference) await page.getByLabel("Access Key Reference").fill(step.accessKeyReference);
         if (step.secretKeyReference) await page.getByLabel("Secret Key Reference").fill(step.secretKeyReference);
         if (step.baseFolder) await page.getByLabel("Base Folder").fill(step.baseFolder);
-        break;
+        return null;
+      }
+      case "S3 Download": {
+        if (step.bucket) await page.getByLabel("Bucket").fill(step.bucket);
+        if (step.endpoint) await page.getByLabel("Endpoint").fill(step.endpoint);
+        if (step.region) await page.getByLabel("Region").fill(step.region);
+        if (step.accessKeyReference) await page.getByLabel("Access Key Reference").fill(step.accessKeyReference);
+        if (step.secretKeyReference) await page.getByLabel("Secret Key Reference").fill(step.secretKeyReference);
+        if (step.baseFolder) await page.getByLabel("Base Folder").fill(step.baseFolder);
+        if (step.selectionTarget) {
+          await page.getByLabel("Version Selection").selectOption(step.selectionTarget);
+          if (step.selectionTarget === "specific" && step.selectionSpecificVersion) {
+            await page.getByLabel("Version").fill(step.selectionSpecificVersion);
+          }
+        }
+        return null;
+      }
+      case "Postgres Backup": {
+        if (step.connectionReference) await page.getByLabel("Connection Reference").fill(step.connectionReference);
+        if (step.databaseSelectionStrategy) {
+          await page.getByLabel("Database selection").selectOption(step.databaseSelectionStrategy);
+          if (step.databaseSelectionStrategy === "include" && step.databaseSelectionInclude) {
+            await page.getByLabel("Include").fill(step.databaseSelectionInclude);
+          } else if (step.databaseSelectionStrategy === "exclude" && step.databaseSelectionExclude) {
+            await page.getByLabel("Exclude").fill(step.databaseSelectionExclude);
+          }
+        }
+        return null;
+      }
+      case "Postgres Restore": {
+        if (step.connectionReference) await page.getByLabel("Connection Reference").fill(step.connectionReference);
+        if (step.database) await page.getByLabel("Database").fill(step.database);
+        return null;
+      }
     }
-    await page.getByText("Add Step").click();
   }
 }

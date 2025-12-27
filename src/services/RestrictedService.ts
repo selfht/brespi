@@ -20,7 +20,7 @@ export class RestrictedService {
       accessKeyId: request.accessKey,
       secretAccessKey: request.secretKey,
     });
-    const keys = await client.list().then(({ contents }) => contents!.map((c) => c.key));
+    const keys = await client.list().then(({ contents = [] }) => contents.map((c) => c.key));
     await Promise.all(keys.map((key) => client.delete(key)));
   }
 }
