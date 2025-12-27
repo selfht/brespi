@@ -111,8 +111,8 @@ export namespace StepData {
         const step: Step.S3Upload = {
           type: Step.Type.s3_upload,
           connection: {
-            bucket: "my-backups",
-            endpoint: "http://minio:9000",
+            bucket: "bucko",
+            endpoint: "http://s3:4566",
             region: null,
             accessKeyReference: "MY_S3_ACCESS_KEY",
             secretKeyReference: "MY_S3_SECRET_KEY",

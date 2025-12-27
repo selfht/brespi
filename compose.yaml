@@ -11,16 +11,12 @@ services:
     networks:
       - app-network
 
-  minio:
-    image: quay.io/minio/minio:latest
+  s3:
+    image: localstack/localstack:s3-latest
     ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: kim
-      MINIO_ROOT_PASSWORD: possible
-    entrypoint: sh
-    command: -c 'mkdir -p /data/my-backups && /usr/bin/minio server /data --console-address ":9001"'
+      - "4566:4566"
+    volumes:
+      - ./compose-s3-init.sh:/etc/localstack/init/ready.d/init-s3.sh
     networks:
       - app-network
 
@@ -37,8 +33,8 @@ services:
     environment:
       MY_TEST_ENCRYPTION_KEY: unicorn
       MY_POSTGRES_CONNECTION_URL: postgresql://postgres:postgres@postgres
-      MY_S3_ACCESS_KEY: kim
-      MY_S3_SECRET_KEY: possible
+      MY_S3_ACCESS_KEY: test
+      MY_S3_SECRET_KEY: test
     networks:
       - app-network
 
