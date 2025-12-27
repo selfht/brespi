@@ -10,4 +10,6 @@ export interface PipelineRepository {
   update(pipeline: Pipeline): Promise<Pipeline | undefined>;
 
   remove(id: string): Promise<Pipeline | undefined>;
+
+  removeAll(): Promise<void>;
 }

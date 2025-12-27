@@ -1,24 +1,46 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { describe } from "node:test";
+import { EditorFlow } from "./flows/EditorFlow";
 
 describe("editor", () => {
-  test("create a backup pipeline", async ({ page }) => {
-    // navigate to pipeline editor
-    await page.goto("");
-    await page.getByText("New Pipeline ...").click();
-    // grab a canvas reference
-    const canvas = page.getByTestId("canvas");
-    // add step (postgres backup)
-    await page.getByText("Postgres Backup").click();
-    await page.getByLabel("Connection Reference").fill("MY_POSTGRES_CONNECTION_URL");
-    await page.getByText("Add Step").click();
-    const block = page.getByTestId("Postgres_Backup");
-    // add step (compression)
-    // await page.getByText("Compression", { exact: true }).click();
-    // await page.getByText("Add Step").click();
-    // // add step (encryption)
-    // await page.getByText("Encryption").click();
-    // await page.getByLabel("Key Reference").fill("MY_ENCRYPTION_KEY");
-    // await page.getByText("Add Step").click();
+  test("creates a backup pipeline", async ({ request, page }) => {
+    // given
+    await request.post("/api/restricted/delete-all-pipelines");
+    const pipeline: EditorFlow.CreatePipelineOptions = {
+      name: "Playwright Backup Pipeline",
+      steps: [
+        {
+          id: "backup",
+          type: "Postgres Backup",
+          connectionReference: "MY_POSTGRES_CONNECTION_URL",
+        },
+        {
+          id: "compress",
+          type: "Compression",
+          previousId: "backup",
+        },
+        {
+          id: "encrypt",
+          type: "Encryption",
+          keyReference: "MY_ENCRYPTION_KEY",
+          previousId: "compress",
+        },
+        {
+          id: "upload",
+          type: "S3 Upload",
+          bucket: "bucko",
+          endpoint: "http://s3:4566",
+          accessKeyReference: "MY_S3_ACCESS_KEY",
+          secretKeyReference: "MY_S3_SECRET_KEY",
+          baseFolder: "/backups",
+          previousId: "encrypt",
+        },
+      ],
+    };
+    // when
+    await EditorFlow.createPipeline(page, pipeline);
+    // then
+    await page.getByRole("link", { name: "Pipelines" }).click();
+    await expect(page.getByRole("link", { name: pipeline.name })).toBeVisible();
   });
 });

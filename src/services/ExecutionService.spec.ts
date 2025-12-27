@@ -20,10 +20,10 @@ describe(ExecutionService.name, async () => {
     Test.impl(adapterService),
   );
 
-  beforeEach(() => {
+  beforeEach(async () => {
     resetAllMocks();
-    inMemoryPipelineRepository.clear();
-    inMemoryExecutionRepository.clear();
+    await inMemoryPipelineRepository.removeAll();
+    await inMemoryExecutionRepository.removeAll();
   });
 
   it("successfully executes a linear pipeline", async () => {

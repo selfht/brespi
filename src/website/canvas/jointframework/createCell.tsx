@@ -17,6 +17,7 @@ export function createCell(block: JointBlock) {
     markup: [{ tagName: "rect", selector: "rect" }],
     attrs: {
       rect: {
+        "data-testid": Block.Handle.input,
         width: Sizing.CONNECTOR_WIDTH,
         height: Sizing.CONNECTOR_HEIGHT,
         x: -Sizing.CONNECTOR_WIDTH - Sizing.CONNECTOR_OFFSET, // Position fully outside to the left
@@ -37,6 +38,7 @@ export function createCell(block: JointBlock) {
     markup: [{ tagName: "rect", selector: "rect" }],
     attrs: {
       rect: {
+        "data-testid": Block.Handle.output,
         width: Sizing.CONNECTOR_WIDTH,
         height: Sizing.CONNECTOR_HEIGHT,
         x: Sizing.CONNECTOR_OFFSET, // Position fully outside to the right
@@ -67,7 +69,7 @@ export function createCell(block: JointBlock) {
       ],
       attrs: {
         root: {
-          "data-testid": block.label.replace(/\s+/g, "_"),
+          "data-testid": `BLOCK:${block.label}`,
         },
         body: {
           strokeWidth: Sizing.BLOCK_STROKE_WIDTH,

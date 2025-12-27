@@ -14,6 +14,7 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
   outputDir: "./e2e/.test-results",
+  timeout: 5000,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [["html", { outputFolder: "./e2e/.playwright-report" }]],
   /* Run tests in files in parallel */

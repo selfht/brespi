@@ -29,4 +29,8 @@ export class PipelineRepositoryDefault implements PipelineRepository {
   public remove(id: string): Promise<Pipeline | undefined> {
     return this.delegate.remove(id);
   }
+
+  public removeAll(): Promise<void> {
+    return this.delegate.removeAll();
+  }
 }

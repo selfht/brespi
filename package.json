@@ -6,13 +6,14 @@
   "main": "src/index.ts",
   "module": "src/index.ts",
   "scripts": {
+    "install-browsers": "playwright install chromium webkit firefox",
     "tc": "bunx tsc --noEmit",
     "dev": "bun --env-file=.env.development --hot src/index.ts",
-    "start": "NODE_ENV=production bun --env-file=.env.production src/index.ts",
-    "build": "bun run build.ts",
-    "e2e": "playwright test --ui",
-    "e2e-headless": "playwright test",
-    "e2e-install-browsers": "playwright install chromium webkit firefox"
+    "test:unit": "bun test src",
+    "test:e2e": "playwright test --ui",
+    "test:e2e:headless": "playwright test",
+    "start": "bun --env-file=.env.production src/index.ts",
+    "build": "bun run build.ts"
   },
   "dependencies": {
     "@joint/core": "^4.2.1",

@@ -59,6 +59,10 @@ export class PipelineService {
     return await this.enhance(pipeline);
   }
 
+  public async removeAll(): Promise<void> {
+    await this.pipelineRepository.removeAll();
+  }
+
   private async enhance(pipeline: Pipeline): Promise<PipelineView>;
   private async enhance(pipelines: Pipeline[]): Promise<PipelineView[]>;
   private async enhance(arg: Pipeline | Pipeline[]): Promise<PipelineView | PipelineView[]> {

@@ -128,6 +128,19 @@ export class Server {
             return Response.json(execution);
           },
         },
+
+        /**
+         * Restricted endpoints (for playwright)
+         */
+        "/api/restricted/delete-all-pipelines": {
+          POST: async () => {
+            if (this.env.O_BRESPI_STAGE === "development") {
+              await this.pipelineService.removeAll();
+              return new Response();
+            }
+            return Response.json(ServerError.route_not_found());
+          },
+        },
       },
       /**
        * Error handling

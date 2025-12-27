@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { describe } from "node:test";
 
 describe("basics", () => {
@@ -19,9 +19,8 @@ describe("basics", () => {
     for (const { url, expectation } of testCases) {
       // when
       await page.goto(url);
-      const title = await page.title();
       // then
-      expect(title).toEqual(expectation.title);
+      await expect(page).toHaveTitle(expectation.title);
     }
   });
 });

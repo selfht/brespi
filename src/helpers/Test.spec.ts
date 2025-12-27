@@ -93,20 +93,13 @@ export namespace Test {
   }
 
   export namespace RepoRegistry {
-    export const inMemoryPipelineRepository = new (class inMemoryPipelineRepository extends GenericInMemoryRepository<Pipeline> {
-      public clear(): void {
-        this.storage.splice(0, this.storage.length);
-      }
-    })();
+    export const inMemoryPipelineRepository = new (class inMemoryPipelineRepository extends GenericInMemoryRepository<Pipeline> {})();
     export const inMemoryExecutionRepository = new (class InMemoryExecutionRepository extends GenericInMemoryRepository<Execution> {
       public async query(q: { pipelineId: string }): Promise<Execution[]> {
         throw new Error("Not implemented");
       }
       public async queryMostRecentExecutions(q: { pipelineIds: string[] }): Promise<Map<string, Execution | null>> {
         throw new Error("Not implemented");
-      }
-      public clear(): void {
-        this.storage.splice(0, this.storage.length);
       }
     })();
   }

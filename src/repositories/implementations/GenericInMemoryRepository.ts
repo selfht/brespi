@@ -34,4 +34,8 @@ export class GenericInMemoryRepository<T extends { id: string }> {
     const [pipeline] = this.storage.splice(existingIndex, 1);
     return pipeline;
   }
+
+  public async removeAll(): Promise<void> {
+    this.storage.splice(0, this.storage.length);
+  }
 }
