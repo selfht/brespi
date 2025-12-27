@@ -2,5 +2,5 @@
 
 bucket="bucko"
 
-curl -X PUT "http://localhost:4566/$bucket"
+curl --silent -X PUT "http://localhost:4566/$bucket"
 echo "S3 bucket '$bucket' created successfully"

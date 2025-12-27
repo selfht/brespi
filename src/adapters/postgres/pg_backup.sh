@@ -123,9 +123,9 @@ for db in ${ALL_DBS}; do
         # Skip this database
         echo -n "    {\"name\": \"${db}\", \"status\": \"skipped\"}"
     else
-        # Backup this database
-        BACKUP_FILE="${BACKUP_DIR}/${db}.sql"
-        pg_dump -h ${PGHOST} -U ${PGUSER} ${db} > "${BACKUP_FILE}" 2>/dev/null
+        # Backup this database in custom format
+        BACKUP_FILE="${BACKUP_DIR}/${db}.dump"
+        pg_dump -h ${PGHOST} -U ${PGUSER} -Fc ${db} > "${BACKUP_FILE}" 2>/dev/null
 
         if [ $? -eq 0 ]; then
             echo -n "    {\"name\": \"${db}\", \"status\": \"success\", \"path\": \"${BACKUP_FILE}\"}"

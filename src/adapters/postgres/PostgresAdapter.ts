@@ -9,7 +9,7 @@ import { z } from "zod/v4";
 import { AbstractAdapter } from "../AbstractAdapter";
 
 export class PostgresAdapter extends AbstractAdapter {
-  private readonly EXTENSION = ".sql";
+  private readonly EXTENSION = ".dump";
 
   public constructor(
     protected readonly env: Env.Private,

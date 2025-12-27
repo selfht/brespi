@@ -44,26 +44,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Drop database if it exists
-if [ ! -z "$(echo $DB_EXISTS | xargs)" ]; then
-    # Forcefully terminate all connections to the database
-    psql -h ${PGHOST} -U ${PGUSER} -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '${DATABASE}' AND pid <> pg_backend_pid();" >/dev/null 2>&1
-    dropdb -h ${PGHOST} -U ${PGUSER} ${DATABASE} 2>&1
-    if [ $? -ne 0 ]; then
-        echo "ERROR: Failed to drop existing database" >&2
-        exit 1
-    fi
-fi
-
-# Create the database
-createdb -h ${PGHOST} -U ${PGUSER} ${DATABASE} 2>&1
-if [ $? -ne 0 ]; then
-    echo "ERROR: Failed to create database" >&2
+# Verify database exists (we need it to exist for restore)
+if [ -z "$(echo $DB_EXISTS | xargs)" ]; then
+    echo "ERROR: Database '${DATABASE}' does not exist. Create it first with proper permissions." >&2
     exit 1
 fi
 
-# Restore the backup
-psql -h ${PGHOST} -U ${PGUSER} -d ${DATABASE} -f ${RESTORE_FILE} >/dev/null 2>&1
+# Restore the backup using pg_restore with --clean to drop existing objects
+pg_restore -h ${PGHOST} -U ${PGUSER} -d ${DATABASE} --clean --if-exists ${RESTORE_FILE} 2>/dev/null
 if [ $? -ne 0 ]; then
     echo "ERROR: Failed to restore database from file" >&2
     exit 1
