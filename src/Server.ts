@@ -10,6 +10,7 @@ import { ExecutionService } from "./services/ExecutionService";
 import { PipelineService } from "./services/PipelineService";
 import { StepService } from "./services/StepService";
 import { PipelineView } from "./views/PipelineView";
+import { RestrictedService } from "./services/RestrictedService";
 
 export class Server {
   private static readonly SOCKET_ENDPOINT = "/socket";
@@ -19,6 +20,7 @@ export class Server {
     private readonly stepService: StepService,
     private readonly pipelineService: PipelineService,
     private readonly executionService: ExecutionService,
+    private readonly restrictedService: RestrictedService,
   ) {}
 
   public listen() {
@@ -135,7 +137,16 @@ export class Server {
         "/api/restricted/delete-all-pipelines": {
           POST: async () => {
             if (this.env.O_BRESPI_STAGE === "development") {
-              await this.pipelineService.removeAll();
+              await this.restrictedService.deleteAllPipelines();
+              return new Response();
+            }
+            return Response.json(ServerError.route_not_found());
+          },
+        },
+        "/api/restricted/empty-bucket": {
+          POST: async (request) => {
+            if (this.env.O_BRESPI_STAGE === "development") {
+              await this.restrictedService.emptyBucket(await request.json());
               return new Response();
             }
             return Response.json(ServerError.route_not_found());

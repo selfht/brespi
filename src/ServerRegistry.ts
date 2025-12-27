@@ -17,6 +17,7 @@ import { PipelineService } from "./services/PipelineService";
 import { StepService } from "./services/StepService";
 import { CommandHelper } from "./helpers/CommandHelper";
 import { ExecutionRepositoryDefault } from "./repositories/implementations/ExecutionRepositoryDefault";
+import { RestrictedService } from "./services/RestrictedService";
 
 export class ServerRegistry {
   public static async bootstrap(env: Env.Private): Promise<ServerRegistry> {
@@ -64,10 +65,11 @@ export class ServerRegistry {
       pipelineRepositoryDefault,
       adapterService,
     ));
+    const restrictedService = (this.registry[RestrictedService.name] = new RestrictedService(pipelineRepositoryDefault));
     this.registry[CleanupService.name] = new CleanupService(env);
 
     // Server
-    this.registry[Server.name] = new Server(env, stepService, pipelineService, executionService);
+    this.registry[Server.name] = new Server(env, stepService, pipelineService, executionService, restrictedService);
   }
 
   public get<T>(klass: Class<T>): T {
