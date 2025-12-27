@@ -131,14 +131,12 @@ export class PostgresAdapter extends AbstractAdapter {
       }
 
       // Parse and validate the JSON output with Zod
-      const output = z
-        .object({
-          status: z.literal("success"),
-          database: z.string(),
-        })
-        .parse(JSON.parse(stdout));
+      z.object({
+        status: z.literal("success"),
+        database: z.string(),
+      }).parse(JSON.parse(stdout));
     } catch (error) {
-      throw new Error(`Restore failed: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(error instanceof Error ? error.message : String(error));
     }
   }
 }
