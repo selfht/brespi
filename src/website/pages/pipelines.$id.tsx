@@ -370,7 +370,7 @@ export function pipelines_$id() {
         ref={fullScreenElementRef}
         className={clsx("col-span-full flex flex-col", {
           "bg-black!": interactivity === Interactivity.editing,
-          "h-screen w-screen": isFullScreen,
+          "w-screen overflow-x-hidden overflow-y-auto": isFullScreen,
         })}
         borderClassName={clsx({
           "border-c-info bg-c-info": interactivity === Interactivity.editing && !isFullScreen,

@@ -39,7 +39,7 @@ export namespace Test {
 
   export async function env(env = {} as Partial<Env.Private>) {
     const cwd = await ensureValidCwd();
-    const X_BRESPI_ROOT = join(cwd, "opt", "testbrespi");
+    const X_BRESPI_ROOT = join(cwd, "opt", "brespi");
     const result: Partial<Env.Private> = {
       X_BRESPI_ROOT,
       X_BRESPI_TMP_ROOT: join(X_BRESPI_ROOT, "tmp"),
