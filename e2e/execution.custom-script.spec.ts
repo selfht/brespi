@@ -34,7 +34,7 @@ cat $BRESPI_ARTIFACTS_IN/* > $BRESPI_ARTIFACTS_OUT/ABC.txt
       outputDir,
       scriptPath: script,
     });
-    await ExecutionFlow.executeCurrentPipeline(page);
+    await ExecutionFlow.executePipeline(page);
     // then
     expect(await readdir(outputDir)).toHaveLength(1);
     const mergedFileContents = await Common.readFileUtf8(join(outputDir, "ABC.txt"));

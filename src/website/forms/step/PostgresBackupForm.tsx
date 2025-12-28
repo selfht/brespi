@@ -29,9 +29,11 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
     defaultValues: {
       [Field.connectionReference]: existing?.connectionReference ?? "",
       [Field.databaseSelectionStrategy]: existing?.databaseSelection.strategy ?? "all",
-      [Field.databaseSelectionInclude_include]: existing?.databaseSelection.strategy === "include" ? existing?.databaseSelection.include : [],
-      [Field.databaseSelectionExclude_exclude]: existing?.databaseSelection.strategy === "exclude" ? existing?.databaseSelection.exclude : [],
-    },
+      [Field.databaseSelectionInclude_include]:
+        existing?.databaseSelection.strategy === "include" ? existing?.databaseSelection.include : [],
+      [Field.databaseSelectionExclude_exclude]:
+        existing?.databaseSelection.strategy === "exclude" ? existing?.databaseSelection.exclude : [],
+    } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();

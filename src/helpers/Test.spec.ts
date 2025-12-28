@@ -5,7 +5,7 @@ import { ExecutionRepository } from "@/repositories/ExecutionRepository";
 import { GenericInMemoryRepository } from "@/repositories/implementations/GenericInMemoryRepository";
 import { PipelineRepositoryDefault } from "@/repositories/implementations/PipelineRepositoryDefault";
 import { mock, Mock } from "bun:test";
-import { CommandHelper } from "./CommandHelper";
+import { CommandRunner } from "./CommandRunner";
 import { Env } from "@/Env";
 import { join } from "path";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
@@ -68,8 +68,8 @@ export namespace Test {
     public static readonly adapterService: Mocked<AdapterService> = {
       submit: mock(),
     };
-    public static readonly commandHelper: Mocked<CommandHelper> = {
-      execute: mock(),
+    public static readonly commandHelper: Mocked<CommandRunner> = {
+      run: mock(),
     };
 
     public static resetAllMocks() {

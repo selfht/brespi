@@ -15,7 +15,7 @@ import { CleanupService } from "./services/CleanupService";
 import { ExecutionService } from "./services/ExecutionService";
 import { PipelineService } from "./services/PipelineService";
 import { StepService } from "./services/StepService";
-import { CommandHelper } from "./helpers/CommandHelper";
+import { CommandRunner } from "./helpers/CommandRunner";
 import { ExecutionRepositoryDefault } from "./repositories/implementations/ExecutionRepositoryDefault";
 import { RestrictedService } from "./services/RestrictedService";
 
@@ -27,9 +27,6 @@ export class ServerRegistry {
   private readonly registry: Record<string, any> = {};
 
   private constructor(env: Env.Private) {
-    // Helpers
-    const commandHelper = (this.registry[CommandHelper.name] = new CommandHelper());
-
     // Adapters
     const fileSystemAdapter = (this.registry[FilesystemAdapter.name] = new FilesystemAdapter(env));
     const compressionAdapter = (this.registry[CompressionAdapter.name] = new CompressionAdapter(env));
@@ -37,7 +34,7 @@ export class ServerRegistry {
     const filterAdapter = (this.registry[FilterAdapter.name] = new FilterAdapter(env));
     const scriptAdapter = (this.registry[ScriptAdapter.name] = new ScriptAdapter(env));
     const s3Adapter = (this.registry[S3Adapter.name] = new S3Adapter(env));
-    const postgresAdapter = (this.registry[PostgresAdapter.name] = new PostgresAdapter(env, commandHelper));
+    const postgresAdapter = (this.registry[PostgresAdapter.name] = new PostgresAdapter(env));
     const adapterService = (this.registry[AdapterService.name] = new AdapterService(
       fileSystemAdapter,
       compressionAdapter,

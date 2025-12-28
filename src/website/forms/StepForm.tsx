@@ -12,7 +12,7 @@ import { PostgresBackupForm } from "./step/PostgresBackupForm";
 import { PostgresRestoreForm } from "./step/PostgresRestoreForm";
 import { S3DownloadForm } from "./step/S3DownloadForm";
 import { S3UploadForm } from "./step/S3UploadForm";
-import { ScriptExecutionForm } from "./step/ScriptExecutionForm";
+import { CustomScriptForm } from "./step/CustomScriptForm";
 import { useRegistry } from "../hooks/useRegistry";
 import { StepClient } from "../clients/StepClient.ts";
 import { FilterForm } from "./step/FilterForm";
@@ -52,7 +52,7 @@ export function StepForm({ type, existing, onSave, ...props }: Props): JSX.Eleme
     case Step.Type.filter:
       return <FilterForm existing={existing as Step.Filter} onSave={validateAndSave} {...props} />;
     case Step.Type.custom_script:
-      return <ScriptExecutionForm existing={existing as Step.ScriptExecution} onSave={validateAndSave} {...props} />;
+      return <CustomScriptForm existing={existing as Step.ScriptExecution} onSave={validateAndSave} {...props} />;
     case Step.Type.s3_upload:
       return <S3UploadForm existing={existing as Step.S3Upload} onSave={validateAndSave} {...props} />;
     case Step.Type.s3_download:

@@ -30,13 +30,13 @@ describe("execution | compress-and-encrypt", () => {
 
     // when (compress and encrypt)
     await createCompressionAndEncryptionPipeline(page);
-    await ExecutionFlow.executeCurrentPipeline(page);
+    await ExecutionFlow.executePipeline(page);
     // then (expect a scratch file to have been created, with different contents)
     expect(await readFile(path.forwardProcessingFile)).not.toEqual(await readFile(path.originalFile));
 
     // when (decrypt and decompress)
     await createDecryptionAndDecompressionPipeline(page);
-    await ExecutionFlow.executeCurrentPipeline(page);
+    await ExecutionFlow.executePipeline(page);
     // then (expect a scratch file to have been created, with the same contents)
     expect(await readFile(path.reverseProcessingFile)).toEqual(await readFile(path.originalFile));
   });

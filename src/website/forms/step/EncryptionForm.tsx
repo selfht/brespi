@@ -25,7 +25,7 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
     defaultValues: {
       [Field.keyReference]: existing?.keyReference ?? "",
       [Field.algorithmImplementation]: existing?.algorithm.implementation ?? "aes256cbc",
-    },
+    } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
@@ -54,7 +54,12 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
             <label htmlFor={Field.keyReference} className="w-72">
               Key Reference
             </label>
-            <input id={Field.keyReference} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.keyReference)} />
+            <input
+              id={Field.keyReference}
+              type="text"
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.keyReference)}
+            />
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.algorithmImplementation} className="w-72">

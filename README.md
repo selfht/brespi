@@ -1,5 +1,8 @@
 # bun-react-tailwind-template
 
+TODO
+ - bug when drawing arrows while the form for a "new" (or maybe also an existing?) step is still open
+
 To install dependencies:
 
 ```bash

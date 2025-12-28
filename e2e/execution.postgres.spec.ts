@@ -86,7 +86,7 @@ describe("execution | postgres", () => {
     });
     // when
     await createBackupPipeline(page, { backupDir, databases: Object.values(Database) });
-    await ExecutionFlow.executeCurrentPipeline(page);
+    await ExecutionFlow.executePipeline(page);
     // then
     const expectedDumpFiles = Object.values(Database).map((db) => `${db}.dump`);
     expect(await readdir(backupDir)).toHaveLength(expectedDumpFiles.length);
@@ -114,7 +114,7 @@ describe("execution | postgres", () => {
 
     // when (perform a backup)
     await createBackupPipeline(page, { backupDir, databases: [database] });
-    await ExecutionFlow.executeCurrentPipeline(page);
+    await ExecutionFlow.executePipeline(page);
 
     // when (modify records)
     await PostgresBoundary.execute({ database, sql: "delete from films where id = 2" });
@@ -128,7 +128,7 @@ describe("execution | postgres", () => {
 
     // when (perform a restore)
     await createRestorePipeline(page, { backupDir, database });
-    await ExecutionFlow.executeCurrentPipeline(page);
+    await ExecutionFlow.executePipeline(page);
 
     // then
     const dataAfterRestore = await PostgresBoundary.queryAll({ database, table: "films" });

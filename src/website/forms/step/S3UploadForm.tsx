@@ -37,7 +37,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
       [Field.accessKeyReference]: existing?.connection.accessKeyReference ?? "",
       [Field.secretKeyReference]: existing?.connection.secretKeyReference ?? "",
       [Field.baseFolder]: existing?.baseFolder ?? "",
-    },
+    } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();

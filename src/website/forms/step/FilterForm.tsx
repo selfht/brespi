@@ -30,7 +30,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
       [Field.selectionName]: existing?.selection.method === "exact" ? existing.selection.name : "",
       [Field.selectionNameGlob]: existing?.selection.method === "glob" ? existing.selection.nameGlob : "",
       [Field.selectionNameRegex]: existing?.selection.method === "regex" ? existing.selection.nameRegex : "",
-    },
+    } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
@@ -64,11 +64,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
             <label htmlFor={Field.selectionMethod} className="w-72">
               Selection method
             </label>
-            <select
-              id={Field.selectionMethod}
-              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.selectionMethod)}
-            >
+            <select id={Field.selectionMethod} className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.selectionMethod)}>
               {selectionMethodOptions.map((value) => (
                 <option key={value} value={value}>
                   {value}

@@ -1,4 +1,5 @@
 import { type Locator, type Page, expect } from "@playwright/test";
+import { Common } from "e2e/common/Common";
 
 export namespace EditorFlow {
   type StepCommon = {
@@ -127,12 +128,11 @@ export namespace EditorFlow {
     // Wait until the saving is complete
     await expect(page.getByRole("button", { name: "Execute" })).toBeVisible();
     // Extract the ID from the url
-    const url = page.url();
-    const match = url.match(/pipelines\/(.+)/);
-    if (!match || !match[1]) {
+    const pipelineId = Common.extractCurrentPipelineIdFromUrl(page);
+    if (!pipelineId) {
       throw new Error(`Invalid url: ${url}`);
     }
-    return match[1];
+    return pipelineId;
   }
 
   async function fillStepForm(page: Page, step: StepOptions): Promise<null> {

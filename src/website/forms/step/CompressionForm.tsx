@@ -24,7 +24,7 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
     defaultValues: {
       [Field.algorithmImplementation]: existing?.algorithm.implementation ?? "targzip",
       [Field.algorithmTargzip_level]: existing?.algorithm.level ?? 9,
-    },
+    } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
@@ -53,7 +53,11 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
             <label htmlFor={Field.algorithmImplementation} className="w-72">
               Algorithm
             </label>
-            <select id={Field.algorithmImplementation} className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.algorithmImplementation)}>
+            <select
+              id={Field.algorithmImplementation}
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.algorithmImplementation)}
+            >
               <option value="targzip">targzip</option>
             </select>
           </div>

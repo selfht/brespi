@@ -19,12 +19,12 @@ type Props = {
   onCancel: () => unknown;
   className?: string;
 };
-export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
+export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.path]: existing?.path ?? "",
-      [Field.passthrough]: `${existing?.passthrough ?? false}`,
-    },
+      [Field.passthrough]: existing ? (existing.passthrough ? "true" : "false") : "false",
+    } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
@@ -43,7 +43,6 @@ export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, 
       });
     }
   };
-  const passThrough = watch(Field.passthrough);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.custom_script}>

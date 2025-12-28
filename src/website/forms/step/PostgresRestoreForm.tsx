@@ -24,7 +24,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
     defaultValues: {
       [Field.connectionReference]: existing?.connectionReference ?? "",
       [Field.database]: existing?.database ?? "",
-    },
+    } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();

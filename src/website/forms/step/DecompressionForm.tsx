@@ -22,7 +22,7 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.algorithmImplementation]: existing?.algorithm.implementation ?? "targzip",
-    },
+    } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();

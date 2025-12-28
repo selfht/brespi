@@ -6,9 +6,11 @@ import { FormHelper } from "../FormHelper";
 
 enum Field {
   path = "path",
+  brespiManaged = "brespiManaged",
 }
 type Form = {
   [Field.path]: string;
+  [Field.brespiManaged]: "true" | "false";
 };
 type Props = {
   id: string;
@@ -22,7 +24,8 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.path]: existing?.path ?? "",
-    },
+      [Field.brespiManaged]: existing ? (existing.brespiManaged ? "true" : "false") : "false",
+    } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
@@ -33,6 +36,7 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
         object: "step",
         type: Step.Type.filesystem_write,
         path: form[Field.path],
+        brespiManaged: form[Field.brespiManaged] === "true",
       });
     } catch (error) {
       setError("root", {
@@ -49,6 +53,15 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
               Path
             </label>
             <input id={Field.path} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.path)} />
+          </div>
+          <div className="flex items-center">
+            <label htmlFor={Field.brespiManaged} className="w-72">
+              Brespi managed folder?
+            </label>
+            <select id={Field.brespiManaged} className="rounded p-2 bg-c-dim/20" {...register(Field.brespiManaged)}>
+              <option value="true">yes</option>
+              <option value="false">no</option>
+            </select>
           </div>
         </fieldset>
         <FormElements.ButtonBar

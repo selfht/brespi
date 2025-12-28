@@ -30,7 +30,7 @@ describe("execution | s3", () => {
     }
     // when (backup to S3)
     const writePipelineId = await createS3WritePipeline(page, { inputDir, baseFolder });
-    await ExecutionFlow.executeCurrentPipeline(page);
+    await ExecutionFlow.executePipeline(page);
     // then (S3 has records)
     expect(await S3Boundary.listBucket()).toEqual(
       expect.arrayContaining([
@@ -42,7 +42,7 @@ describe("execution | s3", () => {
 
     // when (retrieve latest from S3)
     const readPipelineId = await createS3ReadPipeline(page, { baseFolder, outputDir });
-    await ExecutionFlow.executeCurrentPipeline(page);
+    await ExecutionFlow.executePipeline(page);
     // then (retrieved records are identical)
     expect(await readdir(outputDir)).toHaveLength(fruits.length);
     for (const fruit of fruits) {
@@ -60,8 +60,7 @@ describe("execution | s3", () => {
       await Common.writeFileRecursive(path, `I am a warrior named ${vegetable}`);
     }
     // when (backup to S3)
-    await page.goto(`pipelines/${writePipelineId}`);
-    await ExecutionFlow.executeCurrentPipeline(page);
+    await ExecutionFlow.executePipeline(page, { id: writePipelineId });
     // then (S3 has more records)
     expect(await S3Boundary.listBucket()).toEqual(
       expect.arrayContaining([
@@ -74,8 +73,7 @@ describe("execution | s3", () => {
     );
 
     // when (retrieve latest from S3 again)
-    await page.goto(`pipelines/${readPipelineId}`);
-    await ExecutionFlow.executeCurrentPipeline(page);
+    await ExecutionFlow.executePipeline(page, { id: readPipelineId });
     // then (retrieved records are identical)
     expect(await readdir(outputDir)).toHaveLength(vegetables.length);
     for (const vegetable of vegetables) {

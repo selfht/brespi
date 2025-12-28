@@ -6,9 +6,15 @@ import { FormHelper } from "../FormHelper";
 
 enum Field {
   path = "path",
+  brespiManaged = "brespiManaged",
+  brespiManaged_selection_target = "brespiManaged_selection_target",
+  brespiManaged_selection_version = "brespiManaged_selection_version",
 }
 type Form = {
   [Field.path]: string;
+  [Field.brespiManaged]: "true" | "false";
+  [Field.brespiManaged_selection_target]: "latest" | "specific";
+  [Field.brespiManaged_selection_version]: string;
 };
 type Props = {
   id: string;
@@ -19,10 +25,13 @@ type Props = {
   className?: string;
 };
 export function FileSystemReadForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
+  const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.path]: existing?.path ?? "",
-    },
+      [Field.brespiManaged]: existing ? (existing.brespiManaged ? "true" : "false") : "false",
+      [Field.brespiManaged_selection_target]: existing?.brespiManaged?.selection.target ?? "latest",
+      [Field.brespiManaged_selection_version]: existing?.brespiManaged?.selection.target ?? "",
+    } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
@@ -33,6 +42,15 @@ export function FileSystemReadForm({ id, existing, onSave, onDelete, onCancel, c
         object: "step",
         type: Step.Type.filesystem_read,
         path: form[Field.path],
+        brespiManaged:
+          form[Field.brespiManaged] === "true"
+            ? {
+                selection:
+                  form[Field.brespiManaged_selection_target] === "latest"
+                    ? { target: "latest" }
+                    : { target: "specific", version: form[Field.brespiManaged_selection_version] },
+              }
+            : null,
       });
     } catch (error) {
       setError("root", {
@@ -40,6 +58,9 @@ export function FileSystemReadForm({ id, existing, onSave, onDelete, onCancel, c
       });
     }
   };
+
+  const brespiManaged = watch(Field.brespiManaged);
+  const brespiManagedSelectionTarget = watch(Field.brespiManaged_selection_target);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.filesystem_read}>
@@ -50,6 +71,45 @@ export function FileSystemReadForm({ id, existing, onSave, onDelete, onCancel, c
             </label>
             <input id={Field.path} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.path)} />
           </div>
+          <div className="flex items-center">
+            <label htmlFor={Field.brespiManaged} className="w-72">
+              Brespi managed folder?
+            </label>
+            <select id={Field.brespiManaged} className="rounded p-2 bg-c-dim/20" {...register(Field.brespiManaged)}>
+              <option value="true">yes</option>
+              <option value="false">no</option>
+            </select>
+          </div>
+          {brespiManaged === "true" ? (
+            <>
+              <div className="flex items-center">
+                <label htmlFor={Field.brespiManaged_selection_target} className="w-72">
+                  Version Selection
+                </label>
+                <select
+                  id={Field.brespiManaged_selection_target}
+                  className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+                  {...register(Field.brespiManaged_selection_target)}
+                >
+                  <option value="latest">latest</option>
+                  <option value="specific">specific</option>
+                </select>
+              </div>
+              {brespiManagedSelectionTarget === "specific" && (
+                <div className="flex items-center">
+                  <label htmlFor={Field.brespiManaged_selection_version} className="w-72">
+                    Version
+                  </label>
+                  <input
+                    id={Field.brespiManaged_selection_version}
+                    type="text"
+                    className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+                    {...register(Field.brespiManaged_selection_version)}
+                  />
+                </div>
+              )}
+            </>
+          ) : null}
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

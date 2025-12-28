@@ -39,10 +39,18 @@ export namespace StepTranslation {
       case Step.Type.filesystem_read:
         return {
           Path: step.path,
+          "Brespi managed?": Boolean(step.brespiManaged),
+          Selection: step.brespiManaged ? step.brespiManaged.selection.target : undefined,
+          "Selection version": step.brespiManaged
+            ? step.brespiManaged.selection.target === "specific"
+              ? step.brespiManaged.selection.version
+              : undefined
+            : undefined,
         };
       case Step.Type.filesystem_write:
         return {
           Path: step.path,
+          "Brespi managed?": step.brespiManaged,
         };
       case Step.Type.compression:
         return {
@@ -81,20 +89,20 @@ export namespace StepTranslation {
         };
       case Step.Type.s3_upload:
         return {
-          Bucket: step.connection.bucket,
-          Endpoint: step.connection.endpoint,
-          Region: step.connection.region,
-          "Access key reference": step.connection.accessKeyReference,
-          "Secret key reference": step.connection.secretKeyReference,
+          "Connection: endpoint": step.connection.endpoint,
+          "Connection: bucket": step.connection.bucket,
+          "Connection: region": step.connection.region,
+          "Connection: access key reference": step.connection.accessKeyReference,
+          "Connection: secret key reference": step.connection.secretKeyReference,
           "Base folder": step.baseFolder,
         };
       case Step.Type.s3_download:
         return {
-          Bucket: step.connection.bucket,
-          Endpoint: step.connection.endpoint,
-          Region: step.connection.region,
-          "Access key reference": step.connection.accessKeyReference,
-          "Secret key reference": step.connection.secretKeyReference,
+          "Connection: endpoint": step.connection.endpoint,
+          "Connection: bucket": step.connection.bucket,
+          "Connection: region": step.connection.region,
+          "Connection: access key reference": step.connection.accessKeyReference,
+          "Connection: secret key reference": step.connection.secretKeyReference,
           "Base folder": step.baseFolder,
           Selection: step.selection.target,
           "Selection version": step.selection.target === "specific" ? step.selection.version : undefined,

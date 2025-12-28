@@ -43,7 +43,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
       [Field.baseFolder]: existing?.baseFolder ?? "",
       [Field.selectionTarget]: existing?.selection.target ?? "latest",
       [Field.selectionSpecificVersion]: existing?.selection.target === "specific" ? existing.selection.version : "",
-    },
+    } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();

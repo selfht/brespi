@@ -1,3 +1,4 @@
+import { Page } from "@playwright/test";
 import { writeFile } from "fs/promises";
 import { readFile } from "fs/promises";
 import { rm } from "fs/promises";
@@ -6,6 +7,15 @@ import { mkdir } from "fs/promises";
 import { dirname } from "path";
 
 export namespace Common {
+  export function extractCurrentPipelineIdFromUrl(page: Page): string | undefined {
+    const url = page.url();
+    const match = url.match(/pipelines\/(.+)/);
+    if (!match || !match[1]) {
+      return undefined;
+    }
+    return match[1];
+  }
+
   export async function emptyDir(path: string) {
     await rm(path, { recursive: true, force: true });
     await mkdir(path, { recursive: true });

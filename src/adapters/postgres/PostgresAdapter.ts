@@ -1,5 +1,5 @@
 import { Env } from "@/Env";
-import { CommandHelper } from "@/helpers/CommandHelper";
+import { CommandRunner } from "@/helpers/CommandRunner";
 import { UrlParser } from "@/helpers/UrlParser";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
@@ -11,10 +11,7 @@ import { AbstractAdapter } from "../AbstractAdapter";
 export class PostgresAdapter extends AbstractAdapter {
   private readonly EXTENSION = ".dump";
 
-  public constructor(
-    protected readonly env: Env.Private,
-    private readonly commandHelper: CommandHelper,
-  ) {
+  public constructor(protected readonly env: Env.Private) {
     super(env);
   }
 
@@ -39,7 +36,7 @@ export class PostgresAdapter extends AbstractAdapter {
     }
 
     try {
-      const { exitCode, stdout, stderr } = await this.commandHelper.execute({
+      const { exitCode, stdout, stderr } = await CommandRunner.run({
         cmd: ["bash", scriptPath],
         env: {
           ...process.env,
@@ -118,7 +115,7 @@ export class PostgresAdapter extends AbstractAdapter {
     };
 
     try {
-      const { exitCode, stdout, stderr } = await this.commandHelper.execute({
+      const { exitCode, stdout, stderr } = await CommandRunner.run({
         cmd: ["bash", scriptPath],
         env: {
           ...process.env,

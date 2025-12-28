@@ -7,9 +7,8 @@ type Result = {
   stdout: string;
   stderr: string;
 };
-
-export class CommandHelper {
-  public async execute({ cmd, env }: Options): Promise<Result> {
+export class CommandRunner {
+  public static async run({ cmd, env }: Options): Promise<Result> {
     const proc = Bun.spawn({
       cmd,
       env,

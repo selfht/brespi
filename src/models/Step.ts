@@ -61,11 +61,17 @@ export namespace Step {
   export type FilesystemRead = Common & {
     type: Type.filesystem_read;
     path: string;
+    brespiManaged: null | {
+      selection:
+        | { target: "latest" } //
+        | { target: "specific"; version: string };
+    };
   };
 
   export type FilesystemWrite = Common & {
     type: Type.filesystem_write;
     path: string;
+    brespiManaged: boolean;
   };
 
   export type Compression = Common & {
@@ -190,6 +196,14 @@ export namespace Step {
           object: z.literal("step"),
           type: z.literal(Type.filesystem_read),
           path: z.string(),
+          brespiManaged: z
+            .object({
+              selection: z.union([
+                z.object({ target: z.literal("latest") }), //
+                z.object({ target: z.literal("specific"), version: z.string() }),
+              ]),
+            })
+            .nullable(),
         } satisfies SubSchema<Step.FilesystemRead>),
 
         z.object({
@@ -198,6 +212,7 @@ export namespace Step {
           object: z.literal("step"),
           type: z.literal(Type.filesystem_write),
           path: z.string(),
+          brespiManaged: z.boolean(),
         } satisfies SubSchema<Step.FilesystemWrite>),
 
         z.object({
