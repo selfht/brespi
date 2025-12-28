@@ -15,7 +15,7 @@ export default defineConfig({
   testDir: "./e2e",
   outputDir: "./e2e/.test-results",
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [["html", { outputFolder: "./e2e/.playwright-report" }]],
+  reporter: [["html", { outputFolder: "./e2e/.playwright-report", open: "never" }]],
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

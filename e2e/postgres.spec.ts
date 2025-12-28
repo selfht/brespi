@@ -16,7 +16,7 @@ describe("postgres", () => {
     expect(await S3Boundary.listBucket()).toHaveLength(0);
     // when
     await createBackupPipeline(page);
-    await ExecutionFlow.executeCurrentPipeline(page, { expectedOutcome: "success" });
+    await ExecutionFlow.executeCurrentPipeline(page);
     // then
     expect(await S3Boundary.listBucket()).toEqual(
       expect.arrayContaining([
@@ -33,7 +33,7 @@ describe("postgres", () => {
     const dataInitial = await PostgresBoundary.query({ database, table: "games" });
     // when (perform a backup)
     await createBackupPipeline(page);
-    await ExecutionFlow.executeCurrentPipeline(page, { expectedOutcome: "success" });
+    await ExecutionFlow.executeCurrentPipeline(page);
     // when (delete some records)
     await PostgresBoundary.multiDelete({
       database,
@@ -44,7 +44,7 @@ describe("postgres", () => {
     expect(dataInitial).not.toEqual(dataAfterDeletion);
     // when (perform a restore)
     await createRestorePipeline(page, database);
-    await ExecutionFlow.executeCurrentPipeline(page, { expectedOutcome: "success" });
+    await ExecutionFlow.executeCurrentPipeline(page);
     // then
     const dataAfterRestore = await PostgresBoundary.query({ database, table: "games" });
     expect(dataInitial).toEqual(dataAfterRestore);

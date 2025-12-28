@@ -12,7 +12,7 @@ describe("editor", () => {
   test("creates a backup pipeline", async ({ page }) => {
     // given
     const pipeline: EditorFlow.CreatePipelineOptions = {
-      name: "Playwright Backup Pipeline",
+      name: "Typical Backup Pipeline",
       steps: [
         {
           id: "A",

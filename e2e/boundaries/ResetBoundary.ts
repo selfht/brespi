@@ -9,6 +9,6 @@ export namespace ResetBoundary {
   export async function reset({ request }: Args) {
     await request.post("/api/restricted/delete-all-pipelines", { failOnStatusCode: true });
     await S3Boundary.emptyBucket();
-    await FileSystemBoundary.deleteScratchPad();
+    await FileSystemBoundary.ensureEmptyScratchPad();
   }
 }
