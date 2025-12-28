@@ -10,7 +10,7 @@ import { ExecutionFlow } from "./flows/ExecutionFlow";
 import { readdir } from "fs/promises";
 import { readFile } from "fs/promises";
 
-describe("pipelines | s3", () => {
+describe("execution | s3", () => {
   test.beforeEach(async ({ request }) => {
     await ResetBoundary.reset({ request });
   });
