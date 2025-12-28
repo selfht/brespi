@@ -17,7 +17,7 @@ describe("editor", () => {
         {
           id: "A",
           type: "Postgres Backup",
-          connectionReference: "MY_POSTGRES_CONNECTION_URL",
+          connectionReference: "MY_POSTGRES_URL",
         },
         {
           previousId: "A",

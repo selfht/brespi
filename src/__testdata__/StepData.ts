@@ -143,7 +143,7 @@ export namespace StepData {
       case Step.Type.postgres_backup: {
         const step: Step.PostgresBackup = {
           type: Step.Type.postgres_backup,
-          connectionReference: "MY_POSTGRES_CONNECTION_URL",
+          connectionReference: "MY_POSTGRES_URL",
           databaseSelection: {
             strategy: "all",
           },
@@ -154,7 +154,7 @@ export namespace StepData {
       case Step.Type.postgres_restore: {
         const step: Step.PostgresRestore = {
           type: Step.Type.postgres_restore,
-          connectionReference: "MY_POSTGRES_CONNECTION_URL",
+          connectionReference: "MY_POSTGRES_URL",
           database: "test_db",
           ...common,
         };
