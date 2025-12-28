@@ -3,7 +3,7 @@ import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { spawn } from "bun";
 import { readdir, rename, rm, stat } from "fs/promises";
-import { dirname, join } from "path";
+import { basename, dirname, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 
 export class ScriptAdapter extends AbstractAdapter {
@@ -16,7 +16,6 @@ export class ScriptAdapter extends AbstractAdapter {
       await this.executeScript(step.path);
       return artifacts;
     }
-
     const [artifactsIn, artifactsOut] = await Promise.all([
       this.createTmpDestination(), //
       this.createTmpDestination(),
@@ -29,7 +28,7 @@ export class ScriptAdapter extends AbstractAdapter {
       });
       return await this.readArtifactsFromDirectory(artifactsOut);
     } catch (error) {
-      throw new Error(`Script execution failed: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(error instanceof Error ? error.message : String(error));
     } finally {
       await Promise.all([
         rm(artifactsIn, { recursive: true, force: true }), //
@@ -40,7 +39,7 @@ export class ScriptAdapter extends AbstractAdapter {
 
   private async executeScript(scriptPath: string, env: Record<string, string> = {}): Promise<void> {
     const proc = spawn({
-      cmd: ["bash", scriptPath],
+      cmd: ["bash", "-c", `./${basename(scriptPath)} 2>&1`],
       cwd: dirname(scriptPath),
       env: {
         ...process.env,
@@ -50,9 +49,9 @@ export class ScriptAdapter extends AbstractAdapter {
       stderr: "pipe",
     });
     await proc.exited;
+    const output = await new Response(proc.stdout).text();
     if (proc.exitCode !== 0) {
-      const stderr = await new Response(proc.stderr).text();
-      throw new Error(`Script exited with code ${proc.exitCode}: ${stderr}`);
+      throw new Error(`Script exited with code ${proc.exitCode}:\n${output}`);
     }
   }
 

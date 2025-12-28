@@ -1,5 +1,5 @@
 import { Temporal } from "@js-temporal/polyfill";
-import { join } from "path";
+import { isAbsolute, join } from "path";
 import { z } from "zod/v4";
 
 export namespace Env {
@@ -12,6 +12,10 @@ export namespace Env {
         O_BRESPI_STAGE: z.enum(["development", "production"]),
         X_BRESPI_ROOT: z.string(),
       })
+      .transform((env) => ({
+        ...env,
+        X_BRESPI_ROOT: isAbsolute(env.X_BRESPI_ROOT) ? env.X_BRESPI_ROOT : join(process.cwd(), env.X_BRESPI_ROOT),
+      }))
       .transform((env) => ({
         ...env,
         X_BRESPI_TMP_ROOT: join(env.X_BRESPI_ROOT, "tmp"),
