@@ -3,13 +3,13 @@ import { describe } from "node:test";
 
 describe("basics", () => {
   test("all main pages load and have the right title", async ({ page }) => {
-    // given
     type TestCase = {
       url: string;
       expectation: {
         title: string;
       };
     };
+    // given
     const testCases: TestCase[] = [
       { url: "", expectation: { title: "Pipelines | Brespi" } },
       { url: "schedules", expectation: { title: "Schedules | Brespi" } },
