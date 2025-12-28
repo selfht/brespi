@@ -5,11 +5,20 @@ import { Client } from "pg";
 export namespace PostgresBoundary {
   type Row = Record<string, string | number | boolean | null>;
 
-  export async function database(operation: "create" | "drop", table: string): Promise<void> {
-    throw new Error("Not implemented");
+  export async function database(operation: "create" | "drop", database: string): Promise<void> {
+    /**
+     * Creating will fail if the database already exists
+     * Dropping will never fail
+     */
+    throw new Error("Not implemented: creation should fail if already exists; dropping should not fail if absent");
   }
 
-  export async function table(operation: "create" | "drop", table: string): Promise<void> {
+  type TableDefinition = Record<string, string>; // e.g.: { "id": "UUID PRIMARY KEY", "age": "integer" }
+  export async function table(operation: "create" | "drop", table: string, definition: TableDefinition): Promise<void> {
+    /**
+     * Creating will fail if the table already exists
+     * Dropping will never fail
+     */
     throw new Error("Not implemented");
   }
 
