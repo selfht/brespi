@@ -33,11 +33,11 @@ describe("editor", () => {
         {
           previousId: "C",
           type: "S3 Upload",
-          bucket: S3Boundary.Config.BUCKET,
-          endpoint: S3Boundary.Config.ENDPOINT_APP,
+          bucket: S3Boundary.BUCKET,
+          endpoint: S3Boundary.ENDPOINT,
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
-          baseFolder: S3Boundary.Config.BASE_FOLDER,
+          baseFolder: "my-base-folder",
         },
       ],
     };

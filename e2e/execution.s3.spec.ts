@@ -106,8 +106,8 @@ describe("execution | s3", () => {
         {
           previousId: "B",
           type: "S3 Upload",
-          bucket: S3Boundary.Config.BUCKET,
-          endpoint: S3Boundary.Config.ENDPOINT_APP,
+          bucket: S3Boundary.BUCKET,
+          endpoint: S3Boundary.ENDPOINT,
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
           baseFolder,
@@ -127,8 +127,8 @@ describe("execution | s3", () => {
         {
           id: "A",
           type: "S3 Download",
-          bucket: S3Boundary.Config.BUCKET,
-          endpoint: S3Boundary.Config.ENDPOINT_APP,
+          bucket: S3Boundary.BUCKET,
+          endpoint: S3Boundary.ENDPOINT,
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
           baseFolder,

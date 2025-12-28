@@ -3,42 +3,48 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 
 export namespace PostgresBoundary {
-  export const Config = {
-    HOST: "localhost",
-    USERNAME: "postgres",
-    PASSWORD: "postgres",
+  type Row = Record<string, string | number | boolean | null>;
+
+  export async function database(operation: "create" | "drop", table: string): Promise<void> {
+    throw new Error("Not implemented");
+  }
+
+  export async function table(operation: "create" | "drop", table: string): Promise<void> {
+    throw new Error("Not implemented");
+  }
+
+  type InsertOptions = {
+    table: string;
+    rows: Row[];
   };
+  export async function insert({ table, rows }: InsertOptions): Promise<void> {
+    throw new Error("Not implemented");
+  }
 
   type QueryOptions = {
     database: string;
     table: string;
   };
-  type QueryResult = Array<{ id: number } & Record<string, string | number | boolean | null>>;
-  export async function query({ database, table }: QueryOptions): Promise<QueryResult> {
-    return await executeSql(database, `select id, * from ${table}`);
+  export async function queryAll({ database, table }: QueryOptions): Promise<Row[]> {
+    return await execute({ database, sql: `select id, * from ${table}` });
   }
 
-  type MultiDeleteOptions = {
+  type ExecuteOptions = {
     database: string;
-    table: string;
-    ids: number[];
+    sql: string;
   };
-  export async function multiDelete({ database, table, ids }: MultiDeleteOptions) {
-    return await executeSql(database, `delete from ${table} where id in (${ids.join(",")})`);
-  }
-
-  async function executeSql(database: string, sqlToExecute: string): Promise<QueryResult> {
+  export async function execute({ database, sql: sqlToExecute }: ExecuteOptions): Promise<Row[]> {
     const client = new Client({
-      host: Config.HOST,
-      user: Config.USERNAME,
-      password: Config.PASSWORD,
+      host: "localhost",
+      user: "postgres",
+      password: "postgres",
       database: database,
     });
     try {
       await client.connect();
       const db = drizzle(client);
       const result = await db.execute(sql.raw(sqlToExecute));
-      return result.rows as QueryResult;
+      return result.rows as Row[];
     } finally {
       await client.end();
     }

@@ -30,23 +30,23 @@ describe("execution | postgres", () => {
     // given
     const database = "gamingworld";
     const backupDir = path.join(FileSystemBoundary.SCRATCH_PAD, "backups");
-    const initialData = await PostgresBoundary.query({ database, table: "games" });
+    const initialData = await PostgresBoundary.queryAll({ database, table: "games" });
     // when (perform a backup)
     await createBackupPipeline(page, { backupDir });
     await ExecutionFlow.executeCurrentPipeline(page);
     // when (delete some records)
-    await PostgresBoundary.multiDelete({
+    const idsToDelete = initialData.map(({ id }) => id as number).filter((_id, index) => index % 2 === 0);
+    await PostgresBoundary.execute({
       database,
-      table: "games",
-      ids: initialData.map(({ id }) => id).filter((_id, index) => index % 2 === 0),
+      sql: `delete from games where id in (${idsToDelete.join(", ")})`,
     });
-    const dataAfterDeletion = await PostgresBoundary.query({ database, table: "games" });
+    const dataAfterDeletion = await PostgresBoundary.queryAll({ database, table: "games" });
     expect(initialData).not.toEqual(dataAfterDeletion);
     // when (perform a restore)
     await createRestorePipeline(page, { backupDir, database });
     await ExecutionFlow.executeCurrentPipeline(page);
     // then
-    const dataAfterRestore = await PostgresBoundary.query({ database, table: "games" });
+    const dataAfterRestore = await PostgresBoundary.queryAll({ database, table: "games" });
     expect(initialData).toEqual(dataAfterRestore);
   });
 

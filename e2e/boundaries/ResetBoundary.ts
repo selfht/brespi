@@ -3,10 +3,10 @@ import { FileSystemBoundary } from "e2e/boundaries/FileSystemBoundary";
 import { S3Boundary } from "e2e/boundaries/S3Boundary";
 
 export namespace ResetBoundary {
-  type Args = {
+  type ResetOptions = {
     request: APIRequestContext;
   };
-  export async function reset({ request }: Args) {
+  export async function reset({ request }: ResetOptions) {
     await request.post("/api/restricted/delete-all-pipelines", { failOnStatusCode: true });
     await S3Boundary.emptyBucket();
     await FileSystemBoundary.ensureEmptyScratchPad();

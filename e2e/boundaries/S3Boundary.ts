@@ -1,28 +1,22 @@
 import { DeleteObjectCommand, ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
 
 export namespace S3Boundary {
-  export const Config = {
-    BUCKET: "bucko",
-    BASE_FOLDER: "/backups",
-    ENDPOINT_PLAYWRIGHT: "http://localhost:4566",
-    ENDPOINT_APP: "http://s3:4566",
-    ACCESS_KEY: "test",
-    SECRET_KEY: "test",
-  };
+  export const BUCKET = "bucko";
+  export const ENDPOINT = "http://s3:4566";
 
   const client = new S3Client({
-    endpoint: Config.ENDPOINT_PLAYWRIGHT,
+    endpoint: "http://localhost:4566",
     region: "eu-central-1",
     credentials: {
-      accessKeyId: Config.ACCESS_KEY,
-      secretAccessKey: Config.SECRET_KEY,
+      accessKeyId: "test",
+      secretAccessKey: "test",
     },
     forcePathStyle: true,
   });
 
   export async function listBucket(): Promise<string[]> {
     const keys: string[] = [];
-    const listCommand = new ListObjectsV2Command({ Bucket: Config.BUCKET });
+    const listCommand = new ListObjectsV2Command({ Bucket: BUCKET });
     const { Contents = [] } = await client.send(listCommand);
     if (Contents.length > 0) {
       for (const object of Contents) {
@@ -38,7 +32,7 @@ export namespace S3Boundary {
     for (const key of await listBucket()) {
       await client.send(
         new DeleteObjectCommand({
-          Bucket: Config.BUCKET,
+          Bucket: BUCKET,
           Key: key,
         }),
       );
