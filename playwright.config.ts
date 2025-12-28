@@ -54,5 +54,9 @@ export default defineConfig({
     command: "docker compose up",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
+    gracefulShutdown: {
+      signal: "SIGTERM",
+      timeout: 1500,
+    },
   },
 });

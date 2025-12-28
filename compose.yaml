@@ -22,7 +22,7 @@ services:
     ports:
       - "4566:4566"
     volumes:
-      - ./compose-s3-init.sh:/etc/localstack/init/ready.d/init-s3.sh
+      - ./compose-init-s3.sh:/etc/localstack/init/ready.d/init-s3.sh
     networks:
       - app-network
 
