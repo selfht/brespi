@@ -13,6 +13,14 @@ export namespace S3Manifest {
     isoTimestamp: string;
     path: string;
   };
+  export namespace Upload {
+    /**
+     * Sort from most to least recent (new to old)
+     */
+    export function sort({ isoTimestamp: t1 }: Upload, { isoTimestamp: t2 }: Upload) {
+      return -Temporal.PlainDateTime.compare(Temporal.PlainDateTime.from(t1), Temporal.PlainDateTime.from(t2));
+    }
+  }
 
   export function empty(): S3Manifest {
     return {

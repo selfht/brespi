@@ -58,7 +58,7 @@ export class AdapterService {
       [Step.Type.filter]: async (artifacts, options) => {
         return AdapterResult.create(await filterAdapter.filter(artifacts, options));
       },
-      [Step.Type.script_execution]: async (artifacts, options) => {
+      [Step.Type.custom_script]: async (artifacts, options) => {
         return AdapterResult.create(await scriptAdapter.execute(artifacts, options));
       },
       [Step.Type.s3_upload]: async (artifacts, options, trail) => {

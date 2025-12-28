@@ -51,7 +51,7 @@ export function StepForm({ type, existing, onSave, ...props }: Props): JSX.Eleme
       return <FolderGroupForm existing={existing as Step.FolderGroup} onSave={validateAndSave} {...props} />;
     case Step.Type.filter:
       return <FilterForm existing={existing as Step.Filter} onSave={validateAndSave} {...props} />;
-    case Step.Type.script_execution:
+    case Step.Type.custom_script:
       return <ScriptExecutionForm existing={existing as Step.ScriptExecution} onSave={validateAndSave} {...props} />;
     case Step.Type.s3_upload:
       return <S3UploadForm existing={existing as Step.S3Upload} onSave={validateAndSave} {...props} />;

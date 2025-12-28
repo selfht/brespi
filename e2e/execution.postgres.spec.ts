@@ -6,7 +6,7 @@ import { EditorFlow } from "./flows/EditorFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
 import { PostgresBoundary } from "./boundaries/PostgresBoundary";
 
-describe("postgres", () => {
+describe("pipelines | postgres", () => {
   test.beforeEach(async ({ request }) => {
     await ResetBoundary.reset({ request });
   });
@@ -51,8 +51,8 @@ describe("postgres", () => {
   });
 
   async function createBackupPipeline(page: Page) {
-    await EditorFlow.createPipeline(page, {
-      name: "Backup Pipeline",
+    return await EditorFlow.createPipeline(page, {
+      name: "Postgres Backup",
       steps: [
         {
           id: "A",
@@ -84,8 +84,8 @@ describe("postgres", () => {
   }
 
   async function createRestorePipeline(page: Page, database: "musicworld" | "bakingworld" | "gamingworld") {
-    await EditorFlow.createPipeline(page, {
-      name: "Restore Pipeline",
+    return await EditorFlow.createPipeline(page, {
+      name: "Postgres Restore",
       steps: [
         {
           id: "A",

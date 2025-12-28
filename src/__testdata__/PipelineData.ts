@@ -92,7 +92,7 @@ export namespace PipelineData {
       StepData.createStep(Step.Type.postgres_backup, {
         id: "kwclogopzrec",
       }),
-      StepData.createStep(Step.Type.script_execution, {
+      StepData.createStep(Step.Type.custom_script, {
         id: "httkqpjuluef",
         previousId: "agunfwvnftwr",
         path: "",

@@ -33,7 +33,7 @@ export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, 
         id,
         previousId: existing?.previousId || null,
         object: "step",
-        type: Step.Type.script_execution,
+        type: Step.Type.custom_script,
         path: form[Field.path],
         passthrough: form[Field.passthrough] === "true",
       });
@@ -46,7 +46,7 @@ export function ScriptExecutionForm({ id, existing, onSave, onDelete, onCancel, 
   const passThrough = watch(Field.passthrough);
   return (
     <FormElements.Container className={className}>
-      <FormElements.Left stepType={Step.Type.script_execution}>
+      <FormElements.Left stepType={Step.Type.custom_script}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label htmlFor={Field.path} className="w-72">

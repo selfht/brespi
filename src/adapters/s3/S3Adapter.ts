@@ -1,7 +1,6 @@
 import { Env } from "@/Env";
 import { Generate } from "@/helpers/Generate";
 import { Mutex } from "@/helpers/Mutex";
-import { UrlParser } from "@/helpers/UrlParser";
 import { Artifact } from "@/models/Artifact";
 import { S3Manifest } from "@/models/s3/S3Manifest";
 import { S3Meta } from "@/models/s3/S3Meta";
@@ -110,9 +109,7 @@ export class S3Adapter extends AbstractAdapter {
   private findMatchingUpload(manifest: S3Manifest, selection: Step.S3Download["selection"]): S3Manifest.Upload {
     switch (selection.target) {
       case "latest": {
-        const sortedUploads = manifest.uploads.toSorted(({ isoTimestamp: t1 }, { isoTimestamp: t2 }) => {
-          return Temporal.PlainDateTime.compare(Temporal.PlainDateTime.from(t1), Temporal.PlainDateTime.from(t2));
-        });
+        const sortedUploads = manifest.uploads.toSorted(S3Manifest.Upload.sort);
         if (sortedUploads.length === 0) {
           throw new Error("Latest upload could not be found");
         }

@@ -647,7 +647,7 @@ namespace Internal {
       Step.Type.folder_group,
       Step.Type.folder_flatten,
       Step.Type.decryption,
-      Step.Type.script_execution,
+      Step.Type.custom_script,
       // Consumers
       Step.Type.filesystem_write,
       Step.Type.s3_upload,

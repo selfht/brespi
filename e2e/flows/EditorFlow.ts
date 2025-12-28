@@ -22,7 +22,7 @@ export namespace EditorFlow {
         selectionNameRegex?: string;
       })
     | (StepCommon & {
-        type: "Script Execution";
+        type: "Custom Script";
         path?: string;
         passthrough?: "true" | "false";
       })
@@ -62,11 +62,7 @@ export namespace EditorFlow {
     name: string;
     steps: StepOptions[];
   };
-  type CreatePipelineResult = {
-    id: string;
-  };
-
-  export async function createPipeline(page: Page, options: CreatePipelineOptions): Promise<CreatePipelineResult> {
+  export async function createPipeline(page: Page, options: CreatePipelineOptions): Promise<string> {
     const Config = {
       DRAG_STEPS_TO_PREVENT_CLICK_INTERPRETATION: 30,
       Grid: {
@@ -133,12 +129,10 @@ export namespace EditorFlow {
     // Extract the ID from the url
     const url = page.url();
     const match = url.match(/pipelines\/(.+)/);
-    if (!match) {
+    if (!match || !match[1]) {
       throw new Error(`Invalid url: ${url}`);
     }
-    return {
-      id: match[1],
-    };
+    return match[1];
   }
 
   async function fillStepForm(page: Page, step: StepOptions): Promise<null> {
@@ -189,7 +183,7 @@ export namespace EditorFlow {
         }
         return null;
       }
-      case "Script Execution": {
+      case "Custom Script": {
         if (step.path) await page.getByLabel("Script path").fill(step.path);
         if (step.passthrough) await page.getByLabel("Passthrough?").selectOption(step.passthrough);
         return null;

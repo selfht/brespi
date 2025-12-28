@@ -14,7 +14,7 @@ const types: Record<Step.Type, string> = {
   [Step.Type.folder_flatten]: "Folder Flatten",
   [Step.Type.folder_group]: "Folder Group",
   [Step.Type.filter]: "Filter",
-  [Step.Type.script_execution]: "Script Execution",
+  [Step.Type.custom_script]: "Custom Script",
   [Step.Type.s3_upload]: "S3 Upload",
   [Step.Type.s3_download]: "S3 Download",
   [Step.Type.postgres_backup]: "Postgres Backup",
@@ -74,7 +74,7 @@ export namespace StepTranslation {
           "Name glob": step.selection.method === "glob" ? step.selection.nameGlob : undefined,
           "Name regex": step.selection.method === "regex" ? step.selection.nameRegex : undefined,
         };
-      case Step.Type.script_execution:
+      case Step.Type.custom_script:
         return {
           Path: step.path,
           "Passthrough?": step.passthrough,

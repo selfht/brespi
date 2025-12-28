@@ -98,9 +98,9 @@ export namespace StepData {
         };
         return step as Extract<Step, { type: T }>;
       }
-      case Step.Type.script_execution: {
+      case Step.Type.custom_script: {
         const step: Step.ScriptExecution = {
-          type: Step.Type.script_execution,
+          type: Step.Type.custom_script,
           path: "/scripts/test.sh",
           passthrough: false,
           ...common,

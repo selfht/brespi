@@ -19,7 +19,7 @@ const path = {
   },
 };
 
-describe("compress-and-encrypt", () => {
+describe("execution | compress-and-encrypt", () => {
   test.beforeEach(async ({ request }) => {
     await ResetBoundary.reset({ request });
   });
@@ -42,7 +42,7 @@ describe("compress-and-encrypt", () => {
   });
 
   async function createCompressionAndEncryptionPipeline(page: Page) {
-    await EditorFlow.createPipeline(page, {
+    return await EditorFlow.createPipeline(page, {
       name: "Compress And Encrypt",
       steps: [
         {
@@ -71,7 +71,7 @@ describe("compress-and-encrypt", () => {
   }
 
   async function createDecryptionAndDecompressionPipeline(page: Page) {
-    await EditorFlow.createPipeline(page, {
+    return await EditorFlow.createPipeline(page, {
       name: "Decrypt and Decompress",
       steps: [
         {

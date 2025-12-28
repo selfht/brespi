@@ -28,7 +28,7 @@ export namespace Step {
     folder_flatten = "folder_flatten",
     folder_group = "folder_group",
     filter = "filter",
-    script_execution = "script_execution",
+    custom_script = "custom_script",
     s3_upload = "s3_upload",
     s3_download = "s3_download",
     postgres_backup = "postgres_backup",
@@ -116,7 +116,7 @@ export namespace Step {
   };
 
   export type ScriptExecution = Common & {
-    type: Type.script_execution;
+    type: Type.custom_script;
     path: string;
     passthrough: boolean;
   };
@@ -161,7 +161,7 @@ export namespace Step {
     [Step.Type.folder_flatten]: Step.Category.transformer,
     [Step.Type.folder_group]: Step.Category.transformer,
     [Step.Type.filter]: Step.Category.transformer,
-    [Step.Type.script_execution]: Step.Category.transformer,
+    [Step.Type.custom_script]: Step.Category.transformer,
     [Step.Type.s3_upload]: Step.Category.consumer,
     [Step.Type.s3_download]: Step.Category.producer,
     [Step.Type.postgres_backup]: Step.Category.producer,
@@ -273,7 +273,7 @@ export namespace Step {
           id: z.string(),
           previousId: z.string().nullable(),
           object: z.literal("step"),
-          type: z.literal(Type.script_execution),
+          type: z.literal(Type.custom_script),
           path: z.string(),
           passthrough: z.boolean(),
         } satisfies SubSchema<Step.ScriptExecution>),
