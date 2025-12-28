@@ -69,19 +69,19 @@ export namespace EditorFlow {
   export async function createPipeline(page: Page, options: CreatePipelineOptions): Promise<CreatePipelineResult> {
     const Config = {
       DRAG_STEPS_TO_PREVENT_CLICK_INTERPRETATION: 30,
-      GRID: {
-        startX: 80,
-        startY: 50,
-        columnSpacing: 180,
-        rowSpacing: 120,
-        maxColumns: 5,
-        maxRows: 3,
+      Grid: {
+        START_X: 80,
+        START_Y: 50,
+        MAX_COLUMNS: 4,
+        COLUMN_SPACING: 180,
+        MAX_ROWS: 3,
+        ROW_SPACING: 120,
       },
     };
-    const maxSteps = Config.GRID.maxColumns * Config.GRID.maxRows;
+    const maxSteps = Config.Grid.MAX_COLUMNS * Config.Grid.MAX_ROWS;
     if (options.steps.length > maxSteps) {
       throw new Error(
-        `Unsupported: Pipeline has ${options.steps.length} steps, but maximum supported is ${maxSteps} (${Config.GRID.maxColumns}x${Config.GRID.maxRows} grid)`,
+        `Unsupported: Pipeline has ${options.steps.length} steps, but maximum supported is ${maxSteps} (${Config.Grid.MAX_COLUMNS}x${Config.Grid.MAX_ROWS} grid)`,
       );
     }
     // Navigate to pipeline editor
@@ -100,10 +100,10 @@ export namespace EditorFlow {
       const stepLocator = page.getByTestId(`BLOCK:${step.type}`);
       stepLocators.set(stepId, stepLocator);
 
-      const column = i % Config.GRID.maxColumns;
-      const row = Math.floor(i / Config.GRID.maxColumns);
-      const x = Config.GRID.startX + column * Config.GRID.columnSpacing;
-      const y = Config.GRID.startY + row * Config.GRID.rowSpacing;
+      const column = i % Config.Grid.MAX_COLUMNS;
+      const row = Math.floor(i / Config.Grid.MAX_COLUMNS);
+      const x = Config.Grid.START_X + column * Config.Grid.COLUMN_SPACING;
+      const y = Config.Grid.START_Y + row * Config.Grid.ROW_SPACING;
       await stepLocator.dragTo(canvas, {
         targetPosition: { x, y },
         steps: Config.DRAG_STEPS_TO_PREVENT_CLICK_INTERPRETATION,

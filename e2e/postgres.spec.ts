@@ -1,19 +1,53 @@
-import test, { Page } from "@playwright/test";
+import test, { expect, Page } from "@playwright/test";
 import { describe } from "node:test";
+import { ResetBoundary } from "./boundaries/ResetBoundary";
+import { S3Boundary } from "./boundaries/S3Boundary";
 import { EditorFlow } from "./flows/EditorFlow";
-import { ResetFlow } from "./flows/ResetFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
+import { PostgresBoundary } from "./boundaries/PostgresBoundary";
 
 describe("postgres", () => {
   test.beforeEach(async ({ request }) => {
-    await ResetFlow.reset({ request });
+    await ResetBoundary.reset({ request });
   });
 
-  test("executes backups of `musicworld`, `bakingworld` and `gamingworld`", async ({ page }) => {
+  test("performs backups of `musicworld`, `bakingworld` and `gamingworld`", async ({ page }) => {
     // given
-    await createBackupPipeline(page);
+    expect(await S3Boundary.listBucket()).toHaveLength(0);
     // when
+    await createBackupPipeline(page);
     await ExecutionFlow.executeCurrentPipeline(page, { expectedOutcome: "success" });
+    // then
+    expect(await S3Boundary.listBucket()).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("musicworld.dump.tar.gz.enc"),
+        expect.stringContaining("bakingworld.dump.tar.gz.enc"),
+        expect.stringContaining("gamingworld.dump.tar.gz.enc"),
+      ]),
+    );
+  });
+
+  test("performs a backup and restore of `gamingworld`", async ({ page }) => {
+    const database = "gamingworld";
+    // given
+    const dataInitial = await PostgresBoundary.query({ database, table: "games" });
+    // when (perform a backup)
+    await createBackupPipeline(page);
+    await ExecutionFlow.executeCurrentPipeline(page, { expectedOutcome: "success" });
+    // when (delete some records)
+    await PostgresBoundary.multiDelete({
+      database,
+      table: "games",
+      ids: dataInitial.map(({ id }) => id).filter((_id, index) => index % 2 === 0),
+    });
+    const dataAfterDeletion = await PostgresBoundary.query({ database, table: "games" });
+    expect(dataInitial).not.toEqual(dataAfterDeletion);
+    // when (perform a restore)
+    await createRestorePipeline(page, database);
+    await ExecutionFlow.executeCurrentPipeline(page, { expectedOutcome: "success" });
+    // then
+    const dataAfterRestore = await PostgresBoundary.query({ database, table: "games" });
+    expect(dataInitial).toEqual(dataAfterRestore);
   });
 
   async function createBackupPipeline(page: Page) {
@@ -38,13 +72,12 @@ describe("postgres", () => {
         },
         {
           previousId: "C",
-          id: "D",
           type: "S3 Upload",
-          bucket: "bucko",
-          endpoint: "http://s3:4566",
+          bucket: S3Boundary.Config.BUCKET,
+          endpoint: S3Boundary.Config.ENDPOINT_APP,
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
-          baseFolder: "/backups",
+          baseFolder: S3Boundary.Config.BASE_FOLDER,
         },
       ],
     });
@@ -57,11 +90,11 @@ describe("postgres", () => {
         {
           id: "A",
           type: "S3 Download",
-          bucket: "bucko",
-          endpoint: "http://s3:4566",
+          bucket: S3Boundary.Config.BUCKET,
+          endpoint: S3Boundary.Config.ENDPOINT_APP,
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
-          baseFolder: "/backups",
+          baseFolder: S3Boundary.Config.BASE_FOLDER,
           selectionTarget: "latest",
         },
         {
@@ -84,7 +117,6 @@ describe("postgres", () => {
         },
         {
           previousId: "D",
-          id: "E",
           type: "Postgres Restore",
           database,
           connectionReference: "MY_POSTGRES_CONNECTION_URL",

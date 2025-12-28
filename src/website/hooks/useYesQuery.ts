@@ -34,7 +34,7 @@ export function useYesQuery<D, E = unknown>(
     }
   }
   useEffect(() => {
-    reload();
+    reload().catch((_ignored) => {});
   }, queryFnDependencies);
 
   return {

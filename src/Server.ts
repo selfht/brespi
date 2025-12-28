@@ -143,15 +143,6 @@ export class Server {
             return Response.json(ServerError.route_not_found());
           },
         },
-        "/api/restricted/empty-bucket": {
-          POST: async (request) => {
-            if (this.env.O_BRESPI_STAGE === "development") {
-              await this.restrictedService.emptyBucket(await request.json());
-              return new Response();
-            }
-            return Response.json(ServerError.route_not_found());
-          },
-        },
       },
       /**
        * Error handling

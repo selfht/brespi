@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
 import { describe } from "node:test";
+import { ResetBoundary } from "./boundaries/ResetBoundary";
+import { S3Boundary } from "./boundaries/S3Boundary";
 import { EditorFlow } from "./flows/EditorFlow";
-import { ResetFlow } from "./flows/ResetFlow";
 
 describe("editor", () => {
   test.beforeEach(async ({ request }) => {
-    await ResetFlow.reset({ request });
+    await ResetBoundary.reset({ request });
   });
 
   test("creates a backup pipeline", async ({ page }) => {
@@ -19,25 +20,24 @@ describe("editor", () => {
           connectionReference: "MY_POSTGRES_CONNECTION_URL",
         },
         {
-          id: "B",
           previousId: "A",
+          id: "B",
           type: "Compression",
         },
         {
-          id: "C",
           previousId: "B",
+          id: "C",
           type: "Encryption",
           keyReference: "MY_ENCRYPTION_KEY",
         },
         {
-          id: "D",
           previousId: "C",
           type: "S3 Upload",
-          bucket: "bucko",
-          endpoint: "http://s3:4566",
+          bucket: S3Boundary.Config.BUCKET,
+          endpoint: S3Boundary.Config.ENDPOINT_APP,
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
-          baseFolder: "/backups",
+          baseFolder: S3Boundary.Config.BASE_FOLDER,
         },
       ],
     };
