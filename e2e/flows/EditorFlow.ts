@@ -130,7 +130,7 @@ export namespace EditorFlow {
     // Extract the ID from the url
     const pipelineId = Common.extractCurrentPipelineIdFromUrl(page);
     if (!pipelineId) {
-      throw new Error(`Invalid url: ${url}`);
+      throw new Error("Invalid url");
     }
     return pipelineId;
   }

@@ -1,29 +1,29 @@
-import { describe, it, expect } from "bun:test";
-import { S3Manifest } from "./S3Manifest";
 import { Temporal } from "@js-temporal/polyfill";
+import { describe, expect, it } from "bun:test";
+import { Manifest } from "./Manifest";
 
-describe("S3Manifest", () => {
-  describe("Upload", () => {
+describe("Manifest", () => {
+  describe("Item", () => {
     it("sorts from new to old", () => {
       // given
-      const uploads: S3Manifest.Upload[] = [
+      const uploads: Manifest.Item[] = [
         {
-          path: "now",
+          artifactIndexPath: "now",
           isoTimestamp: Temporal.Now.plainDateTimeISO().toString(),
         },
         {
-          path: "past",
+          artifactIndexPath: "past",
           isoTimestamp: Temporal.Now.plainDateTimeISO().subtract({ days: 100 }).toString(),
         },
         {
-          path: "future",
+          artifactIndexPath: "future",
           isoTimestamp: Temporal.Now.plainDateTimeISO().add({ days: 100 }).toString(),
         },
       ];
       // when
-      uploads.sort(S3Manifest.Upload.sort);
+      uploads.sort(Manifest.Item.sort);
       // then
-      const paths = uploads.map(({ path }) => path);
+      const paths = uploads.map(({ artifactIndexPath: path }) => path);
       expect(paths).toEqual(["future", "now", "past"]);
     });
   });

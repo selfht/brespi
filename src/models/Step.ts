@@ -50,7 +50,7 @@ export namespace Step {
     object: "step";
   };
 
-  type S3Connection = {
+  export type S3Connection = {
     bucket: string;
     endpoint: string;
     region: string | null;

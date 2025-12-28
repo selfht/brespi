@@ -2,18 +2,16 @@ import { Env } from "@/Env";
 import { Generate } from "@/helpers/Generate";
 import { Mutex } from "@/helpers/Mutex";
 import { Artifact } from "@/models/Artifact";
-import { S3Manifest } from "@/models/s3/S3Manifest";
-import { S3Meta } from "@/models/s3/S3Meta";
 import { Step } from "@/models/Step";
+import { Manifest } from "@/models/versioning/Manifest";
 import { Temporal } from "@js-temporal/polyfill";
 import { S3Client } from "bun";
-import { join } from "path";
+import { dirname, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
+import { ArtifactIndex } from "@/models/versioning/ArtifactIndex";
 
 export class S3Adapter extends AbstractAdapter {
   private static readonly MANIFEST_MUTEX = new Mutex();
-  private static readonly MANIFEST_FILE_NAME = "__brespi_manifest__.json";
-  private static readonly META_FILE_NAME = "__brespi_meta__.json";
 
   public constructor(protected readonly env: Env.Private) {
     super(env);
@@ -21,52 +19,62 @@ export class S3Adapter extends AbstractAdapter {
 
   public async upload(artifacts: Artifact[], step: Step.S3Upload, stepTrail: Step[]): Promise<void> {
     const client = this.constructClient(step.connection);
-
-    // 1. Update the global manifest for this base folder
     const timestamp = Temporal.Now.plainDateTimeISO();
-    const relativeUploadPath = `${timestamp}-${Generate.shortRandomString()}`;
-    await this.handleManifestExclusively(client, step.baseFolder, async (s3Manifest, s3Save) => {
-      s3Manifest.uploads.push({
+    const uploadDir = {
+      relativePath: `${timestamp}-${Generate.shortRandomString()}`,
+      get absolutePath() {
+        return join(step.baseFolder, this.relativePath);
+      },
+    };
+    // 1. Write the artifact index
+    const artifactIndex = {
+      name: ArtifactIndex.generateName(artifacts),
+      get relativePath() {
+        return join(uploadDir.relativePath, this.name);
+      },
+      get absolutePath() {
+        return join(uploadDir.absolutePath, this.name);
+      },
+      get content(): ArtifactIndex {
+        return {
+          object: "artifact_index",
+          artifacts: artifacts.map((artifact) => ({
+            path: artifact.name, // (sic) `artifact.name` is unique in each batch (and artifact.path` refers to the current path on the filesystem)
+            stepTrail,
+          })),
+        };
+      },
+    };
+    await client.write(artifactIndex.absolutePath, JSON.stringify(artifactIndex.content));
+    // 2. Update the manifest
+    await this.handleManifestExclusively(client, step.baseFolder, async (manifest, save) => {
+      manifest.items.push({
         isoTimestamp: timestamp.toString(),
-        path: relativeUploadPath,
+        artifactIndexPath: artifactIndex.relativePath,
       });
-      await s3Save(s3Manifest);
+      await save(manifest);
     });
-
-    // 2. Write the meta for the current upload
-    const absoluteUploadPath = join(step.baseFolder, relativeUploadPath);
-    await client.write(
-      join(absoluteUploadPath, S3Adapter.META_FILE_NAME),
-      JSON.stringify({
-        version: 1,
-        object: "meta",
-        artifacts: artifacts.map((artifact) => ({
-          path: artifact.name, // (sic) `artifact.name` is unique in each batch (and artifact.path` refers to the current path on the filesystem)
-          stepTrail,
-        })),
-      } satisfies S3Meta),
-    );
-
     // 3. Write the artifacts themselves
     for (const artifact of artifacts) {
-      await client.write(join(absoluteUploadPath, artifact.name), Bun.file(artifact.path));
+      await client.write(join(uploadDir.absolutePath, artifact.name), Bun.file(artifact.path));
     }
   }
 
   public async download(step: Step.S3Download): Promise<Artifact[]> {
     const client = this.constructClient(step.connection);
 
-    const upload = await this.handleManifestExclusively(client, step.baseFolder, (manifest) => {
-      return this.findMatchingUpload(manifest, step.selection);
+    const item = await this.handleManifestExclusively(client, step.baseFolder, (manifest) => {
+      return this.findMatchingItem(manifest, step.selection);
     });
 
-    const uploadFolder = join(step.baseFolder, upload.path);
-    const meta = S3Meta.parse(await client.file(join(uploadFolder, S3Adapter.META_FILE_NAME)).json());
+    const artifactIndexPath = join(step.baseFolder, item.artifactIndexPath);
+    const artifactIndexParentDir = dirname(artifactIndexPath);
 
+    const index = ArtifactIndex.parse(await client.file(artifactIndexPath).json());
     const artifacts: Artifact[] = [];
-    for (const { path: name } of meta.artifacts) {
+    for (const { path: name } of index.artifacts) {
       const { outputId, outputPath } = this.generateArtifactDestination();
-      await Bun.write(outputPath, client.file(join(uploadFolder, name)));
+      await Bun.write(outputPath, client.file(join(artifactIndexParentDir, name)));
       artifacts.push({
         id: outputId,
         type: "file",
@@ -77,7 +85,7 @@ export class S3Adapter extends AbstractAdapter {
     return artifacts;
   }
 
-  private constructClient(connection: Step.S3Upload["connection"]): S3Client {
+  private constructClient(connection: Step.S3Connection): S3Client {
     const accessKeyId = this.readEnvironmentVariable(connection.accessKeyReference);
     const secretAccessKey = this.readEnvironmentVariable(connection.secretKeyReference);
     return new S3Client({
@@ -92,39 +100,39 @@ export class S3Adapter extends AbstractAdapter {
   private async handleManifestExclusively<T>(
     client: S3Client,
     folder: string,
-    fn: (mf: S3Manifest, save: (mani: S3Manifest) => Promise<S3Manifest>) => T | Promise<T>,
+    fn: (mani: Manifest, save: (mf: Manifest) => Promise<Manifest>) => T | Promise<T>,
   ): Promise<Awaited<T>> {
     const release = await S3Adapter.MANIFEST_MUTEX.acquire();
     try {
-      const s3Path = join(folder, S3Adapter.MANIFEST_FILE_NAME);
-      const s3File = client.file(s3Path);
-      const s3Manifest: S3Manifest = (await s3File.exists()) ? S3Manifest.parse(await s3File.json()) : S3Manifest.empty();
-      const s3Save = (mf: S3Manifest) => client.write(s3Path, JSON.stringify(s3Manifest)).then(() => mf);
-      return await fn(s3Manifest, s3Save);
+      const manifestPath = join(folder, Manifest.NAME);
+      const manifestFile = client.file(manifestPath);
+      const manifestContent: Manifest = (await manifestFile.exists()) ? Manifest.parse(await manifestFile.json()) : Manifest.empty();
+      const save = (mf: Manifest) => client.write(manifestPath, JSON.stringify(manifestContent)).then(() => mf);
+      return await fn(manifestContent, save);
     } finally {
       release();
     }
   }
 
-  private findMatchingUpload(manifest: S3Manifest, selection: Step.S3Download["selection"]): S3Manifest.Upload {
+  private findMatchingItem(manifest: Manifest, selection: Step.S3Download["selection"]): Manifest.Item {
     switch (selection.target) {
       case "latest": {
-        const sortedUploads = manifest.uploads.toSorted(S3Manifest.Upload.sort);
-        if (sortedUploads.length === 0) {
-          throw new Error("Latest upload could not be found");
+        const sortedItems = manifest.items.toSorted(Manifest.Item.sort);
+        if (sortedItems.length === 0) {
+          throw new Error("Latest item could not be found");
         }
-        return sortedUploads[0];
+        return sortedItems[0];
       }
       case "specific": {
         const version = selection.version;
-        const matchingUploads = manifest.uploads.filter((u) => u.isoTimestamp === version || u.path === version);
-        if (matchingUploads.length === 0) {
-          throw new Error("Specific upload could not be found");
+        const matchingItems = manifest.items.filter((u) => u.isoTimestamp === version || u.artifactIndexPath === version);
+        if (matchingItems.length === 0) {
+          throw new Error("Specific item could not be found");
         }
-        if (matchingUploads.length > 1) {
-          throw new Error(`Specific upload could not be identified uniquely; matches=${matchingUploads.length}`);
+        if (matchingItems.length > 1) {
+          throw new Error(`Specific item could not be identified uniquely; matches=${matchingItems.length}`);
         }
-        return matchingUploads[0];
+        return matchingItems[0];
       }
     }
   }

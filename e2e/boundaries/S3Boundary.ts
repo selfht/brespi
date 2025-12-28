@@ -1,12 +1,13 @@
 import { DeleteObjectCommand, ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
 
 export namespace S3Boundary {
-  export const BUCKET = "bucko";
   export const ENDPOINT = "http://s3:4566";
+  export const REGION = "eu-central-1";
+  export const BUCKET = "bucko";
 
   const client = new S3Client({
     endpoint: "http://localhost:4566",
-    region: "eu-central-1",
+    region: REGION,
     credentials: {
       accessKeyId: "test",
       secretAccessKey: "test",

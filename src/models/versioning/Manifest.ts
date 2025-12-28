@@ -2,40 +2,39 @@ import { ZodParser } from "@/helpers/ZodParser";
 import { Temporal } from "@js-temporal/polyfill";
 import z from "zod/v4";
 
-export type S3Manifest = {
-  version: 1;
+export type Manifest = {
   object: "manifest";
-  uploads: S3Manifest.Upload[];
+  items: Manifest.Item[];
 };
 
-export namespace S3Manifest {
-  export type Upload = {
+export namespace Manifest {
+  export const NAME = "__brespi_manifest__.json";
+
+  export type Item = {
     isoTimestamp: string;
-    path: string;
+    artifactIndexPath: string;
   };
-  export namespace Upload {
+  export namespace Item {
     /**
      * Sort from most to least recent (new to old)
      */
-    export function sort({ isoTimestamp: t1 }: Upload, { isoTimestamp: t2 }: Upload) {
+    export function sort({ isoTimestamp: t1 }: Item, { isoTimestamp: t2 }: Item) {
       return -Temporal.PlainDateTime.compare(Temporal.PlainDateTime.from(t1), Temporal.PlainDateTime.from(t2));
     }
   }
 
-  export function empty(): S3Manifest {
+  export function empty(): Manifest {
     return {
-      version: 1,
       object: "manifest",
-      uploads: [],
+      items: [],
     };
   }
 
-  export const parse = ZodParser.forType<S3Manifest>()
+  export const parse = ZodParser.forType<Manifest>()
     .ensureSchemaMatchesType(() =>
       z.object({
-        version: z.literal(1),
         object: z.literal("manifest"),
-        uploads: z.array(
+        items: z.array(
           z.object({
             isoTimestamp: z.string().refine((x) => {
               try {
@@ -45,7 +44,7 @@ export namespace S3Manifest {
                 return false;
               }
             }, "invalid ISO timestamp"),
-            path: z.string(),
+            artifactIndexPath: z.string(),
           }),
         ),
       }),
