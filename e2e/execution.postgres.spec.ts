@@ -2,7 +2,7 @@ import test, { expect, Page } from "@playwright/test";
 import { readdir } from "fs/promises";
 import { describe } from "node:test";
 import path from "path";
-import { FileSystemBoundary } from "./boundaries/FileSystemBoundary";
+import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { PostgresBoundary } from "./boundaries/PostgresBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { EditorFlow } from "./flows/EditorFlow";
@@ -26,7 +26,7 @@ describe("execution | postgres", () => {
 
   test("performs the backup of two databases", async ({ page }) => {
     // given
-    const backupDir = path.join(FileSystemBoundary.SCRATCH_PAD, "backups");
+    const backupDir = path.join(FilesystemBoundary.SCRATCH_PAD, "backups");
     await PostgresBoundary.setup({
       database: Database.e2e_movies,
       tables: [
@@ -109,7 +109,7 @@ describe("execution | postgres", () => {
         },
       ],
     });
-    const backupDir = path.join(FileSystemBoundary.SCRATCH_PAD, "backups");
+    const backupDir = path.join(FilesystemBoundary.SCRATCH_PAD, "backups");
     const initialData = await PostgresBoundary.queryAll({ database, table: "films" });
 
     // when (perform a backup)

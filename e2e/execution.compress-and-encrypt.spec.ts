@@ -2,18 +2,18 @@ import test, { expect, Page } from "@playwright/test";
 import { readFile, writeFile } from "fs/promises";
 import { describe } from "node:test";
 import { join } from "path";
-import { FileSystemBoundary } from "./boundaries/FileSystemBoundary";
+import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { EditorFlow } from "./flows/EditorFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
 
 const path = {
-  originalFile: join(FileSystemBoundary.SCRATCH_PAD, "original.txt"),
-  forwardProcessingDir: join(FileSystemBoundary.SCRATCH_PAD, "forward"),
+  originalFile: join(FilesystemBoundary.SCRATCH_PAD, "original.txt"),
+  forwardProcessingDir: join(FilesystemBoundary.SCRATCH_PAD, "forward"),
   get forwardProcessingFile() {
     return join(this.forwardProcessingDir, "original.txt.tar.gz.enc");
   },
-  reverseProcessingDir: join(FileSystemBoundary.SCRATCH_PAD, "backward"),
+  reverseProcessingDir: join(FilesystemBoundary.SCRATCH_PAD, "backward"),
   get reverseProcessingFile() {
     return join(this.reverseProcessingDir, "original.txt");
   },

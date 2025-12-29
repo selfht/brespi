@@ -2,7 +2,7 @@ import test, { expect, Page } from "@playwright/test";
 import { readdir, readFile } from "fs/promises";
 import { describe } from "node:test";
 import { join } from "path";
-import { FileSystemBoundary } from "./boundaries/FileSystemBoundary";
+import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { Common } from "./common/Common";
 import { EditorFlow } from "./flows/EditorFlow";
@@ -14,8 +14,8 @@ describe("execution | custom-script", () => {
   });
 
   test("executes a transformer script which merges files", async ({ page }) => {
-    const inputDir = join(FileSystemBoundary.SCRATCH_PAD, "input");
-    const outputDir = join(FileSystemBoundary.SCRATCH_PAD, "output");
+    const inputDir = join(FilesystemBoundary.SCRATCH_PAD, "input");
+    const outputDir = join(FilesystemBoundary.SCRATCH_PAD, "output");
     // given
     const fileA = join(inputDir, "A.txt");
     await Common.writeFileRecursive(fileA, "This is line A\n");
@@ -23,7 +23,7 @@ describe("execution | custom-script", () => {
     await Common.writeFileRecursive(fileB, "This is line B\n");
     const fileC = join(inputDir, "C.txt");
     await Common.writeFileRecursive(fileC, "This is line C\n");
-    const script = join(FileSystemBoundary.SCRATCH_PAD, "merge.sh");
+    const script = join(FilesystemBoundary.SCRATCH_PAD, "merge.sh");
     await Common.writeScript(script).withContents(`
 #!/bin/bash
 cat $BRESPI_ARTIFACTS_IN/* > $BRESPI_ARTIFACTS_OUT/ABC.txt

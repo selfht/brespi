@@ -1,7 +1,7 @@
 import test, { expect, Page } from "@playwright/test";
 import { describe } from "node:test";
 import { join } from "path";
-import { FileSystemBoundary } from "./boundaries/FileSystemBoundary";
+import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { S3Boundary } from "./boundaries/S3Boundary";
 import { Common } from "./common/Common";
@@ -18,8 +18,8 @@ describe("execution | s3", () => {
   test("writes and reads artifacts to/from a chosen bucket", async ({ page }) => {
     // given
     const baseFolder = "my-backups";
-    const inputDir = join(FileSystemBoundary.SCRATCH_PAD, "input");
-    const outputDir = join(FileSystemBoundary.SCRATCH_PAD, "output");
+    const inputDir = join(FilesystemBoundary.SCRATCH_PAD, "input");
+    const outputDir = join(FilesystemBoundary.SCRATCH_PAD, "output");
     expect(await S3Boundary.listBucket()).toHaveLength(0);
 
     // when (write files)

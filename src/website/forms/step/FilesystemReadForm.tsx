@@ -1,5 +1,4 @@
 import { Step } from "@/models/Step";
-import clsx from "clsx";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
@@ -24,7 +23,7 @@ type Props = {
   onCancel: () => unknown;
   className?: string;
 };
-export function FileSystemReadForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
+export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.path]: existing?.path ?? "",

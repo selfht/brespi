@@ -1,5 +1,5 @@
 import { APIRequestContext } from "@playwright/test";
-import { FileSystemBoundary } from "e2e/boundaries/FileSystemBoundary";
+import { FilesystemBoundary } from "./FilesystemBoundary";
 import { S3Boundary } from "e2e/boundaries/S3Boundary";
 
 export namespace ResetBoundary {
@@ -9,6 +9,6 @@ export namespace ResetBoundary {
   export async function reset({ request }: ResetOptions) {
     await request.post("/api/restricted/delete-all-pipelines", { failOnStatusCode: true });
     await S3Boundary.emptyBucket();
-    await FileSystemBoundary.ensureEmptyScratchPad();
+    await FilesystemBoundary.ensureEmptyScratchPad();
   }
 }

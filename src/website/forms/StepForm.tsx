@@ -4,7 +4,7 @@ import { CompressionForm } from "./step/CompressionForm";
 import { DecompressionForm } from "./step/DecompressionForm";
 import { DecryptionForm } from "./step/DecryptionForm";
 import { EncryptionForm } from "./step/EncryptionForm";
-import { FileSystemReadForm } from "./step/FileSystemReadForm";
+import { FilesystemReadForm } from "./step/FilesystemReadForm";
 import { FilesystemWriteForm } from "./step/FilesystemWriteForm";
 import { FolderFlattenForm } from "./step/FolderFlattenForm";
 import { FolderGroupForm } from "./step/FolderGroupForm";
@@ -34,7 +34,7 @@ export function StepForm({ type, existing, onSave, ...props }: Props): JSX.Eleme
   };
   switch (type) {
     case Step.Type.filesystem_read:
-      return <FileSystemReadForm existing={existing as Step.FilesystemRead} onSave={validateAndSave} {...props} />;
+      return <FilesystemReadForm existing={existing as Step.FilesystemRead} onSave={validateAndSave} {...props} />;
     case Step.Type.filesystem_write:
       return <FilesystemWriteForm existing={existing as Step.FilesystemWrite} onSave={validateAndSave} {...props} />;
     case Step.Type.compression:

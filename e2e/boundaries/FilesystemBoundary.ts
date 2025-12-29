@@ -1,7 +1,7 @@
 import { mkdir, rm } from "fs/promises";
 import path from "path";
 
-export namespace FileSystemBoundary {
+export namespace FilesystemBoundary {
   export const SCRATCH_PAD = path.join("opt", "scratchpad");
 
   export async function ensureEmptyScratchPad() {
