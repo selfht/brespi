@@ -155,4 +155,6 @@ describe(VersioningSystem.name, () => {
       expect(insertableArtifacts[0].destinationPath).toMatch(expectation.itemPathMatcher);
     });
   });
+
+  describe(VersioningSystem.prepareSelection.name, () => {});
 });

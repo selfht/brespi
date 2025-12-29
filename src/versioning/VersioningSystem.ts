@@ -63,7 +63,7 @@ export class VersioningSystem {
 
   public static prepareSelection({
     selection,
-    storageReader,
+    storageReaderFn,
     baseFolder,
   }: VersioningSystem.PrepareSelectionOptions): VersioningSystem.PrepareSelectionResult {
     return {
@@ -71,7 +71,7 @@ export class VersioningSystem {
         const item = this.findMatchingItem(manifest, selection);
         const artifactIndexPath = join(baseFolder, item.artifactIndexPath);
         const artifactIndexParentDir = dirname(artifactIndexPath);
-        const index = ArtifactIndex.parse(await storageReader({ absolutePath: artifactIndexPath }));
+        const index = ArtifactIndex.parse(await storageReaderFn({ absolutePath: artifactIndexPath }));
         return index.artifacts.map<VersioningSystem.SelectableArtifact>(({ path }) => ({
           name: path,
           path: join(artifactIndexParentDir, path),
@@ -127,7 +127,7 @@ export namespace VersioningSystem {
   export type PrepareSelectionOptions = {
     baseFolder: string;
     selection: Step.ItemSelection;
-    storageReader: (arg: { absolutePath: string }) => Promise<any>;
+    storageReaderFn: (arg: { absolutePath: string }) => Promise<any>;
   };
   export type PrepareSelectionResult = {
     selectableArtifactsFn: (arg: { manifest: Manifest }) => Promise<SelectableArtifact[]>;
