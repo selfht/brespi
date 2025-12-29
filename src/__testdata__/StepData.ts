@@ -18,7 +18,7 @@ export namespace StepData {
         const step: Step.FilesystemRead = {
           type: Step.Type.filesystem_read,
           path: "/tmp/test",
-          brespiManaged: false,
+          brespiManaged: null,
           ...common,
         };
         return step as Extract<Step, { type: T }>;
@@ -27,7 +27,7 @@ export namespace StepData {
         const step: Step.FilesystemWrite = {
           type: Step.Type.filesystem_write,
           path: "/app/opt/files",
-          brespiManaged: null,
+          brespiManaged: false,
           ...common,
         };
         return step as Extract<Step, { type: T }>;

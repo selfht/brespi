@@ -93,7 +93,7 @@ export function pipelines_$id() {
    * Forms
    */
   const mainForm = useForm<Form>();
-  const [stepForm, setStepForm] = useState<{ id: string; type: Step.Type; existingStep?: Step }>();
+  const [stepForm, stepFormRef, setStepForm] = useStateRef<{ id: string; type: Step.Type; existingStep?: Step }>();
 
   /**
    * General reset function (invoked initially, or after saving)
@@ -491,7 +491,12 @@ export function pipelines_$id() {
                     Full screen
                   </button>
                 </div>
-                <Canvas ref={canvasApi} interactivity={interactivity} onBlocksChange={canvasListener.handleBlocksChange} />
+                <Canvas
+                  ref={canvasApi}
+                  interactivity={interactivity}
+                  onBlocksChange={canvasListener.handleBlocksChange}
+                  extraValidateArrow={() => !stepFormRef.current} // no linking during form edits
+                />
               </div>
             </div>
             {/* DETAILS */}

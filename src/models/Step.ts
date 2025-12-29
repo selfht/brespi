@@ -65,9 +65,9 @@ export namespace Step {
   export type FilesystemRead = Common & {
     type: Type.filesystem_read;
     path: string;
-    brespiManaged: null | {
+    brespiManaged: {
       selection: ItemSelection;
-    };
+    } | null;
   };
 
   export type FilesystemWrite = Common & {

@@ -16,6 +16,7 @@ import { setupLinkInteractions } from "./jointframework/setupLinkInteractions";
 import { setupPanning } from "./jointframework/setupPanning";
 import { Dimensions } from "./jointframework/models/Dimensions";
 import { JointBlock } from "./jointframework/models/JointBlock";
+import { JointBlockWithProposedHandle } from "./jointframework/models/JointBlockWithProposedHandle";
 
 /**
  * One-way databinding is strongly discouraged for the Canvas editor for performance reasons.
@@ -25,9 +26,10 @@ type Props = {
   ref: RefObject<Canvas.Api | null>;
   interactivity: Interactivity;
   onBlocksChange?: (event: CanvasEvent, blocks: Block[]) => void;
+  extraValidateArrow?: (source: JointBlockWithProposedHandle, target: JointBlockWithProposedHandle) => boolean;
   className?: string;
 };
-export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, className }: Props): ReactElement {
+export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraValidateArrow = () => true, className }: Props): ReactElement {
   /**
    * Refs
    */
@@ -112,6 +114,29 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
         }
       });
       return jointBlocks;
+    },
+    validateArrow(source: JointBlockWithProposedHandle, target: JointBlockWithProposedHandle) {
+      if (source.proposedHandle !== Block.Handle.output || target.proposedHandle !== Block.Handle.input) {
+        return false; // Only allow links from input to output
+      }
+      if (target.incomingId) {
+        return false; // Each block can only have a single incoming arrow
+      }
+      let subjectId = source.id;
+      while (true) {
+        const subject = blocksRef.current.find((b) => b.id === subjectId)!;
+        if (subject.id === target.id) {
+          return false; // No cycles (this includes self-linking)
+        }
+        if (subject.incomingId === null) {
+          break;
+        }
+        subjectId = subject.incomingId;
+      }
+      if (!extraValidateArrow(source, target)) {
+        return false; // Give the parent component a chance to validate the arrow
+      }
+      return true;
     },
   };
 
@@ -251,26 +276,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = (_, __) => {}, cla
     const { graph, paper } = createPaper({
       elementRef,
       blocksRef,
-      validateArrow: (source, target) => {
-        if (source.proposedHandle !== Block.Handle.output || target.proposedHandle !== Block.Handle.input) {
-          return false; // Only allow links from input to output
-        }
-        if (target.incomingId) {
-          return false; // Each block can only have a single incoming arrow
-        }
-        let subjectId = source.id;
-        while (true) {
-          const subject = blocksRef.current.find((b) => b.id === subjectId)!;
-          if (subject.id === target.id) {
-            return false; // No cycles (this includes self-linking)
-          }
-          if (subject.incomingId === null) {
-            break;
-          }
-          subjectId = subject.incomingId;
-        }
-        return true;
-      },
+      validateArrow: internal.validateArrow,
     });
     graphRef.current = graph;
     paperRef.current = paper;
