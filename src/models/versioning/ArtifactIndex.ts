@@ -1,24 +1,24 @@
 import { ZodParser } from "@/helpers/ZodParser";
 import z from "zod/v4";
 import { Artifact } from "../Artifact";
+import { Generate } from "@/helpers/Generate";
 
 export type ArtifactIndex = {
   object: "artifact_index";
   artifacts: Array<{
     path: string;
-    stepTrail: unknown[];
+    trail: unknown[];
   }>;
 };
 
 export namespace ArtifactIndex {
   export const generateName = (artifacts: Array<Pick<Artifact, "name">>) => {
     const artifactNames = artifacts.map(({ name }) => name);
-    const result = (extraUnderscores: number) => {
-      const underscores = "_".repeat(2 + extraUnderscores);
-      return `${underscores}brespi_artifact_index${underscores}.json`;
+    const randomName = () => {
+      return `__brespi_artifact_index_${Generate.shortRandomString()}__.json`;
     };
-    for (let extraUnderscores = 0; true; extraUnderscores++) {
-      const name = result(extraUnderscores);
+    while (true) {
+      const name = randomName();
       if (!artifactNames.includes(name)) {
         return name;
       }
@@ -32,7 +32,7 @@ export namespace ArtifactIndex {
         artifacts: z.array(
           z.object({
             path: z.string(),
-            stepTrail: z.array(z.any()),
+            trail: z.array(z.any()),
           }),
         ),
       }),

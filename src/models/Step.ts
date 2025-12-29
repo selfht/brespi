@@ -58,13 +58,15 @@ export namespace Step {
     secretKeyReference: string;
   };
 
+  export type ItemSelection =
+    | { target: "latest" } //
+    | { target: "specific"; version: string };
+
   export type FilesystemRead = Common & {
     type: Type.filesystem_read;
     path: string;
     brespiManaged: null | {
-      selection:
-        | { target: "latest" } //
-        | { target: "specific"; version: string };
+      selection: ItemSelection;
     };
   };
 
@@ -137,9 +139,7 @@ export namespace Step {
     type: Type.s3_download;
     connection: S3Connection;
     baseFolder: string;
-    selection:
-      | { target: "latest" } //
-      | { target: "specific"; version: string };
+    selection: ItemSelection;
   };
 
   export type PostgresBackup = Common & {

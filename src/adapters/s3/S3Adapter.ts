@@ -1,14 +1,13 @@
 import { Env } from "@/Env";
-import { Generate } from "@/helpers/Generate";
 import { Mutex } from "@/helpers/Mutex";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
+import { TrailStep } from "@/models/TrailStep";
 import { Manifest } from "@/models/versioning/Manifest";
-import { Temporal } from "@js-temporal/polyfill";
+import { VersioningSystem } from "@/versioning/VersioningSystem";
 import { S3Client } from "bun";
-import { dirname, join } from "path";
+import { join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
-import { ArtifactIndex } from "@/models/versioning/ArtifactIndex";
 
 export class S3Adapter extends AbstractAdapter {
   private static readonly MANIFEST_MUTEX = new Mutex();
@@ -17,64 +16,40 @@ export class S3Adapter extends AbstractAdapter {
     super(env);
   }
 
-  public async upload(artifacts: Artifact[], step: Step.S3Upload, stepTrail: Step[]): Promise<void> {
+  public async upload(artifacts: Artifact[], step: Step.S3Upload, trail: TrailStep[]): Promise<void> {
     const client = this.constructClient(step.connection);
-    const timestamp = Temporal.Now.plainDateTimeISO();
-    const uploadDir = {
-      relativePath: `${timestamp}-${Generate.shortRandomString()}`,
-      get absolutePath() {
-        return join(step.baseFolder, this.relativePath);
-      },
-    };
-    // 1. Write the artifact index
-    const artifactIndex = {
-      name: ArtifactIndex.generateName(artifacts),
-      get relativePath() {
-        return join(uploadDir.relativePath, this.name);
-      },
-      get absolutePath() {
-        return join(uploadDir.absolutePath, this.name);
-      },
-      get content(): ArtifactIndex {
-        return {
-          object: "artifact_index",
-          artifacts: artifacts.map((artifact) => ({
-            path: artifact.name, // (sic) `artifact.name` is unique in each batch (and artifact.path` refers to the current path on the filesystem)
-            stepTrail,
-          })),
-        };
-      },
-    };
-    await client.write(artifactIndex.absolutePath, JSON.stringify(artifactIndex.content));
-    // 2. Update the manifest
-    await this.handleManifestExclusively(client, step.baseFolder, async (manifest, save) => {
-      manifest.items.push({
-        isoTimestamp: timestamp.toString(),
-        artifactIndexPath: artifactIndex.relativePath,
-      });
-      await save(manifest);
+    const { manifestModifier, artifactIndex, artifactInserts } = VersioningSystem.prepareInsertion({
+      baseDirectory: step.baseFolder,
+      artifacts,
+      trail,
     });
-    // 3. Write the artifacts themselves
-    for (const artifact of artifacts) {
-      await client.write(join(uploadDir.absolutePath, artifact.name), Bun.file(artifact.path));
+    // Save manifest
+    await this.handleManifestExclusively(client, step.baseFolder, async (manifest, save) => {
+      await save(manifestModifier({ manifest }));
+    });
+    // Save index
+    await client.write(artifactIndex.path, artifactIndex.content);
+    // Save artifacts
+    for (const { sourcePath, destinationPath } of artifactInserts) {
+      await client.write(destinationPath, Bun.file(sourcePath));
     }
   }
 
   public async download(step: Step.S3Download): Promise<Artifact[]> {
     const client = this.constructClient(step.connection);
-
-    const item = await this.handleManifestExclusively(client, step.baseFolder, (manifest) => {
-      return this.findMatchingItem(manifest, step.selection);
+    const { artifactSelector } = VersioningSystem.prepareSelection({
+      baseDirectory: step.baseFolder,
+      selection: step.selection,
+      storageReader: ({ absolutePath }) => client.file(absolutePath).json(),
     });
-
-    const artifactIndexPath = join(step.baseFolder, item.artifactIndexPath);
-    const artifactIndexParentDir = dirname(artifactIndexPath);
-
-    const index = ArtifactIndex.parse(await client.file(artifactIndexPath).json());
+    const selectableArtifacts = await this.handleManifestExclusively(client, step.baseFolder, async (manifest) => {
+      return await artifactSelector({ manifest });
+    });
+    console.log(JSON.stringify({ selectableArtifacts }, null, 2));
     const artifacts: Artifact[] = [];
-    for (const { path: name } of index.artifacts) {
+    for (const { name, path } of selectableArtifacts) {
       const { outputId, outputPath } = this.generateArtifactDestination();
-      await Bun.write(outputPath, client.file(join(artifactIndexParentDir, name)));
+      await Bun.write(outputPath, client.file(path));
       artifacts.push({
         id: outputId,
         type: "file",
@@ -100,15 +75,15 @@ export class S3Adapter extends AbstractAdapter {
   private async handleManifestExclusively<T>(
     client: S3Client,
     folder: string,
-    fn: (mani: Manifest, save: (mf: Manifest) => Promise<Manifest>) => T | Promise<T>,
+    fn: (mani: Manifest, saveFn: (mf: Manifest) => Promise<Manifest>) => T | Promise<T>,
   ): Promise<Awaited<T>> {
     const release = await S3Adapter.MANIFEST_MUTEX.acquire();
     try {
       const manifestPath = join(folder, Manifest.NAME);
       const manifestFile = client.file(manifestPath);
       const manifestContent: Manifest = (await manifestFile.exists()) ? Manifest.parse(await manifestFile.json()) : Manifest.empty();
-      const save = (mf: Manifest) => client.write(manifestPath, JSON.stringify(manifestContent)).then(() => mf);
-      return await fn(manifestContent, save);
+      const saveFn = (newManifest: Manifest) => client.write(manifestPath, JSON.stringify(newManifest)).then(() => newManifest);
+      return await fn(manifestContent, saveFn);
     } finally {
       release();
     }
