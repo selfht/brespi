@@ -7,22 +7,12 @@ import { Manifest } from "@/models/versioning/Manifest";
 import { Temporal } from "@js-temporal/polyfill";
 import { dirname, join } from "path";
 
-export namespace VersioningSystem {
-  type ArtifactInsert = {
-    sourcePath: string;
-    destinationPath: string;
-  };
-  type PrepareInsertionOptions = {
-    baseDirectory: string;
-    artifacts: Array<Pick<Artifact, "name" | "path">>;
-    trail: TrailStep[];
-  };
-  type PrepareInsertionResult = {
-    manifestModifier: (arg: { manifest: Manifest }) => Manifest;
-    artifactIndex: { path: string; content: string };
-    artifactInserts: ArtifactInsert[];
-  };
-  export function prepareInsertion({ baseDirectory, artifacts, trail }: PrepareInsertionOptions): PrepareInsertionResult {
+export class VersioningSystem {
+  public static prepareInsertion({
+    baseFolder: baseDirectory,
+    artifacts,
+    trail,
+  }: VersioningSystem.PrepareInsertionOptions): VersioningSystem.PrepareInsertionResult {
     const timestamp = Temporal.Now.plainDateTimeISO();
     const itemDir = `${timestamp}-${Generate.shortRandomString()}`;
     // 1. Create the artifact index
@@ -45,7 +35,7 @@ export namespace VersioningSystem {
       },
     };
     // 2. Create the manifest modifier
-    const manifestModifier: PrepareInsertionResult["manifestModifier"] = ({ manifest }) => {
+    const manifestModifier: VersioningSystem.PrepareInsertionResult["manifestModifier"] = ({ manifest }) => {
       return {
         ...manifest,
         items: [
@@ -61,37 +51,28 @@ export namespace VersioningSystem {
     return {
       manifestModifier,
       artifactIndex: {
-        path: join(baseDirectory, artifactIndex.path),
-        content: JSON.stringify(artifactIndex.content),
+        destinationPath: join(baseDirectory, artifactIndex.path),
+        content: artifactIndex.content,
       },
-      artifactInserts: artifacts.map<ArtifactInsert>(({ name, path }) => ({
-        name,
+      insertableArtifacts: artifacts.map<VersioningSystem.InsertableArtifact>(({ name, path }) => ({
         sourcePath: path,
         destinationPath: join(baseDirectory, artifactIndex.parentDir, name),
       })),
     };
   }
 
-  type SelectableArtifact = {
-    name: string;
-    path: string;
-  };
-  type PrepareSelectionOptions = {
-    baseDirectory: string;
-    selection: Step.ItemSelection;
-    storageReader: (arg: { absolutePath: string }) => Promise<any>;
-  };
-  type PrepareSelectionResult = {
-    artifactSelector: (arg: { manifest: Manifest }) => Promise<SelectableArtifact[]>;
-  };
-  export function prepareSelection({ selection, storageReader, baseDirectory }: PrepareSelectionOptions): PrepareSelectionResult {
+  public static prepareSelection({
+    selection,
+    storageReader,
+    baseFolder,
+  }: VersioningSystem.PrepareSelectionOptions): VersioningSystem.PrepareSelectionResult {
     return {
-      async artifactSelector({ manifest }) {
-        const item = findMatchingItem(manifest, selection);
-        const artifactIndexPath = join(baseDirectory, item.artifactIndexPath);
+      selectableArtifactsFn: async ({ manifest }) => {
+        const item = this.findMatchingItem(manifest, selection);
+        const artifactIndexPath = join(baseFolder, item.artifactIndexPath);
         const artifactIndexParentDir = dirname(artifactIndexPath);
         const index = ArtifactIndex.parse(await storageReader({ absolutePath: artifactIndexPath }));
-        return index.artifacts.map<SelectableArtifact>(({ path }) => ({
+        return index.artifacts.map<VersioningSystem.SelectableArtifact>(({ path }) => ({
           name: path,
           path: join(artifactIndexParentDir, path),
         }));
@@ -99,7 +80,7 @@ export namespace VersioningSystem {
     };
   }
 
-  function findMatchingItem(manifest: Manifest, selection: Step.ItemSelection): Manifest.Item {
+  private static findMatchingItem(manifest: Manifest, selection: Step.ItemSelection): Manifest.Item {
     switch (selection.target) {
       case "latest": {
         const sortedItems = manifest.items.toSorted(Manifest.Item.sort);
@@ -121,4 +102,34 @@ export namespace VersioningSystem {
       }
     }
   }
+}
+
+export namespace VersioningSystem {
+  export type InsertableArtifact = {
+    sourcePath: string;
+    destinationPath: string;
+  };
+  export type PrepareInsertionOptions = {
+    baseFolder: string;
+    artifacts: Array<Pick<Artifact, "name" | "path">>;
+    trail: TrailStep[];
+  };
+  export type PrepareInsertionResult = {
+    manifestModifier: (arg: { manifest: Manifest }) => Manifest;
+    artifactIndex: { content: ArtifactIndex; destinationPath: string };
+    insertableArtifacts: InsertableArtifact[];
+  };
+
+  export type SelectableArtifact = {
+    name: string;
+    path: string;
+  };
+  export type PrepareSelectionOptions = {
+    baseFolder: string;
+    selection: Step.ItemSelection;
+    storageReader: (arg: { absolutePath: string }) => Promise<any>;
+  };
+  export type PrepareSelectionResult = {
+    selectableArtifactsFn: (arg: { manifest: Manifest }) => Promise<SelectableArtifact[]>;
+  };
 }

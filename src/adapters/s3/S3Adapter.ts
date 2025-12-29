@@ -6,7 +6,7 @@ import { TrailStep } from "@/models/TrailStep";
 import { Manifest } from "@/models/versioning/Manifest";
 import { VersioningSystem } from "@/versioning/VersioningSystem";
 import { S3Client } from "bun";
-import { join } from "path";
+import { join, relative } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 
 export class S3Adapter extends AbstractAdapter {
@@ -16,36 +16,37 @@ export class S3Adapter extends AbstractAdapter {
     super(env);
   }
 
-  public async upload(artifacts: Artifact[], step: Step.S3Upload, trail: TrailStep[]): Promise<void> {
+  public async upload(artifacts: Artifact[], { baseFolder, ...step }: Step.S3Upload, trail: TrailStep[]): Promise<void> {
+    baseFolder = this.relativize(baseFolder);
     const client = this.constructClient(step.connection);
-    const { manifestModifier, artifactIndex, artifactInserts } = VersioningSystem.prepareInsertion({
-      baseDirectory: step.baseFolder,
+    const { manifestModifier, artifactIndex, insertableArtifacts } = VersioningSystem.prepareInsertion({
+      baseFolder,
       artifacts,
       trail,
     });
     // Save manifest
-    await this.handleManifestExclusively(client, step.baseFolder, async (manifest, save) => {
+    await this.handleManifestExclusively(client, baseFolder, async (manifest, save) => {
       await save(manifestModifier({ manifest }));
     });
     // Save index
-    await client.write(artifactIndex.path, artifactIndex.content);
+    await client.write(artifactIndex.destinationPath, JSON.stringify(artifactIndex.content));
     // Save artifacts
-    for (const { sourcePath, destinationPath } of artifactInserts) {
+    for (const { sourcePath, destinationPath } of insertableArtifacts) {
       await client.write(destinationPath, Bun.file(sourcePath));
     }
   }
 
-  public async download(step: Step.S3Download): Promise<Artifact[]> {
+  public async download({ baseFolder, ...step }: Step.S3Download): Promise<Artifact[]> {
+    baseFolder = this.relativize(baseFolder);
     const client = this.constructClient(step.connection);
-    const { artifactSelector } = VersioningSystem.prepareSelection({
-      baseDirectory: step.baseFolder,
+    const { selectableArtifactsFn: artifactSelector } = VersioningSystem.prepareSelection({
+      baseFolder: baseFolder,
       selection: step.selection,
       storageReader: ({ absolutePath }) => client.file(absolutePath).json(),
     });
-    const selectableArtifacts = await this.handleManifestExclusively(client, step.baseFolder, async (manifest) => {
+    const selectableArtifacts = await this.handleManifestExclusively(client, baseFolder, async (manifest) => {
       return await artifactSelector({ manifest });
     });
-    console.log(JSON.stringify({ selectableArtifacts }, null, 2));
     const artifacts: Artifact[] = [];
     for (const { name, path } of selectableArtifacts) {
       const { outputId, outputPath } = this.generateArtifactDestination();
@@ -58,6 +59,14 @@ export class S3Adapter extends AbstractAdapter {
       });
     }
     return artifacts;
+  }
+
+  /**
+   * Specifically for S3, we want to make absolute base folders relative
+   * For example: `/my-backups` --> `my-backups`
+   */
+  private relativize(baseFolder: string): string {
+    return relative("/", baseFolder);
   }
 
   private constructClient(connection: Step.S3Connection): S3Client {
@@ -86,29 +95,6 @@ export class S3Adapter extends AbstractAdapter {
       return await fn(manifestContent, saveFn);
     } finally {
       release();
-    }
-  }
-
-  private findMatchingItem(manifest: Manifest, selection: Step.S3Download["selection"]): Manifest.Item {
-    switch (selection.target) {
-      case "latest": {
-        const sortedItems = manifest.items.toSorted(Manifest.Item.sort);
-        if (sortedItems.length === 0) {
-          throw new Error("Latest item could not be found");
-        }
-        return sortedItems[0];
-      }
-      case "specific": {
-        const version = selection.version;
-        const matchingItems = manifest.items.filter((u) => u.isoTimestamp === version || u.artifactIndexPath === version);
-        if (matchingItems.length === 0) {
-          throw new Error("Specific item could not be found");
-        }
-        if (matchingItems.length > 1) {
-          throw new Error(`Specific item could not be identified uniquely; matches=${matchingItems.length}`);
-        }
-        return matchingItems[0];
-      }
     }
   }
 }
