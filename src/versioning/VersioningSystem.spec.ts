@@ -156,5 +156,287 @@ describe(VersioningSystem.name, () => {
     });
   });
 
-  describe(VersioningSystem.prepareSelection.name, () => {});
+  describe(VersioningSystem.prepareSelection.name, () => {
+    const Timestamp = {
+      _now_: Temporal.Now.plainDateTimeISO(),
+      get VERY_LONG_AGO() {
+        return this._now_.subtract({ days: 365000 }).toString();
+      },
+      get LAST_YEAR() {
+        return this._now_.subtract({ days: 365 }).toString();
+      },
+      get PRESENT() {
+        return this._now_.toString();
+      },
+      get NEXT_YEAR() {
+        return this._now_.add({ days: 365 }).toString();
+      },
+      get VERY_FAR_AWAY() {
+        return this._now_.add({ days: 365000 }).toString();
+      },
+    };
+
+    it("selects the latest item from the manifest", async () => {
+      // given
+      const manifest: Manifest = {
+        object: "manifest",
+        items: [
+          {
+            isoTimestamp: Timestamp.LAST_YEAR,
+            artifactIndexPath: `${Timestamp.LAST_YEAR}-abc123/__brespi_artifact_index__.json`,
+          },
+          {
+            isoTimestamp: Timestamp.PRESENT,
+            artifactIndexPath: `${Timestamp.PRESENT}-def456/__brespi_artifact_index__.json`,
+          },
+          {
+            isoTimestamp: Timestamp.VERY_LONG_AGO,
+            artifactIndexPath: `${Timestamp.VERY_LONG_AGO}-ghi789/__brespi_artifact_index__.json`,
+          },
+        ],
+      };
+      const artifactIndex: ArtifactIndex = {
+        object: "artifact_index",
+        artifacts: [
+          { path: "file1.txt", trail: [] },
+          { path: "file2.txt", trail: [] },
+        ],
+      };
+      // when
+      const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
+        baseFolder: "base-folder",
+        selection: { target: "latest" },
+        storageReaderFn: () => Promise.resolve(artifactIndex),
+      });
+      const artifacts = await selectableArtifactsFn({ manifest });
+      // then
+      expect(artifacts).toHaveLength(2);
+      expect(artifacts).toEqual([
+        { name: "file1.txt", path: `base-folder/${Timestamp.PRESENT}-def456/file1.txt` },
+        { name: "file2.txt", path: `base-folder/${Timestamp.PRESENT}-def456/file2.txt` },
+      ]);
+    });
+
+    it("selects a specific item by 'isoTimestamp'", async () => {
+      // given
+      const manifest: Manifest = {
+        object: "manifest",
+        items: [
+          {
+            isoTimestamp: Timestamp.LAST_YEAR,
+            artifactIndexPath: `${Timestamp.LAST_YEAR}-abc123/__brespi_artifact_index__.json`,
+          },
+          {
+            isoTimestamp: Timestamp.PRESENT,
+            artifactIndexPath: `${Timestamp.PRESENT}-def456/__brespi_artifact_index__.json`,
+          },
+        ],
+      };
+      const artifactIndex: ArtifactIndex = {
+        object: "artifact_index",
+        artifacts: [{ path: "specific-file.txt", trail: [] }],
+      };
+      // when
+      const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
+        selection: { target: "specific", version: Timestamp.LAST_YEAR },
+        storageReaderFn: () => Promise.resolve(artifactIndex),
+        baseFolder: "my-base",
+      });
+      const artifacts = await selectableArtifactsFn({ manifest });
+      // then
+      expect(artifacts).toHaveLength(1);
+      expect(artifacts[0]).toEqual({
+        name: "specific-file.txt",
+        path: `my-base/${Timestamp.LAST_YEAR}-abc123/specific-file.txt`,
+      });
+    });
+
+    it("selects a specific item by 'dirname'", async () => {
+      // given
+      const manifest: Manifest = {
+        object: "manifest",
+        items: [
+          {
+            isoTimestamp: Timestamp.VERY_LONG_AGO,
+            artifactIndexPath: `${Timestamp.VERY_LONG_AGO}-abc123/__brespi_artifact_index__.json`,
+          },
+          {
+            isoTimestamp: Timestamp.LAST_YEAR,
+            artifactIndexPath: `${Timestamp.LAST_YEAR}-def456/__brespi_artifact_index__.json`,
+          },
+          {
+            isoTimestamp: Timestamp.PRESENT,
+            artifactIndexPath: `${Timestamp.PRESENT}-ghi789/__brespi_artifact_index__.json`,
+          },
+        ],
+      };
+      const artifactIndex: ArtifactIndex = {
+        object: "artifact_index",
+        artifacts: [
+          { path: "doc1.pdf", trail: [] },
+          { path: "doc2.pdf", trail: [] },
+          { path: "doc3.pdf", trail: [] },
+        ],
+      };
+      // when
+      const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
+        selection: { target: "specific", version: `${Timestamp.VERY_LONG_AGO}-abc123` },
+        storageReaderFn: () => Promise.resolve(artifactIndex),
+        baseFolder: "/storage",
+      });
+      const artifacts = await selectableArtifactsFn({ manifest });
+      // then
+      expect(artifacts).toHaveLength(3);
+      expect(artifacts).toEqual([
+        { name: "doc1.pdf", path: `/storage/${Timestamp.VERY_LONG_AGO}-abc123/doc1.pdf` },
+        { name: "doc2.pdf", path: `/storage/${Timestamp.VERY_LONG_AGO}-abc123/doc2.pdf` },
+        { name: "doc3.pdf", path: `/storage/${Timestamp.VERY_LONG_AGO}-abc123/doc3.pdf` },
+      ]);
+    });
+
+    it("throws an error when selecting latest from an empty manifest", async () => {
+      // given
+      const manifest: Manifest = Manifest.empty();
+      // when
+      const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
+        selection: { target: "latest" },
+        storageReaderFn: () => Promise.reject("Should not be called"),
+        baseFolder: "base",
+      });
+      // then
+      expect(selectableArtifactsFn({ manifest })).rejects.toThrow("Latest item could not be found");
+    });
+
+    it("throws an error when specific item cannot be found", async () => {
+      // given
+      const manifest: Manifest = {
+        object: "manifest",
+        items: [
+          {
+            isoTimestamp: Timestamp.LAST_YEAR,
+            artifactIndexPath: "path1/__brespi_artifact_index__.json",
+          },
+        ],
+      };
+      // when
+      const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
+        selection: { target: "specific", version: Timestamp.VERY_FAR_AWAY },
+        storageReaderFn: () => Promise.reject("Should not be called"),
+        baseFolder: "base",
+      });
+      // then
+      expect(selectableArtifactsFn({ manifest })).rejects.toThrow("Specific item could not be found");
+    });
+
+    it("throws an error when multiple items match the specific version", async () => {
+      // given - create items with duplicate timestamps (edge case)
+      const manifest: Manifest = {
+        object: "manifest",
+        items: [
+          {
+            isoTimestamp: Timestamp.LAST_YEAR,
+            artifactIndexPath: "path1/__brespi_artifact_index__.json",
+          },
+          {
+            isoTimestamp: Timestamp.LAST_YEAR,
+            artifactIndexPath: "path2/__brespi_artifact_index__.json",
+          },
+        ],
+      };
+      // when
+      const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
+        selection: { target: "specific", version: Timestamp.LAST_YEAR },
+        storageReaderFn: () => Promise.reject("Should not be called"),
+        baseFolder: "base",
+      });
+      // then
+      expect(selectableArtifactsFn({ manifest })).rejects.toThrow("Specific item could not be identified uniquely; matches=2");
+    });
+
+    type BaseFolderTestCase = {
+      baseFolder: string;
+      manifest: {
+        singleArtifactIndexPath: string;
+      };
+      expectation: {
+        artifactPathPrefix: string;
+      };
+    };
+    it.each<BaseFolderTestCase>([
+      {
+        baseFolder: "",
+        manifest: {
+          singleArtifactIndexPath: `${Timestamp.PRESENT}-abc/__brespi_artifact_index__.json`,
+        },
+        expectation: {
+          artifactPathPrefix: `${Timestamp.PRESENT}-abc`,
+        },
+      },
+      {
+        baseFolder: "backups",
+        manifest: {
+          singleArtifactIndexPath: `${Timestamp.PRESENT}-abc/__brespi_artifact_index__.json`,
+        },
+        expectation: {
+          artifactPathPrefix: `backups/${Timestamp.PRESENT}-abc`,
+        },
+      },
+      {
+        baseFolder: "/backups",
+        manifest: {
+          singleArtifactIndexPath: `${Timestamp.PRESENT}-abc/__brespi_artifact_index__.json`,
+        },
+        expectation: {
+          artifactPathPrefix: `/backups/${Timestamp.PRESENT}-abc`,
+        },
+      },
+      {
+        baseFolder: "backups/postgres",
+        manifest: {
+          singleArtifactIndexPath: `${Timestamp.PRESENT}-abc/__brespi_artifact_index__.json`,
+        },
+        expectation: {
+          artifactPathPrefix: `backups/postgres/${Timestamp.PRESENT}-abc`,
+        },
+      },
+      {
+        baseFolder: "/backups/postgres",
+        manifest: {
+          singleArtifactIndexPath: `${Timestamp.PRESENT}-abc/__brespi_artifact_index__.json`,
+        },
+        expectation: {
+          artifactPathPrefix: `/backups/postgres/${Timestamp.PRESENT}-abc`,
+        },
+      },
+    ])(
+      "correctly relativizes selected artifacts to the base folder",
+      async ({ baseFolder, manifest: { singleArtifactIndexPath }, expectation }) => {
+        // given
+        const manifest: Manifest = {
+          object: "manifest",
+          items: [
+            {
+              isoTimestamp: Timestamp.PRESENT,
+              artifactIndexPath: singleArtifactIndexPath,
+            },
+          ],
+        };
+        const artifactIndex: ArtifactIndex = {
+          object: "artifact_index",
+          artifacts: [{ path: "test-file.txt", trail: [] }],
+        };
+        // when
+        const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
+          selection: { target: "latest" },
+          storageReaderFn: () => Promise.resolve(artifactIndex),
+          baseFolder,
+        });
+        const artifacts = await selectableArtifactsFn({ manifest });
+        // then
+        expect(artifacts).toHaveLength(1);
+        expect(artifacts[0].path).toEqual(`${expectation.artifactPathPrefix}/test-file.txt`);
+        expect(artifacts[0].name).toEqual("test-file.txt");
+      },
+    );
+  });
 });

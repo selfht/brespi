@@ -91,7 +91,7 @@ export class VersioningSystem {
       }
       case "specific": {
         const version = selection.version;
-        const matchingItems = manifest.items.filter((u) => u.isoTimestamp === version || u.artifactIndexPath === version);
+        const matchingItems = manifest.items.filter((u) => u.isoTimestamp === version || dirname(u.artifactIndexPath) === version);
         if (matchingItems.length === 0) {
           throw new Error("Specific item could not be found");
         }
