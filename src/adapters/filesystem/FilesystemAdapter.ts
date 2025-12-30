@@ -1,16 +1,19 @@
+import { ManagedStorageCapability } from "@/capabilities/ManagedStorageCapability";
 import { Env } from "@/Env";
 import { Mutex } from "@/helpers/Mutex";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { TrailStep } from "@/models/TrailStep";
 import { Manifest } from "@/models/versioning/Manifest";
-import { VersioningSystem } from "@/versioning/VersioningSystem";
 import { copyFile, cp, mkdir, readdir, rename, stat } from "fs/promises";
 import { basename, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 
 export class FilesystemAdapter extends AbstractAdapter {
-  public constructor(protected readonly env: Env.Private) {
+  public constructor(
+    protected readonly env: Env.Private,
+    private readonly managedStorageCapability: ManagedStorageCapability,
+  ) {
     super(env);
   }
 
@@ -21,7 +24,7 @@ export class FilesystemAdapter extends AbstractAdapter {
     this.ensureOnlyFiles(artifacts);
     await mkdir(step.folder, { recursive: true });
     if (step.managedStorage) {
-      const { manifestModifier, artifactIndex, insertableArtifacts } = VersioningSystem.prepareInsertion({
+      const { manifestModifier, artifactIndex, insertableArtifacts } = this.managedStorageCapability.prepareInsertion({
         baseFolder: step.folder,
         artifacts,
         trail,
@@ -54,7 +57,7 @@ export class FilesystemAdapter extends AbstractAdapter {
   public async read(step: Step.FilesystemRead): Promise<Artifact[]> {
     if (step.managedStorage) {
       // Prepare selaction
-      const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
+      const { selectableArtifactsFn } = this.managedStorageCapability.prepareSelection({
         baseFolder: step.fileOrFolder,
         selection: step.managedStorage.selection,
         storageReaderFn: ({ absolutePath }) => Bun.file(absolutePath).json(),

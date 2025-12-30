@@ -1,10 +1,10 @@
 import { Manifest } from "@/models/versioning/Manifest";
 import { describe, expect, it } from "bun:test";
-import { VersioningSystem } from "./VersioningSystem";
 import { ArtifactIndex } from "@/models/versioning/ArtifactIndex";
 import { Temporal } from "@js-temporal/polyfill";
+import { ManagedStorageCapability } from "./ManagedStorageCapability";
 
-describe(VersioningSystem.name, () => {
+describe(ManagedStorageCapability.name, () => {
   const Regex = {
     RANDOM_ID: /\w+/.source,
     TIMESTAMP: /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+/.source,
@@ -13,10 +13,12 @@ describe(VersioningSystem.name, () => {
     },
   };
 
-  describe(VersioningSystem.prepareInsertion.name, () => {
+  const capability = new ManagedStorageCapability();
+
+  describe(capability.prepareInsertion.name, () => {
     it("correctly generates the to-be-upserted manifest/index/artifacts", () => {
       // given
-      const options: VersioningSystem.PrepareInsertionOptions = {
+      const options: ManagedStorageCapability.PrepareInsertionOptions = {
         baseFolder: "hello-123-base",
         artifacts: [
           { name: "Apple.txt", path: "/tmp-x/123" },
@@ -27,7 +29,7 @@ describe(VersioningSystem.name, () => {
       };
 
       // when
-      const { manifestModifier, artifactIndex, insertableArtifacts } = VersioningSystem.prepareInsertion(options);
+      const { manifestModifier, artifactIndex, insertableArtifacts } = capability.prepareInsertion(options);
       const manifest = manifestModifier({ manifest: Manifest.empty() });
 
       // then (validate the manifest)
@@ -53,7 +55,7 @@ describe(VersioningSystem.name, () => {
       // then (validate the artifacts)
       expect(insertableArtifacts).toHaveLength(3);
       expect(insertableArtifacts).toEqual(
-        expect.arrayContaining<VersioningSystem.InsertableArtifact>([
+        expect.arrayContaining<ManagedStorageCapability.InsertableArtifact>([
           {
             sourcePath: "/tmp-x/123",
             destinationPath: expect.stringMatching(new RegExp(`^hello-123-base/${Regex.TIMESTAMP_FOLDER}/Apple.txt$`)),
@@ -82,7 +84,7 @@ describe(VersioningSystem.name, () => {
           })),
         };
         // when
-        const { manifestModifier } = VersioningSystem.prepareInsertion({ artifacts: [], baseFolder: "", trail: [] });
+        const { manifestModifier } = capability.prepareInsertion({ artifacts: [], baseFolder: "", trail: [] });
         const updatedManifest = manifestModifier({ manifest: existingManifest });
         // then
         expect(updatedManifest.items).toHaveLength(existingManifestSize + 1);
@@ -142,13 +144,13 @@ describe(VersioningSystem.name, () => {
       },
     ])("correctly relativizes generated files to the base folder", ({ baseFolder, expectation }) => {
       // given
-      const options: VersioningSystem.PrepareInsertionOptions = {
+      const options: ManagedStorageCapability.PrepareInsertionOptions = {
         baseFolder,
         artifacts: [{ name: "Apple", path: "irrelevant" }],
         trail: [],
       };
       // when
-      const { artifactIndex, insertableArtifacts } = VersioningSystem.prepareInsertion(options);
+      const { artifactIndex, insertableArtifacts } = capability.prepareInsertion(options);
       // then
       expect(artifactIndex.destinationPath).toMatch(expectation.itemPathMatcher);
       expect(insertableArtifacts).toHaveLength(1);
@@ -156,7 +158,7 @@ describe(VersioningSystem.name, () => {
     });
   });
 
-  describe(VersioningSystem.prepareSelection.name, () => {
+  describe(capability.prepareSelection.name, () => {
     const Timestamp = {
       _now_: Temporal.Now.plainDateTimeISO(),
       get VERY_LONG_AGO() {
@@ -203,7 +205,7 @@ describe(VersioningSystem.name, () => {
         ],
       };
       // when
-      const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
+      const { selectableArtifactsFn } = capability.prepareSelection({
         baseFolder: "base-folder",
         selection: { target: "latest" },
         storageReaderFn: () => Promise.resolve(artifactIndex),
@@ -237,7 +239,7 @@ describe(VersioningSystem.name, () => {
         artifacts: [{ path: "specific-file.txt", trail: [] }],
       };
       // when
-      const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
+      const { selectableArtifactsFn } = capability.prepareSelection({
         selection: { target: "specific", version: Timestamp.LAST_YEAR },
         storageReaderFn: () => Promise.resolve(artifactIndex),
         baseFolder: "my-base",
@@ -279,7 +281,7 @@ describe(VersioningSystem.name, () => {
         ],
       };
       // when
-      const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
+      const { selectableArtifactsFn } = capability.prepareSelection({
         selection: { target: "specific", version: `${Timestamp.VERY_LONG_AGO}-abc123` },
         storageReaderFn: () => Promise.resolve(artifactIndex),
         baseFolder: "/storage",
@@ -298,7 +300,7 @@ describe(VersioningSystem.name, () => {
       // given
       const manifest: Manifest = Manifest.empty();
       // when
-      const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
+      const { selectableArtifactsFn } = capability.prepareSelection({
         selection: { target: "latest" },
         storageReaderFn: () => Promise.reject("Should not be called"),
         baseFolder: "base",
@@ -319,7 +321,7 @@ describe(VersioningSystem.name, () => {
         ],
       };
       // when
-      const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
+      const { selectableArtifactsFn } = capability.prepareSelection({
         selection: { target: "specific", version: Timestamp.VERY_FAR_AWAY },
         storageReaderFn: () => Promise.reject("Should not be called"),
         baseFolder: "base",
@@ -344,7 +346,7 @@ describe(VersioningSystem.name, () => {
         ],
       };
       // when
-      const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
+      const { selectableArtifactsFn } = capability.prepareSelection({
         selection: { target: "specific", version: Timestamp.LAST_YEAR },
         storageReaderFn: () => Promise.reject("Should not be called"),
         baseFolder: "base",
@@ -426,7 +428,7 @@ describe(VersioningSystem.name, () => {
           artifacts: [{ path: "test-file.txt", trail: [] }],
         };
         // when
-        const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
+        const { selectableArtifactsFn } = capability.prepareSelection({
           selection: { target: "latest" },
           storageReaderFn: () => Promise.resolve(artifactIndex),
           baseFolder,

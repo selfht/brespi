@@ -7,12 +7,12 @@ import { Manifest } from "@/models/versioning/Manifest";
 import { Temporal } from "@js-temporal/polyfill";
 import { dirname, join } from "path";
 
-export class VersioningSystem {
-  public static prepareInsertion({
+export class ManagedStorageCapability {
+  public prepareInsertion({
     baseFolder: baseDirectory,
     artifacts,
     trail,
-  }: VersioningSystem.PrepareInsertionOptions): VersioningSystem.PrepareInsertionResult {
+  }: ManagedStorageCapability.PrepareInsertionOptions): ManagedStorageCapability.PrepareInsertionResult {
     const timestamp = Temporal.Now.plainDateTimeISO();
     const itemDir = `${timestamp}-${Generate.shortRandomString()}`;
     // 1. Create the artifact index
@@ -35,7 +35,7 @@ export class VersioningSystem {
       },
     };
     // 2. Create the manifest modifier
-    const manifestModifier: VersioningSystem.PrepareInsertionResult["manifestModifier"] = ({ manifest }) => {
+    const manifestModifier: ManagedStorageCapability.PrepareInsertionResult["manifestModifier"] = ({ manifest }) => {
       return {
         ...manifest,
         items: [
@@ -54,25 +54,25 @@ export class VersioningSystem {
         destinationPath: join(baseDirectory, artifactIndex.path),
         content: artifactIndex.content,
       },
-      insertableArtifacts: artifacts.map<VersioningSystem.InsertableArtifact>(({ name, path }) => ({
+      insertableArtifacts: artifacts.map<ManagedStorageCapability.InsertableArtifact>(({ name, path }) => ({
         sourcePath: path,
         destinationPath: join(baseDirectory, artifactIndex.parentDir, name),
       })),
     };
   }
 
-  public static prepareSelection({
+  public prepareSelection({
     selection,
     storageReaderFn,
     baseFolder,
-  }: VersioningSystem.PrepareSelectionOptions): VersioningSystem.PrepareSelectionResult {
+  }: ManagedStorageCapability.PrepareSelectionOptions): ManagedStorageCapability.PrepareSelectionResult {
     return {
       selectableArtifactsFn: async ({ manifest }) => {
         const item = this.findMatchingItem(manifest, selection);
         const artifactIndexPath = join(baseFolder, item.artifactIndexPath);
         const artifactIndexParentDir = dirname(artifactIndexPath);
         const index = ArtifactIndex.parse(await storageReaderFn({ absolutePath: artifactIndexPath }));
-        return index.artifacts.map<VersioningSystem.SelectableArtifact>(({ path }) => ({
+        return index.artifacts.map<ManagedStorageCapability.SelectableArtifact>(({ path }) => ({
           name: path,
           path: join(artifactIndexParentDir, path),
         }));
@@ -80,7 +80,7 @@ export class VersioningSystem {
     };
   }
 
-  private static findMatchingItem(manifest: Manifest, selection: Step.ManagedStorage["selection"]): Manifest.Item {
+  private findMatchingItem(manifest: Manifest, selection: Step.ManagedStorage["selection"]): Manifest.Item {
     switch (selection.target) {
       case "latest": {
         const sortedItems = manifest.items.toSorted(Manifest.Item.sort);
@@ -104,7 +104,7 @@ export class VersioningSystem {
   }
 }
 
-export namespace VersioningSystem {
+export namespace ManagedStorageCapability {
   export type InsertableArtifact = {
     sourcePath: string;
     destinationPath: string;

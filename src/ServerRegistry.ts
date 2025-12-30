@@ -7,17 +7,16 @@ import { FilterAdapter } from "./adapters/filter/FilterAdapter";
 import { PostgresAdapter } from "./adapters/postgres/PostgresAdapter";
 import { S3Adapter } from "./adapters/s3/S3Adapter";
 import { ScriptAdapter } from "./adapters/scripting/ScriptAdapter";
+import { ManagedStorageCapability } from "./capabilities/ManagedStorageCapability";
 import { Env } from "./Env";
-import { ExecutionRepository } from "./repositories/ExecutionRepository";
+import { ExecutionRepositoryDefault } from "./repositories/implementations/ExecutionRepositoryDefault";
 import { PipelineRepositoryDefault } from "./repositories/implementations/PipelineRepositoryDefault";
 import { Server } from "./Server";
 import { CleanupService } from "./services/CleanupService";
 import { ExecutionService } from "./services/ExecutionService";
 import { PipelineService } from "./services/PipelineService";
-import { StepService } from "./services/StepService";
-import { CommandRunner } from "./helpers/CommandRunner";
-import { ExecutionRepositoryDefault } from "./repositories/implementations/ExecutionRepositoryDefault";
 import { RestrictedService } from "./services/RestrictedService";
+import { StepService } from "./services/StepService";
 
 export class ServerRegistry {
   public static async bootstrap(env: Env.Private): Promise<ServerRegistry> {
@@ -27,13 +26,16 @@ export class ServerRegistry {
   private readonly registry: Record<string, any> = {};
 
   private constructor(env: Env.Private) {
+    // Capabilities
+    const managedStorageCapability = (this.registry[ManagedStorageCapability.name] = new ManagedStorageCapability());
+
     // Adapters
-    const fileSystemAdapter = (this.registry[FilesystemAdapter.name] = new FilesystemAdapter(env));
+    const fileSystemAdapter = (this.registry[FilesystemAdapter.name] = new FilesystemAdapter(env, managedStorageCapability));
     const compressionAdapter = (this.registry[CompressionAdapter.name] = new CompressionAdapter(env));
     const encryptionAdapter = (this.registry[EncryptionAdapter.name] = new EncryptionAdapter(env));
     const filterAdapter = (this.registry[FilterAdapter.name] = new FilterAdapter(env));
     const scriptAdapter = (this.registry[ScriptAdapter.name] = new ScriptAdapter(env));
-    const s3Adapter = (this.registry[S3Adapter.name] = new S3Adapter(env));
+    const s3Adapter = (this.registry[S3Adapter.name] = new S3Adapter(env, managedStorageCapability));
     const postgresAdapter = (this.registry[PostgresAdapter.name] = new PostgresAdapter(env));
     const adapterService = (this.registry[AdapterService.name] = new AdapterService(
       fileSystemAdapter,
