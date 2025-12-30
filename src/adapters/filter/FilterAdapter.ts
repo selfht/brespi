@@ -1,33 +1,19 @@
+import { Env } from "@/Env";
+import { FilterCapability } from "@/capabilities/FilterCapability";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { AbstractAdapter } from "../AbstractAdapter";
-import { Env } from "@/Env";
 
 export class FilterAdapter extends AbstractAdapter {
-  public constructor(protected readonly env: Env.Private) {
+  public constructor(
+    protected readonly env: Env.Private,
+    private readonly filterCapability: FilterCapability,
+  ) {
     super(env);
   }
 
-  public async filter(artifacts: Artifact[], step: Step.Filter): Promise<Artifact[]> {
-    const { filterCriteria: selection } = step;
-    switch (selection.method) {
-      case "exact":
-        return artifacts.filter((artifact) => artifact.name === selection.name);
-      case "glob":
-        const globPattern = this.globToRegex(selection.nameGlob);
-        return artifacts.filter((artifact) => globPattern.test(artifact.name));
-      case "regex":
-        const regex = new RegExp(selection.nameRegex);
-        return artifacts.filter((artifact) => regex.test(artifact.name));
-    }
-  }
-
-  private globToRegex(pattern: string): RegExp {
-    let regexPattern = pattern
-      .replace(/[.+^${}()|[\]\\]/g, "\\$&")
-      .replace(/\*/g, ".*")
-      .replace(/\?/g, ".");
-
-    return new RegExp(`^${regexPattern}$`);
+  public async filter(artifacts: Artifact[], { filterCriteria }: Step.Filter): Promise<Artifact[]> {
+    const { predicate } = this.filterCapability.createPredicate(filterCriteria);
+    return artifacts.filter(predicate);
   }
 }

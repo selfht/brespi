@@ -64,7 +64,7 @@ export namespace Step {
       | { target: "specific"; version: string };
   };
 
-  type FilterCriteria =
+  export type FilterCriteria =
     | { method: "exact"; name: string } //
     | { method: "glob"; nameGlob: string }
     | { method: "regex"; nameRegex: string };
