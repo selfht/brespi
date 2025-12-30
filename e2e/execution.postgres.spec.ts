@@ -182,8 +182,8 @@ describe("execution | postgres", () => {
           previousId: "B",
           id: "C",
           type: "Filter",
-          selectionMethod: "glob",
-          selectionNameGlob: `*${database}*`,
+          filterCriteriaMethod: "glob",
+          filterCriteriaNameGlob: `*${database}*`,
         },
         {
           previousId: "C",

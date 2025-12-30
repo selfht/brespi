@@ -3,7 +3,7 @@ import { Step } from "@/models/Step";
 
 type Options = Step.FilterCriteria;
 type Result = {
-  predicate: (artifact: Artifact) => boolean;
+  predicate: (artifactLike: { name: string }) => boolean;
 };
 export class FilterCapability {
   public createPredicate(options: Options): Result {

@@ -37,7 +37,7 @@ describe("execution | managed-storage", () => {
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
           baseFolder: storageFolder,
-          selectionTarget: "latest",
+          managedStorageSelectionTarget: "latest",
         },
       },
     });

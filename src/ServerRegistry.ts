@@ -17,6 +17,7 @@ import { ExecutionService } from "./services/ExecutionService";
 import { PipelineService } from "./services/PipelineService";
 import { RestrictedService } from "./services/RestrictedService";
 import { StepService } from "./services/StepService";
+import { FilterCapability } from "./capabilities/FilterCapability";
 
 export class ServerRegistry {
   public static async bootstrap(env: Env.Private): Promise<ServerRegistry> {
@@ -27,15 +28,16 @@ export class ServerRegistry {
 
   private constructor(env: Env.Private) {
     // Capabilities
+    const filterCapability = (this.registry[FilterCapability.name] = new FilterCapability());
     const managedStorageCapability = (this.registry[ManagedStorageCapability.name] = new ManagedStorageCapability());
 
     // Adapters
     const fileSystemAdapter = (this.registry[FilesystemAdapter.name] = new FilesystemAdapter(env, managedStorageCapability));
     const compressionAdapter = (this.registry[CompressionAdapter.name] = new CompressionAdapter(env));
     const encryptionAdapter = (this.registry[EncryptionAdapter.name] = new EncryptionAdapter(env));
-    const filterAdapter = (this.registry[FilterAdapter.name] = new FilterAdapter(env));
+    const filterAdapter = (this.registry[FilterAdapter.name] = new FilterAdapter(env, filterCapability));
     const scriptAdapter = (this.registry[ScriptAdapter.name] = new ScriptAdapter(env));
-    const s3Adapter = (this.registry[S3Adapter.name] = new S3Adapter(env, managedStorageCapability));
+    const s3Adapter = (this.registry[S3Adapter.name] = new S3Adapter(env, managedStorageCapability, filterCapability));
     const postgresAdapter = (this.registry[PostgresAdapter.name] = new PostgresAdapter(env));
     const adapterService = (this.registry[AdapterService.name] = new AdapterService(
       fileSystemAdapter,

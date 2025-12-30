@@ -8,11 +8,13 @@ import { Manifest } from "@/models/versioning/Manifest";
 import { S3Client } from "bun";
 import { join, relative } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
+import { FilterCapability } from "@/capabilities/FilterCapability";
 
 export class S3Adapter extends AbstractAdapter {
   public constructor(
     protected readonly env: Env.Private,
     private readonly managedStorageCapability: ManagedStorageCapability,
+    private readonly filterCapability: FilterCapability,
   ) {
     super(env);
   }
@@ -48,9 +50,14 @@ export class S3Adapter extends AbstractAdapter {
       storageReaderFn: ({ absolutePath }) => client.file(absolutePath).json(),
     });
     // Provide manifest
-    const selectableArtifacts = await this.handleManifestExclusively(client, baseFolder, async (manifest) => {
+    let selectableArtifacts = await this.handleManifestExclusively(client, baseFolder, async (manifest) => {
       return await selectableArtifactsFn({ manifest });
     });
+    // Optional: filter
+    if (step.filterCriteria) {
+      const { predicate } = this.filterCapability.createPredicate(step.filterCriteria);
+      selectableArtifacts = selectableArtifacts.filter(predicate);
+    }
     // Retrieve artifacts
     const artifacts: Artifact[] = [];
     for (const { name, path } of selectableArtifacts) {

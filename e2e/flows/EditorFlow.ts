@@ -27,10 +27,10 @@ export namespace EditorFlow {
     | (StepCommon & { type: "Folder Group" })
     | (StepCommon & {
         type: "Filter";
-        selectionMethod?: "exact" | "glob" | "regex";
-        selectionName?: string;
-        selectionNameGlob?: string;
-        selectionNameRegex?: string;
+        filterCriteriaMethod?: "exact" | "glob" | "regex";
+        filterCriteriaName?: string;
+        filterCriteriaNameGlob?: string;
+        filterCriteriaNameRegex?: string;
       })
     | (StepCommon & {
         type: "Custom Script";
@@ -54,8 +54,13 @@ export namespace EditorFlow {
         accessKeyReference?: string;
         secretKeyReference?: string;
         baseFolder?: string;
-        selectionTarget?: "latest" | "specific";
-        selectionSpecificVersion?: string;
+        managedStorageSelectionTarget?: "latest" | "specific";
+        managedStorageSelectionVersion?: string;
+        filterCriteria?: "true" | "false";
+        filterCriteriaMethod?: "exact" | "glob" | "regex";
+        filterCriteriaName?: string;
+        filterCriteriaNameGlob?: string;
+        filterCriteriaNameRegex?: string;
       })
     | (StepCommon & {
         type: "Postgres Backup";
@@ -189,14 +194,14 @@ export namespace EditorFlow {
         return null;
       }
       case "Filter": {
-        if (step.selectionMethod) {
-          await page.getByLabel("Selection method").selectOption(step.selectionMethod);
-          if (step.selectionMethod === "exact" && step.selectionName) {
-            await page.getByLabel("Name", { exact: true }).fill(step.selectionName);
-          } else if (step.selectionMethod === "glob" && step.selectionNameGlob) {
-            await page.getByLabel("Name glob").fill(step.selectionNameGlob);
-          } else if (step.selectionMethod === "regex" && step.selectionNameRegex) {
-            await page.getByLabel("Name regex").fill(step.selectionNameRegex);
+        if (step.filterCriteriaMethod) {
+          await page.getByLabel("Filter", { exact: true }).selectOption(step.filterCriteriaMethod);
+          if (step.filterCriteriaMethod === "exact" && step.filterCriteriaName) {
+            await page.getByLabel("Filter: name", { exact: true }).fill(step.filterCriteriaName);
+          } else if (step.filterCriteriaMethod === "glob" && step.filterCriteriaNameGlob) {
+            await page.getByLabel("Filter: name glob").fill(step.filterCriteriaNameGlob);
+          } else if (step.filterCriteriaMethod === "regex" && step.filterCriteriaNameRegex) {
+            await page.getByLabel("Filter: name regex").fill(step.filterCriteriaNameRegex);
           }
         }
         return null;
@@ -222,10 +227,10 @@ export namespace EditorFlow {
         if (step.accessKeyReference) await page.getByLabel("Access Key Reference").fill(step.accessKeyReference);
         if (step.secretKeyReference) await page.getByLabel("Secret Key Reference").fill(step.secretKeyReference);
         if (step.baseFolder) await page.getByLabel("Base Folder").fill(step.baseFolder);
-        if (step.selectionTarget) {
-          await page.getByLabel("Version selection").selectOption(step.selectionTarget);
-          if (step.selectionTarget === "specific" && step.selectionSpecificVersion) {
-            await page.getByLabel("Version").fill(step.selectionSpecificVersion);
+        if (step.managedStorageSelectionTarget) {
+          await page.getByLabel("Version selection").selectOption(step.managedStorageSelectionTarget);
+          if (step.managedStorageSelectionTarget === "specific" && step.managedStorageSelectionVersion) {
+            await page.getByLabel("Version").fill(step.managedStorageSelectionVersion);
           }
         }
         return null;

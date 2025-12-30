@@ -91,7 +91,10 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
     }
   };
 
-  const selectionTarget = watch(Field.managedStorage_selection_target);
+  const managedStorageSelectionTarget = watch(Field.managedStorage_selection_target);
+  const filterCriteria = watch(Field.filterCriteria);
+  const filterCriteriaMethod = watch(Field.filterCriteria_method);
+  const filterCriteriaMethodOptions: Array<typeof filterCriteriaMethod> = ["exact", "glob", "regex"];
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.s3_download}>
@@ -170,7 +173,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
               <option value="specific">specific</option>
             </select>
           </div>
-          {selectionTarget === "specific" && (
+          {managedStorageSelectionTarget === "specific" && (
             <div className="flex items-center">
               <label htmlFor={Field.managedStorage_selection_version} className="w-72">
                 Version
@@ -183,6 +186,65 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
               />
             </div>
           )}
+          {filterCriteria === "true" ? (
+            <>
+              <div className="flex items-center">
+                <label htmlFor={Field.filterCriteria_method} className="w-72">
+                  Filter
+                </label>
+                <select
+                  id={Field.filterCriteria_method}
+                  className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+                  {...register(Field.filterCriteria_method)}
+                >
+                  {filterCriteriaMethodOptions.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {filterCriteriaMethod === "exact" && (
+                <div className="flex items-center">
+                  <label htmlFor={Field.filterCriteria_name} className="w-72">
+                    Filter: name
+                  </label>
+                  <input
+                    id={Field.filterCriteria_name}
+                    type="text"
+                    className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+                    {...register(Field.filterCriteria_name)}
+                  />
+                </div>
+              )}
+              {filterCriteriaMethod === "glob" && (
+                <div className="flex items-center">
+                  <label htmlFor={Field.filterCriteria_nameGlob} className="w-72">
+                    Filter: name glob
+                  </label>
+                  <input
+                    id={Field.filterCriteria_nameGlob}
+                    type="text"
+                    className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+                    {...register(Field.filterCriteria_nameGlob)}
+                  />
+                </div>
+              )}
+              {filterCriteriaMethod === "regex" && (
+                <div className="flex items-center">
+                  <label htmlFor={Field.filterCriteria_nameRegex} className="w-72">
+                    Filter: name regex
+                  </label>
+                  <input
+                    id={Field.filterCriteria_nameRegex}
+                    type="text"
+                    className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+                    {...register(Field.filterCriteria_nameRegex)}
+                  />
+                </div>
+              )}
+            </>
+          ) : null}
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

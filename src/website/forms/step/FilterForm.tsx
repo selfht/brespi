@@ -54,32 +54,32 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
     }
   };
 
-  const selectionMethod = watch(Field.filterCriteria_method);
-  const selectionMethodOptions: Array<typeof selectionMethod> = ["exact", "glob", "regex"];
+  const filterCriteriaMethod = watch(Field.filterCriteria_method);
+  const filterCriteriaMethodOptions: Array<typeof filterCriteriaMethod> = ["exact", "glob", "regex"];
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.filter}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label htmlFor={Field.filterCriteria_method} className="w-72">
-              Selection method
+              Filter
             </label>
             <select
               id={Field.filterCriteria_method}
               className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
               {...register(Field.filterCriteria_method)}
             >
-              {selectionMethodOptions.map((value) => (
+              {filterCriteriaMethodOptions.map((value) => (
                 <option key={value} value={value}>
                   {value}
                 </option>
               ))}
             </select>
           </div>
-          {selectionMethod === "exact" && (
+          {filterCriteriaMethod === "exact" && (
             <div className="flex items-center">
               <label htmlFor={Field.filterCriteria_name} className="w-72">
-                Name
+                Filter: name
               </label>
               <input
                 id={Field.filterCriteria_name}
@@ -89,10 +89,10 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
               />
             </div>
           )}
-          {selectionMethod === "glob" && (
+          {filterCriteriaMethod === "glob" && (
             <div className="flex items-center">
               <label htmlFor={Field.filterCriteria_nameGlob} className="w-72">
-                Name glob
+                Filter: name glob
               </label>
               <input
                 id={Field.filterCriteria_nameGlob}
@@ -102,10 +102,10 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
               />
             </div>
           )}
-          {selectionMethod === "regex" && (
+          {filterCriteriaMethod === "regex" && (
             <div className="flex items-center">
               <label htmlFor={Field.filterCriteria_nameRegex} className="w-72">
-                Name regex
+                Filter: name regex
               </label>
               <input
                 id={Field.filterCriteria_nameRegex}
