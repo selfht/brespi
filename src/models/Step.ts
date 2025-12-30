@@ -184,6 +184,12 @@ export namespace Step {
   export const parse = ZodParser.forType<Step>()
     .ensureSchemaMatchesType(() => {
       const subSchema = {
+        common: {
+          id: z.string(),
+          previousId: z.string().nullable(),
+          object: z.literal("step"),
+        },
+
         s3Connection: z.object({
           bucket: z.string(),
           region: z.string().nullable(),
@@ -206,9 +212,7 @@ export namespace Step {
 
       return z.discriminatedUnion("type", [
         z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
+          ...subSchema.common,
           type: z.literal(Type.compression),
           algorithm: z.object({
             implementation: z.literal("targzip"),
@@ -217,9 +221,7 @@ export namespace Step {
         } satisfies SubSchema<Step.Compression>),
 
         z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
+          ...subSchema.common,
           type: z.literal(Type.decompression),
           algorithm: z.object({
             implementation: z.literal("targzip"),
@@ -227,9 +229,7 @@ export namespace Step {
         } satisfies SubSchema<Step.Decompression>),
 
         z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
+          ...subSchema.common,
           type: z.literal(Type.encryption),
           keyReference: z.string(),
           algorithm: z.object({
@@ -238,9 +238,7 @@ export namespace Step {
         } satisfies SubSchema<Step.Encryption>),
 
         z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
+          ...subSchema.common,
           type: z.literal(Type.decryption),
           keyReference: z.string(),
           algorithm: z.object({
@@ -249,68 +247,62 @@ export namespace Step {
         } satisfies SubSchema<Step.Decryption>),
 
         z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
+          ...subSchema.common,
           type: z.literal(Type.folder_flatten),
         } satisfies SubSchema<Step.FolderFlatten>),
 
         z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
+          ...subSchema.common,
           type: z.literal(Type.folder_group),
         } satisfies SubSchema<Step.FolderGroup>),
 
         z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
+          ...subSchema.common,
           type: z.literal(Type.filter),
           filterCriteria: subSchema.filterCriteria,
         } satisfies SubSchema<Step.Filter>),
 
         z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
+          ...subSchema.common,
           type: z.literal(Type.custom_script),
           path: z.string(),
           passthrough: z.boolean(),
         } satisfies SubSchema<Step.ScriptExecution>),
 
         z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
+          ...subSchema.common,
           type: z.literal(Type.filesystem_write),
           folder: z.string(),
           managedStorage: z.boolean(),
         } satisfies SubSchema<Step.FilesystemWrite>),
 
-        z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
-          type: z.literal(Type.filesystem_read),
-          fileOrFolder: z.string(),
-          managedStorage: subSchema.managedStorage.nullable(),
-          filterCriteria: subSchema.filterCriteria.nullable(),
-        } satisfies SubSchema<Step.FilesystemRead>),
+        z
+          .object({
+            ...subSchema.common,
+            type: z.literal(Type.filesystem_read),
+            fileOrFolder: z.string(),
+            managedStorage: subSchema.managedStorage.nullable(),
+            filterCriteria: subSchema.filterCriteria.nullable(),
+          } satisfies SubSchema<Step.FilesystemRead>)
+          .refine(
+            ({ managedStorage, filterCriteria }) => {
+              const invalidCombination = !managedStorage && filterCriteria;
+              return !invalidCombination;
+            },
+            {
+              error: "Cannot use `filterCriteria` without `managedStorage`",
+            },
+          ),
 
         z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
+          ...subSchema.common,
           type: z.literal(Type.s3_upload),
           connection: subSchema.s3Connection,
           baseFolder: z.string(),
         } satisfies SubSchema<Step.S3Upload>),
 
         z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
+          ...subSchema.common,
           type: z.literal(Type.s3_download),
           connection: subSchema.s3Connection,
           baseFolder: z.string(),
@@ -319,9 +311,7 @@ export namespace Step {
         } satisfies SubSchema<Step.S3Download>),
 
         z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
+          ...subSchema.common,
           type: z.literal(Type.postgres_backup),
           connectionReference: z.string(),
           databaseSelection: z.union([
@@ -332,9 +322,7 @@ export namespace Step {
         } satisfies SubSchema<Step.PostgresBackup>),
 
         z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
+          ...subSchema.common,
           type: z.literal(Type.postgres_restore),
           connectionReference: z.string(),
           database: z.string(),
