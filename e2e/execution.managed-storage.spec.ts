@@ -1,4 +1,5 @@
 import test, { expect, Page } from "@playwright/test";
+import { mkdir, readdir, readFile } from "fs/promises";
 import { describe } from "node:test";
 import { join } from "path";
 import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
@@ -7,20 +8,76 @@ import { S3Boundary } from "./boundaries/S3Boundary";
 import { Common } from "./common/Common";
 import { EditorFlow } from "./flows/EditorFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
-import { readdir } from "fs/promises";
-import { readFile } from "fs/promises";
 
-describe("execution | s3", () => {
+describe("execution | managed-storage", () => {
   test.beforeEach(async ({ request }) => {
     await ResetBoundary.reset({ request });
   });
 
-  test("writes and reads artifacts to/from a chosen bucket", async ({ page }) => {
+  test("s3", async ({ page }) => {
+    const storageFolder = "my-backups";
+    await performStorageTest({
+      page,
+      listStorageEntries: S3Boundary.listBucket,
+      storage: {
+        writeStep: {
+          type: "S3 Upload",
+          bucket: S3Boundary.BUCKET,
+          endpoint: S3Boundary.ENDPOINT,
+          region: S3Boundary.REGION,
+          accessKeyReference: "MY_S3_ACCESS_KEY",
+          secretKeyReference: "MY_S3_SECRET_KEY",
+          baseFolder: storageFolder,
+        },
+        readStep: {
+          type: "S3 Download",
+          bucket: S3Boundary.BUCKET,
+          endpoint: S3Boundary.ENDPOINT,
+          region: S3Boundary.REGION,
+          accessKeyReference: "MY_S3_ACCESS_KEY",
+          secretKeyReference: "MY_S3_SECRET_KEY",
+          baseFolder: storageFolder,
+          selectionTarget: "latest",
+        },
+      },
+    });
+  });
+
+  test("filesystem", async ({ page }) => {
+    const storageFolder = join(FilesystemBoundary.SCRATCH_PAD, "storage", "my-backups");
+    await mkdir(storageFolder, { recursive: true });
+    await performStorageTest({
+      page,
+      listStorageEntries: () => FilesystemBoundary.listFlattenedFolderEntries(storageFolder),
+      storage: {
+        writeStep: {
+          type: "Filesystem Write",
+          path: storageFolder,
+          brespiManaged: "true",
+        },
+        readStep: {
+          type: "Filesystem Read",
+          path: storageFolder,
+          brespiManaged: "true",
+          brespiManagedSelectionTarget: "latest",
+        },
+      },
+    });
+  });
+
+  type Options = {
+    page: Page;
+    listStorageEntries: () => Promise<string[]>;
+    storage: {
+      writeStep: EditorFlow.StepOptions;
+      readStep: EditorFlow.StepOptions;
+    };
+  };
+  async function performStorageTest({ page, listStorageEntries, storage }: Options) {
     // given
-    const baseFolder = "my-backups";
     const inputDir = join(FilesystemBoundary.SCRATCH_PAD, "input");
     const outputDir = join(FilesystemBoundary.SCRATCH_PAD, "output");
-    expect(await S3Boundary.listBucket()).toHaveLength(0);
+    expect(await listStorageEntries()).toHaveLength(0);
 
     // when (write files)
     const fruits = ["Apple", "Banana", "Coconut"];
@@ -29,10 +86,10 @@ describe("execution | s3", () => {
       await Common.writeFileRecursive(path, `My name is ${fruit}`);
     }
     // when (backup to storage)
-    const writePipelineId = await createS3WritePipeline(page, { inputDir, baseFolder });
+    const writePipelineId = await createWritePipeline(page, { inputDir, writeStep: storage.writeStep });
     await ExecutionFlow.executePipeline(page);
     // then (storage has records)
-    const firstStorageSnapshot = await S3Boundary.listBucket();
+    const firstStorageSnapshot = await listStorageEntries();
     expect(firstStorageSnapshot).toHaveLength(5);
     expect(firstStorageSnapshot).toEqual(
       expect.arrayContaining([
@@ -45,7 +102,7 @@ describe("execution | s3", () => {
     );
 
     // when (retrieve latest from storage)
-    const readPipelineId = await createS3ReadPipeline(page, { baseFolder, outputDir });
+    const readPipelineId = await createReadPipeline(page, { readStep: storage.readStep, outputDir });
     await ExecutionFlow.executePipeline(page);
     // then (retrieved records are identical)
     expect(await readdir(outputDir)).toHaveLength(fruits.length);
@@ -66,7 +123,7 @@ describe("execution | s3", () => {
     // when (backup to storage)
     await ExecutionFlow.executePipeline(page, { id: writePipelineId });
     // then (storage has more records)
-    const secondStorageSnapshot = await S3Boundary.listBucket();
+    const secondStorageSnapshot = await listStorageEntries();
     expect(secondStorageSnapshot).toHaveLength(8);
     expect(secondStorageSnapshot).toEqual(
       expect.arrayContaining([
@@ -90,15 +147,15 @@ describe("execution | s3", () => {
       const originalContents = await readFile(join(inputDir, `${vegetable}.txt`));
       expect(retrievedContents).toEqual(originalContents);
     }
-  });
+  }
 
-  type S3WritePipeline = {
+  type WritePipelineOptions = {
     inputDir: string;
-    baseFolder: string;
+    writeStep: EditorFlow.StepOptions;
   };
-  async function createS3WritePipeline(page: Page, { inputDir, baseFolder }: S3WritePipeline) {
+  async function createWritePipeline(page: Page, { inputDir, writeStep }: WritePipelineOptions) {
     return await EditorFlow.createPipeline(page, {
-      name: "S3 Write",
+      name: "Storage Write",
       steps: [
         {
           id: "A",
@@ -111,37 +168,24 @@ describe("execution | s3", () => {
           type: "Folder Flatten",
         },
         {
+          ...writeStep,
           previousId: "B",
-          type: "S3 Upload",
-          bucket: S3Boundary.BUCKET,
-          endpoint: S3Boundary.ENDPOINT,
-          region: S3Boundary.REGION,
-          accessKeyReference: "MY_S3_ACCESS_KEY",
-          secretKeyReference: "MY_S3_SECRET_KEY",
-          baseFolder,
         },
       ],
     });
   }
 
-  type S3ReadPipeline = {
-    baseFolder: string;
+  type ReadPipelineOptions = {
+    readStep: EditorFlow.StepOptions;
     outputDir: string;
   };
-  async function createS3ReadPipeline(page: Page, { baseFolder, outputDir }: S3ReadPipeline) {
+  async function createReadPipeline(page: Page, { readStep, outputDir }: ReadPipelineOptions) {
     return await EditorFlow.createPipeline(page, {
-      name: "S3 Read",
+      name: "Storage Read",
       steps: [
         {
+          ...readStep,
           id: "A",
-          type: "S3 Download",
-          bucket: S3Boundary.BUCKET,
-          endpoint: S3Boundary.ENDPOINT,
-          region: S3Boundary.REGION,
-          accessKeyReference: "MY_S3_ACCESS_KEY",
-          secretKeyReference: "MY_S3_SECRET_KEY",
-          baseFolder,
-          selectionTarget: "latest",
         },
         {
           previousId: "A",

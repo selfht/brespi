@@ -6,7 +6,7 @@ export namespace EditorFlow {
     id?: string;
     previousId?: string;
   };
-  type StepOptions =
+  export type StepOptions =
     | (StepCommon & {
         type: "Filesystem Write";
         path?: string;
