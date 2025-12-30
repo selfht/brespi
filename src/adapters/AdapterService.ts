@@ -1,5 +1,7 @@
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
+import { TrailStep } from "@/models/TrailStep";
+import { AdapterResult } from "./AdapterResult";
 import { CompressionAdapter } from "./compression/CompressionAdapter";
 import { EncryptionAdapter } from "./encyption/EncryptionAdapter";
 import { FilesystemAdapter } from "./filesystem/FilesystemAdapter";
@@ -7,9 +9,6 @@ import { FilterAdapter } from "./filter/FilterAdapter";
 import { PostgresAdapter } from "./postgres/PostgresAdapter";
 import { S3Adapter } from "./s3/S3Adapter";
 import { ScriptAdapter } from "./scripting/ScriptAdapter";
-import { Json } from "@/types/Json";
-import { TrailStep } from "@/models/TrailStep";
-import { AdapterResult } from "./AdapterResult";
 
 type Handler<S extends Step> = (artifacts: Artifact[], step: S, trail: TrailStep[]) => Promise<AdapterResult>;
 
@@ -31,10 +30,10 @@ export class AdapterService {
   ) {
     this.registry = {
       [Step.Type.filesystem_read]: async (_, options) => {
-        return AdapterResult.create([await fileSystemAdapter.read(options)]);
+        return AdapterResult.create(await fileSystemAdapter.read(options));
       },
-      [Step.Type.filesystem_write]: async (artifacts, options) => {
-        await fileSystemAdapter.write(artifacts, options);
+      [Step.Type.filesystem_write]: async (artifacts, options, trail) => {
+        await fileSystemAdapter.write(artifacts, options, trail);
         return AdapterResult.create();
       },
       [Step.Type.compression]: async (artifacts, options) => {

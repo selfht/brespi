@@ -237,7 +237,7 @@ export class ExecutionService {
     mutex: Mutex;
     updateFn: (action: Action) => Action;
   }): Promise<void> {
-    const release = await mutex.acquire();
+    const { release } = await mutex.acquire();
     try {
       const execution = await this.executionRepository.findById(executionId);
       if (!execution) {

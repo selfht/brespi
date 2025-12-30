@@ -10,13 +10,12 @@ import { join, relative } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 
 export class S3Adapter extends AbstractAdapter {
-  private static readonly MANIFEST_MUTEX = new Mutex();
-
   public constructor(protected readonly env: Env.Private) {
     super(env);
   }
 
   public async upload(artifacts: Artifact[], { baseFolder, ...step }: Step.S3Upload, trail: TrailStep[]): Promise<void> {
+    this.ensureOnlyFiles(artifacts);
     baseFolder = this.relativize(baseFolder);
     const client = this.constructClient(step.connection);
     const { manifestModifier, artifactIndex, insertableArtifacts } = VersioningSystem.prepareInsertion({
@@ -40,7 +39,7 @@ export class S3Adapter extends AbstractAdapter {
     baseFolder = this.relativize(baseFolder);
     const client = this.constructClient(step.connection);
     const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
-      baseFolder: baseFolder,
+      baseFolder,
       selection: step.selection,
       storageReaderFn: ({ absolutePath }) => client.file(absolutePath).json(),
     });
@@ -59,6 +58,13 @@ export class S3Adapter extends AbstractAdapter {
       });
     }
     return artifacts;
+  }
+
+  private ensureOnlyFiles(artifacts: Artifact[]) {
+    const nonFileArtifact = artifacts.find(({ type }) => type !== "file");
+    if (nonFileArtifact) {
+      throw new Error(`Encountered non-file artifact: ${nonFileArtifact.name}`);
+    }
   }
 
   /**
@@ -83,12 +89,12 @@ export class S3Adapter extends AbstractAdapter {
 
   private async handleManifestExclusively<T>(
     client: S3Client,
-    folder: string,
+    baseFolder: string,
     fn: (mani: Manifest, saveFn: (mf: Manifest) => Promise<Manifest>) => T | Promise<T>,
   ): Promise<Awaited<T>> {
-    const release = await S3Adapter.MANIFEST_MUTEX.acquire();
+    const { release } = await Mutex.acquireFromRegistry({ key: [S3Adapter.name, baseFolder] });
     try {
-      const manifestPath = join(folder, Manifest.NAME);
+      const manifestPath = join(baseFolder, Manifest.NAME);
       const manifestFile = client.file(manifestPath);
       const manifestContent: Manifest = (await manifestFile.exists()) ? Manifest.parse(await manifestFile.json()) : Manifest.empty();
       const saveFn = (newManifest: Manifest) => client.write(manifestPath, JSON.stringify(newManifest)).then(() => newManifest);
