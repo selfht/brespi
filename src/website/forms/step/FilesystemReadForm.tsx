@@ -88,7 +88,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
             <>
               <div className="flex items-center">
                 <label htmlFor={Field.managedStorage_selection_target} className="w-72">
-                  Target
+                  <span className="text-c-dim">Managed storage:</span> target
                 </label>
                 <select
                   id={Field.managedStorage_selection_target}
@@ -102,7 +102,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
               {managedStorageSelectionTarget === "specific" && (
                 <div className="flex items-center">
                   <label htmlFor={Field.managedStorage_selection_version} className="w-72">
-                    Version
+                    <span className="text-c-dim">Managed storage:</span> version
                   </label>
                   <input
                     id={Field.managedStorage_selection_version}

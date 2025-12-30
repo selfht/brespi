@@ -62,7 +62,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label htmlFor={Field.filterCriteria_method} className="w-72">
-              Filter
+              Method
             </label>
             <select
               id={Field.filterCriteria_method}
@@ -79,7 +79,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
           {filterCriteriaMethod === "exact" && (
             <div className="flex items-center">
               <label htmlFor={Field.filterCriteria_name} className="w-72">
-                Filter: name
+                Name
               </label>
               <input
                 id={Field.filterCriteria_name}
@@ -92,7 +92,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
           {filterCriteriaMethod === "glob" && (
             <div className="flex items-center">
               <label htmlFor={Field.filterCriteria_nameGlob} className="w-72">
-                Filter: name glob
+                Name glob
               </label>
               <input
                 id={Field.filterCriteria_nameGlob}
@@ -105,7 +105,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
           {filterCriteriaMethod === "regex" && (
             <div className="flex items-center">
               <label htmlFor={Field.filterCriteria_nameRegex} className="w-72">
-                Filter: name regex
+                Name regex
               </label>
               <input
                 id={Field.filterCriteria_nameRegex}

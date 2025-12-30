@@ -100,7 +100,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.connection_accessKeyReference} className="w-72">
-              Access Key Reference
+              Access key reference
             </label>
             <input
               id={Field.connection_accessKeyReference}
@@ -111,7 +111,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.connection_secretKeyReference} className="w-72">
-              Secret Key Reference
+              Secret key reference
             </label>
             <input
               id={Field.connection_secretKeyReference}

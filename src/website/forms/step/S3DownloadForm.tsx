@@ -137,7 +137,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.connection_accessKeyReference} className="w-72">
-              Access Key Reference
+              Access key reference
             </label>
             <input
               id={Field.connection_accessKeyReference}
@@ -148,7 +148,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.connection_secretKeyReference} className="w-72">
-              Secret Key Reference
+              Secret key reference
             </label>
             <input
               id={Field.connection_secretKeyReference}
@@ -173,7 +173,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.managedStorage_selection_target} className="w-72">
-              Target
+              <span className="text-c-dim">Managed storage:</span> target
             </label>
             <select
               id={Field.managedStorage_selection_target}
@@ -187,7 +187,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           {managedStorageSelectionTarget === "specific" && (
             <div className="flex items-center">
               <label htmlFor={Field.managedStorage_selection_version} className="w-72">
-                Version
+                <span className="text-c-dim">Managed storage:</span> version
               </label>
               <input
                 id={Field.managedStorage_selection_version}
@@ -210,7 +210,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
             <>
               <div className="flex items-center">
                 <label htmlFor={Field.filterCriteria_method} className="w-72">
-                  Filter
+                  <span className="text-c-dim">Filter:</span> method
                 </label>
                 <select
                   id={Field.filterCriteria_method}
@@ -227,7 +227,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
               {filterCriteriaMethod === "exact" && (
                 <div className="flex items-center">
                   <label htmlFor={Field.filterCriteria_name} className="w-72">
-                    Filter: name
+                    <span className="text-c-dim">Filter:</span> name
                   </label>
                   <input
                     id={Field.filterCriteria_name}
@@ -240,7 +240,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
               {filterCriteriaMethod === "glob" && (
                 <div className="flex items-center">
                   <label htmlFor={Field.filterCriteria_nameGlob} className="w-72">
-                    Filter: name glob
+                    <span className="text-c-dim">Filter:</span> name glob
                   </label>
                   <input
                     id={Field.filterCriteria_nameGlob}
@@ -253,7 +253,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
               {filterCriteriaMethod === "regex" && (
                 <div className="flex items-center">
                   <label htmlFor={Field.filterCriteria_nameRegex} className="w-72">
-                    Filter: name regex
+                    <span className="text-c-dim">Filter:</span> name regex
                   </label>
                   <input
                     id={Field.filterCriteria_nameRegex}

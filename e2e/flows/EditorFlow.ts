@@ -162,9 +162,9 @@ export namespace EditorFlow {
         if (step.fileOrFolder) await page.getByLabel("File or folder").fill(step.fileOrFolder);
         if (step.managedStorage) await page.getByLabel("Use managed storage?").selectOption(step.managedStorage);
         if (step.managedStorage === "true" && step.managedStorageSelectionTarget) {
-          await page.getByLabel("Target").selectOption(step.managedStorageSelectionTarget);
+          await page.getByLabel("Managed storage: target").selectOption(step.managedStorageSelectionTarget);
           if (step.managedStorageSelectionTarget === "specific" && step.managedStorageSelectionSpecificVersion) {
-            await page.getByLabel("Version").fill(step.managedStorageSelectionSpecificVersion);
+            await page.getByLabel("Managed storage: version").fill(step.managedStorageSelectionSpecificVersion);
           }
         }
         return null;
@@ -194,15 +194,13 @@ export namespace EditorFlow {
         return null;
       }
       case "Filter": {
-        if (step.filterCriteriaMethod) {
-          await page.getByLabel("Filter", { exact: true }).selectOption(step.filterCriteriaMethod);
-          if (step.filterCriteriaMethod === "exact" && step.filterCriteriaName) {
-            await page.getByLabel("Filter: name", { exact: true }).fill(step.filterCriteriaName);
-          } else if (step.filterCriteriaMethod === "glob" && step.filterCriteriaNameGlob) {
-            await page.getByLabel("Filter: name glob").fill(step.filterCriteriaNameGlob);
-          } else if (step.filterCriteriaMethod === "regex" && step.filterCriteriaNameRegex) {
-            await page.getByLabel("Filter: name regex").fill(step.filterCriteriaNameRegex);
-          }
+        if (step.filterCriteriaMethod) await page.getByLabel("Method", { exact: true }).selectOption(step.filterCriteriaMethod);
+        if (step.filterCriteriaMethod === "exact" && step.filterCriteriaName) {
+          await page.getByLabel("Name", { exact: true }).fill(step.filterCriteriaName);
+        } else if (step.filterCriteriaMethod === "glob" && step.filterCriteriaNameGlob) {
+          await page.getByLabel("Name glob").fill(step.filterCriteriaNameGlob);
+        } else if (step.filterCriteriaMethod === "regex" && step.filterCriteriaNameRegex) {
+          await page.getByLabel("Name regex").fill(step.filterCriteriaNameRegex);
         }
         return null;
       }
@@ -215,8 +213,8 @@ export namespace EditorFlow {
         if (step.bucket) await page.getByLabel("Bucket").fill(step.bucket);
         if (step.endpoint) await page.getByLabel("Endpoint").fill(step.endpoint);
         if (step.region) await page.getByLabel("Region").fill(step.region);
-        if (step.accessKeyReference) await page.getByLabel("Access Key Reference").fill(step.accessKeyReference);
-        if (step.secretKeyReference) await page.getByLabel("Secret Key Reference").fill(step.secretKeyReference);
+        if (step.accessKeyReference) await page.getByLabel("Access key reference").fill(step.accessKeyReference);
+        if (step.secretKeyReference) await page.getByLabel("Secret key reference").fill(step.secretKeyReference);
         if (step.baseFolder) await page.getByLabel("Base Folder").fill(step.baseFolder);
         return null;
       }
@@ -224,13 +222,24 @@ export namespace EditorFlow {
         if (step.bucket) await page.getByLabel("Bucket").fill(step.bucket);
         if (step.endpoint) await page.getByLabel("Endpoint").fill(step.endpoint);
         if (step.region) await page.getByLabel("Region").fill(step.region);
-        if (step.accessKeyReference) await page.getByLabel("Access Key Reference").fill(step.accessKeyReference);
-        if (step.secretKeyReference) await page.getByLabel("Secret Key Reference").fill(step.secretKeyReference);
+        if (step.accessKeyReference) await page.getByLabel("Access key reference").fill(step.accessKeyReference);
+        if (step.secretKeyReference) await page.getByLabel("Secret key reference").fill(step.secretKeyReference);
         if (step.baseFolder) await page.getByLabel("Base Folder").fill(step.baseFolder);
         if (step.managedStorageSelectionTarget) {
-          await page.getByLabel("Target").selectOption(step.managedStorageSelectionTarget);
+          await page.getByLabel("Managed storage: target").selectOption(step.managedStorageSelectionTarget);
           if (step.managedStorageSelectionTarget === "specific" && step.managedStorageSelectionVersion) {
-            await page.getByLabel("Version").fill(step.managedStorageSelectionVersion);
+            await page.getByLabel("Managed storage: version").fill(step.managedStorageSelectionVersion);
+          }
+        }
+        if (step.filterCriteria) await page.getByLabel("Use managed storage?").selectOption(step.filterCriteria);
+        if (step.filterCriteria === "true") {
+          if (step.filterCriteriaMethod) await page.getByLabel("Filter: method", { exact: true }).selectOption(step.filterCriteriaMethod);
+          if (step.filterCriteriaMethod === "exact" && step.filterCriteriaName) {
+            await page.getByLabel("Filter: name", { exact: true }).fill(step.filterCriteriaName);
+          } else if (step.filterCriteriaMethod === "glob" && step.filterCriteriaNameGlob) {
+            await page.getByLabel("Filter: name glob").fill(step.filterCriteriaNameGlob);
+          } else if (step.filterCriteriaMethod === "regex" && step.filterCriteriaNameRegex) {
+            await page.getByLabel("Filter: name regex").fill(step.filterCriteriaNameRegex);
           }
         }
         return null;
