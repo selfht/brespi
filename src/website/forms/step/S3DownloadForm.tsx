@@ -10,6 +10,7 @@ enum Field {
   connection_accessKeyReference = "connection_accessKeyReference",
   connection_secretKeyReference = "connection_secretKeyReference",
   baseFolder = "baseFolder",
+  managedStorage = "managedStorage",
   managedStorage_selection_target = "managedStorage_selection_target",
   managedStorage_selection_version = "managedStorage_selection_version",
   filterCriteria = "filterCriteria",
@@ -25,6 +26,7 @@ type Form = {
   [Field.connection_accessKeyReference]: string;
   [Field.connection_secretKeyReference]: string;
   [Field.baseFolder]: string;
+  [Field.managedStorage]: "true";
   [Field.managedStorage_selection_target]: "latest" | "specific";
   [Field.managedStorage_selection_version]: string;
   [Field.filterCriteria]: "true" | "false";
@@ -50,6 +52,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
       [Field.connection_accessKeyReference]: existing?.connection.accessKeyReference ?? "",
       [Field.connection_secretKeyReference]: existing?.connection.secretKeyReference ?? "",
       [Field.baseFolder]: existing?.baseFolder ?? "",
+      [Field.managedStorage]: "true",
       [Field.managedStorage_selection_target]: existing?.managedStorage.selection.target ?? "latest",
       [Field.managedStorage_selection_version]:
         existing?.managedStorage.selection.target === "specific" ? existing.managedStorage.selection.version : "",
@@ -161,8 +164,16 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
             <input id={Field.baseFolder} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.baseFolder)} />
           </div>
           <div className="flex items-center">
+            <label htmlFor={Field.managedStorage} className="w-72">
+              Use managed storage?
+            </label>
+            <select id={Field.managedStorage} className="rounded p-2 bg-c-dim/20" {...register(Field.managedStorage)}>
+              <option value="true">yes</option>
+            </select>
+          </div>
+          <div className="flex items-center">
             <label htmlFor={Field.managedStorage_selection_target} className="w-72">
-              Version selection
+              Target
             </label>
             <select
               id={Field.managedStorage_selection_target}
@@ -186,6 +197,15 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
               />
             </div>
           )}
+          <div className="flex items-center">
+            <label htmlFor={Field.filterCriteria} className="w-72">
+              Use filter?
+            </label>
+            <select id={Field.filterCriteria} className="rounded p-2 bg-c-dim/20" {...register(Field.filterCriteria)}>
+              <option value="true">yes</option>
+              <option value="false">no</option>
+            </select>
+          </div>
           {filterCriteria === "true" ? (
             <>
               <div className="flex items-center">

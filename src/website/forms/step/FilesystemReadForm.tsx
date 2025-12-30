@@ -88,7 +88,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
             <>
               <div className="flex items-center">
                 <label htmlFor={Field.managedStorage_selection_target} className="w-72">
-                  Version selection
+                  Target
                 </label>
                 <select
                   id={Field.managedStorage_selection_target}

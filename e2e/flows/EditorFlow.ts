@@ -162,7 +162,7 @@ export namespace EditorFlow {
         if (step.fileOrFolder) await page.getByLabel("File or folder").fill(step.fileOrFolder);
         if (step.managedStorage) await page.getByLabel("Use managed storage?").selectOption(step.managedStorage);
         if (step.managedStorage === "true" && step.managedStorageSelectionTarget) {
-          await page.getByLabel("Version selection").selectOption(step.managedStorageSelectionTarget);
+          await page.getByLabel("Target").selectOption(step.managedStorageSelectionTarget);
           if (step.managedStorageSelectionTarget === "specific" && step.managedStorageSelectionSpecificVersion) {
             await page.getByLabel("Version").fill(step.managedStorageSelectionSpecificVersion);
           }
@@ -228,7 +228,7 @@ export namespace EditorFlow {
         if (step.secretKeyReference) await page.getByLabel("Secret Key Reference").fill(step.secretKeyReference);
         if (step.baseFolder) await page.getByLabel("Base Folder").fill(step.baseFolder);
         if (step.managedStorageSelectionTarget) {
-          await page.getByLabel("Version selection").selectOption(step.managedStorageSelectionTarget);
+          await page.getByLabel("Target").selectOption(step.managedStorageSelectionTarget);
           if (step.managedStorageSelectionTarget === "specific" && step.managedStorageSelectionVersion) {
             await page.getByLabel("Version").fill(step.managedStorageSelectionVersion);
           }
