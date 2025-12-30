@@ -2,8 +2,6 @@ import { ZodParser } from "@/helpers/ZodParser";
 import z from "zod/v4";
 
 export type Step =
-  | Step.FilesystemWrite
-  | Step.FilesystemRead
   | Step.Compression
   | Step.Decompression
   | Step.Encryption
@@ -12,6 +10,8 @@ export type Step =
   | Step.FolderGroup
   | Step.Filter
   | Step.ScriptExecution
+  | Step.FilesystemWrite
+  | Step.FilesystemRead
   | Step.S3Upload
   | Step.S3Download
   | Step.PostgresBackup
@@ -19,8 +19,6 @@ export type Step =
 
 export namespace Step {
   export enum Type {
-    filesystem_write = "filesystem_write",
-    filesystem_read = "filesystem_read",
     compression = "compression",
     decompression = "decompression",
     encryption = "encryption",
@@ -29,6 +27,8 @@ export namespace Step {
     folder_group = "folder_group",
     filter = "filter",
     custom_script = "custom_script",
+    filesystem_write = "filesystem_write",
+    filesystem_read = "filesystem_read",
     s3_upload = "s3_upload",
     s3_download = "s3_download",
     postgres_backup = "postgres_backup",
@@ -58,11 +58,9 @@ export namespace Step {
     secretKeyReference: string;
   };
 
-  export type ManagedStorage = {
-    selection:
-      | { target: "latest" } //
-      | { target: "specific"; version: string };
-  };
+  export type ManagedStorage =
+    | { target: "latest" } //
+    | { target: "specific"; version: string };
 
   export type FilterCriteria =
     | { method: "exact"; name: string } //
@@ -79,6 +77,7 @@ export namespace Step {
     type: Type.filesystem_read;
     fileOrFolder: string;
     managedStorage: ManagedStorage | null;
+    filterCriteria: FilterCriteria | null;
   };
 
   export type Compression = Common & {
@@ -184,46 +183,28 @@ export namespace Step {
 
   export const parse = ZodParser.forType<Step>()
     .ensureSchemaMatchesType(() => {
-      const s3Connection = z.object({
-        bucket: z.string(),
-        region: z.string().nullable(),
-        endpoint: z.string(),
-        accessKeyReference: z.string(),
-        secretKeyReference: z.string(),
-      } satisfies SubSchema<S3Connection>);
+      const subSchema = {
+        s3Connection: z.object({
+          bucket: z.string(),
+          region: z.string().nullable(),
+          endpoint: z.string(),
+          accessKeyReference: z.string(),
+          secretKeyReference: z.string(),
+        } satisfies SubSchema<S3Connection>),
 
-      const managedStorage = z.object({
-        selection: z.union([
+        managedStorage: z.union([
           z.object({ target: z.literal("latest") }), //
           z.object({ target: z.literal("specific"), version: z.string() }),
         ]),
-      } satisfies SubSchema<ManagedStorage>);
 
-      const filterCriteria = z.union([
-        z.object({ method: z.literal("exact"), name: z.string() }),
-        z.object({ method: z.literal("glob"), nameGlob: z.string() }),
-        z.object({ method: z.literal("regex"), nameRegex: z.string() }),
-      ]);
+        filterCriteria: z.union([
+          z.object({ method: z.literal("exact"), name: z.string() }),
+          z.object({ method: z.literal("glob"), nameGlob: z.string() }),
+          z.object({ method: z.literal("regex"), nameRegex: z.string() }),
+        ]),
+      };
 
       return z.discriminatedUnion("type", [
-        z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
-          type: z.literal(Type.filesystem_write),
-          folder: z.string(),
-          managedStorage: z.boolean(),
-        } satisfies SubSchema<Step.FilesystemWrite>),
-
-        z.object({
-          id: z.string(),
-          previousId: z.string().nullable(),
-          object: z.literal("step"),
-          type: z.literal(Type.filesystem_read),
-          fileOrFolder: z.string(),
-          managedStorage: managedStorage.nullable(),
-        } satisfies SubSchema<Step.FilesystemRead>),
-
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
@@ -286,7 +267,7 @@ export namespace Step {
           previousId: z.string().nullable(),
           object: z.literal("step"),
           type: z.literal(Type.filter),
-          filterCriteria: filterCriteria,
+          filterCriteria: subSchema.filterCriteria,
         } satisfies SubSchema<Step.Filter>),
 
         z.object({
@@ -302,8 +283,27 @@ export namespace Step {
           id: z.string(),
           previousId: z.string().nullable(),
           object: z.literal("step"),
+          type: z.literal(Type.filesystem_write),
+          folder: z.string(),
+          managedStorage: z.boolean(),
+        } satisfies SubSchema<Step.FilesystemWrite>),
+
+        z.object({
+          id: z.string(),
+          previousId: z.string().nullable(),
+          object: z.literal("step"),
+          type: z.literal(Type.filesystem_read),
+          fileOrFolder: z.string(),
+          managedStorage: subSchema.managedStorage.nullable(),
+          filterCriteria: subSchema.filterCriteria.nullable(),
+        } satisfies SubSchema<Step.FilesystemRead>),
+
+        z.object({
+          id: z.string(),
+          previousId: z.string().nullable(),
+          object: z.literal("step"),
           type: z.literal(Type.s3_upload),
-          connection: s3Connection,
+          connection: subSchema.s3Connection,
           baseFolder: z.string(),
         } satisfies SubSchema<Step.S3Upload>),
 
@@ -312,10 +312,10 @@ export namespace Step {
           previousId: z.string().nullable(),
           object: z.literal("step"),
           type: z.literal(Type.s3_download),
-          connection: s3Connection,
+          connection: subSchema.s3Connection,
           baseFolder: z.string(),
-          managedStorage: managedStorage,
-          filterCriteria: filterCriteria.nullable(),
+          managedStorage: subSchema.managedStorage,
+          filterCriteria: subSchema.filterCriteria.nullable(),
         } satisfies SubSchema<Step.S3Download>),
 
         z.object({

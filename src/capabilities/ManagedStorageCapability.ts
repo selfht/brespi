@@ -62,7 +62,7 @@ export class ManagedStorageCapability {
   }
 
   public prepareSelection({
-    selection,
+    configuration: selection,
     storageReaderFn,
     baseFolder,
   }: ManagedStorageCapability.PrepareSelectionOptions): ManagedStorageCapability.PrepareSelectionResult {
@@ -80,8 +80,8 @@ export class ManagedStorageCapability {
     };
   }
 
-  private findMatchingItem(manifest: Manifest, selection: Step.ManagedStorage["selection"]): Manifest.Item {
-    switch (selection.target) {
+  private findMatchingItem(manifest: Manifest, conf: Step.ManagedStorage): Manifest.Item {
+    switch (conf.target) {
       case "latest": {
         const sortedItems = manifest.items.toSorted(Manifest.Item.sort);
         if (sortedItems.length === 0) {
@@ -90,7 +90,7 @@ export class ManagedStorageCapability {
         return sortedItems[0];
       }
       case "specific": {
-        const version = selection.version;
+        const version = conf.version;
         const matchingItems = manifest.items.filter((u) => u.isoTimestamp === version || dirname(u.artifactIndexPath) === version);
         if (matchingItems.length === 0) {
           throw new Error("Specific item could not be found");
@@ -126,7 +126,7 @@ export namespace ManagedStorageCapability {
   };
   export type PrepareSelectionOptions = {
     baseFolder: string;
-    selection: Step.ManagedStorage["selection"];
+    configuration: Step.ManagedStorage;
     storageReaderFn: (arg: { absolutePath: string }) => Promise<any>;
   };
   export type PrepareSelectionResult = {

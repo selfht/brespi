@@ -19,6 +19,7 @@ export namespace StepData {
           type: Step.Type.filesystem_read,
           fileOrFolder: "/tmp/test",
           managedStorage: null,
+          filterCriteria: null,
           ...common,
         };
         return step as Extract<Step, { type: T }>;
@@ -136,9 +137,7 @@ export namespace StepData {
           },
           baseFolder: "/backups",
           managedStorage: {
-            selection: {
-              target: "latest",
-            },
+            target: "latest",
           },
           filterCriteria: null,
           ...common,

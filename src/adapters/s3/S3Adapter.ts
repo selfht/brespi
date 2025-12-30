@@ -46,7 +46,7 @@ export class S3Adapter extends AbstractAdapter {
     // Prepare selaction
     const { selectableArtifactsFn } = this.managedStorageCapability.prepareSelection({
       baseFolder,
-      selection: step.managedStorage.selection,
+      configuration: step.managedStorage,
       storageReaderFn: ({ absolutePath }) => client.file(absolutePath).json(),
     });
     // Provide manifest

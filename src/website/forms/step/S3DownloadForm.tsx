@@ -11,8 +11,8 @@ enum Field {
   connection_secretKeyReference = "connection_secretKeyReference",
   baseFolder = "baseFolder",
   managedStorage = "managedStorage",
-  managedStorage_selection_target = "managedStorage_selection_target",
-  managedStorage_selection_version = "managedStorage_selection_version",
+  managedStorage_target = "managedStorage_target",
+  managedStorage_version = "managedStorage_version",
   filterCriteria = "filterCriteria",
   filterCriteria_method = "filterCriteria_method",
   filterCriteria_name = "filterCriteria_name",
@@ -27,8 +27,8 @@ type Form = {
   [Field.connection_secretKeyReference]: string;
   [Field.baseFolder]: string;
   [Field.managedStorage]: "true";
-  [Field.managedStorage_selection_target]: "latest" | "specific";
-  [Field.managedStorage_selection_version]: string;
+  [Field.managedStorage_target]: "latest" | "specific";
+  [Field.managedStorage_version]: string;
   [Field.filterCriteria]: "true" | "false";
   [Field.filterCriteria_method]: "exact" | "glob" | "regex";
   [Field.filterCriteria_name]: string;
@@ -53,9 +53,8 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
       [Field.connection_secretKeyReference]: existing?.connection.secretKeyReference ?? "",
       [Field.baseFolder]: existing?.baseFolder ?? "",
       [Field.managedStorage]: "true",
-      [Field.managedStorage_selection_target]: existing?.managedStorage.selection.target ?? "latest",
-      [Field.managedStorage_selection_version]:
-        existing?.managedStorage.selection.target === "specific" ? existing.managedStorage.selection.version : "",
+      [Field.managedStorage_target]: existing?.managedStorage.target ?? "latest",
+      [Field.managedStorage_version]: existing?.managedStorage.target === "specific" ? existing.managedStorage.version : "",
       [Field.filterCriteria]: existing ? (existing.filterCriteria ? "true" : "false") : "false",
       [Field.filterCriteria_method]: existing?.filterCriteria?.method ?? "exact",
       [Field.filterCriteria_name]: existing?.filterCriteria?.method === "exact" ? existing.filterCriteria.name : "",
@@ -79,13 +78,18 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           secretKeyReference: form[Field.connection_secretKeyReference],
         },
         baseFolder: form[Field.baseFolder],
-        managedStorage: {
-          selection:
-            form[Field.managedStorage_selection_target] === "latest"
-              ? { target: "latest" }
-              : { target: "specific", version: form[Field.managedStorage_selection_version] },
-        },
-        filterCriteria: null,
+        managedStorage:
+          form[Field.managedStorage_target] === "latest"
+            ? { target: "latest" }
+            : { target: "specific", version: form[Field.managedStorage_version] },
+        filterCriteria:
+          form[Field.filterCriteria] === "true"
+            ? form[Field.filterCriteria_method] === "exact"
+              ? { method: "exact", name: form[Field.filterCriteria_name] }
+              : form[Field.filterCriteria_method] === "glob"
+                ? { method: "glob", nameGlob: form[Field.filterCriteria_nameGlob] }
+                : { method: "regex", nameRegex: form[Field.filterCriteria_nameRegex] }
+            : null,
       });
     } catch (error) {
       setError("root", {
@@ -94,7 +98,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
     }
   };
 
-  const managedStorageSelectionTarget = watch(Field.managedStorage_selection_target);
+  const managedStorageSelectionTarget = watch(Field.managedStorage_target);
   const filterCriteria = watch(Field.filterCriteria);
   const filterCriteriaMethod = watch(Field.filterCriteria_method);
   const filterCriteriaMethodOptions: Array<typeof filterCriteriaMethod> = ["exact", "glob", "regex"];
@@ -172,13 +176,13 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
             </select>
           </div>
           <div className="flex items-center">
-            <label htmlFor={Field.managedStorage_selection_target} className="w-72">
+            <label htmlFor={Field.managedStorage_target} className="w-72">
               <span className="text-c-dim">Managed storage:</span> target
             </label>
             <select
-              id={Field.managedStorage_selection_target}
+              id={Field.managedStorage_target}
               className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.managedStorage_selection_target)}
+              {...register(Field.managedStorage_target)}
             >
               <option value="latest">latest</option>
               <option value="specific">specific</option>
@@ -186,14 +190,14 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           </div>
           {managedStorageSelectionTarget === "specific" && (
             <div className="flex items-center">
-              <label htmlFor={Field.managedStorage_selection_version} className="w-72">
+              <label htmlFor={Field.managedStorage_version} className="w-72">
                 <span className="text-c-dim">Managed storage:</span> version
               </label>
               <input
-                id={Field.managedStorage_selection_version}
+                id={Field.managedStorage_version}
                 type="text"
                 className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                {...register(Field.managedStorage_selection_version)}
+                {...register(Field.managedStorage_version)}
               />
             </div>
           )}

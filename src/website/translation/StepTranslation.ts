@@ -36,22 +36,6 @@ export namespace StepTranslation {
   }
   export function stepDetails(step: Step): Block.Details {
     switch (step.type) {
-      case Step.Type.filesystem_write:
-        return {
-          Path: step.folder,
-          "Managed storage?": step.managedStorage,
-        };
-      case Step.Type.filesystem_read:
-        return {
-          "File or folder": step.fileOrFolder,
-          "Managed storage?": Boolean(step.managedStorage),
-          "Managed storage: selection": step.managedStorage ? step.managedStorage.selection.target : undefined,
-          "Managed storage: version": step.managedStorage
-            ? step.managedStorage.selection.target === "specific"
-              ? step.managedStorage.selection.version
-              : undefined
-            : undefined,
-        };
       case Step.Type.compression:
         return {
           Algorithm: step.algorithm.implementation,
@@ -77,7 +61,7 @@ export namespace StepTranslation {
         return {};
       case Step.Type.filter:
         return {
-          Selection: step.filterCriteria.method,
+          Method: step.filterCriteria.method,
           Name: step.filterCriteria.method === "exact" ? step.filterCriteria.name : undefined,
           "Name glob": step.filterCriteria.method === "glob" ? step.filterCriteria.nameGlob : undefined,
           "Name regex": step.filterCriteria.method === "regex" ? step.filterCriteria.nameRegex : undefined,
@@ -87,26 +71,46 @@ export namespace StepTranslation {
           Path: step.path,
           "Passthrough?": step.passthrough,
         };
+      case Step.Type.filesystem_write:
+        return {
+          Folder: step.folder,
+          "Managed storage?": step.managedStorage,
+        };
+      case Step.Type.filesystem_read:
+        return {
+          "File or folder": step.fileOrFolder,
+          "Managed storage?": Boolean(step.managedStorage),
+          "Managed storage: target": step.managedStorage ? step.managedStorage.target : undefined,
+          "Managed storage: version": step.managedStorage
+            ? step.managedStorage.target === "specific"
+              ? step.managedStorage.version
+              : undefined
+            : undefined,
+        };
       case Step.Type.s3_upload:
         return {
-          "Connection: endpoint": step.connection.endpoint,
-          "Connection: bucket": step.connection.bucket,
-          "Connection: region": step.connection.region,
-          "Connection: access key reference": step.connection.accessKeyReference,
-          "Connection: secret key reference": step.connection.secretKeyReference,
+          Bucket: step.connection.bucket,
+          Region: step.connection.region,
+          Endpoint: step.connection.endpoint,
+          "Access key reference": step.connection.accessKeyReference,
+          "Secret key reference": step.connection.secretKeyReference,
           "Base folder": step.baseFolder,
         };
       case Step.Type.s3_download:
         return {
-          "Connection: bucket": step.connection.bucket,
-          "Connection: region": step.connection.region,
-          "Connection: endpoint": step.connection.endpoint,
-          "Connection: access key reference": step.connection.accessKeyReference,
-          "Connection: secret key reference": step.connection.secretKeyReference,
+          Bucket: step.connection.bucket,
+          Region: step.connection.region,
+          Endpoint: step.connection.endpoint,
+          "Access key reference": step.connection.accessKeyReference,
+          "Secret key reference": step.connection.secretKeyReference,
           "Base folder": step.baseFolder,
-          "Managed storage: selection": step.managedStorage.selection.target,
-          "Managed storge: version":
-            step.managedStorage.selection.target === "specific" ? step.managedStorage.selection.version : undefined,
+          "Managed storage: target": step.managedStorage.target,
+          "Managed storge: version": step.managedStorage.target === "specific" ? step.managedStorage.version : undefined,
+          "Filter?": Boolean(step.filterCriteria),
+          "Filter: method": step.filterCriteria ? step.filterCriteria.method : undefined,
+          "Filter: name": step.filterCriteria?.method === "exact" ? step.filterCriteria.name : undefined,
+          "Filter: name glob": step.filterCriteria?.method === "glob" ? step.filterCriteria.nameGlob : undefined,
+          "Filter: name regex": step.filterCriteria?.method === "regex" ? step.filterCriteria.nameRegex : undefined,
         };
       case Step.Type.postgres_backup:
         return {

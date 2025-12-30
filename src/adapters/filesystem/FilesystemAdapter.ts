@@ -59,7 +59,7 @@ export class FilesystemAdapter extends AbstractAdapter {
       // Prepare selaction
       const { selectableArtifactsFn } = this.managedStorageCapability.prepareSelection({
         baseFolder: step.fileOrFolder,
-        selection: step.managedStorage.selection,
+        configuration: step.managedStorage,
         storageReaderFn: ({ absolutePath }) => Bun.file(absolutePath).json(),
       });
       // Provide manifest

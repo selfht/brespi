@@ -207,7 +207,7 @@ describe(ManagedStorageCapability.name, () => {
       // when
       const { selectableArtifactsFn } = capability.prepareSelection({
         baseFolder: "base-folder",
-        selection: { target: "latest" },
+        configuration: { target: "latest" },
         storageReaderFn: () => Promise.resolve(artifactIndex),
       });
       const artifacts = await selectableArtifactsFn({ manifest });
@@ -240,7 +240,7 @@ describe(ManagedStorageCapability.name, () => {
       };
       // when
       const { selectableArtifactsFn } = capability.prepareSelection({
-        selection: { target: "specific", version: Timestamp.LAST_YEAR },
+        configuration: { target: "specific", version: Timestamp.LAST_YEAR },
         storageReaderFn: () => Promise.resolve(artifactIndex),
         baseFolder: "my-base",
       });
@@ -282,7 +282,7 @@ describe(ManagedStorageCapability.name, () => {
       };
       // when
       const { selectableArtifactsFn } = capability.prepareSelection({
-        selection: { target: "specific", version: `${Timestamp.VERY_LONG_AGO}-abc123` },
+        configuration: { target: "specific", version: `${Timestamp.VERY_LONG_AGO}-abc123` },
         storageReaderFn: () => Promise.resolve(artifactIndex),
         baseFolder: "/storage",
       });
@@ -301,7 +301,7 @@ describe(ManagedStorageCapability.name, () => {
       const manifest: Manifest = Manifest.empty();
       // when
       const { selectableArtifactsFn } = capability.prepareSelection({
-        selection: { target: "latest" },
+        configuration: { target: "latest" },
         storageReaderFn: () => Promise.reject("Should not be called"),
         baseFolder: "base",
       });
@@ -322,7 +322,7 @@ describe(ManagedStorageCapability.name, () => {
       };
       // when
       const { selectableArtifactsFn } = capability.prepareSelection({
-        selection: { target: "specific", version: Timestamp.VERY_FAR_AWAY },
+        configuration: { target: "specific", version: Timestamp.VERY_FAR_AWAY },
         storageReaderFn: () => Promise.reject("Should not be called"),
         baseFolder: "base",
       });
@@ -347,7 +347,7 @@ describe(ManagedStorageCapability.name, () => {
       };
       // when
       const { selectableArtifactsFn } = capability.prepareSelection({
-        selection: { target: "specific", version: Timestamp.LAST_YEAR },
+        configuration: { target: "specific", version: Timestamp.LAST_YEAR },
         storageReaderFn: () => Promise.reject("Should not be called"),
         baseFolder: "base",
       });
@@ -429,7 +429,7 @@ describe(ManagedStorageCapability.name, () => {
         };
         // when
         const { selectableArtifactsFn } = capability.prepareSelection({
-          selection: { target: "latest" },
+          configuration: { target: "latest" },
           storageReaderFn: () => Promise.resolve(artifactIndex),
           baseFolder,
         });

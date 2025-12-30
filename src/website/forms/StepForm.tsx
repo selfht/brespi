@@ -1,21 +1,21 @@
 import { Step } from "@/models/Step";
 import { JSX } from "react/jsx-dev-runtime";
+import { StepClient } from "../clients/StepClient.ts";
+import { useRegistry } from "../hooks/useRegistry";
 import { CompressionForm } from "./step/CompressionForm";
+import { CustomScriptForm } from "./step/CustomScriptForm";
 import { DecompressionForm } from "./step/DecompressionForm";
 import { DecryptionForm } from "./step/DecryptionForm";
 import { EncryptionForm } from "./step/EncryptionForm";
 import { FilesystemReadForm } from "./step/FilesystemReadForm";
 import { FilesystemWriteForm } from "./step/FilesystemWriteForm";
+import { FilterForm } from "./step/FilterForm";
 import { FolderFlattenForm } from "./step/FolderFlattenForm";
 import { FolderGroupForm } from "./step/FolderGroupForm";
 import { PostgresBackupForm } from "./step/PostgresBackupForm";
 import { PostgresRestoreForm } from "./step/PostgresRestoreForm";
 import { S3DownloadForm } from "./step/S3DownloadForm";
 import { S3UploadForm } from "./step/S3UploadForm";
-import { CustomScriptForm } from "./step/CustomScriptForm";
-import { useRegistry } from "../hooks/useRegistry";
-import { StepClient } from "../clients/StepClient.ts";
-import { FilterForm } from "./step/FilterForm";
 
 type Props = {
   id: string;
@@ -33,10 +33,6 @@ export function StepForm({ type, existing, onSave, ...props }: Props): JSX.Eleme
     onSave(step);
   };
   switch (type) {
-    case Step.Type.filesystem_read:
-      return <FilesystemReadForm existing={existing as Step.FilesystemRead} onSave={validateAndSave} {...props} />;
-    case Step.Type.filesystem_write:
-      return <FilesystemWriteForm existing={existing as Step.FilesystemWrite} onSave={validateAndSave} {...props} />;
     case Step.Type.compression:
       return <CompressionForm existing={existing as Step.Compression} onSave={validateAndSave} {...props} />;
     case Step.Type.decompression:
@@ -53,6 +49,10 @@ export function StepForm({ type, existing, onSave, ...props }: Props): JSX.Eleme
       return <FilterForm existing={existing as Step.Filter} onSave={validateAndSave} {...props} />;
     case Step.Type.custom_script:
       return <CustomScriptForm existing={existing as Step.ScriptExecution} onSave={validateAndSave} {...props} />;
+    case Step.Type.filesystem_write:
+      return <FilesystemWriteForm existing={existing as Step.FilesystemWrite} onSave={validateAndSave} {...props} />;
+    case Step.Type.filesystem_read:
+      return <FilesystemReadForm existing={existing as Step.FilesystemRead} onSave={validateAndSave} {...props} />;
     case Step.Type.s3_upload:
       return <S3UploadForm existing={existing as Step.S3Upload} onSave={validateAndSave} {...props} />;
     case Step.Type.s3_download:
