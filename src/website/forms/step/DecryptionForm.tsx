@@ -6,11 +6,11 @@ import { FormHelper } from "../FormHelper";
 
 enum Field {
   keyReference = "keyReference",
-  algorithmImplementation = "algorithmImplementation",
+  algorithm_implementation = "algorithm_implementation",
 }
 type Form = {
   [Field.keyReference]: string;
-  [Field.algorithmImplementation]: "aes256cbc";
+  [Field.algorithm_implementation]: "aes256cbc";
 };
 type Props = {
   id: string;
@@ -24,7 +24,7 @@ export function DecryptionForm({ id, existing, onSave, onDelete, onCancel, class
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.keyReference]: existing?.keyReference ?? "",
-      [Field.algorithmImplementation]: existing?.algorithm.implementation ?? "aes256cbc",
+      [Field.algorithm_implementation]: existing?.algorithm.implementation ?? "aes256cbc",
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -37,7 +37,7 @@ export function DecryptionForm({ id, existing, onSave, onDelete, onCancel, class
         type: Step.Type.decryption,
         keyReference: form[Field.keyReference],
         algorithm: {
-          implementation: form[Field.algorithmImplementation],
+          implementation: form[Field.algorithm_implementation],
         },
       });
     } catch (error) {
@@ -62,13 +62,13 @@ export function DecryptionForm({ id, existing, onSave, onDelete, onCancel, class
             />
           </div>
           <div className="flex items-center">
-            <label htmlFor={Field.algorithmImplementation} className="w-72">
+            <label htmlFor={Field.algorithm_implementation} className="w-72">
               Algorithm
             </label>
             <select
-              id={Field.algorithmImplementation}
+              id={Field.algorithm_implementation}
               className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.algorithmImplementation)}
+              {...register(Field.algorithm_implementation)}
             >
               <option value="aes256cbc">aes256cbc</option>
             </select>

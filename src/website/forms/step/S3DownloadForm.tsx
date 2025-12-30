@@ -4,14 +4,14 @@ import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 enum Field {
-  bucket = "bucket",
-  region = "region",
-  endpoint = "endpoint",
-  accessKeyReference = "accessKeyReference",
-  secretKeyReference = "secretKeyReference",
+  connection_bucket = "connection_bucket",
+  connection_region = "connection_region",
+  connection_endpoint = "connection_endpoint",
+  connection_accessKeyReference = "connection_accessKeyReference",
+  connection_secretKeyReference = "connection_secretKeyReference",
   baseFolder = "baseFolder",
-  managedStorage_selectionTarget = "managedStorage_selectionTarget",
-  managedStorage_selectionSpecificVersion = "managedStorage_selectionSpecificVersion",
+  managedStorage_selection_target = "managedStorage_selection_target",
+  managedStorage_selection_version = "managedStorage_selection_version",
   filterCriteria = "filterCriteria",
   filterCriteria_method = "filterCriteria_method",
   filterCriteria_name = "filterCriteria_name",
@@ -19,14 +19,14 @@ enum Field {
   filterCriteria_nameRegex = "filterCriteria_nameRegex",
 }
 type Form = {
-  [Field.bucket]: string;
-  [Field.region]: string;
-  [Field.endpoint]: string;
-  [Field.accessKeyReference]: string;
-  [Field.secretKeyReference]: string;
+  [Field.connection_bucket]: string;
+  [Field.connection_region]: string;
+  [Field.connection_endpoint]: string;
+  [Field.connection_accessKeyReference]: string;
+  [Field.connection_secretKeyReference]: string;
   [Field.baseFolder]: string;
-  [Field.managedStorage_selectionTarget]: "latest" | "specific";
-  [Field.managedStorage_selectionSpecificVersion]: string;
+  [Field.managedStorage_selection_target]: "latest" | "specific";
+  [Field.managedStorage_selection_version]: string;
   [Field.filterCriteria]: "true" | "false";
   [Field.filterCriteria_method]: "exact" | "glob" | "regex";
   [Field.filterCriteria_name]: string;
@@ -44,14 +44,14 @@ type Props = {
 export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      [Field.bucket]: existing?.connection.bucket ?? "",
-      [Field.region]: existing?.connection.region ?? "",
-      [Field.endpoint]: existing?.connection.endpoint ?? "",
-      [Field.accessKeyReference]: existing?.connection.accessKeyReference ?? "",
-      [Field.secretKeyReference]: existing?.connection.secretKeyReference ?? "",
+      [Field.connection_bucket]: existing?.connection.bucket ?? "",
+      [Field.connection_region]: existing?.connection.region ?? "",
+      [Field.connection_endpoint]: existing?.connection.endpoint ?? "",
+      [Field.connection_accessKeyReference]: existing?.connection.accessKeyReference ?? "",
+      [Field.connection_secretKeyReference]: existing?.connection.secretKeyReference ?? "",
       [Field.baseFolder]: existing?.baseFolder ?? "",
-      [Field.managedStorage_selectionTarget]: existing?.managedStorage.selection.target ?? "latest",
-      [Field.managedStorage_selectionSpecificVersion]:
+      [Field.managedStorage_selection_target]: existing?.managedStorage.selection.target ?? "latest",
+      [Field.managedStorage_selection_version]:
         existing?.managedStorage.selection.target === "specific" ? existing.managedStorage.selection.version : "",
       [Field.filterCriteria]: existing ? (existing.filterCriteria ? "true" : "false") : "false",
       [Field.filterCriteria_method]: existing?.filterCriteria?.method ?? "exact",
@@ -69,18 +69,18 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
         object: "step",
         type: Step.Type.s3_download,
         connection: {
-          bucket: form[Field.bucket],
-          region: form[Field.region] || null,
-          endpoint: form[Field.endpoint],
-          accessKeyReference: form[Field.accessKeyReference],
-          secretKeyReference: form[Field.secretKeyReference],
+          bucket: form[Field.connection_bucket],
+          region: form[Field.connection_region] || null,
+          endpoint: form[Field.connection_endpoint],
+          accessKeyReference: form[Field.connection_accessKeyReference],
+          secretKeyReference: form[Field.connection_secretKeyReference],
         },
         baseFolder: form[Field.baseFolder],
         managedStorage: {
           selection:
-            form[Field.managedStorage_selectionTarget] === "latest"
+            form[Field.managedStorage_selection_target] === "latest"
               ? { target: "latest" }
-              : { target: "specific", version: form[Field.managedStorage_selectionSpecificVersion] },
+              : { target: "specific", version: form[Field.managedStorage_selection_version] },
         },
         filterCriteria: null,
       });
@@ -91,49 +91,64 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
     }
   };
 
-  const selectionTarget = watch(Field.managedStorage_selectionTarget);
+  const selectionTarget = watch(Field.managedStorage_selection_target);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.s3_download}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label htmlFor={Field.bucket} className="w-72">
+            <label htmlFor={Field.connection_bucket} className="w-72">
               Bucket
             </label>
-            <input id={Field.bucket} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.bucket)} />
-          </div>
-          <div className="flex items-center">
-            <label htmlFor={Field.region} className="w-72">
-              Region
-            </label>
-            <input id={Field.region} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.region)} />
-          </div>
-          <div className="flex items-center">
-            <label htmlFor={Field.endpoint} className="w-72">
-              Endpoint
-            </label>
-            <input id={Field.endpoint} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.endpoint)} />
-          </div>
-          <div className="flex items-center">
-            <label htmlFor={Field.accessKeyReference} className="w-72">
-              Access Key Reference
-            </label>
             <input
-              id={Field.accessKeyReference}
+              id={Field.connection_bucket}
               type="text"
               className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.accessKeyReference)}
+              {...register(Field.connection_bucket)}
             />
           </div>
           <div className="flex items-center">
-            <label htmlFor={Field.secretKeyReference} className="w-72">
+            <label htmlFor={Field.connection_region} className="w-72">
+              Region
+            </label>
+            <input
+              id={Field.connection_region}
+              type="text"
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.connection_region)}
+            />
+          </div>
+          <div className="flex items-center">
+            <label htmlFor={Field.connection_endpoint} className="w-72">
+              Endpoint
+            </label>
+            <input
+              id={Field.connection_endpoint}
+              type="text"
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.connection_endpoint)}
+            />
+          </div>
+          <div className="flex items-center">
+            <label htmlFor={Field.connection_accessKeyReference} className="w-72">
+              Access Key Reference
+            </label>
+            <input
+              id={Field.connection_accessKeyReference}
+              type="text"
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.connection_accessKeyReference)}
+            />
+          </div>
+          <div className="flex items-center">
+            <label htmlFor={Field.connection_secretKeyReference} className="w-72">
               Secret Key Reference
             </label>
             <input
-              id={Field.secretKeyReference}
+              id={Field.connection_secretKeyReference}
               type="text"
               className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.secretKeyReference)}
+              {...register(Field.connection_secretKeyReference)}
             />
           </div>
           <div className="flex items-center">
@@ -143,13 +158,13 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
             <input id={Field.baseFolder} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.baseFolder)} />
           </div>
           <div className="flex items-center">
-            <label htmlFor={Field.managedStorage_selectionTarget} className="w-72">
+            <label htmlFor={Field.managedStorage_selection_target} className="w-72">
               Version selection
             </label>
             <select
-              id={Field.managedStorage_selectionTarget}
+              id={Field.managedStorage_selection_target}
               className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.managedStorage_selectionTarget)}
+              {...register(Field.managedStorage_selection_target)}
             >
               <option value="latest">latest</option>
               <option value="specific">specific</option>
@@ -157,14 +172,14 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           </div>
           {selectionTarget === "specific" && (
             <div className="flex items-center">
-              <label htmlFor={Field.managedStorage_selectionSpecificVersion} className="w-72">
+              <label htmlFor={Field.managedStorage_selection_version} className="w-72">
                 Version
               </label>
               <input
-                id={Field.managedStorage_selectionSpecificVersion}
+                id={Field.managedStorage_selection_version}
                 type="text"
                 className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                {...register(Field.managedStorage_selectionSpecificVersion)}
+                {...register(Field.managedStorage_selection_version)}
               />
             </div>
           )}

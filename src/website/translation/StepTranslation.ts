@@ -45,7 +45,7 @@ export namespace StepTranslation {
         return {
           "File or folder": step.fileOrFolder,
           "Managed storage?": Boolean(step.managedStorage),
-          "Managed storage: Selection": step.managedStorage ? step.managedStorage.selection.target : undefined,
+          "Managed storage: selection": step.managedStorage ? step.managedStorage.selection.target : undefined,
           "Managed storage: version": step.managedStorage
             ? step.managedStorage.selection.target === "specific"
               ? step.managedStorage.selection.version

@@ -1,20 +1,19 @@
 import { Step } from "@/models/Step";
-import clsx from "clsx";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 enum Field {
   connectionReference = "connectionReference",
-  databaseSelectionStrategy = "databaseSelectionStrategy",
-  databaseSelectionInclude_include = "databaseSelectionInclude_include",
-  databaseSelectionExclude_exclude = "databaseSelectionExclude_exclude",
+  databaseSelection_strategy = "databaseSelection_strategy",
+  databaseSelection_include = "databaseSelection_include",
+  databaseSelection_exclude = "databaseSelection_exclude",
 }
 type Form = {
   [Field.connectionReference]: string;
-  [Field.databaseSelectionStrategy]: "all" | "include" | "exclude";
-  [Field.databaseSelectionInclude_include]: string[];
-  [Field.databaseSelectionExclude_exclude]: string[];
+  [Field.databaseSelection_strategy]: "all" | "include" | "exclude";
+  [Field.databaseSelection_include]: string[];
+  [Field.databaseSelection_exclude]: string[];
 };
 type Props = {
   id: string;
@@ -28,11 +27,9 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.connectionReference]: existing?.connectionReference ?? "",
-      [Field.databaseSelectionStrategy]: existing?.databaseSelection.strategy ?? "all",
-      [Field.databaseSelectionInclude_include]:
-        existing?.databaseSelection.strategy === "include" ? existing?.databaseSelection.include : [],
-      [Field.databaseSelectionExclude_exclude]:
-        existing?.databaseSelection.strategy === "exclude" ? existing?.databaseSelection.exclude : [],
+      [Field.databaseSelection_strategy]: existing?.databaseSelection.strategy ?? "all",
+      [Field.databaseSelection_include]: existing?.databaseSelection.strategy === "include" ? existing?.databaseSelection.include : [],
+      [Field.databaseSelection_exclude]: existing?.databaseSelection.strategy === "exclude" ? existing?.databaseSelection.exclude : [],
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -45,18 +42,18 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
         type: Step.Type.postgres_backup,
         connectionReference: form[Field.connectionReference],
         databaseSelection:
-          form[Field.databaseSelectionStrategy] === "all"
+          form[Field.databaseSelection_strategy] === "all"
             ? {
-                strategy: form[Field.databaseSelectionStrategy],
+                strategy: form[Field.databaseSelection_strategy],
               }
-            : form[Field.databaseSelectionStrategy] === "include"
+            : form[Field.databaseSelection_strategy] === "include"
               ? {
-                  strategy: form[Field.databaseSelectionStrategy],
-                  include: form[Field.databaseSelectionInclude_include],
+                  strategy: form[Field.databaseSelection_strategy],
+                  include: form[Field.databaseSelection_include],
                 }
               : {
-                  strategy: form[Field.databaseSelectionStrategy],
-                  exclude: form[Field.databaseSelectionExclude_exclude],
+                  strategy: form[Field.databaseSelection_strategy],
+                  exclude: form[Field.databaseSelection_exclude],
                 },
       });
     } catch (error) {
@@ -66,7 +63,7 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
     }
   };
 
-  const databaseSelectionStrategy = watch(Field.databaseSelectionStrategy);
+  const databaseSelectionStrategy = watch(Field.databaseSelection_strategy);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.postgres_backup}>
@@ -83,13 +80,13 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
             />
           </div>
           <div className="flex items-center">
-            <label htmlFor={Field.databaseSelectionStrategy} className="w-72">
+            <label htmlFor={Field.databaseSelection_strategy} className="w-72">
               Database selection
             </label>
             <select
-              id={Field.databaseSelectionStrategy}
+              id={Field.databaseSelection_strategy}
               className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.databaseSelectionStrategy)}
+              {...register(Field.databaseSelection_strategy)}
             >
               {["all", "include", "exclude"].map((value) => (
                 <option key={value} value={value}>
@@ -100,14 +97,14 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
           </div>
           {databaseSelectionStrategy === "include" && (
             <div className="flex items-center">
-              <label htmlFor={Field.databaseSelectionInclude_include} className="w-72">
+              <label htmlFor={Field.databaseSelection_include} className="w-72">
                 Include
               </label>
               <input
-                id={Field.databaseSelectionInclude_include}
+                id={Field.databaseSelection_include}
                 type="text"
                 className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                {...register(Field.databaseSelectionInclude_include, {
+                {...register(Field.databaseSelection_include, {
                   setValueAs: (values: string | string[]) => (typeof values === "string" ? values.split(",") : values.join(",")),
                 })}
               />
@@ -115,14 +112,14 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
           )}
           {databaseSelectionStrategy === "exclude" && (
             <div className="flex items-center">
-              <label htmlFor={Field.databaseSelectionExclude_exclude} className="w-72">
+              <label htmlFor={Field.databaseSelection_exclude} className="w-72">
                 Exclude
               </label>
               <input
-                id={Field.databaseSelectionExclude_exclude}
+                id={Field.databaseSelection_exclude}
                 type="text"
                 className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                {...register(Field.databaseSelectionExclude_exclude, {
+                {...register(Field.databaseSelection_exclude, {
                   setValueAs: (values: string | string[]) => (typeof values === "string" ? values.split(",") : values.join(",")),
                 })}
               />

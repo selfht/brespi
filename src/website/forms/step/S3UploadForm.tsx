@@ -4,19 +4,19 @@ import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 enum Field {
-  bucket = "bucket",
-  region = "region",
-  endpoint = "endpoint",
-  accessKeyReference = "accessKeyReference",
-  secretKeyReference = "secretKeyReference",
+  connection_bucket = "connection_bucket",
+  connection_region = "connection_region",
+  connection_endpoint = "connection_endpoint",
+  connection_accessKeyReference = "connection_accessKeyReference",
+  connection_secretKeyReference = "connection_secretKeyReference",
   baseFolder = "baseFolder",
 }
 type Form = {
-  [Field.bucket]: string;
-  [Field.region]: string;
-  [Field.endpoint]: string;
-  [Field.accessKeyReference]: string;
-  [Field.secretKeyReference]: string;
+  [Field.connection_bucket]: string;
+  [Field.connection_region]: string;
+  [Field.connection_endpoint]: string;
+  [Field.connection_accessKeyReference]: string;
+  [Field.connection_secretKeyReference]: string;
   [Field.baseFolder]: string;
 };
 type Props = {
@@ -30,11 +30,11 @@ type Props = {
 export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      [Field.bucket]: existing?.connection.bucket ?? "",
-      [Field.region]: existing?.connection.region ?? "",
-      [Field.endpoint]: existing?.connection.endpoint ?? "",
-      [Field.accessKeyReference]: existing?.connection.accessKeyReference ?? "",
-      [Field.secretKeyReference]: existing?.connection.secretKeyReference ?? "",
+      [Field.connection_bucket]: existing?.connection.bucket ?? "",
+      [Field.connection_region]: existing?.connection.region ?? "",
+      [Field.connection_endpoint]: existing?.connection.endpoint ?? "",
+      [Field.connection_accessKeyReference]: existing?.connection.accessKeyReference ?? "",
+      [Field.connection_secretKeyReference]: existing?.connection.secretKeyReference ?? "",
       [Field.baseFolder]: existing?.baseFolder ?? "",
     } satisfies Form,
   });
@@ -47,11 +47,11 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
         object: "step",
         type: Step.Type.s3_upload,
         connection: {
-          bucket: form[Field.bucket],
-          region: form[Field.region] || null,
-          endpoint: form[Field.endpoint],
-          accessKeyReference: form[Field.accessKeyReference],
-          secretKeyReference: form[Field.secretKeyReference],
+          bucket: form[Field.connection_bucket],
+          region: form[Field.connection_region] || null,
+          endpoint: form[Field.connection_endpoint],
+          accessKeyReference: form[Field.connection_accessKeyReference],
+          secretKeyReference: form[Field.connection_secretKeyReference],
         },
         baseFolder: form[Field.baseFolder],
       });
@@ -66,43 +66,58 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
       <FormElements.Left stepType={Step.Type.s3_upload}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label htmlFor={Field.bucket} className="w-72">
+            <label htmlFor={Field.connection_bucket} className="w-72">
               Bucket
             </label>
-            <input id={Field.bucket} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.bucket)} />
-          </div>
-          <div className="flex items-center">
-            <label htmlFor={Field.region} className="w-72">
-              Region
-            </label>
-            <input id={Field.region} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.region)} />
-          </div>
-          <div className="flex items-center">
-            <label htmlFor={Field.endpoint} className="w-72">
-              Endpoint
-            </label>
-            <input id={Field.endpoint} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.endpoint)} />
-          </div>
-          <div className="flex items-center">
-            <label htmlFor={Field.accessKeyReference} className="w-72">
-              Access Key Reference
-            </label>
             <input
-              id={Field.accessKeyReference}
+              id={Field.connection_bucket}
               type="text"
               className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.accessKeyReference)}
+              {...register(Field.connection_bucket)}
             />
           </div>
           <div className="flex items-center">
-            <label htmlFor={Field.secretKeyReference} className="w-72">
+            <label htmlFor={Field.connection_region} className="w-72">
+              Region
+            </label>
+            <input
+              id={Field.connection_region}
+              type="text"
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.connection_region)}
+            />
+          </div>
+          <div className="flex items-center">
+            <label htmlFor={Field.connection_endpoint} className="w-72">
+              Endpoint
+            </label>
+            <input
+              id={Field.connection_endpoint}
+              type="text"
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.connection_endpoint)}
+            />
+          </div>
+          <div className="flex items-center">
+            <label htmlFor={Field.connection_accessKeyReference} className="w-72">
+              Access Key Reference
+            </label>
+            <input
+              id={Field.connection_accessKeyReference}
+              type="text"
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.connection_accessKeyReference)}
+            />
+          </div>
+          <div className="flex items-center">
+            <label htmlFor={Field.connection_secretKeyReference} className="w-72">
               Secret Key Reference
             </label>
             <input
-              id={Field.secretKeyReference}
+              id={Field.connection_secretKeyReference}
               type="text"
               className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.secretKeyReference)}
+              {...register(Field.connection_secretKeyReference)}
             />
           </div>
           <div className="flex items-center">

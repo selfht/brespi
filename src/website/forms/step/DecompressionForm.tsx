@@ -5,10 +5,10 @@ import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 enum Field {
-  algorithmImplementation = "algorithmImplementation",
+  algorithm_implementation = "algorithm_implementation",
 }
 type Form = {
-  [Field.algorithmImplementation]: "targzip";
+  [Field.algorithm_implementation]: "targzip";
 };
 type Props = {
   id: string;
@@ -21,7 +21,7 @@ type Props = {
 export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      [Field.algorithmImplementation]: existing?.algorithm.implementation ?? "targzip",
+      [Field.algorithm_implementation]: existing?.algorithm.implementation ?? "targzip",
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -33,7 +33,7 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
         object: "step",
         type: Step.Type.decompression,
         algorithm: {
-          implementation: form[Field.algorithmImplementation],
+          implementation: form[Field.algorithm_implementation],
         },
       });
     } catch (error) {
@@ -47,13 +47,13 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
       <FormElements.Left stepType={Step.Type.decompression}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label htmlFor={Field.algorithmImplementation} className="w-72">
+            <label htmlFor={Field.algorithm_implementation} className="w-72">
               Algorithm
             </label>
             <select
-              id={Field.algorithmImplementation}
+              id={Field.algorithm_implementation}
               className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.algorithmImplementation)}
+              {...register(Field.algorithm_implementation)}
             >
               <option value="targzip">targzip</option>
             </select>
