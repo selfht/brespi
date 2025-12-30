@@ -80,7 +80,7 @@ export class VersioningSystem {
     };
   }
 
-  private static findMatchingItem(manifest: Manifest, selection: Step.ItemSelection): Manifest.Item {
+  private static findMatchingItem(manifest: Manifest, selection: Step.ManagedStorage["selection"]): Manifest.Item {
     switch (selection.target) {
       case "latest": {
         const sortedItems = manifest.items.toSorted(Manifest.Item.sort);
@@ -126,7 +126,7 @@ export namespace VersioningSystem {
   };
   export type PrepareSelectionOptions = {
     baseFolder: string;
-    selection: Step.ItemSelection;
+    selection: Step.ManagedStorage["selection"];
     storageReaderFn: (arg: { absolutePath: string }) => Promise<any>;
   };
   export type PrepareSelectionResult = {

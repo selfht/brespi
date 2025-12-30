@@ -17,8 +17,8 @@ export namespace StepData {
       case Step.Type.filesystem_read: {
         const step: Step.FilesystemRead = {
           type: Step.Type.filesystem_read,
-          path: "/tmp/test",
-          brespiManaged: null,
+          fileOrFolder: "/tmp/test",
+          managedStorage: null,
           ...common,
         };
         return step as Extract<Step, { type: T }>;
@@ -26,8 +26,8 @@ export namespace StepData {
       case Step.Type.filesystem_write: {
         const step: Step.FilesystemWrite = {
           type: Step.Type.filesystem_write,
-          path: "/app/opt/files",
-          brespiManaged: false,
+          folder: "/app/opt/files",
+          managedStorage: false,
           ...common,
         };
         return step as Extract<Step, { type: T }>;
@@ -92,7 +92,7 @@ export namespace StepData {
       case Step.Type.filter: {
         const step: Step.Filter = {
           type: Step.Type.filter,
-          selection: {
+          filterCriteria: {
             method: "glob",
             nameGlob: "*.sql",
           },
@@ -135,9 +135,12 @@ export namespace StepData {
             secretKeyReference: "MY_S3_SECRET_KEY",
           },
           baseFolder: "/backups",
-          selection: {
-            target: "latest",
+          managedStorage: {
+            selection: {
+              target: "latest",
+            },
           },
+          filterCriteria: null,
           ...common,
         };
         return step as Extract<Step, { type: T }>;

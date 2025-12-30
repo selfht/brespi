@@ -4,16 +4,16 @@ import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 enum Field {
-  selectionMethod = "selectionMethod",
-  selectionName = "selectionName",
-  selectionNameGlob = "selectionNameGlob",
-  selectionNameRegex = "selectionNameRegex",
+  filterCriteria_method = "filterCriteria_method",
+  filterCriteria_name = "filterCriteria_name",
+  filterCriteria_nameGlob = "filterCriteria_nameGlob",
+  filterCriteria_nameRegex = "filterCriteria_nameRegex",
 }
 type Form = {
-  [Field.selectionMethod]: "exact" | "glob" | "regex";
-  [Field.selectionName]: string;
-  [Field.selectionNameGlob]: string;
-  [Field.selectionNameRegex]: string;
+  [Field.filterCriteria_method]: "exact" | "glob" | "regex";
+  [Field.filterCriteria_name]: string;
+  [Field.filterCriteria_nameGlob]: string;
+  [Field.filterCriteria_nameRegex]: string;
 };
 type Props = {
   id: string;
@@ -26,10 +26,10 @@ type Props = {
 export function FilterForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      [Field.selectionMethod]: existing?.selection.method ?? "exact",
-      [Field.selectionName]: existing?.selection.method === "exact" ? existing.selection.name : "",
-      [Field.selectionNameGlob]: existing?.selection.method === "glob" ? existing.selection.nameGlob : "",
-      [Field.selectionNameRegex]: existing?.selection.method === "regex" ? existing.selection.nameRegex : "",
+      [Field.filterCriteria_method]: existing?.filterCriteria.method ?? "exact",
+      [Field.filterCriteria_name]: existing?.filterCriteria.method === "exact" ? existing.filterCriteria.name : "",
+      [Field.filterCriteria_nameGlob]: existing?.filterCriteria.method === "glob" ? existing.filterCriteria.nameGlob : "",
+      [Field.filterCriteria_nameRegex]: existing?.filterCriteria.method === "regex" ? existing.filterCriteria.nameRegex : "",
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -40,12 +40,12 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
         previousId: existing?.previousId || null,
         object: "step",
         type: Step.Type.filter,
-        selection:
-          form[Field.selectionMethod] === "exact"
-            ? { method: "exact", name: form[Field.selectionName] }
-            : form[Field.selectionMethod] === "glob"
-              ? { method: "glob", nameGlob: form[Field.selectionNameGlob] }
-              : { method: "regex", nameRegex: form[Field.selectionNameRegex] },
+        filterCriteria:
+          form[Field.filterCriteria_method] === "exact"
+            ? { method: "exact", name: form[Field.filterCriteria_name] }
+            : form[Field.filterCriteria_method] === "glob"
+              ? { method: "glob", nameGlob: form[Field.filterCriteria_nameGlob] }
+              : { method: "regex", nameRegex: form[Field.filterCriteria_nameRegex] },
       });
     } catch (error) {
       setError("root", {
@@ -54,17 +54,21 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
     }
   };
 
-  const selectionMethod = watch(Field.selectionMethod);
+  const selectionMethod = watch(Field.filterCriteria_method);
   const selectionMethodOptions: Array<typeof selectionMethod> = ["exact", "glob", "regex"];
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.filter}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label htmlFor={Field.selectionMethod} className="w-72">
+            <label htmlFor={Field.filterCriteria_method} className="w-72">
               Selection method
             </label>
-            <select id={Field.selectionMethod} className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.selectionMethod)}>
+            <select
+              id={Field.filterCriteria_method}
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.filterCriteria_method)}
+            >
               {selectionMethodOptions.map((value) => (
                 <option key={value} value={value}>
                   {value}
@@ -74,40 +78,40 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
           </div>
           {selectionMethod === "exact" && (
             <div className="flex items-center">
-              <label htmlFor={Field.selectionName} className="w-72">
+              <label htmlFor={Field.filterCriteria_name} className="w-72">
                 Name
               </label>
               <input
-                id={Field.selectionName}
+                id={Field.filterCriteria_name}
                 type="text"
                 className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                {...register(Field.selectionName)}
+                {...register(Field.filterCriteria_name)}
               />
             </div>
           )}
           {selectionMethod === "glob" && (
             <div className="flex items-center">
-              <label htmlFor={Field.selectionNameGlob} className="w-72">
+              <label htmlFor={Field.filterCriteria_nameGlob} className="w-72">
                 Name glob
               </label>
               <input
-                id={Field.selectionNameGlob}
+                id={Field.filterCriteria_nameGlob}
                 type="text"
                 className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                {...register(Field.selectionNameGlob)}
+                {...register(Field.filterCriteria_nameGlob)}
               />
             </div>
           )}
           {selectionMethod === "regex" && (
             <div className="flex items-center">
-              <label htmlFor={Field.selectionNameRegex} className="w-72">
+              <label htmlFor={Field.filterCriteria_nameRegex} className="w-72">
                 Name regex
               </label>
               <input
-                id={Field.selectionNameRegex}
+                id={Field.filterCriteria_nameRegex}
                 type="text"
                 className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                {...register(Field.selectionNameRegex)}
+                {...register(Field.filterCriteria_nameRegex)}
               />
             </div>
           )}

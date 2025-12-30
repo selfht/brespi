@@ -9,15 +9,15 @@ export namespace EditorFlow {
   export type StepOptions =
     | (StepCommon & {
         type: "Filesystem Write";
-        path?: string;
-        brespiManaged?: "true" | "false";
+        folder?: string;
+        managedStorage?: "true" | "false";
       })
     | (StepCommon & {
         type: "Filesystem Read";
-        path?: string;
-        brespiManaged?: "true" | "false";
-        brespiManagedSelectionTarget?: "latest" | "specific";
-        brespiManagedSelectionSpecificVersion?: string;
+        fileOrFolder?: string;
+        managedStorage?: "true" | "false";
+        managedStorageSelectionTarget?: "latest" | "specific";
+        managedStorageSelectionSpecificVersion?: string;
       })
     | (StepCommon & { type: "Compression"; level?: string })
     | (StepCommon & { type: "Decompression" })
@@ -149,17 +149,17 @@ export namespace EditorFlow {
     await page.getByText(step.type, { exact: true }).click();
     switch (step.type) {
       case "Filesystem Write": {
-        if (step.path) await page.getByLabel("Path").fill(step.path);
-        if (step.brespiManaged) await page.getByLabel("Brespi managed folder?").selectOption(step.brespiManaged);
+        if (step.folder) await page.getByLabel("Folder").fill(step.folder);
+        if (step.managedStorage) await page.getByLabel("Use managed storage?").selectOption(step.managedStorage);
         return null;
       }
       case "Filesystem Read": {
-        if (step.path) await page.getByLabel("Path").fill(step.path);
-        if (step.brespiManaged) await page.getByLabel("Brespi managed folder?").selectOption(step.brespiManaged);
-        if (step.brespiManaged === "true" && step.brespiManagedSelectionTarget) {
-          await page.getByLabel("Version selection").selectOption(step.brespiManagedSelectionTarget);
-          if (step.brespiManagedSelectionTarget === "specific" && step.brespiManagedSelectionSpecificVersion) {
-            await page.getByLabel("Version").fill(step.brespiManagedSelectionSpecificVersion);
+        if (step.fileOrFolder) await page.getByLabel("File or folder").fill(step.fileOrFolder);
+        if (step.managedStorage) await page.getByLabel("Use managed storage?").selectOption(step.managedStorage);
+        if (step.managedStorage === "true" && step.managedStorageSelectionTarget) {
+          await page.getByLabel("Version selection").selectOption(step.managedStorageSelectionTarget);
+          if (step.managedStorageSelectionTarget === "specific" && step.managedStorageSelectionSpecificVersion) {
+            await page.getByLabel("Version").fill(step.managedStorageSelectionSpecificVersion);
           }
         }
         return null;

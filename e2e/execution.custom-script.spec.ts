@@ -53,7 +53,7 @@ cat $BRESPI_ARTIFACTS_IN/* > $BRESPI_ARTIFACTS_OUT/ABC.txt
         {
           id: "A",
           type: "Filesystem Read",
-          path: inputDir,
+          fileOrFolder: inputDir,
         },
         {
           previousId: "A",
@@ -69,7 +69,7 @@ cat $BRESPI_ARTIFACTS_IN/* > $BRESPI_ARTIFACTS_OUT/ABC.txt
         {
           previousId: "C",
           type: "Filesystem Write",
-          path: outputDir,
+          folder: outputDir,
         },
       ],
     });

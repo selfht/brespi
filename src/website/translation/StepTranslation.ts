@@ -36,21 +36,21 @@ export namespace StepTranslation {
   }
   export function stepDetails(step: Step): Block.Details {
     switch (step.type) {
-      case Step.Type.filesystem_read:
-        return {
-          Path: step.path,
-          "Brespi managed?": Boolean(step.brespiManaged),
-          Selection: step.brespiManaged ? step.brespiManaged.selection.target : undefined,
-          "Selection version": step.brespiManaged
-            ? step.brespiManaged.selection.target === "specific"
-              ? step.brespiManaged.selection.version
-              : undefined
-            : undefined,
-        };
       case Step.Type.filesystem_write:
         return {
-          Path: step.path,
-          "Brespi managed?": step.brespiManaged,
+          Path: step.folder,
+          "Managed storage?": step.managedStorage,
+        };
+      case Step.Type.filesystem_read:
+        return {
+          "File or folder": step.fileOrFolder,
+          "Managed storage?": Boolean(step.managedStorage),
+          "Managed storage: Selection": step.managedStorage ? step.managedStorage.selection.target : undefined,
+          "Managed storage: version": step.managedStorage
+            ? step.managedStorage.selection.target === "specific"
+              ? step.managedStorage.selection.version
+              : undefined
+            : undefined,
         };
       case Step.Type.compression:
         return {
@@ -77,10 +77,10 @@ export namespace StepTranslation {
         return {};
       case Step.Type.filter:
         return {
-          Selection: step.selection.method,
-          Name: step.selection.method === "exact" ? step.selection.name : undefined,
-          "Name glob": step.selection.method === "glob" ? step.selection.nameGlob : undefined,
-          "Name regex": step.selection.method === "regex" ? step.selection.nameRegex : undefined,
+          Selection: step.filterCriteria.method,
+          Name: step.filterCriteria.method === "exact" ? step.filterCriteria.name : undefined,
+          "Name glob": step.filterCriteria.method === "glob" ? step.filterCriteria.nameGlob : undefined,
+          "Name regex": step.filterCriteria.method === "regex" ? step.filterCriteria.nameRegex : undefined,
         };
       case Step.Type.custom_script:
         return {
@@ -98,14 +98,15 @@ export namespace StepTranslation {
         };
       case Step.Type.s3_download:
         return {
-          "Connection: endpoint": step.connection.endpoint,
           "Connection: bucket": step.connection.bucket,
           "Connection: region": step.connection.region,
+          "Connection: endpoint": step.connection.endpoint,
           "Connection: access key reference": step.connection.accessKeyReference,
           "Connection: secret key reference": step.connection.secretKeyReference,
           "Base folder": step.baseFolder,
-          Selection: step.selection.target,
-          "Selection version": step.selection.target === "specific" ? step.selection.version : undefined,
+          "Managed storage: selection": step.managedStorage.selection.target,
+          "Managed storge: version":
+            step.managedStorage.selection.target === "specific" ? step.managedStorage.selection.version : undefined,
         };
       case Step.Type.postgres_backup:
         return {

@@ -38,14 +38,17 @@ export class S3Adapter extends AbstractAdapter {
   public async download({ baseFolder, ...step }: Step.S3Download): Promise<Artifact[]> {
     baseFolder = this.relativize(baseFolder);
     const client = this.constructClient(step.connection);
+    // Prepare selaction
     const { selectableArtifactsFn } = VersioningSystem.prepareSelection({
       baseFolder,
-      selection: step.selection,
+      selection: step.managedStorage.selection,
       storageReaderFn: ({ absolutePath }) => client.file(absolutePath).json(),
     });
+    // Provide manifest
     const selectableArtifacts = await this.handleManifestExclusively(client, baseFolder, async (manifest) => {
       return await selectableArtifactsFn({ manifest });
     });
+    // Retrieve artifacts
     const artifacts: Artifact[] = [];
     for (const { name, path } of selectableArtifacts) {
       const { outputId, outputPath } = this.generateArtifactDestination();

@@ -5,12 +5,12 @@ import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 enum Field {
-  path = "path",
-  brespiManaged = "brespiManaged",
+  folder = "folder",
+  managedStorage = "managedStorage",
 }
 type Form = {
-  [Field.path]: string;
-  [Field.brespiManaged]: "true" | "false";
+  [Field.folder]: string;
+  [Field.managedStorage]: "true" | "false";
 };
 type Props = {
   id: string;
@@ -23,8 +23,8 @@ type Props = {
 export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      [Field.path]: existing?.path ?? "",
-      [Field.brespiManaged]: existing ? (existing.brespiManaged ? "true" : "false") : "false",
+      [Field.folder]: existing?.folder ?? "",
+      [Field.managedStorage]: existing ? (existing.managedStorage ? "true" : "false") : "false",
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -35,8 +35,8 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
         previousId: existing?.previousId || null,
         object: "step",
         type: Step.Type.filesystem_write,
-        path: form[Field.path],
-        brespiManaged: form[Field.brespiManaged] === "true",
+        folder: form[Field.folder],
+        managedStorage: form[Field.managedStorage] === "true",
       });
     } catch (error) {
       setError("root", {
@@ -49,16 +49,16 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
       <FormElements.Left stepType={Step.Type.filesystem_write}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label htmlFor={Field.path} className="w-72">
-              Path
+            <label htmlFor={Field.folder} className="w-72">
+              Folder
             </label>
-            <input id={Field.path} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.path)} />
+            <input id={Field.folder} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.folder)} />
           </div>
           <div className="flex items-center">
-            <label htmlFor={Field.brespiManaged} className="w-72">
-              Brespi managed folder?
+            <label htmlFor={Field.managedStorage} className="w-72">
+              Use managed storage?
             </label>
-            <select id={Field.brespiManaged} className="rounded p-2 bg-c-dim/20" {...register(Field.brespiManaged)}>
+            <select id={Field.managedStorage} className="rounded p-2 bg-c-dim/20" {...register(Field.managedStorage)}>
               <option value="true">yes</option>
               <option value="false">no</option>
             </select>

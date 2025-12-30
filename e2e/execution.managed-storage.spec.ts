@@ -52,14 +52,14 @@ describe("execution | managed-storage", () => {
       storage: {
         writeStep: {
           type: "Filesystem Write",
-          path: storageFolder,
-          brespiManaged: "true",
+          folder: storageFolder,
+          managedStorage: "true",
         },
         readStep: {
           type: "Filesystem Read",
-          path: storageFolder,
-          brespiManaged: "true",
-          brespiManagedSelectionTarget: "latest",
+          fileOrFolder: storageFolder,
+          managedStorage: "true",
+          managedStorageSelectionTarget: "latest",
         },
       },
     });
@@ -160,7 +160,7 @@ describe("execution | managed-storage", () => {
         {
           id: "A",
           type: "Filesystem Read",
-          path: inputDir,
+          fileOrFolder: inputDir,
         },
         {
           previousId: "A",
@@ -191,7 +191,7 @@ describe("execution | managed-storage", () => {
           previousId: "A",
           id: "B",
           type: "Filesystem Write",
-          path: outputDir,
+          folder: outputDir,
         },
       ],
     });

@@ -4,16 +4,16 @@ import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 enum Field {
-  path = "path",
-  brespiManaged = "brespiManaged",
-  brespiManaged_selection_target = "brespiManaged_selection_target",
-  brespiManaged_selection_version = "brespiManaged_selection_version",
+  fileOrFolder = "fileOrFolder",
+  managedStorage = "managedStorage",
+  managedStorage_selection_target = "managedStorage_selection_target",
+  managedStorage_selection_version = "managedStorage_selection_version",
 }
 type Form = {
-  [Field.path]: string;
-  [Field.brespiManaged]: "true" | "false";
-  [Field.brespiManaged_selection_target]: "latest" | "specific";
-  [Field.brespiManaged_selection_version]: string;
+  [Field.fileOrFolder]: string;
+  [Field.managedStorage]: "true" | "false";
+  [Field.managedStorage_selection_target]: "latest" | "specific";
+  [Field.managedStorage_selection_version]: string;
 };
 type Props = {
   id: string;
@@ -26,10 +26,10 @@ type Props = {
 export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      [Field.path]: existing?.path ?? "",
-      [Field.brespiManaged]: existing ? (existing.brespiManaged ? "true" : "false") : "false",
-      [Field.brespiManaged_selection_target]: existing?.brespiManaged?.selection.target ?? "latest",
-      [Field.brespiManaged_selection_version]: existing?.brespiManaged?.selection.target ?? "",
+      [Field.fileOrFolder]: existing?.fileOrFolder ?? "",
+      [Field.managedStorage]: existing ? (existing.managedStorage ? "true" : "false") : "false",
+      [Field.managedStorage_selection_target]: existing?.managedStorage?.selection.target ?? "latest",
+      [Field.managedStorage_selection_version]: existing?.managedStorage?.selection.target ?? "",
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -40,14 +40,14 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
         previousId: existing?.previousId || null,
         object: "step",
         type: Step.Type.filesystem_read,
-        path: form[Field.path],
-        brespiManaged:
-          form[Field.brespiManaged] === "true"
+        fileOrFolder: form[Field.fileOrFolder],
+        managedStorage:
+          form[Field.managedStorage] === "true"
             ? {
                 selection:
-                  form[Field.brespiManaged_selection_target] === "latest"
+                  form[Field.managedStorage_selection_target] === "latest"
                     ? { target: "latest" }
-                    : { target: "specific", version: form[Field.brespiManaged_selection_version] },
+                    : { target: "specific", version: form[Field.managedStorage_selection_version] },
               }
             : null,
       });
@@ -58,52 +58,57 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
     }
   };
 
-  const brespiManaged = watch(Field.brespiManaged);
-  const brespiManagedSelectionTarget = watch(Field.brespiManaged_selection_target);
+  const managedStorage = watch(Field.managedStorage);
+  const managedStorageSelectionTarget = watch(Field.managedStorage_selection_target);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.filesystem_read}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
-            <label htmlFor={Field.path} className="w-72">
-              Path
+            <label htmlFor={Field.fileOrFolder} className="w-72">
+              {managedStorage === "true" ? "Folder" : "File or folder"}
             </label>
-            <input id={Field.path} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.path)} />
+            <input
+              id={Field.fileOrFolder}
+              type="text"
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.fileOrFolder)}
+            />
           </div>
           <div className="flex items-center">
-            <label htmlFor={Field.brespiManaged} className="w-72">
-              Brespi managed folder?
+            <label htmlFor={Field.managedStorage} className="w-72">
+              Use managed storage?
             </label>
-            <select id={Field.brespiManaged} className="rounded p-2 bg-c-dim/20" {...register(Field.brespiManaged)}>
+            <select id={Field.managedStorage} className="rounded p-2 bg-c-dim/20" {...register(Field.managedStorage)}>
               <option value="true">yes</option>
               <option value="false">no</option>
             </select>
           </div>
-          {brespiManaged === "true" ? (
+          {managedStorage === "true" ? (
             <>
               <div className="flex items-center">
-                <label htmlFor={Field.brespiManaged_selection_target} className="w-72">
+                <label htmlFor={Field.managedStorage_selection_target} className="w-72">
                   Version selection
                 </label>
                 <select
-                  id={Field.brespiManaged_selection_target}
+                  id={Field.managedStorage_selection_target}
                   className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                  {...register(Field.brespiManaged_selection_target)}
+                  {...register(Field.managedStorage_selection_target)}
                 >
                   <option value="latest">latest</option>
                   <option value="specific">specific</option>
                 </select>
               </div>
-              {brespiManagedSelectionTarget === "specific" && (
+              {managedStorageSelectionTarget === "specific" && (
                 <div className="flex items-center">
-                  <label htmlFor={Field.brespiManaged_selection_version} className="w-72">
+                  <label htmlFor={Field.managedStorage_selection_version} className="w-72">
                     Version
                   </label>
                   <input
-                    id={Field.brespiManaged_selection_version}
+                    id={Field.managedStorage_selection_version}
                     type="text"
                     className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                    {...register(Field.brespiManaged_selection_version)}
+                    {...register(Field.managedStorage_selection_version)}
                   />
                 </div>
               )}

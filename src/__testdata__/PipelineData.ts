@@ -37,7 +37,7 @@ export namespace PipelineData {
       StepData.createStep(Step.Type.filter, {
         id: "B",
         previousId: "A",
-        selection: {
+        filterCriteria: {
           method: "glob",
           nameGlob: "*gaming*",
         },
@@ -70,7 +70,7 @@ export namespace PipelineData {
       StepData.createStep(Step.Type.filesystem_write, {
         id: "kpwmqemdrxyz",
         previousId: "yfdqipzrjpka",
-        path: "",
+        folder: "",
       }),
       StepData.createStep(Step.Type.s3_upload, {
         id: "dlxhvcsgumze",

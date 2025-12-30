@@ -154,7 +154,7 @@ describe("execution | postgres", () => {
           previousId: "A",
           id: "B",
           type: "Filesystem Write",
-          path: backupDir,
+          folder: backupDir,
         },
       ],
     });
@@ -171,7 +171,7 @@ describe("execution | postgres", () => {
         {
           id: "A",
           type: "Filesystem Read",
-          path: backupDir,
+          fileOrFolder: backupDir,
         },
         {
           previousId: "A",

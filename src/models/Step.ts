@@ -2,8 +2,8 @@ import { ZodParser } from "@/helpers/ZodParser";
 import z from "zod/v4";
 
 export type Step =
-  | Step.FilesystemRead
   | Step.FilesystemWrite
+  | Step.FilesystemRead
   | Step.Compression
   | Step.Decompression
   | Step.Encryption
@@ -19,8 +19,8 @@ export type Step =
 
 export namespace Step {
   export enum Type {
-    filesystem_read = "filesystem_read",
     filesystem_write = "filesystem_write",
+    filesystem_read = "filesystem_read",
     compression = "compression",
     decompression = "decompression",
     encryption = "encryption",
@@ -52,28 +52,33 @@ export namespace Step {
 
   export type S3Connection = {
     bucket: string;
-    endpoint: string;
     region: string | null;
+    endpoint: string;
     accessKeyReference: string;
     secretKeyReference: string;
   };
 
-  export type ItemSelection =
-    | { target: "latest" } //
-    | { target: "specific"; version: string };
-
-  export type FilesystemRead = Common & {
-    type: Type.filesystem_read;
-    path: string;
-    brespiManaged: {
-      selection: ItemSelection;
-    } | null;
+  export type ManagedStorage = {
+    selection:
+      | { target: "latest" } //
+      | { target: "specific"; version: string };
   };
+
+  type FilterCriteria =
+    | { method: "exact"; name: string } //
+    | { method: "glob"; nameGlob: string }
+    | { method: "regex"; nameRegex: string };
 
   export type FilesystemWrite = Common & {
     type: Type.filesystem_write;
-    path: string;
-    brespiManaged: boolean;
+    folder: string;
+    managedStorage: boolean;
+  };
+
+  export type FilesystemRead = Common & {
+    type: Type.filesystem_read;
+    fileOrFolder: string;
+    managedStorage: ManagedStorage | null;
   };
 
   export type Compression = Common & {
@@ -117,10 +122,7 @@ export namespace Step {
 
   export type Filter = Common & {
     type: Type.filter;
-    selection:
-      | { method: "exact"; name: string } //
-      | { method: "glob"; nameGlob: string }
-      | { method: "regex"; nameRegex: string };
+    filterCriteria: FilterCriteria;
   };
 
   export type ScriptExecution = Common & {
@@ -139,7 +141,8 @@ export namespace Step {
     type: Type.s3_download;
     connection: S3Connection;
     baseFolder: string;
-    selection: ItemSelection;
+    managedStorage: ManagedStorage;
+    filterCriteria: FilterCriteria | null;
   };
 
   export type PostgresBackup = Common & {
@@ -177,43 +180,49 @@ export namespace Step {
     return categories[type];
   }
 
-  type SubSchema<T extends Step> = Record<keyof T, z.ZodType>;
+  type SubSchema<T> = Record<keyof T, z.ZodType>;
 
   export const parse = ZodParser.forType<Step>()
     .ensureSchemaMatchesType(() => {
       const s3Connection = z.object({
         bucket: z.string(),
-        endpoint: z.string(),
         region: z.string().nullable(),
+        endpoint: z.string(),
         accessKeyReference: z.string(),
         secretKeyReference: z.string(),
-      });
+      } satisfies SubSchema<S3Connection>);
+
+      const managedStorage = z.object({
+        selection: z.union([
+          z.object({ target: z.literal("latest") }), //
+          z.object({ target: z.literal("specific"), version: z.string() }),
+        ]),
+      } satisfies SubSchema<ManagedStorage>);
+
+      const filterCriteria = z.union([
+        z.object({ method: z.literal("exact"), name: z.string() }),
+        z.object({ method: z.literal("glob"), nameGlob: z.string() }),
+        z.object({ method: z.literal("regex"), nameRegex: z.string() }),
+      ]);
 
       return z.discriminatedUnion("type", [
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
           object: z.literal("step"),
-          type: z.literal(Type.filesystem_read),
-          path: z.string(),
-          brespiManaged: z
-            .object({
-              selection: z.union([
-                z.object({ target: z.literal("latest") }), //
-                z.object({ target: z.literal("specific"), version: z.string() }),
-              ]),
-            })
-            .nullable(),
-        } satisfies SubSchema<Step.FilesystemRead>),
+          type: z.literal(Type.filesystem_write),
+          folder: z.string(),
+          managedStorage: z.boolean(),
+        } satisfies SubSchema<Step.FilesystemWrite>),
 
         z.object({
           id: z.string(),
           previousId: z.string().nullable(),
           object: z.literal("step"),
-          type: z.literal(Type.filesystem_write),
-          path: z.string(),
-          brespiManaged: z.boolean(),
-        } satisfies SubSchema<Step.FilesystemWrite>),
+          type: z.literal(Type.filesystem_read),
+          fileOrFolder: z.string(),
+          managedStorage: managedStorage.nullable(),
+        } satisfies SubSchema<Step.FilesystemRead>),
 
         z.object({
           id: z.string(),
@@ -277,11 +286,7 @@ export namespace Step {
           previousId: z.string().nullable(),
           object: z.literal("step"),
           type: z.literal(Type.filter),
-          selection: z.union([
-            z.object({ method: z.literal("exact"), name: z.string() }),
-            z.object({ method: z.literal("glob"), nameGlob: z.string() }),
-            z.object({ method: z.literal("regex"), nameRegex: z.string() }),
-          ]),
+          filterCriteria: filterCriteria,
         } satisfies SubSchema<Step.Filter>),
 
         z.object({
@@ -309,10 +314,8 @@ export namespace Step {
           type: z.literal(Type.s3_download),
           connection: s3Connection,
           baseFolder: z.string(),
-          selection: z.union([
-            z.object({ target: z.literal("latest") }), //
-            z.object({ target: z.literal("specific"), version: z.string() }),
-          ]),
+          managedStorage: managedStorage,
+          filterCriteria: filterCriteria.nullable(),
         } satisfies SubSchema<Step.S3Download>),
 
         z.object({

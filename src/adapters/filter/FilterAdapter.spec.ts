@@ -17,7 +17,7 @@ describe(FilterAdapter.name, () => {
         previousId: null,
         object: "step",
         type: Step.Type.filter,
-        selection: {
+        filterCriteria: {
           method: "exact",
           name: "backup-db",
         },
@@ -35,7 +35,7 @@ describe(FilterAdapter.name, () => {
         previousId: null,
         object: "step",
         type: Step.Type.filter,
-        selection: {
+        filterCriteria: {
           method: "exact",
           name: "not-found",
         },
@@ -53,7 +53,7 @@ describe(FilterAdapter.name, () => {
         previousId: null,
         object: "step",
         type: Step.Type.filter,
-        selection: {
+        filterCriteria: {
           method: "exact",
           name: "backup",
         },
@@ -121,7 +121,7 @@ describe(FilterAdapter.name, () => {
           previousId: null,
           object: "step",
           type: Step.Type.filter,
-          selection: {
+          filterCriteria: {
             method: "glob",
             nameGlob: pattern,
           },
@@ -142,7 +142,7 @@ describe(FilterAdapter.name, () => {
         previousId: null,
         object: "step",
         type: Step.Type.filter,
-        selection: {
+        filterCriteria: {
           method: "regex",
           nameRegex: "^backup-\\d+$",
         },
@@ -160,7 +160,7 @@ describe(FilterAdapter.name, () => {
         previousId: null,
         object: "step",
         type: Step.Type.filter,
-        selection: {
+        filterCriteria: {
           method: "regex",
           nameRegex: "^file-\\d{4}-\\d{2}-\\d{2}\\.tar$",
         },
@@ -178,7 +178,7 @@ describe(FilterAdapter.name, () => {
         previousId: null,
         object: "step",
         type: Step.Type.filter,
-        selection: {
+        filterCriteria: {
           method: "regex",
           nameRegex: "^backup$",
         },
@@ -196,7 +196,7 @@ describe(FilterAdapter.name, () => {
         previousId: null,
         object: "step",
         type: Step.Type.filter,
-        selection: {
+        filterCriteria: {
           method: "regex",
           nameRegex: "backup",
         },

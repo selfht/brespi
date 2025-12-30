@@ -1,21 +1,20 @@
 import { Step } from "@/models/Step";
-import clsx from "clsx";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 enum Field {
   bucket = "bucket",
-  endpoint = "endpoint",
   region = "region",
+  endpoint = "endpoint",
   accessKeyReference = "accessKeyReference",
   secretKeyReference = "secretKeyReference",
   baseFolder = "baseFolder",
 }
 type Form = {
   [Field.bucket]: string;
-  [Field.endpoint]: string;
   [Field.region]: string;
+  [Field.endpoint]: string;
   [Field.accessKeyReference]: string;
   [Field.secretKeyReference]: string;
   [Field.baseFolder]: string;
@@ -32,8 +31,8 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.bucket]: existing?.connection.bucket ?? "",
-      [Field.endpoint]: existing?.connection.endpoint ?? "",
       [Field.region]: existing?.connection.region ?? "",
+      [Field.endpoint]: existing?.connection.endpoint ?? "",
       [Field.accessKeyReference]: existing?.connection.accessKeyReference ?? "",
       [Field.secretKeyReference]: existing?.connection.secretKeyReference ?? "",
       [Field.baseFolder]: existing?.baseFolder ?? "",
@@ -49,8 +48,8 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
         type: Step.Type.s3_upload,
         connection: {
           bucket: form[Field.bucket],
-          endpoint: form[Field.endpoint],
           region: form[Field.region] || null,
+          endpoint: form[Field.endpoint],
           accessKeyReference: form[Field.accessKeyReference],
           secretKeyReference: form[Field.secretKeyReference],
         },
@@ -73,16 +72,16 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
             <input id={Field.bucket} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.bucket)} />
           </div>
           <div className="flex items-center">
-            <label htmlFor={Field.endpoint} className="w-72">
-              Endpoint
-            </label>
-            <input id={Field.endpoint} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.endpoint)} />
-          </div>
-          <div className="flex items-center">
             <label htmlFor={Field.region} className="w-72">
               Region
             </label>
             <input id={Field.region} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.region)} />
+          </div>
+          <div className="flex items-center">
+            <label htmlFor={Field.endpoint} className="w-72">
+              Endpoint
+            </label>
+            <input id={Field.endpoint} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.endpoint)} />
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.accessKeyReference} className="w-72">

@@ -1,28 +1,37 @@
 import { Step } from "@/models/Step";
-import clsx from "clsx";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 enum Field {
   bucket = "bucket",
-  endpoint = "endpoint",
   region = "region",
+  endpoint = "endpoint",
   accessKeyReference = "accessKeyReference",
   secretKeyReference = "secretKeyReference",
   baseFolder = "baseFolder",
-  selectionTarget = "selectionTarget",
-  selectionSpecificVersion = "selectionSpecificVersion",
+  managedStorage_selectionTarget = "managedStorage_selectionTarget",
+  managedStorage_selectionSpecificVersion = "managedStorage_selectionSpecificVersion",
+  filterCriteria = "filterCriteria",
+  filterCriteria_method = "filterCriteria_method",
+  filterCriteria_name = "filterCriteria_name",
+  filterCriteria_nameGlob = "filterCriteria_nameGlob",
+  filterCriteria_nameRegex = "filterCriteria_nameRegex",
 }
 type Form = {
   [Field.bucket]: string;
-  [Field.endpoint]: string;
   [Field.region]: string;
+  [Field.endpoint]: string;
   [Field.accessKeyReference]: string;
   [Field.secretKeyReference]: string;
   [Field.baseFolder]: string;
-  [Field.selectionTarget]: "latest" | "specific";
-  [Field.selectionSpecificVersion]: string;
+  [Field.managedStorage_selectionTarget]: "latest" | "specific";
+  [Field.managedStorage_selectionSpecificVersion]: string;
+  [Field.filterCriteria]: "true" | "false";
+  [Field.filterCriteria_method]: "exact" | "glob" | "regex";
+  [Field.filterCriteria_name]: string;
+  [Field.filterCriteria_nameGlob]: string;
+  [Field.filterCriteria_nameRegex]: string;
 };
 type Props = {
   id: string;
@@ -36,13 +45,19 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.bucket]: existing?.connection.bucket ?? "",
-      [Field.endpoint]: existing?.connection.endpoint ?? "",
       [Field.region]: existing?.connection.region ?? "",
+      [Field.endpoint]: existing?.connection.endpoint ?? "",
       [Field.accessKeyReference]: existing?.connection.accessKeyReference ?? "",
       [Field.secretKeyReference]: existing?.connection.secretKeyReference ?? "",
       [Field.baseFolder]: existing?.baseFolder ?? "",
-      [Field.selectionTarget]: existing?.selection.target ?? "latest",
-      [Field.selectionSpecificVersion]: existing?.selection.target === "specific" ? existing.selection.version : "",
+      [Field.managedStorage_selectionTarget]: existing?.managedStorage.selection.target ?? "latest",
+      [Field.managedStorage_selectionSpecificVersion]:
+        existing?.managedStorage.selection.target === "specific" ? existing.managedStorage.selection.version : "",
+      [Field.filterCriteria]: existing ? (existing.filterCriteria ? "true" : "false") : "false",
+      [Field.filterCriteria_method]: existing?.filterCriteria?.method ?? "exact",
+      [Field.filterCriteria_name]: existing?.filterCriteria?.method === "exact" ? existing.filterCriteria.name : "",
+      [Field.filterCriteria_nameGlob]: existing?.filterCriteria?.method === "glob" ? existing.filterCriteria.nameGlob : "",
+      [Field.filterCriteria_nameRegex]: existing?.filterCriteria?.method === "regex" ? existing.filterCriteria.nameRegex : "",
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -55,16 +70,19 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
         type: Step.Type.s3_download,
         connection: {
           bucket: form[Field.bucket],
-          endpoint: form[Field.endpoint],
           region: form[Field.region] || null,
+          endpoint: form[Field.endpoint],
           accessKeyReference: form[Field.accessKeyReference],
           secretKeyReference: form[Field.secretKeyReference],
         },
         baseFolder: form[Field.baseFolder],
-        selection:
-          form[Field.selectionTarget] === "latest"
-            ? { target: "latest" }
-            : { target: "specific", version: form[Field.selectionSpecificVersion] },
+        managedStorage: {
+          selection:
+            form[Field.managedStorage_selectionTarget] === "latest"
+              ? { target: "latest" }
+              : { target: "specific", version: form[Field.managedStorage_selectionSpecificVersion] },
+        },
+        filterCriteria: null,
       });
     } catch (error) {
       setError("root", {
@@ -73,7 +91,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
     }
   };
 
-  const selectionTarget = watch(Field.selectionTarget);
+  const selectionTarget = watch(Field.managedStorage_selectionTarget);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.s3_download}>
@@ -85,16 +103,16 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
             <input id={Field.bucket} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.bucket)} />
           </div>
           <div className="flex items-center">
-            <label htmlFor={Field.endpoint} className="w-72">
-              Endpoint
-            </label>
-            <input id={Field.endpoint} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.endpoint)} />
-          </div>
-          <div className="flex items-center">
             <label htmlFor={Field.region} className="w-72">
               Region
             </label>
             <input id={Field.region} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.region)} />
+          </div>
+          <div className="flex items-center">
+            <label htmlFor={Field.endpoint} className="w-72">
+              Endpoint
+            </label>
+            <input id={Field.endpoint} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.endpoint)} />
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.accessKeyReference} className="w-72">
@@ -125,24 +143,28 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
             <input id={Field.baseFolder} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.baseFolder)} />
           </div>
           <div className="flex items-center">
-            <label htmlFor={Field.selectionTarget} className="w-72">
+            <label htmlFor={Field.managedStorage_selectionTarget} className="w-72">
               Version selection
             </label>
-            <select id={Field.selectionTarget} className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.selectionTarget)}>
+            <select
+              id={Field.managedStorage_selectionTarget}
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.managedStorage_selectionTarget)}
+            >
               <option value="latest">latest</option>
               <option value="specific">specific</option>
             </select>
           </div>
           {selectionTarget === "specific" && (
             <div className="flex items-center">
-              <label htmlFor={Field.selectionSpecificVersion} className="w-72">
+              <label htmlFor={Field.managedStorage_selectionSpecificVersion} className="w-72">
                 Version
               </label>
               <input
-                id={Field.selectionSpecificVersion}
+                id={Field.managedStorage_selectionSpecificVersion}
                 type="text"
                 className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                {...register(Field.selectionSpecificVersion)}
+                {...register(Field.managedStorage_selectionSpecificVersion)}
               />
             </div>
           )}
