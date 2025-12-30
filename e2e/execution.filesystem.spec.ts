@@ -1,26 +1,23 @@
 import test, { expect, Page } from "@playwright/test";
+import { readdir, readFile } from "fs/promises";
 import { describe } from "node:test";
 import { join } from "path";
 import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
-import { S3Boundary } from "./boundaries/S3Boundary";
 import { Common } from "./common/Common";
 import { EditorFlow } from "./flows/EditorFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
-import { readdir } from "fs/promises";
-import { readFile } from "fs/promises";
 
-describe("execution | s3", () => {
+describe("execution | filesystem", () => {
   test.beforeEach(async ({ request }) => {
     await ResetBoundary.reset({ request });
   });
 
-  test("writes and reads artifacts to/from a chosen bucket", async ({ page }) => {
+  test("writes and reads artifacts to/from a chosen storage folder", async ({ page }) => {
     // given
-    const baseFolder = "my-backups";
     const inputDir = join(FilesystemBoundary.SCRATCH_PAD, "input");
     const outputDir = join(FilesystemBoundary.SCRATCH_PAD, "output");
-    expect(await S3Boundary.listBucket()).toHaveLength(0);
+    const storageFolder = join(FilesystemBoundary.SCRATCH_PAD, "storage");
 
     // when (write files)
     const fruits = ["Apple", "Banana", "Coconut"];
@@ -29,10 +26,10 @@ describe("execution | s3", () => {
       await Common.writeFileRecursive(path, `My name is ${fruit}`);
     }
     // when (backup to storage)
-    const writePipelineId = await createS3WritePipeline(page, { inputDir, baseFolder });
+    const writePipelineId = await createFilesystemWritePipeline(page, { inputDir, storageFolder });
     await ExecutionFlow.executePipeline(page);
     // then (storage has records)
-    const firstStorageSnapshot = await S3Boundary.listBucket();
+    const firstStorageSnapshot = await listFlattenedFolderEntries(storageFolder);
     expect(firstStorageSnapshot).toHaveLength(5);
     expect(firstStorageSnapshot).toEqual(
       expect.arrayContaining([
@@ -45,7 +42,7 @@ describe("execution | s3", () => {
     );
 
     // when (retrieve latest from storage)
-    const readPipelineId = await createS3ReadPipeline(page, { baseFolder, outputDir });
+    const readPipelineId = await createFilesystemReadPipeline(page, { storageFolder, outputDir });
     await ExecutionFlow.executePipeline(page);
     // then (retrieved records are identical)
     expect(await readdir(outputDir)).toHaveLength(fruits.length);
@@ -66,7 +63,7 @@ describe("execution | s3", () => {
     // when (backup to storage)
     await ExecutionFlow.executePipeline(page, { id: writePipelineId });
     // then (storage has more records)
-    const secondStorageSnapshot = await S3Boundary.listBucket();
+    const secondStorageSnapshot = await listFlattenedFolderEntries(storageFolder);
     expect(secondStorageSnapshot).toHaveLength(8);
     expect(secondStorageSnapshot).toEqual(
       expect.arrayContaining([
@@ -92,13 +89,13 @@ describe("execution | s3", () => {
     }
   });
 
-  type S3WritePipeline = {
+  type FilesystemWritePipeline = {
     inputDir: string;
-    baseFolder: string;
+    storageFolder: string;
   };
-  async function createS3WritePipeline(page: Page, { inputDir, baseFolder }: S3WritePipeline) {
+  async function createFilesystemWritePipeline(page: Page, { inputDir, storageFolder }: FilesystemWritePipeline) {
     return await EditorFlow.createPipeline(page, {
-      name: "S3 Write",
+      name: "Filesystem Write",
       steps: [
         {
           id: "A",
@@ -112,36 +109,28 @@ describe("execution | s3", () => {
         },
         {
           previousId: "B",
-          type: "S3 Upload",
-          bucket: S3Boundary.BUCKET,
-          endpoint: S3Boundary.ENDPOINT,
-          region: S3Boundary.REGION,
-          accessKeyReference: "MY_S3_ACCESS_KEY",
-          secretKeyReference: "MY_S3_SECRET_KEY",
-          baseFolder,
+          type: "Filesystem Write",
+          path: storageFolder,
+          brespiManaged: "true",
         },
       ],
     });
   }
 
-  type S3ReadPipeline = {
-    baseFolder: string;
+  type FilesystemReadPipeline = {
+    storageFolder: string;
     outputDir: string;
   };
-  async function createS3ReadPipeline(page: Page, { baseFolder, outputDir }: S3ReadPipeline) {
+  async function createFilesystemReadPipeline(page: Page, { storageFolder, outputDir }: FilesystemReadPipeline) {
     return await EditorFlow.createPipeline(page, {
-      name: "S3 Read",
+      name: "Filesystem Read",
       steps: [
         {
           id: "A",
-          type: "S3 Download",
-          bucket: S3Boundary.BUCKET,
-          endpoint: S3Boundary.ENDPOINT,
-          region: S3Boundary.REGION,
-          accessKeyReference: "MY_S3_ACCESS_KEY",
-          secretKeyReference: "MY_S3_SECRET_KEY",
-          baseFolder,
-          selectionTarget: "latest",
+          type: "Filesystem Read",
+          path: storageFolder,
+          brespiManaged: "true",
+          brespiManagedSelectionTarget: "latest",
         },
         {
           previousId: "A",
@@ -151,5 +140,22 @@ describe("execution | s3", () => {
         },
       ],
     });
+  }
+
+  async function listFlattenedFolderEntries(folder: string): Promise<string[]> {
+    const results: string[] = [];
+    async function recurse(currentPath: string, relativePath: string = "") {
+      const entries = await readdir(currentPath, { withFileTypes: true });
+      for (const entry of entries) {
+        const entryRelativePath = relativePath ? join(relativePath, entry.name) : entry.name;
+        if (entry.isFile()) {
+          results.push(entryRelativePath);
+        } else if (entry.isDirectory()) {
+          await recurse(join(currentPath, entry.name), entryRelativePath);
+        }
+      }
+    }
+    await recurse(folder);
+    return results;
   }
 });

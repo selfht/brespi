@@ -126,7 +126,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.selectionTarget} className="w-72">
-              Version Selection
+              Version selection
             </label>
             <select id={Field.selectionTarget} className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.selectionTarget)}>
               <option value="latest">latest</option>

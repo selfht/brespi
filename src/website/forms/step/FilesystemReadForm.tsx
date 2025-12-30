@@ -83,7 +83,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
             <>
               <div className="flex items-center">
                 <label htmlFor={Field.brespiManaged_selection_target} className="w-72">
-                  Version Selection
+                  Version selection
                 </label>
                 <select
                   id={Field.brespiManaged_selection_target}

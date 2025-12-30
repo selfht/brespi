@@ -7,6 +7,14 @@ import { mkdir } from "fs/promises";
 import { dirname } from "path";
 
 export namespace Common {
+  export const Regex = {
+    RANDOM_ID: /\w+/.source,
+    TIMESTAMP: /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+/.source,
+    get TIMESTAMP_FOLDER() {
+      return new RegExp(`${this.TIMESTAMP}-${this.RANDOM_ID}`).source;
+    },
+  };
+
   export function extractCurrentPipelineIdFromUrl(page: Page): string | undefined {
     const url = page.url();
     const match = url.match(/pipelines\/(.+)/);

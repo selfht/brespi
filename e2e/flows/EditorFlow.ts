@@ -7,8 +7,18 @@ export namespace EditorFlow {
     previousId?: string;
   };
   type StepOptions =
-    | (StepCommon & { type: "Filesystem Read"; path?: string })
-    | (StepCommon & { type: "Filesystem Write"; path?: string })
+    | (StepCommon & {
+        type: "Filesystem Write";
+        path?: string;
+        brespiManaged?: "true" | "false";
+      })
+    | (StepCommon & {
+        type: "Filesystem Read";
+        path?: string;
+        brespiManaged?: "true" | "false";
+        brespiManagedSelectionTarget?: "latest" | "specific";
+        brespiManagedSelectionSpecificVersion?: string;
+      })
     | (StepCommon & { type: "Compression"; level?: string })
     | (StepCommon & { type: "Decompression" })
     | (StepCommon & { type: "Encryption"; keyReference?: string })
@@ -138,12 +148,20 @@ export namespace EditorFlow {
   async function fillStepForm(page: Page, step: StepOptions): Promise<null> {
     await page.getByText(step.type, { exact: true }).click();
     switch (step.type) {
-      case "Filesystem Read": {
-        if (step.path) await page.getByLabel("Path").fill(step.path);
-        return null;
-      }
       case "Filesystem Write": {
         if (step.path) await page.getByLabel("Path").fill(step.path);
+        if (step.brespiManaged) await page.getByLabel("Brespi managed folder?").selectOption(step.brespiManaged);
+        return null;
+      }
+      case "Filesystem Read": {
+        if (step.path) await page.getByLabel("Path").fill(step.path);
+        if (step.brespiManaged) await page.getByLabel("Brespi managed folder?").selectOption(step.brespiManaged);
+        if (step.brespiManaged === "true" && step.brespiManagedSelectionTarget) {
+          await page.getByLabel("Version selection").selectOption(step.brespiManagedSelectionTarget);
+          if (step.brespiManagedSelectionTarget === "specific" && step.brespiManagedSelectionSpecificVersion) {
+            await page.getByLabel("Version").fill(step.brespiManagedSelectionSpecificVersion);
+          }
+        }
         return null;
       }
       case "Compression": {
@@ -205,7 +223,7 @@ export namespace EditorFlow {
         if (step.secretKeyReference) await page.getByLabel("Secret Key Reference").fill(step.secretKeyReference);
         if (step.baseFolder) await page.getByLabel("Base Folder").fill(step.baseFolder);
         if (step.selectionTarget) {
-          await page.getByLabel("Version Selection").selectOption(step.selectionTarget);
+          await page.getByLabel("Version selection").selectOption(step.selectionTarget);
           if (step.selectionTarget === "specific" && step.selectionSpecificVersion) {
             await page.getByLabel("Version").fill(step.selectionSpecificVersion);
           }
