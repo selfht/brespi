@@ -286,7 +286,7 @@ export namespace Step {
           } satisfies SubSchema<Step.FilesystemRead>)
           .refine(
             ({ managedStorage, filterCriteria }) => {
-              const invalidCombination = !managedStorage && filterCriteria;
+              const invalidCombination = !managedStorage && !!filterCriteria;
               return !invalidCombination;
             },
             {
