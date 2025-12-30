@@ -1,5 +1,6 @@
 import { dia } from "@joint/core";
 import { Block } from "../../Block";
+import clsx from "clsx";
 
 export namespace StylingHelper {
   export function synchronizeBlockStylingWithCell(cell: dia.Cell, { theme, selected, handles }: Block): dia.Cell {
@@ -23,6 +24,7 @@ export namespace StylingHelper {
       output: catalogue[hasOutput ? activeStyle : "unused"],
     };
 
+    cell.attr("root/data-x-selected", `${selected}`);
     cell.attr("body/class", className.main);
     (cell as dia.Element).portProp(Block.Handle.input, "attrs/rect/class", className.input);
     (cell as dia.Element).portProp(Block.Handle.output, "attrs/rect/class", className.output);

@@ -69,7 +69,7 @@ export function createCell(block: JointBlock) {
       ],
       attrs: {
         root: {
-          "data-testid": `BLOCK:${block.label}`,
+          "data-testid": block.id,
         },
         body: {
           strokeWidth: Sizing.BLOCK_STROKE_WIDTH,

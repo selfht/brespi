@@ -8,11 +8,13 @@ import { Manifest } from "@/models/versioning/Manifest";
 import { copyFile, cp, mkdir, readdir, rename, stat } from "fs/promises";
 import { basename, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
+import { FilterCapability } from "@/capabilities/FilterCapability";
 
 export class FilesystemAdapter extends AbstractAdapter {
   public constructor(
     protected readonly env: Env.Private,
     private readonly managedStorageCapability: ManagedStorageCapability,
+    private readonly filterCapability: FilterCapability,
   ) {
     super(env);
   }
@@ -63,9 +65,14 @@ export class FilesystemAdapter extends AbstractAdapter {
         storageReaderFn: ({ absolutePath }) => Bun.file(absolutePath).json(),
       });
       // Provide manifest
-      const selectableArtifacts = await this.handleManifestExclusively(step.fileOrFolder, async (manifest) => {
+      let selectableArtifacts = await this.handleManifestExclusively(step.fileOrFolder, async (manifest) => {
         return await selectableArtifactsFn({ manifest });
       });
+      // Optional: filter
+      if (step.filterCriteria) {
+        const { predicate } = this.filterCapability.createPredicate(step.filterCriteria);
+        selectableArtifacts = selectableArtifacts.filter(predicate);
+      }
       // Retrieve artifacts
       const artifacts: Artifact[] = [];
       for (const { name, path } of selectableArtifacts) {

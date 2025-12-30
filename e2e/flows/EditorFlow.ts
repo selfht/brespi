@@ -7,18 +7,6 @@ export namespace EditorFlow {
     previousId?: string;
   };
   export type StepOptions =
-    | (StepCommon & {
-        type: "Filesystem Write";
-        folder?: string;
-        managedStorage?: "true" | "false";
-      })
-    | (StepCommon & {
-        type: "Filesystem Read";
-        fileOrFolder?: string;
-        managedStorage?: "true" | "false";
-        managedStorageSelectionTarget?: "latest" | "specific";
-        managedStorageSelectionSpecificVersion?: string;
-      })
     | (StepCommon & { type: "Compression"; level?: string })
     | (StepCommon & { type: "Decompression" })
     | (StepCommon & { type: "Encryption"; keyReference?: string })
@@ -36,6 +24,23 @@ export namespace EditorFlow {
         type: "Custom Script";
         path?: string;
         passthrough?: "true" | "false";
+      })
+    | (StepCommon & {
+        type: "Filesystem Write";
+        folder?: string;
+        managedStorage?: "true" | "false";
+      })
+    | (StepCommon & {
+        type: "Filesystem Read";
+        fileOrFolder?: string;
+        managedStorage?: "true" | "false";
+        managedStorageSelectionTarget?: "latest" | "specific";
+        managedStorageSelectionSpecificVersion?: string;
+        filterCriteria?: "true" | "false";
+        filterCriteriaMethod?: "exact" | "glob" | "regex";
+        filterCriteriaName?: string;
+        filterCriteriaNameGlob?: string;
+        filterCriteriaNameRegex?: string;
       })
     | (StepCommon & {
         type: "S3 Upload";
@@ -103,17 +108,18 @@ export namespace EditorFlow {
     const canvas = page.getByTestId("canvas");
     const stepLocators = new Map<string, Locator>();
     // Add and position each step
-    for (let i = 0; i < options.steps.length; i++) {
-      const step = options.steps[i];
-      await fillStepForm(page, step);
+    for (let index = 0; index < options.steps.length; index++) {
+      const step = options.steps[index];
+      const stepId = step.id || `step-${index}`;
+
+      const stepRef = await fillStepForm(page, step);
       await page.getByText("Add Step").click();
 
-      const stepId = step.id || `step-${i}`;
-      const stepLocator = page.getByTestId(`BLOCK:${step.type}`);
+      const stepLocator = page.getByTestId(stepRef);
       stepLocators.set(stepId, stepLocator);
 
-      const column = i % Config.Grid.MAX_COLUMNS;
-      const row = Math.floor(i / Config.Grid.MAX_COLUMNS);
+      const column = index % Config.Grid.MAX_COLUMNS;
+      const row = Math.floor(index / Config.Grid.MAX_COLUMNS);
       const x = Config.Grid.START_X + column * Config.Grid.COLUMN_SPACING;
       const y = Config.Grid.START_Y + row * Config.Grid.ROW_SPACING;
       await stepLocator.dragTo(canvas, {
@@ -150,48 +156,32 @@ export namespace EditorFlow {
     return pipelineId;
   }
 
-  async function fillStepForm(page: Page, step: StepOptions): Promise<null> {
-    await page.getByText(step.type, { exact: true }).click();
+  async function fillStepForm(page: Page, step: StepOptions): Promise<string> {
+    await page.getByRole("button", { name: step.type, exact: true }).click();
     switch (step.type) {
-      case "Filesystem Write": {
-        if (step.folder) await page.getByLabel("Folder").fill(step.folder);
-        if (step.managedStorage) await page.getByLabel("Use managed storage?").selectOption(step.managedStorage);
-        return null;
-      }
-      case "Filesystem Read": {
-        if (step.fileOrFolder) await page.getByLabel("File or folder").fill(step.fileOrFolder);
-        if (step.managedStorage) await page.getByLabel("Use managed storage?").selectOption(step.managedStorage);
-        if (step.managedStorage === "true" && step.managedStorageSelectionTarget) {
-          await page.getByLabel("Managed storage: target").selectOption(step.managedStorageSelectionTarget);
-          if (step.managedStorageSelectionTarget === "specific" && step.managedStorageSelectionSpecificVersion) {
-            await page.getByLabel("Managed storage: version").fill(step.managedStorageSelectionSpecificVersion);
-          }
-        }
-        return null;
-      }
       case "Compression": {
         if (step.level) await page.getByLabel("Compression level").fill(step.level);
-        return null;
+        return await findCurrentlyActiveStepId(page);
       }
       case "Decompression": {
         // No configurable fields
-        return null;
+        return await findCurrentlyActiveStepId(page);
       }
       case "Encryption": {
         if (step.keyReference) await page.getByLabel("Key Reference").fill(step.keyReference);
-        return null;
+        return await findCurrentlyActiveStepId(page);
       }
       case "Decryption": {
         if (step.keyReference) await page.getByLabel("Key Reference").fill(step.keyReference);
-        return null;
+        return await findCurrentlyActiveStepId(page);
       }
       case "Folder Flatten": {
         // No configurable fields
-        return null;
+        return await findCurrentlyActiveStepId(page);
       }
       case "Folder Group": {
         // No configurable fields
-        return null;
+        return await findCurrentlyActiveStepId(page);
       }
       case "Filter": {
         if (step.filterCriteriaMethod) await page.getByLabel("Method", { exact: true }).selectOption(step.filterCriteriaMethod);
@@ -202,12 +192,39 @@ export namespace EditorFlow {
         } else if (step.filterCriteriaMethod === "regex" && step.filterCriteriaNameRegex) {
           await page.getByLabel("Name regex").fill(step.filterCriteriaNameRegex);
         }
-        return null;
+        return await findCurrentlyActiveStepId(page);
       }
       case "Custom Script": {
         if (step.path) await page.getByLabel("Script path").fill(step.path);
         if (step.passthrough) await page.getByLabel("Passthrough?").selectOption(step.passthrough);
-        return null;
+        return await findCurrentlyActiveStepId(page);
+      }
+      case "Filesystem Write": {
+        if (step.folder) await page.getByLabel("Folder").fill(step.folder);
+        if (step.managedStorage) await page.getByLabel("Use managed storage?").selectOption(step.managedStorage);
+        return await findCurrentlyActiveStepId(page);
+      }
+      case "Filesystem Read": {
+        if (step.fileOrFolder) await page.getByLabel("File or folder").fill(step.fileOrFolder);
+        if (step.managedStorage) await page.getByLabel("Use managed storage?").selectOption(step.managedStorage);
+        if (step.managedStorage === "true" && step.managedStorageSelectionTarget) {
+          await page.getByLabel("Managed storage: target").selectOption(step.managedStorageSelectionTarget);
+          if (step.managedStorageSelectionTarget === "specific" && step.managedStorageSelectionSpecificVersion) {
+            await page.getByLabel("Managed storage: version").fill(step.managedStorageSelectionSpecificVersion);
+          }
+        }
+        if (step.filterCriteria) await page.getByLabel("Use filter?").selectOption(step.filterCriteria);
+        if (step.filterCriteria === "true") {
+          if (step.filterCriteriaMethod) await page.getByLabel("Filter: method", { exact: true }).selectOption(step.filterCriteriaMethod);
+          if (step.filterCriteriaMethod === "exact" && step.filterCriteriaName) {
+            await page.getByLabel("Filter: name", { exact: true }).fill(step.filterCriteriaName);
+          } else if (step.filterCriteriaMethod === "glob" && step.filterCriteriaNameGlob) {
+            await page.getByLabel("Filter: name glob").fill(step.filterCriteriaNameGlob);
+          } else if (step.filterCriteriaMethod === "regex" && step.filterCriteriaNameRegex) {
+            await page.getByLabel("Filter: name regex").fill(step.filterCriteriaNameRegex);
+          }
+        }
+        return await findCurrentlyActiveStepId(page);
       }
       case "S3 Upload": {
         if (step.bucket) await page.getByLabel("Bucket").fill(step.bucket);
@@ -216,7 +233,7 @@ export namespace EditorFlow {
         if (step.accessKeyReference) await page.getByLabel("Access key reference").fill(step.accessKeyReference);
         if (step.secretKeyReference) await page.getByLabel("Secret key reference").fill(step.secretKeyReference);
         if (step.baseFolder) await page.getByLabel("Base Folder").fill(step.baseFolder);
-        return null;
+        return await findCurrentlyActiveStepId(page);
       }
       case "S3 Download": {
         if (step.bucket) await page.getByLabel("Bucket").fill(step.bucket);
@@ -231,7 +248,7 @@ export namespace EditorFlow {
             await page.getByLabel("Managed storage: version").fill(step.managedStorageSelectionVersion);
           }
         }
-        if (step.filterCriteria) await page.getByLabel("Use managed storage?").selectOption(step.filterCriteria);
+        if (step.filterCriteria) await page.getByLabel("Use filter?").selectOption(step.filterCriteria);
         if (step.filterCriteria === "true") {
           if (step.filterCriteriaMethod) await page.getByLabel("Filter: method", { exact: true }).selectOption(step.filterCriteriaMethod);
           if (step.filterCriteriaMethod === "exact" && step.filterCriteriaName) {
@@ -242,7 +259,7 @@ export namespace EditorFlow {
             await page.getByLabel("Filter: name regex").fill(step.filterCriteriaNameRegex);
           }
         }
-        return null;
+        return await findCurrentlyActiveStepId(page);
       }
       case "Postgres Backup": {
         if (step.connectionReference) await page.getByLabel("Connection Reference").fill(step.connectionReference);
@@ -254,13 +271,22 @@ export namespace EditorFlow {
             await page.getByLabel("Exclude").fill(step.databaseSelectionExclude);
           }
         }
-        return null;
+        return await findCurrentlyActiveStepId(page);
       }
       case "Postgres Restore": {
         if (step.connectionReference) await page.getByLabel("Connection Reference").fill(step.connectionReference);
         if (step.database) await page.getByLabel("Database").fill(step.database);
-        return null;
+        return await findCurrentlyActiveStepId(page);
       }
     }
+  }
+
+  async function findCurrentlyActiveStepId(page: Page): Promise<string> {
+    const element = page.locator("[data-x-selected='true']");
+    const testId = await element.getAttribute("data-testid");
+    if (!testId) {
+      throw new Error("No selected block found or data-testid missing");
+    }
+    return testId;
   }
 }

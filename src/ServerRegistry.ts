@@ -32,7 +32,11 @@ export class ServerRegistry {
     const managedStorageCapability = (this.registry[ManagedStorageCapability.name] = new ManagedStorageCapability());
 
     // Adapters
-    const fileSystemAdapter = (this.registry[FilesystemAdapter.name] = new FilesystemAdapter(env, managedStorageCapability));
+    const fileSystemAdapter = (this.registry[FilesystemAdapter.name] = new FilesystemAdapter(
+      env,
+      managedStorageCapability,
+      filterCapability,
+    ));
     const compressionAdapter = (this.registry[CompressionAdapter.name] = new CompressionAdapter(env));
     const encryptionAdapter = (this.registry[EncryptionAdapter.name] = new EncryptionAdapter(env));
     const filterAdapter = (this.registry[FilterAdapter.name] = new FilterAdapter(env, filterCapability));

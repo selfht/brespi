@@ -23,8 +23,8 @@ describe("execution | managed-storage", () => {
         writeStep: {
           type: "S3 Upload",
           bucket: S3Boundary.BUCKET,
-          endpoint: S3Boundary.ENDPOINT,
           region: S3Boundary.REGION,
+          endpoint: S3Boundary.ENDPOINT,
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
           baseFolder: storageFolder,
@@ -32,8 +32,8 @@ describe("execution | managed-storage", () => {
         readStep: {
           type: "S3 Download",
           bucket: S3Boundary.BUCKET,
-          endpoint: S3Boundary.ENDPOINT,
           region: S3Boundary.REGION,
+          endpoint: S3Boundary.ENDPOINT,
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
           baseFolder: storageFolder,

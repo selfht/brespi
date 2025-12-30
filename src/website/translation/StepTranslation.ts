@@ -86,6 +86,11 @@ export namespace StepTranslation {
               ? step.managedStorage.version
               : undefined
             : undefined,
+          "Filter?": Boolean(step.filterCriteria),
+          "Filter: method": step.filterCriteria ? step.filterCriteria.method : undefined,
+          "Filter: name": step.filterCriteria?.method === "exact" ? step.filterCriteria.name : undefined,
+          "Filter: name glob": step.filterCriteria?.method === "glob" ? step.filterCriteria.nameGlob : undefined,
+          "Filter: name regex": step.filterCriteria?.method === "regex" ? step.filterCriteria.nameRegex : undefined,
         };
       case Step.Type.s3_upload:
         return {

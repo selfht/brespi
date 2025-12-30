@@ -62,7 +62,14 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
               ? { target: "latest" }
               : { target: "specific", version: form[Field.managedStorage_version] }
             : null,
-        filterCriteria: null,
+        filterCriteria:
+          form[Field.filterCriteria] === "true"
+            ? form[Field.filterCriteria_method] === "exact"
+              ? { method: "exact", name: form[Field.filterCriteria_name] }
+              : form[Field.filterCriteria_method] === "glob"
+                ? { method: "glob", nameGlob: form[Field.filterCriteria_nameGlob] }
+                : { method: "regex", nameRegex: form[Field.filterCriteria_nameRegex] }
+            : null,
       });
     } catch (error) {
       setError("root", {
