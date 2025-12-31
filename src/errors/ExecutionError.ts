@@ -2,33 +2,18 @@ import { Exception } from "./exception/Exception";
 
 export class ExecutionError {
   public static readonly GROUP = "EXECUTION";
+  // crud
   public static readonly not_found: Exception.Fn;
   public static readonly already_exists: Exception.Fn;
+  // adapters
   public static readonly environment_variable_missing: Exception.Fn;
   public static readonly filesystem_item_does_not_exist: Exception.Fn;
   public static readonly filesystem_item_type_invalid: Exception.Fn;
+  public static readonly invalid_non_file_artifact: Exception.Fn;
 
   static {
     Exception.initializeFields(this);
   }
-
-  public static readonly S3 = class {
-    public static readonly GROUP = "EXECUTION::S3";
-    public static readonly encountered_non_file_artifact: Exception.Fn;
-
-    static {
-      Exception.initializeFields(this);
-    }
-  };
-
-  public static readonly Filesystem = class {
-    public static readonly GROUP = "EXECUTION::FILESYSTEM";
-    public static readonly encountered_non_file_artifact: Exception.Fn;
-
-    static {
-      Exception.initializeFields(this);
-    }
-  };
 
   public static readonly Postgres = class {
     public static readonly GROUP = "EXECUTION::POSTGRES";
@@ -45,7 +30,6 @@ export class ExecutionError {
 
   public static readonly Compression = class {
     public static readonly GROUP = "EXECUTION::COMPRESSION";
-    public static readonly compression_failed: Exception.Fn;
     public static readonly unsupported_artifact_type: Exception.Fn;
     public static readonly decompression_failed: Exception.Fn;
     public static readonly directory_is_empty: Exception.Fn;

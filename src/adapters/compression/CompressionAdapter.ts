@@ -29,7 +29,7 @@ export class CompressionAdapter extends AbstractAdapter {
     await proc.exited;
     if (proc.exitCode !== 0) {
       const stderr = await new Response(proc.stderr).text();
-      throw ExecutionError.Compression.compression_failed({ stderr });
+      throw new Error(stderr);
     }
 
     return {

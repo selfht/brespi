@@ -147,7 +147,7 @@ export class FilesystemAdapter extends AbstractAdapter {
   private ensureOnlyFiles(artifacts: Artifact[]) {
     const nonFileArtifact = artifacts.find(({ type }) => type !== "file");
     if (nonFileArtifact) {
-      throw ExecutionError.Filesystem.encountered_non_file_artifact({ name: nonFileArtifact.name });
+      throw ExecutionError.invalid_non_file_artifact({ name: nonFileArtifact.name });
     }
   }
 
