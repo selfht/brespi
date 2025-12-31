@@ -4,42 +4,16 @@ import { describe } from "node:test";
 import { join } from "path";
 import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
+import { S3Boundary } from "./boundaries/S3Boundary";
 import { Common } from "./common/Common";
 import { EditorFlow } from "./flows/EditorFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
-import { S3Boundary } from "./boundaries/S3Boundary";
 
 describe("execution | filtering", () => {
   type TestCase = {
     artifacts: string[];
     filterCriteria: Step.FilterCriteria;
     expectedArtifacts: string[];
-  };
-  const testCase: Record<"exact" | "glob" | "regex", TestCase> = {
-    exact: {
-      artifacts: ["red.txt", "white.txt", "blue.txt"],
-      filterCriteria: {
-        method: "exact",
-        name: "blue.txt",
-      },
-      expectedArtifacts: ["blue.txt"].sort(),
-    },
-    glob: {
-      artifacts: ["unit-test.ts", "test-case.ts", "integration.ts", "pretest.ts", "production.ts"],
-      filterCriteria: {
-        method: "glob",
-        nameGlob: "*test*",
-      },
-      expectedArtifacts: ["unit-test.ts", "test-case.ts", "pretest.ts"].sort(),
-    },
-    regex: {
-      artifacts: ["alpha01", "beta99", "alpha1", "gamma01", "beta123"],
-      filterCriteria: {
-        method: "regex",
-        nameRegex: "^(alpha|beta)\\d{2}$",
-      },
-      expectedArtifacts: ["alpha01", "beta99"].sort(),
-    },
   };
 
   const inputDir = join(FilesystemBoundary.SCRATCH_PAD, "input");
@@ -49,42 +23,48 @@ describe("execution | filtering", () => {
     await ResetBoundary.reset({ request });
   });
 
-  describe("standalone filter step", () => {
-    const createPipelineFn = createStandaloneFilterPipeline;
-    test("standalone : exact", async ({ page }) => {
-      await performFilterTest({ page, createPipelineFn, testCase: testCase.exact });
-    });
-    test("standalone : glob", async ({ page }) => {
-      await performFilterTest({ page, createPipelineFn, testCase: testCase.glob });
-    });
-    test("standalone : regex", async ({ page }) => {
-      await performFilterTest({ page, createPipelineFn, testCase: testCase.regex });
-    });
-  });
-
-  describe("filesystem step w/ filter", () => {
-    const createPipelineFn = createFilesystemReadFilterPipeline;
-    test("filesys : exact", async ({ page }) => {
-      await performFilterTest({ page, createPipelineFn, testCase: testCase.exact });
-    });
-    test("filesys : glob", async ({ page }) => {
-      await performFilterTest({ page, createPipelineFn, testCase: testCase.glob });
-    });
-    test("filesys : regex", async ({ page }) => {
-      await performFilterTest({ page, createPipelineFn, testCase: testCase.regex });
+  test("standalone filter step [method = exact]", async ({ page }) => {
+    await performFilterTest({
+      page,
+      createPipelineFn: createStandaloneFilterPipeline,
+      testCase: {
+        artifacts: ["red.txt", "white.txt", "blue.txt"],
+        filterCriteria: {
+          method: "exact",
+          name: "blue.txt",
+        },
+        expectedArtifacts: ["blue.txt"].sort(),
+      },
     });
   });
 
-  describe("s3 step w/ filter", () => {
-    const createPipelineFn = createS3DownloadFilterPipeline;
-    test("s3 : exact", async ({ page }) => {
-      await performFilterTest({ page, createPipelineFn, testCase: testCase.exact });
+  test("filesystem step w/ filter [method = glob]", async ({ page }) => {
+    await performFilterTest({
+      page,
+      createPipelineFn: createFilesystemReadFilterPipeline,
+      testCase: {
+        artifacts: ["unit-test.ts", "test-case.ts", "integration.ts", "pretest.ts", "production.ts"],
+        filterCriteria: {
+          method: "glob",
+          nameGlob: "*test*",
+        },
+        expectedArtifacts: ["unit-test.ts", "test-case.ts", "pretest.ts"].sort(),
+      },
     });
-    test("s3 : glob", async ({ page }) => {
-      await performFilterTest({ page, createPipelineFn, testCase: testCase.glob });
-    });
-    test("s3 : regex", async ({ page }) => {
-      await performFilterTest({ page, createPipelineFn, testCase: testCase.regex });
+  });
+
+  test("s3 step w/ filter [method = regex]", async ({ page }) => {
+    await performFilterTest({
+      page,
+      createPipelineFn: createS3DownloadFilterPipeline,
+      testCase: {
+        artifacts: ["alpha01", "beta99", "alpha1", "gamma01", "beta123"],
+        filterCriteria: {
+          method: "regex",
+          nameRegex: "^(alpha|beta)\\d{2}$",
+        },
+        expectedArtifacts: ["alpha01", "beta99"].sort(),
+      },
     });
   });
 
@@ -93,6 +73,7 @@ describe("execution | filtering", () => {
     createPipelineFn: (page: Page, fc: Step.FilterCriteria) => Promise<unknown>;
     testCase: TestCase;
   };
+
   async function performFilterTest({ page, createPipelineFn, testCase }: Options) {
     // given
     for (const artifact of testCase.artifacts) {

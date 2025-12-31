@@ -135,74 +135,74 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
                   />
                 </div>
               )}
-            </>
-          ) : null}
-          <div className="flex items-center">
-            <label htmlFor={Field.filterCriteria} className="w-72">
-              Use filter?
-            </label>
-            <select id={Field.filterCriteria} className="rounded p-2 bg-c-dim/20" {...register(Field.filterCriteria)}>
-              <option value="true">yes</option>
-              <option value="false">no</option>
-            </select>
-          </div>
-          {filterCriteria === "true" ? (
-            <>
               <div className="flex items-center">
-                <label htmlFor={Field.filterCriteria_method} className="w-72">
-                  <span className="text-c-dim">Filter:</span> method
+                <label htmlFor={Field.filterCriteria} className="w-72">
+                  Use filter?
                 </label>
-                <select
-                  id={Field.filterCriteria_method}
-                  className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                  {...register(Field.filterCriteria_method)}
-                >
-                  {filterCriteriaMethodOptions.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
+                <select id={Field.filterCriteria} className="rounded p-2 bg-c-dim/20" {...register(Field.filterCriteria)}>
+                  <option value="true">yes</option>
+                  <option value="false">no</option>
                 </select>
               </div>
-              {filterCriteriaMethod === "exact" && (
-                <div className="flex items-center">
-                  <label htmlFor={Field.filterCriteria_name} className="w-72">
-                    <span className="text-c-dim">Filter:</span> name
-                  </label>
-                  <input
-                    id={Field.filterCriteria_name}
-                    type="text"
-                    className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                    {...register(Field.filterCriteria_name)}
-                  />
-                </div>
-              )}
-              {filterCriteriaMethod === "glob" && (
-                <div className="flex items-center">
-                  <label htmlFor={Field.filterCriteria_nameGlob} className="w-72">
-                    <span className="text-c-dim">Filter:</span> name glob
-                  </label>
-                  <input
-                    id={Field.filterCriteria_nameGlob}
-                    type="text"
-                    className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                    {...register(Field.filterCriteria_nameGlob)}
-                  />
-                </div>
-              )}
-              {filterCriteriaMethod === "regex" && (
-                <div className="flex items-center">
-                  <label htmlFor={Field.filterCriteria_nameRegex} className="w-72">
-                    <span className="text-c-dim">Filter:</span> name regex
-                  </label>
-                  <input
-                    id={Field.filterCriteria_nameRegex}
-                    type="text"
-                    className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                    {...register(Field.filterCriteria_nameRegex)}
-                  />
-                </div>
-              )}
+              {filterCriteria === "true" ? (
+                <>
+                  <div className="flex items-center">
+                    <label htmlFor={Field.filterCriteria_method} className="w-72">
+                      <span className="text-c-dim">Filter:</span> method
+                    </label>
+                    <select
+                      id={Field.filterCriteria_method}
+                      className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+                      {...register(Field.filterCriteria_method)}
+                    >
+                      {filterCriteriaMethodOptions.map((value) => (
+                        <option key={value} value={value}>
+                          {value}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {filterCriteriaMethod === "exact" && (
+                    <div className="flex items-center">
+                      <label htmlFor={Field.filterCriteria_name} className="w-72">
+                        <span className="text-c-dim">Filter:</span> name
+                      </label>
+                      <input
+                        id={Field.filterCriteria_name}
+                        type="text"
+                        className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+                        {...register(Field.filterCriteria_name)}
+                      />
+                    </div>
+                  )}
+                  {filterCriteriaMethod === "glob" && (
+                    <div className="flex items-center">
+                      <label htmlFor={Field.filterCriteria_nameGlob} className="w-72">
+                        <span className="text-c-dim">Filter:</span> name glob
+                      </label>
+                      <input
+                        id={Field.filterCriteria_nameGlob}
+                        type="text"
+                        className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+                        {...register(Field.filterCriteria_nameGlob)}
+                      />
+                    </div>
+                  )}
+                  {filterCriteriaMethod === "regex" && (
+                    <div className="flex items-center">
+                      <label htmlFor={Field.filterCriteria_nameRegex} className="w-72">
+                        <span className="text-c-dim">Filter:</span> name regex
+                      </label>
+                      <input
+                        id={Field.filterCriteria_nameRegex}
+                        type="text"
+                        className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+                        {...register(Field.filterCriteria_nameRegex)}
+                      />
+                    </div>
+                  )}
+                </>
+              ) : null}
             </>
           ) : null}
         </fieldset>
