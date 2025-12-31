@@ -1,14 +1,11 @@
 import { AdapterService } from "@/adapters/AdapterService";
+import { Env } from "@/Env";
 import { Execution } from "@/models/Execution";
 import { Pipeline } from "@/models/Pipeline";
-import { ExecutionRepository } from "@/repositories/ExecutionRepository";
 import { GenericInMemoryRepository } from "@/repositories/implementations/GenericInMemoryRepository";
-import { PipelineRepositoryDefault } from "@/repositories/implementations/PipelineRepositoryDefault";
 import { mock, Mock } from "bun:test";
-import { CommandRunner } from "./CommandRunner";
-import { Env } from "@/Env";
 import { join } from "path";
-import { PipelineRepository } from "@/repositories/PipelineRepository";
+import { CommandRunner } from "./CommandRunner";
 
 export namespace Test {
   export type Mocked<T> = {
@@ -62,6 +59,28 @@ export namespace Test {
     }
 
     return cwd;
+  }
+
+  type Collection<T> = {
+    testCases: string[];
+    get: (key: string) => T;
+  };
+  export function createCollection<T>(keyProp: keyof T, testCases: T[]): Collection<T> {
+    const collection = new Map<string, T>();
+    testCases.forEach((testCase) => {
+      let key = "";
+      for (let i = 0; true; i++) {
+        key = i === 0 ? `${testCase[keyProp]}` : `${testCase[keyProp]} (${i + 1})`;
+        if (!collection.has(key)) {
+          break;
+        }
+      }
+      collection.set(key, testCase);
+    });
+    return {
+      testCases: [...collection.keys()],
+      get: (key) => collection.get(key)!,
+    };
   }
 
   export class MockRegistry {

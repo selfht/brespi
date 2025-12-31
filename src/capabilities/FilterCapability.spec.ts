@@ -2,67 +2,55 @@ import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { describe, expect, it } from "bun:test";
 import { FilterCapability } from "./FilterCapability";
+import { Test } from "@/helpers/Test.spec";
 
 describe(FilterCapability.name, () => {
   const capability = new FilterCapability();
 
-  function applyFilter(artifacts: string[], criteria: Step.FilterCriteria): string[] {
-    const actualArtifacts = artifacts.map<Artifact>((name) => ({
-      id: `${Math.random()}`,
-      type: "file",
-      name,
-      path: "does/not/matter",
-      size: 10,
-    }));
-    const { predicate } = capability.createPredicate(criteria);
-    return actualArtifacts.filter(predicate).map(({ name }) => name);
-  }
-
   describe("exact filtering", () => {
-    it("matches exact name", () => {
-      // given
-      const artifacts = ["backup-db", "backup-files", "backup-db-copy"];
-      // when
-      const filtered = applyFilter(artifacts, {
-        method: "exact",
+    const collection = Test.createCollection<{
+      description: string;
+      artifacts: string[];
+      name: string;
+      expectation: string[];
+    }>("description", [
+      {
+        description: "matches exact name",
+        artifacts: ["backup-db", "backup-files", "backup-db-copy"],
         name: "backup-db",
-      });
-      // then
-      expect(filtered).toEqual(["backup-db"]);
-    });
-
-    it("returns empty array when no exact match", async () => {
-      // given
-      const artifacts = ["backup-db", "backup-files"];
-      // when
-      const filtered = applyFilter(artifacts, {
-        method: "exact",
+        expectation: ["backup-db"],
+      },
+      {
+        description: "returns empty array when no exact match",
+        artifacts: ["backup-db", "backup-files"],
         name: "not-found",
-      });
-      // then
-      expect(filtered).toEqual([]);
-    });
-
-    it("matches multiple artifacts with same name", async () => {
-      // given
-      const artifacts = ["backup", "backup", "restore"];
+        expectation: [],
+      },
+      {
+        description: "matches multiple artifacts with the same name",
+        artifacts: ["backup", "backup", "restore"],
+        name: "backup",
+        expectation: ["backup", "backup"],
+      },
+    ]);
+    it.each(collection.testCases)("%s", async (testCase) => {
+      const { artifacts, name, expectation } = collection.get(testCase);
       // when
       const filtered = applyFilter(artifacts, {
         method: "exact",
-        name: "backup",
+        name,
       });
       // then
-      expect(filtered).toHaveLength(2);
+      expect(filtered).toEqual(expectation);
     });
   });
 
   describe("glob filtering", () => {
-    type GlobTestCase = {
+    const collection = Test.createCollection<{
       pattern: string;
       artifacts: string[];
       expectation: string[];
-    };
-    it.each<GlobTestCase>([
+    }>("pattern", [
       // Simple tests
       { pattern: "*ll*", artifacts: ["hello", "goodbye"], expectation: ["hello"] },
       { pattern: "*e*", artifacts: ["hello", "goodbye"], expectation: ["hello", "goodbye"] },
@@ -112,7 +100,9 @@ describe(FilterCapability.name, () => {
       // Edge cases
       { pattern: "", artifacts: ["", "something"], expectation: [""] },
       { pattern: "???", artifacts: ["abc", "ab", "abcd"], expectation: ["abc"] },
-    ])("glob: '$pattern' with $names", async ({ pattern, artifacts, expectation }) => {
+    ]);
+    it.each(collection.testCases)("matches: %s", async (testCase) => {
+      const { artifacts, pattern, expectation } = collection.get(testCase);
       // when
       const filtered = applyFilter(artifacts, {
         method: "glob",
@@ -124,52 +114,58 @@ describe(FilterCapability.name, () => {
   });
 
   describe("regex filtering", () => {
-    it("matches with simple regex", async () => {
-      // given
-      const artifacts = ["backup-01", "backup-02", "restore-01"];
-      // when
-      const filtered = applyFilter(artifacts, {
-        method: "regex",
+    const collection = Test.createCollection<{
+      description: string;
+      artifacts: string[];
+      nameRegex: string;
+      expectation: string[];
+    }>("description", [
+      {
+        description: "matches with simple regex",
+        artifacts: ["backup-01", "backup-02", "restore-01"],
         nameRegex: "^backup-\\d+$",
-      });
-      // then
-      expect(filtered).toEqual(["backup-01", "backup-02"]);
-    });
-
-    it("matches with complex regex", async () => {
-      // given
-      const artifacts = ["file-2024-01-01.tar", "file-2024-12-31.tar", "file-invalid.tar"];
-      // when
-      const filtered = applyFilter(artifacts, {
-        method: "regex",
+        expectation: ["backup-01", "backup-02"],
+      },
+      {
+        description: "matches with complex regex",
+        artifacts: ["file-2024-01-01.tar", "file-2024-12-31.tar", "file-invalid.tar"],
         nameRegex: "^file-\\d{4}-\\d{2}-\\d{2}\\.tar$",
-      });
-      // then
-      expect(filtered).toEqual(["file-2024-01-01.tar", "file-2024-12-31.tar"]);
-    });
-
-    it("case-sensitive by default", async () => {
-      // given
-      const artifacts = ["Backup", "backup", "BACKUP"];
-      // when
-      const filtered = applyFilter(artifacts, {
-        method: "regex",
+        expectation: ["file-2024-01-01.tar", "file-2024-12-31.tar"],
+      },
+      {
+        description: "case-sensitive by default",
+        artifacts: ["Backup", "backup", "BACKUP"],
         nameRegex: "^backup$",
-      });
-      // then
-      expect(filtered).toEqual(["backup"]);
-    });
-
-    it("partial match without anchors", async () => {
-      // given
-      const artifacts = ["backup-db", "db-backup", "restore"];
+        expectation: ["backup"],
+      },
+      {
+        description: "partial match without anchors",
+        artifacts: ["backup-db", "db-backup", "restore"],
+        nameRegex: "backup",
+        expectation: ["backup-db", "db-backup"],
+      },
+    ]);
+    it.each(collection.testCases)("%s", async (testCase) => {
+      const { artifacts, nameRegex, expectation } = collection.get(testCase);
       // when
       const filtered = applyFilter(artifacts, {
         method: "regex",
-        nameRegex: "backup",
+        nameRegex,
       });
       // then
-      expect(filtered).toEqual(["backup-db", "db-backup"]);
+      expect(filtered).toEqual(expectation);
     });
   });
+
+  function applyFilter(artifacts: string[], criteria: Step.FilterCriteria): string[] {
+    const actualArtifacts = artifacts.map<Artifact>((name) => ({
+      id: `${Math.random()}`,
+      type: "file",
+      name,
+      path: "does/not/matter",
+      size: 10,
+    }));
+    const { predicate } = capability.createPredicate(criteria);
+    return actualArtifacts.filter(predicate).map(({ name }) => name);
+  }
 });

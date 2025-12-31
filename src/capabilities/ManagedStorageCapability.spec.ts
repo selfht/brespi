@@ -3,6 +3,7 @@ import { describe, expect, it } from "bun:test";
 import { ArtifactIndex } from "@/models/versioning/ArtifactIndex";
 import { Temporal } from "@js-temporal/polyfill";
 import { ManagedStorageCapability } from "./ManagedStorageCapability";
+import { Test } from "@/helpers/Test.spec";
 
 describe(ManagedStorageCapability.name, () => {
   const Regex = {
@@ -105,13 +106,12 @@ describe(ManagedStorageCapability.name, () => {
       }
     });
 
-    type BaseFolderTestCase = {
+    const collection = Test.createCollection<{
       baseFolder: string;
       expectation: {
         itemPathMatcher: RegExp;
       };
-    };
-    it.each<BaseFolderTestCase>([
+    }>("baseFolder", [
       {
         baseFolder: "",
         expectation: {
@@ -142,7 +142,9 @@ describe(ManagedStorageCapability.name, () => {
           itemPathMatcher: new RegExp(`^/backups/postgres/${Regex.TIMESTAMP_FOLDER}/.+`),
         },
       },
-    ])("correctly relativizes generated files to the base folder", ({ baseFolder, expectation }) => {
+    ]);
+    it.each(collection.testCases)("relativizes generated files to base folder: %s", (testCase) => {
+      const { baseFolder, expectation } = collection.get(testCase);
       // given
       const options: ManagedStorageCapability.PrepareInsertionOptions = {
         baseFolder,
@@ -355,7 +357,7 @@ describe(ManagedStorageCapability.name, () => {
       expect(selectableArtifactsFn({ manifest })).rejects.toThrow("Specific item could not be identified uniquely; matches=2");
     });
 
-    type BaseFolderTestCase = {
+    const collection = Test.createCollection<{
       baseFolder: string;
       manifest: {
         singleArtifactIndexPath: string;
@@ -363,8 +365,7 @@ describe(ManagedStorageCapability.name, () => {
       expectation: {
         artifactPathPrefix: string;
       };
-    };
-    it.each<BaseFolderTestCase>([
+    }>("baseFolder", [
       {
         baseFolder: "",
         manifest: {
@@ -410,35 +411,38 @@ describe(ManagedStorageCapability.name, () => {
           artifactPathPrefix: `/backups/postgres/${Timestamp.PRESENT}-abc`,
         },
       },
-    ])(
-      "correctly relativizes selected artifacts to the base folder",
-      async ({ baseFolder, manifest: { singleArtifactIndexPath }, expectation }) => {
-        // given
-        const manifest: Manifest = {
-          object: "manifest",
-          items: [
-            {
-              isoTimestamp: Timestamp.PRESENT,
-              artifactIndexPath: singleArtifactIndexPath,
-            },
-          ],
-        };
-        const artifactIndex: ArtifactIndex = {
-          object: "artifact_index",
-          artifacts: [{ path: "test-file.txt", trail: [] }],
-        };
-        // when
-        const { selectableArtifactsFn } = capability.prepareSelection({
-          configuration: { target: "latest" },
-          storageReaderFn: () => Promise.resolve(artifactIndex),
-          baseFolder,
-        });
-        const artifacts = await selectableArtifactsFn({ manifest });
-        // then
-        expect(artifacts).toHaveLength(1);
-        expect(artifacts[0].path).toEqual(`${expectation.artifactPathPrefix}/test-file.txt`);
-        expect(artifacts[0].name).toEqual("test-file.txt");
-      },
-    );
+    ]);
+    it.each(collection.testCases)("relativizes selected artifacts to base folder: %s", async (testCase) => {
+      const {
+        baseFolder,
+        manifest: { singleArtifactIndexPath },
+        expectation,
+      } = collection.get(testCase);
+      // given
+      const manifest: Manifest = {
+        object: "manifest",
+        items: [
+          {
+            isoTimestamp: Timestamp.PRESENT,
+            artifactIndexPath: singleArtifactIndexPath,
+          },
+        ],
+      };
+      const artifactIndex: ArtifactIndex = {
+        object: "artifact_index",
+        artifacts: [{ path: "test-file.txt", trail: [] }],
+      };
+      // when
+      const { selectableArtifactsFn } = capability.prepareSelection({
+        configuration: { target: "latest" },
+        storageReaderFn: () => Promise.resolve(artifactIndex),
+        baseFolder,
+      });
+      const artifacts = await selectableArtifactsFn({ manifest });
+      // then
+      expect(artifacts).toHaveLength(1);
+      expect(artifacts[0].path).toEqual(`${expectation.artifactPathPrefix}/test-file.txt`);
+      expect(artifacts[0].name).toEqual("test-file.txt");
+    });
   });
 });
