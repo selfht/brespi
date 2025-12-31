@@ -1,5 +1,7 @@
 import { Env } from "@/Env";
+import { ExecutionError } from "@/errors/ExecutionError";
 import { Generate } from "@/helpers/Generate";
+import { stat } from "fs/promises";
 import { mkdir } from "fs/promises";
 
 export abstract class AbstractAdapter {
@@ -30,8 +32,32 @@ export abstract class AbstractAdapter {
   protected readEnvironmentVariable(reference: string): string {
     const value = process.env[reference];
     if (!value) {
-      throw new Error(`Missing environment variable: ${reference}`);
+      throw ExecutionError.environment_variable_missing({ name: reference });
     }
     return value;
+  }
+
+  // Overload signatures
+  protected async requireFilesystemExistence<T extends "file" | "directory">(path: string, expectedType: T): Promise<{ type: T }>;
+  protected async requireFilesystemExistence(path: string): Promise<{ type: "file" | "directory" }>;
+  protected async requireFilesystemExistence(path: string, expectedType?: "file" | "directory"): Promise<{ type: "file" | "directory" }> {
+    try {
+      const s = await stat(path);
+      const actualType = s.isFile() ? "file" : "directory";
+      // Validate type if expected type was provided
+      if (expectedType && actualType !== expectedType) {
+        throw ExecutionError.filesystem_item_type_invalid({
+          path,
+          expected: expectedType,
+          actual: actualType,
+        });
+      }
+      return { type: actualType };
+    } catch (err: any) {
+      if (err.code === "ENOENT") {
+        throw ExecutionError.filesystem_item_does_not_exist({ path });
+      }
+      throw err; // real error (permissions, etc.)
+    }
   }
 }

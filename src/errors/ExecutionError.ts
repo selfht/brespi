@@ -4,6 +4,9 @@ export class ExecutionError {
   public static readonly GROUP = "EXECUTION";
   public static readonly not_found: Exception.Fn;
   public static readonly already_exists: Exception.Fn;
+  public static readonly environment_variable_missing: Exception.Fn;
+  public static readonly filesystem_item_does_not_exist: Exception.Fn;
+  public static readonly filesystem_item_type_invalid: Exception.Fn;
 
   static {
     Exception.initializeFields(this);

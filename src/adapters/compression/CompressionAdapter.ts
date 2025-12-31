@@ -65,11 +65,11 @@ export class CompressionAdapter extends AbstractAdapter {
       const { outputId, outputPath } = this.generateArtifactDestination();
       await rename(singleChildPath, outputPath);
 
-      const stats = await stat(outputPath);
+      const stats = await this.requireFilesystemExistence(outputPath);
       const name = this.stripExtension(artifact.name, this.EXTENSION);
       return {
         id: outputId,
-        type: stats.isFile() ? "file" : "directory",
+        type: stats.type,
         path: outputPath,
         name,
       };

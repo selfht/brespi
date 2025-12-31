@@ -89,15 +89,14 @@ export class FilesystemAdapter extends AbstractAdapter {
       return artifacts;
     } else {
       const { outputId, outputPath } = this.generateArtifactDestination();
+      const stats = await this.requireFilesystemExistence(step.fileOrFolder);
       await cp(step.fileOrFolder, outputPath, { recursive: true });
-      const stats = await stat(outputPath);
-      const name = basename(step.fileOrFolder);
       return [
         {
           id: outputId,
-          type: stats.isFile() ? "file" : "directory",
+          type: stats.type,
           path: outputPath,
-          name,
+          name: basename(step.fileOrFolder),
         },
       ];
     }
