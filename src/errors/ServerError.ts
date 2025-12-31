@@ -1,7 +1,7 @@
 import { Exception } from "./exception/Exception";
 
 export class ServerError {
-  public static readonly NS = "SERVER";
+  public static readonly NS = "Server";
   public static readonly unknown: Exception.Fn;
   public static readonly socket_upgrade_failed: Exception.Fn;
   public static readonly route_not_found: Exception.Fn;

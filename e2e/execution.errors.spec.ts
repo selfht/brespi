@@ -36,7 +36,7 @@ describe("execution | errors", () => {
     });
     await ExecutionFlow.executePipeline(page, { expectedOutcome: "error" });
     // then
-    const error = `EXECUTION::artifact_type_invalid {
+    const error = `Execution::artifact_type_invalid {
       "name": "mydir",
       "type": "directory"
     }`;
@@ -65,7 +65,7 @@ describe("execution | errors", () => {
     });
     await ExecutionFlow.executePipeline(page, { expectedOutcome: "error" });
     // then
-    const error = `EXECUTION::SCRIPT::nonzero_exit {
+    const error = `Execution::Script::nonzero_exit {
       "exitCode": 1,
       "stdall": "Thriving in STDOUT ...\\n... but suffering in STDERR\\n"
     }`;
