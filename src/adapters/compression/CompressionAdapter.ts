@@ -1,5 +1,5 @@
 import { Env } from "@/Env";
-import { AdapterError } from "@/errors/AdapterError";
+import { ExecutionError } from "@/errors/ExecutionError";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { spawn } from "bun";
@@ -29,7 +29,7 @@ export class CompressionAdapter extends AbstractAdapter {
     await proc.exited;
     if (proc.exitCode !== 0) {
       const stderr = await new Response(proc.stderr).text();
-      throw AdapterError.Compression.compression_failed({ stderr });
+      throw ExecutionError.Compression.compression_failed({ stderr });
     }
 
     return {
@@ -42,7 +42,7 @@ export class CompressionAdapter extends AbstractAdapter {
 
   public async decompress(artifact: Artifact, step: Step.Decompression): Promise<Artifact> {
     if (artifact.type !== "file") {
-      throw AdapterError.Compression.unsupported_artifact_type({ type: artifact.type });
+      throw ExecutionError.Compression.unsupported_artifact_type({ type: artifact.type });
     }
 
     const inputPath = artifact.path;
@@ -58,7 +58,7 @@ export class CompressionAdapter extends AbstractAdapter {
       await proc.exited;
       if (proc.exitCode !== 0) {
         const stderr = await new Response(proc.stderr).text();
-        throw AdapterError.Compression.decompression_failed({ stderr });
+        throw ExecutionError.Compression.decompression_failed({ stderr });
       }
 
       const singleChildPath = await this.findSingleChildPathWithinDirectory(tempPath);
@@ -81,10 +81,10 @@ export class CompressionAdapter extends AbstractAdapter {
   private async findSingleChildPathWithinDirectory(dirPath: string): Promise<string> {
     const children = await readdir(dirPath);
     if (children.length === 0) {
-      throw AdapterError.Compression.directory_is_empty({ dirPath });
+      throw ExecutionError.Compression.directory_is_empty({ dirPath });
     }
     if (children.length > 1) {
-      throw AdapterError.Compression.directory_contains_multiple_children({
+      throw ExecutionError.Compression.directory_contains_multiple_children({
         dirPath,
         childCount: children.length,
       });

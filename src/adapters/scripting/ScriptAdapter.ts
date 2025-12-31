@@ -1,5 +1,5 @@
 import { Env } from "@/Env";
-import { AdapterError } from "@/errors/AdapterError";
+import { ExecutionError } from "@/errors/ExecutionError";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { spawn } from "bun";
@@ -29,7 +29,7 @@ export class ScriptAdapter extends AbstractAdapter {
       });
       return await this.readArtifactsFromDirectory(artifactsOut);
     } catch (error) {
-      throw AdapterError.Script.execution_failed({
+      throw ExecutionError.Script.execution_failed({
         message: error instanceof Error ? error.message : String(error)
       });
     } finally {
@@ -54,7 +54,7 @@ export class ScriptAdapter extends AbstractAdapter {
     await proc.exited;
     const output = await new Response(proc.stdout).text();
     if (proc.exitCode !== 0) {
-      throw AdapterError.Script.script_exited_with_error({ exitCode: proc.exitCode, output });
+      throw ExecutionError.Script.script_exited_with_error({ exitCode: proc.exitCode, output });
     }
   }
 

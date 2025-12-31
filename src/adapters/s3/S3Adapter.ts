@@ -1,6 +1,6 @@
 import { ManagedStorageCapability } from "@/capabilities/ManagedStorageCapability";
 import { Env } from "@/Env";
-import { AdapterError } from "@/errors/AdapterError";
+import { ExecutionError } from "@/errors/ExecutionError";
 import { Mutex } from "@/helpers/Mutex";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
@@ -77,7 +77,7 @@ export class S3Adapter extends AbstractAdapter {
   private ensureOnlyFiles(artifacts: Artifact[]) {
     const nonFileArtifact = artifacts.find(({ type }) => type !== "file");
     if (nonFileArtifact) {
-      throw AdapterError.S3.encountered_non_file_artifact({ name: nonFileArtifact.name });
+      throw ExecutionError.S3.encountered_non_file_artifact({ name: nonFileArtifact.name });
     }
   }
 
