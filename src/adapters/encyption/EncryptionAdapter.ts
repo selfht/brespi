@@ -1,4 +1,5 @@
 import { Env } from "@/Env";
+import { AdapterError } from "@/errors/AdapterError";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
@@ -16,7 +17,7 @@ export class EncryptionAdapter extends AbstractAdapter {
 
   public async encrypt(artifact: Artifact, step: Step.Encryption): Promise<Artifact> {
     if (artifact.type !== "file") {
-      throw new Error(`Unsupported artifact type: ${artifact.type}`);
+      throw AdapterError.Encryption.unsupported_artifact_type({ type: artifact.type });
     }
     const key = this.readEnvironmentVariable(step.keyReference);
     const algorithm = this.translateAlgorithm(step.algorithm.implementation);
@@ -44,7 +45,7 @@ export class EncryptionAdapter extends AbstractAdapter {
 
   public async decrypt(artifact: Artifact, step: Step.Decryption): Promise<Artifact> {
     if (artifact.type !== "file") {
-      throw new Error(`Unsupported artifact type: ${artifact.type}`);
+      throw AdapterError.Encryption.unsupported_artifact_type({ type: artifact.type });
     }
     const key = this.readEnvironmentVariable(step.keyReference);
     const algorithm = this.translateAlgorithm(step.algorithm.implementation);
@@ -61,7 +62,7 @@ export class EncryptionAdapter extends AbstractAdapter {
       inputStream.once("readable", () => {
         const chunk = inputStream.read(16);
         if (!chunk || chunk.length !== 16) {
-          reject(new Error("Failed to read IV from encrypted file"));
+          reject(AdapterError.Encryption.failed_to_read_iv());
         } else {
           resolve(chunk);
         }
@@ -81,7 +82,7 @@ export class EncryptionAdapter extends AbstractAdapter {
 
   private translateAlgorithm(algorithm: string): string {
     if (algorithm !== "aes256cbc") {
-      throw new Error(`Unsupported algorithm: ${algorithm}`);
+      throw AdapterError.Encryption.unsupported_algorithm({ algorithm });
     }
     return "aes-256-cbc";
   }

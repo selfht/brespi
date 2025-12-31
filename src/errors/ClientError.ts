@@ -1,3 +1,6 @@
-import { Exception } from "@/errors/Exception";
+import { Exception } from "./exception/Exception";
 
-export const ClientError = Exception.createGroup("CLIENT", ["unknown"] as const);
+export class ClientError {
+  public static readonly GROUP = "CLIENT";
+  public static readonly unknown = Exception.for(this, "unknown");
+}

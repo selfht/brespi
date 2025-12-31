@@ -1,4 +1,5 @@
 import { Env } from "@/Env";
+import { AdapterError } from "@/errors/AdapterError";
 import { CommandRunner } from "@/helpers/CommandRunner";
 import { UrlParser } from "@/helpers/UrlParser";
 import { Artifact } from "@/models/Artifact";
@@ -44,7 +45,7 @@ export class PostgresAdapter extends AbstractAdapter {
         },
       });
       if (exitCode !== 0) {
-        throw new Error(`Script exited with code ${exitCode}: ${stderr}`);
+        throw AdapterError.Postgres.script_exited_with_error({ exitCode, stderr });
       }
 
       // Parse and validate the JSON output with Zod
@@ -87,7 +88,9 @@ export class PostgresAdapter extends AbstractAdapter {
       }
       return artifacts;
     } catch (error) {
-      throw new Error(`Backup failed: ${error instanceof Error ? error.message : String(error)}`);
+      throw AdapterError.Postgres.backup_failed({
+        message: error instanceof Error ? error.message : String(error)
+      });
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -95,11 +98,11 @@ export class PostgresAdapter extends AbstractAdapter {
 
   public async restore(artifacts: Artifact[], step: Step.PostgresRestore): Promise<void> {
     if (artifacts.length !== 1) {
-      throw new Error(`Restore requires exactly 1 artifact; amount=${artifacts.length}`);
+      throw AdapterError.Postgres.restore_requires_exactly_one_artifact({ amount: artifacts.length });
     }
     const artifact = artifacts[0];
     if (artifact.type !== "file") {
-      throw new Error(`Invalid artifact type: ${artifact.type}`);
+      throw AdapterError.Postgres.invalid_artifact_type({ type: artifact.type });
     }
 
     const scriptPath = join(import.meta.dir, "pg_restore.sh");
@@ -124,7 +127,7 @@ export class PostgresAdapter extends AbstractAdapter {
       });
 
       if (exitCode !== 0) {
-        throw new Error(`Script exited with code ${exitCode}: ${stderr}`);
+        throw AdapterError.Postgres.script_exited_with_error({ exitCode, stderr });
       }
 
       // Parse and validate the JSON output with Zod
@@ -133,7 +136,9 @@ export class PostgresAdapter extends AbstractAdapter {
         database: z.string(),
       }).parse(JSON.parse(stdout));
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : String(error));
+      throw AdapterError.Postgres.restore_failed({
+        message: error instanceof Error ? error.message : String(error)
+      });
     }
   }
 }

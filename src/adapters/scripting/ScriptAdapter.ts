@@ -1,4 +1,5 @@
 import { Env } from "@/Env";
+import { AdapterError } from "@/errors/AdapterError";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { spawn } from "bun";
@@ -28,7 +29,9 @@ export class ScriptAdapter extends AbstractAdapter {
       });
       return await this.readArtifactsFromDirectory(artifactsOut);
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : String(error));
+      throw AdapterError.Script.execution_failed({
+        message: error instanceof Error ? error.message : String(error)
+      });
     } finally {
       await Promise.all([
         rm(artifactsIn, { recursive: true, force: true }), //
@@ -51,7 +54,7 @@ export class ScriptAdapter extends AbstractAdapter {
     await proc.exited;
     const output = await new Response(proc.stdout).text();
     if (proc.exitCode !== 0) {
-      throw new Error(`Script exited with code ${proc.exitCode}:\n${output}`);
+      throw AdapterError.Script.script_exited_with_error({ exitCode: proc.exitCode, output });
     }
   }
 

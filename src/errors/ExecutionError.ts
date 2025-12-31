@@ -1,3 +1,7 @@
-import { Exception } from "@/errors/Exception";
+import { Exception } from "./exception/Exception";
 
-export const ExecutionError = Exception.createGroup("EXECUTION", ["not_found", "already_exists"] as const);
+export class ExecutionError {
+  public static readonly GROUP = "EXECUTION";
+  public static readonly not_found = Exception.for(this, "not_found");
+  public static readonly already_exists = Exception.for(this, "already_exists");
+}

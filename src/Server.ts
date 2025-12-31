@@ -1,5 +1,5 @@
 import { Env } from "@/Env";
-import { Exception } from "@/errors/Exception";
+import { Exception } from "@/errors/exception/Exception";
 import { ServerError } from "@/errors/ServerError";
 import index from "@/website/index.html";
 import { ErrorLike } from "bun";
@@ -38,9 +38,9 @@ export class Server {
           if (server.upgrade(request, { data: context })) {
             return new Response(null, { status: 200 });
           }
-          return Response.json(ServerError.socket_upgrade_failed());
+          return Response.json(ServerError.socket_upgrade_failed().json());
         }
-        return Response.json(ServerError.route_not_found());
+        return Response.json(ServerError.route_not_found().json());
       },
       websocket: {
         message: () => {
@@ -140,7 +140,7 @@ export class Server {
               await this.restrictedService.deleteAllPipelines();
               return new Response();
             }
-            return Response.json(ServerError.route_not_found());
+            return Response.json(ServerError.route_not_found().json());
           },
         },
       },
@@ -170,7 +170,7 @@ export class Server {
   private async handleError(e: ErrorLike): Promise<Response> {
     if (e.name === Exception.name) {
       const error = e as Exception;
-      if (ServerError.unauthorized.matches(error.problem) || ServerError.forbidden.matches(error.problem)) {
+      if (error.problem === "SERVER::unauthorized" || error.problem === "SERVER::forbidden") {
         return Response.json(error.json(), {
           status: 401,
           headers: { "www-authenticate": "basic" },

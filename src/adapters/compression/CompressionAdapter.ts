@@ -1,4 +1,5 @@
 import { Env } from "@/Env";
+import { AdapterError } from "@/errors/AdapterError";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { spawn } from "bun";
@@ -28,7 +29,7 @@ export class CompressionAdapter extends AbstractAdapter {
     await proc.exited;
     if (proc.exitCode !== 0) {
       const stderr = await new Response(proc.stderr).text();
-      throw new Error(`Failed to compress: ${stderr}`);
+      throw AdapterError.Compression.compression_failed({ stderr });
     }
 
     return {
@@ -41,7 +42,7 @@ export class CompressionAdapter extends AbstractAdapter {
 
   public async decompress(artifact: Artifact, step: Step.Decompression): Promise<Artifact> {
     if (artifact.type !== "file") {
-      throw new Error(`Unsupported artifact type: ${artifact.type}`);
+      throw AdapterError.Compression.unsupported_artifact_type({ type: artifact.type });
     }
 
     const inputPath = artifact.path;
@@ -57,7 +58,7 @@ export class CompressionAdapter extends AbstractAdapter {
       await proc.exited;
       if (proc.exitCode !== 0) {
         const stderr = await new Response(proc.stderr).text();
-        throw new Error(`Failed to decompress: ${stderr}`);
+        throw AdapterError.Compression.decompression_failed({ stderr });
       }
 
       const singleChildPath = await this.findSingleChildPathWithinDirectory(tempPath);
@@ -80,10 +81,13 @@ export class CompressionAdapter extends AbstractAdapter {
   private async findSingleChildPathWithinDirectory(dirPath: string): Promise<string> {
     const children = await readdir(dirPath);
     if (children.length === 0) {
-      throw new Error(`Directory is empty: ${dirPath}`);
+      throw AdapterError.Compression.directory_is_empty({ dirPath });
     }
     if (children.length > 1) {
-      throw new Error(`Directory contains more than one child: ${dirPath} (found ${children.length} children)`);
+      throw AdapterError.Compression.directory_contains_multiple_children({
+        dirPath,
+        childCount: children.length,
+      });
     }
     return join(dirPath, children[0]);
   }
