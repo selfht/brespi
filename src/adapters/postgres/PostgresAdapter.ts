@@ -101,9 +101,7 @@ export class PostgresAdapter extends AbstractAdapter {
       throw ExecutionError.Postgres.restore_requires_exactly_one_artifact({ amount: artifacts.length });
     }
     const artifact = artifacts[0];
-    if (artifact.type !== "file") {
-      throw ExecutionError.invalid_artifact_type({ name: artifact.name, type: artifact.type });
-    }
+    this.requireArtifactType("file", artifact);
 
     const scriptPath = join(import.meta.dir, "pg_restore.sh");
     const { username, password, host, port } = UrlParser.postgres(this.readEnvironmentVariable(step.connectionReference));

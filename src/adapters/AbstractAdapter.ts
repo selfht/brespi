@@ -1,6 +1,7 @@
 import { Env } from "@/Env";
 import { ExecutionError } from "@/errors/ExecutionError";
 import { Generate } from "@/helpers/Generate";
+import { Artifact } from "@/models/Artifact";
 import { stat } from "fs/promises";
 import { mkdir } from "fs/promises";
 
@@ -35,6 +36,13 @@ export abstract class AbstractAdapter {
       throw ExecutionError.environment_variable_missing({ name: reference });
     }
     return value;
+  }
+
+  protected requireArtifactType(requiredType: Artifact["type"], ...artifacts: Artifact[]): void {
+    const badArtifact = artifacts.find((a) => a.type !== requiredType);
+    if (badArtifact) {
+      throw ExecutionError.artifact_type_invalid({ name: badArtifact.name, type: badArtifact.type });
+    }
   }
 
   // Overload signatures

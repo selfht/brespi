@@ -9,7 +9,7 @@ export class ExecutionError {
   public static readonly environment_variable_missing: Exception.Fn;
   public static readonly filesystem_item_does_not_exist: Exception.Fn;
   public static readonly filesystem_item_type_invalid: Exception.Fn;
-  public static readonly invalid_artifact_type: Exception.Fn;
+  public static readonly artifact_type_invalid: Exception.Fn;
 
   static {
     Exception.initializeFields(this);

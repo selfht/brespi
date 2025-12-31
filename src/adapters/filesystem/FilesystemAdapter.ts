@@ -24,7 +24,7 @@ export class FilesystemAdapter extends AbstractAdapter {
    * Write artifacts from pipeline to a directory on filesystem
    */
   public async write(artifacts: Artifact[], step: Step.FilesystemWrite, trail: TrailStep[]): Promise<void> {
-    this.ensureOnlyFiles(artifacts);
+    this.requireArtifactType("file", ...artifacts);
     await mkdir(step.folder, { recursive: true });
     if (step.managedStorage) {
       const { manifestModifier, artifactIndex, insertableArtifacts } = this.managedStorageCapability.prepareInsertion({
@@ -141,13 +141,6 @@ export class FilesystemAdapter extends AbstractAdapter {
       return await fn(manifestContent, saveFn);
     } finally {
       release();
-    }
-  }
-
-  private ensureOnlyFiles(artifacts: Artifact[]) {
-    const nonFileArtifact = artifacts.find(({ type }) => type !== "file");
-    if (nonFileArtifact) {
-      throw ExecutionError.invalid_artifact_type({ name: nonFileArtifact.name, type: nonFileArtifact.type });
     }
   }
 

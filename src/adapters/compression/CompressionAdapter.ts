@@ -35,9 +35,7 @@ export class CompressionAdapter extends AbstractAdapter {
   }
 
   public async decompress(artifact: Artifact, step: Step.Decompression): Promise<Artifact> {
-    if (artifact.type !== "file") {
-      throw ExecutionError.invalid_artifact_type({ name: artifact.name, type: artifact.type });
-    }
+    this.requireArtifactType("file", artifact);
     const inputPath = artifact.path;
     const tempPath = await this.createTmpDestination();
     try {

@@ -21,7 +21,7 @@ export class S3Adapter extends AbstractAdapter {
   }
 
   public async upload(artifacts: Artifact[], { baseFolder, ...step }: Step.S3Upload, trail: TrailStep[]): Promise<void> {
-    this.ensureOnlyFiles(artifacts);
+    this.requireArtifactType("file", ...artifacts);
     baseFolder = this.relativize(baseFolder);
     const client = this.constructClient(step.connection);
     const { manifestModifier, artifactIndex, insertableArtifacts } = this.managedStorageCapability.prepareInsertion({
@@ -72,13 +72,6 @@ export class S3Adapter extends AbstractAdapter {
       });
     }
     return artifacts;
-  }
-
-  private ensureOnlyFiles(artifacts: Artifact[]) {
-    const nonFileArtifact = artifacts.find(({ type }) => type !== "file");
-    if (nonFileArtifact) {
-      throw ExecutionError.invalid_artifact_type({ name: nonFileArtifact.name, type: nonFileArtifact.type });
-    }
   }
 
   /**

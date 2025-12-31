@@ -16,9 +16,7 @@ export class EncryptionAdapter extends AbstractAdapter {
   }
 
   public async encrypt(artifact: Artifact, step: Step.Encryption): Promise<Artifact> {
-    if (artifact.type !== "file") {
-      throw ExecutionError.invalid_artifact_type({ name: artifact.name, type: artifact.type });
-    }
+    this.requireArtifactType("file", artifact);
     const key = this.readEnvironmentVariable(step.keyReference);
     const algorithm = this.translateAlgorithm(step.algorithm.implementation);
 
@@ -44,9 +42,7 @@ export class EncryptionAdapter extends AbstractAdapter {
   }
 
   public async decrypt(artifact: Artifact, step: Step.Decryption): Promise<Artifact> {
-    if (artifact.type !== "file") {
-      throw ExecutionError.invalid_artifact_type({ name: artifact.name, type: artifact.type });
-    }
+    this.requireArtifactType("file", artifact);
     const key = this.readEnvironmentVariable(step.keyReference);
     const algorithm = this.translateAlgorithm(step.algorithm.implementation);
 
