@@ -44,7 +44,7 @@ export function ExecutionPanel({ query, selectedExecutionId, onSelect, onDeselec
   }
   return (
     <div className="flex items-start">
-      <div className="flex-1 p-6">
+      <div className="flex-1 min-w-0 p-6">
         <h2 className="mb-6 text-xl font-extralight">Execution history</h2>
         {query.data.map((execution) => (
           <button
@@ -83,7 +83,7 @@ export function ExecutionPanel({ query, selectedExecutionId, onSelect, onDeselec
         {query.data.length === 0 && <SquareIcon variant="no_data" />}
       </div>
       {query.data.length > 0 && (
-        <div className="flex-1 p-6">
+        <div className="flex-1 min-w-0 p-6">
           <h2 className="mb-6 text-xl font-extralight">
             {selectedExecution && !selectedExecution.result ? (
               <span>

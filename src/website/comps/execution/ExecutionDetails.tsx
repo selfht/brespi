@@ -37,7 +37,7 @@ export function ExecutionDetails({ execution }: Props) {
             <span className="font-semibold">{StepTranslation.type(stepType as Step.Type) || stepType}</span>
             {stepTypeIndex > 0 && <span>(#{stepTypeIndex + 1})</span>}
           </p>
-          <code className="break-all p-0.5 bg-c-dim/20 rounded m-0">{error}</code>
+          <pre className="min-w-0 whitespace-pre-wrap break-all p-1 bg-c-dim/20 rounded m-0">{error}</pre>
         </div>
       ))}
     </div>

@@ -46,7 +46,7 @@ export class ScriptAdapter extends AbstractAdapter {
       },
     });
     if (exitCode !== 0) {
-      throw ExecutionError.Script.script_exited_with_error({ exitCode, stdall });
+      throw ExecutionError.Script.nonzero_exit({ exitCode, stdall });
     }
   }
 

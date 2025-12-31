@@ -1,7 +1,7 @@
 import { Exception } from "./exception/Exception";
 
 export class PipelineError {
-  public static readonly GROUP = "PIPELINE";
+  public static readonly NS = "PIPELINE";
   public static readonly not_found: Exception.Fn;
   public static readonly already_exists: Exception.Fn;
   public static readonly missing_starting_step: Exception.Fn;

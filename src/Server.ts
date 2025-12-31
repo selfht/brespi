@@ -168,15 +168,14 @@ export class Server {
   }
 
   private async handleError(e: ErrorLike): Promise<Response> {
-    if (e.name === Exception.name) {
-      const error = e as Exception;
-      if (error.problem === "SERVER::unauthorized" || error.problem === "SERVER::forbidden") {
-        return Response.json(error.json(), {
+    if (Exception.isInstance(e)) {
+      if (e.problem === "SERVER::unauthorized" || e.problem === "SERVER::forbidden") {
+        return Response.json(e.json(), {
           status: 401,
           headers: { "www-authenticate": "basic" },
         });
       }
-      return Response.json(error.json(), { status: 400 });
+      return Response.json(e.json(), { status: 400 });
     }
     if (e.message?.includes("invalid input syntax for type")) {
       return Response.json(ServerError.invalid_request_body().json(), { status: 400 });

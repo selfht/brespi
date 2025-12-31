@@ -3,16 +3,20 @@ import { Class } from "@/types/Class";
 import { Json } from "@/types/Json";
 
 export class Exception extends Error {
-  public static initializeFields(klass: Exception.ClassWithGroup) {
-    const group = klass[Exception.Group];
+  public static readonly ID = "@brespi/Exception";
+
+  public static initializeFields(klass: Exception.ErrorClass) {
+    const group = klass[Exception.NS];
     for (const key of Object.keys(klass)) {
-      if (key !== Exception.Group) {
+      if (key !== Exception.NS) {
         Object.assign(klass, {
           [key]: ((details?: Record<string, Json>) => new Exception(`${group}::${key}`, details)) satisfies Exception.Fn,
         });
       }
     }
   }
+
+  public readonly id = Exception.ID;
 
   public constructor(
     public readonly problem: string,
@@ -30,7 +34,11 @@ export class Exception extends Error {
 }
 
 export namespace Exception {
-  export const Group = "GROUP" as const;
+  export const NS = "NS" as const;
   export type Fn = (details?: Record<string, Json>) => Exception;
-  export type ClassWithGroup = Class & { [Group]: string };
+  export type ErrorClass = Class & { [NS]: string };
+
+  export function isInstance(e: any): e is Exception {
+    return "id" in e && e.id === Exception.ID;
+  }
 }

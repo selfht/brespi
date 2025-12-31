@@ -1,5 +1,6 @@
 import { AdapterService } from "@/adapters/AdapterService";
 import { Env } from "@/Env";
+import { Exception } from "@/errors/exception/Exception";
 import { ExecutionError } from "@/errors/ExecutionError";
 import { PipelineError } from "@/errors/PipelineError";
 import { ServerError } from "@/errors/ServerError";
@@ -167,7 +168,7 @@ export class ExecutionService {
     } catch (e) {
       output = [];
       outcome = Outcome.error;
-      errorMessage = e instanceof Error ? e.message : String(e);
+      errorMessage = this.formatAdapterError(e);
     } finally {
       await Bun.sleep(this.env.X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY.total("milliseconds"));
       await this.cleanupArtifacts({ input, output });
@@ -314,6 +315,16 @@ export class ExecutionService {
       });
     }
     return result;
+  }
+
+  private formatAdapterError(e: unknown): string {
+    if (Exception.isInstance(e)) {
+      return e.details ? `${e.problem} ${JSON.stringify(e.details, null, 2)}` : e.problem;
+    }
+    if (e instanceof Error) {
+      return e.message;
+    }
+    return String(e);
   }
 }
 

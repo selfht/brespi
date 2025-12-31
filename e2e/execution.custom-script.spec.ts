@@ -25,9 +25,9 @@ describe("execution | custom-script", () => {
     await Common.writeFileRecursive(fileC, "This is line C\n");
     const script = join(FilesystemBoundary.SCRATCH_PAD, "merge.sh");
     await Common.writeScript(script).withContents(`
-#!/bin/bash
-cat $BRESPI_ARTIFACTS_IN/* > $BRESPI_ARTIFACTS_OUT/ABC.txt
-      `);
+      #!/bin/bash
+      cat $BRESPI_ARTIFACTS_IN/* > $BRESPI_ARTIFACTS_OUT/ABC.txt
+    `);
     // when
     await createScriptExecutionPipeline(page, {
       inputDir,
