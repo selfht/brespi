@@ -1,9 +1,9 @@
 import { Env } from "@/Env";
 import { ExecutionError } from "@/errors/ExecutionError";
+import { CommandRunner } from "@/helpers/CommandRunner";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
-import { spawn } from "bun";
-import { readdir, rename, rm, stat } from "fs/promises";
+import { readdir, rename, rm } from "fs/promises";
 import { basename, dirname, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 
@@ -17,21 +17,15 @@ export class CompressionAdapter extends AbstractAdapter {
   public async compress(artifact: Artifact, step: Step.Compression): Promise<Artifact> {
     const inputPath = artifact.path;
     const { outputId, outputPath } = this.generateArtifactDestination();
-
     // Use tar with gzip for both files and directories
     // For files: tar -czf output.tar.gz -C /parent/dir filename
     // For directories: tar -czf output.tar.gz -C /parent/dir dirname
-    const proc = spawn({
+    const { exitCode, stdall } = await CommandRunner.run({
       cmd: ["tar", "-czf", outputPath, "-C", dirname(inputPath), basename(inputPath)],
-      stdout: "pipe",
-      stderr: "pipe",
     });
-    await proc.exited;
-    if (proc.exitCode !== 0) {
-      const stderr = await new Response(proc.stderr).text();
-      throw new Error(stderr);
+    if (exitCode !== 0) {
+      throw new Error(stdall);
     }
-
     return {
       id: outputId,
       type: "file",
@@ -42,23 +36,18 @@ export class CompressionAdapter extends AbstractAdapter {
 
   public async decompress(artifact: Artifact, step: Step.Decompression): Promise<Artifact> {
     if (artifact.type !== "file") {
-      throw ExecutionError.Compression.unsupported_artifact_type({ type: artifact.type });
+      throw ExecutionError.invalid_artifact_type({ name: artifact.name, type: artifact.type });
     }
-
     const inputPath = artifact.path;
     const tempPath = await this.createTmpDestination();
     try {
       // Use tar to extract (works for both single files and directories)
       // Will place the resulting "item" (file or folder) as the only child inside the temp dir
-      const proc = spawn({
+      const { exitCode, stdall } = await CommandRunner.run({
         cmd: ["tar", "-xzf", inputPath, "-C", tempPath],
-        stdout: "pipe",
-        stderr: "pipe",
       });
-      await proc.exited;
-      if (proc.exitCode !== 0) {
-        const stderr = await new Response(proc.stderr).text();
-        throw ExecutionError.Compression.decompression_failed({ stderr });
+      if (exitCode !== 0) {
+        throw new Error(stdall);
       }
 
       const singleChildPath = await this.findSingleChildPathWithinDirectory(tempPath);

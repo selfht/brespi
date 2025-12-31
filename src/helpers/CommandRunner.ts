@@ -1,5 +1,6 @@
 type Options = {
   cmd: string[];
+  cwd?: string;
   env?: Record<string, string | undefined>;
 };
 type Result = {
@@ -9,9 +10,10 @@ type Result = {
   stdall: string;
 };
 export class CommandRunner {
-  public static async run({ cmd, env }: Options): Promise<Result> {
+  public static async run({ cmd, cwd, env }: Options): Promise<Result> {
     const proc = Bun.spawn({
       cmd,
+      cwd,
       env,
       stdout: "pipe",
       stderr: "pipe",

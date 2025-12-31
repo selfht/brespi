@@ -17,7 +17,7 @@ export class EncryptionAdapter extends AbstractAdapter {
 
   public async encrypt(artifact: Artifact, step: Step.Encryption): Promise<Artifact> {
     if (artifact.type !== "file") {
-      throw ExecutionError.Encryption.unsupported_artifact_type({ type: artifact.type });
+      throw ExecutionError.invalid_artifact_type({ name: artifact.name, type: artifact.type });
     }
     const key = this.readEnvironmentVariable(step.keyReference);
     const algorithm = this.translateAlgorithm(step.algorithm.implementation);
@@ -45,7 +45,7 @@ export class EncryptionAdapter extends AbstractAdapter {
 
   public async decrypt(artifact: Artifact, step: Step.Decryption): Promise<Artifact> {
     if (artifact.type !== "file") {
-      throw ExecutionError.Encryption.unsupported_artifact_type({ type: artifact.type });
+      throw ExecutionError.invalid_artifact_type({ name: artifact.name, type: artifact.type });
     }
     const key = this.readEnvironmentVariable(step.keyReference);
     const algorithm = this.translateAlgorithm(step.algorithm.implementation);
@@ -62,7 +62,7 @@ export class EncryptionAdapter extends AbstractAdapter {
       inputStream.once("readable", () => {
         const chunk = inputStream.read(16);
         if (!chunk || chunk.length !== 16) {
-          reject(ExecutionError.Encryption.failed_to_read_iv());
+          throw new Error("Failed to read IV");
         } else {
           resolve(chunk);
         }
@@ -82,7 +82,7 @@ export class EncryptionAdapter extends AbstractAdapter {
 
   private translateAlgorithm(algorithm: string): string {
     if (algorithm !== "aes256cbc") {
-      throw ExecutionError.Encryption.unsupported_algorithm({ algorithm });
+      throw ExecutionError.Encryption.algorithm_unsupported({ algorithm });
     }
     return "aes-256-cbc";
   }

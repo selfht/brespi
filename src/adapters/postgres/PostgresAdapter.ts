@@ -37,7 +37,7 @@ export class PostgresAdapter extends AbstractAdapter {
     }
 
     try {
-      const { exitCode, stdout, stderr } = await CommandRunner.run({
+      const { exitCode, stdout, stdall } = await CommandRunner.run({
         cmd: ["bash", scriptPath],
         env: {
           ...process.env,
@@ -45,7 +45,7 @@ export class PostgresAdapter extends AbstractAdapter {
         },
       });
       if (exitCode !== 0) {
-        throw ExecutionError.Postgres.script_exited_with_error({ exitCode, stderr });
+        throw new Error(stdall);
       }
 
       // Parse and validate the JSON output with Zod
@@ -89,7 +89,7 @@ export class PostgresAdapter extends AbstractAdapter {
       return artifacts;
     } catch (error) {
       throw ExecutionError.Postgres.backup_failed({
-        message: error instanceof Error ? error.message : String(error)
+        message: error instanceof Error ? error.message : String(error),
       });
     } finally {
       await rm(tempDir, { recursive: true, force: true });
@@ -102,7 +102,7 @@ export class PostgresAdapter extends AbstractAdapter {
     }
     const artifact = artifacts[0];
     if (artifact.type !== "file") {
-      throw ExecutionError.Postgres.invalid_artifact_type({ type: artifact.type });
+      throw ExecutionError.invalid_artifact_type({ name: artifact.name, type: artifact.type });
     }
 
     const scriptPath = join(import.meta.dir, "pg_restore.sh");
@@ -118,18 +118,16 @@ export class PostgresAdapter extends AbstractAdapter {
     };
 
     try {
-      const { exitCode, stdout, stderr } = await CommandRunner.run({
+      const { exitCode, stdout, stdall } = await CommandRunner.run({
         cmd: ["bash", scriptPath],
         env: {
           ...process.env,
           ...env,
         },
       });
-
       if (exitCode !== 0) {
-        throw ExecutionError.Postgres.script_exited_with_error({ exitCode, stderr });
+        throw new Error(stdall);
       }
-
       // Parse and validate the JSON output with Zod
       z.object({
         status: z.literal("success"),
@@ -137,7 +135,7 @@ export class PostgresAdapter extends AbstractAdapter {
       }).parse(JSON.parse(stdout));
     } catch (error) {
       throw ExecutionError.Postgres.restore_failed({
-        message: error instanceof Error ? error.message : String(error)
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }

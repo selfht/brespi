@@ -1,9 +1,9 @@
 import { Env } from "@/Env";
 import { ExecutionError } from "@/errors/ExecutionError";
+import { CommandRunner } from "@/helpers/CommandRunner";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
-import { spawn } from "bun";
-import { readdir, rename, rm, stat } from "fs/promises";
+import { readdir, rename, rm } from "fs/promises";
 import { basename, dirname, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 
@@ -28,10 +28,6 @@ export class ScriptAdapter extends AbstractAdapter {
         BRESPI_ARTIFACTS_OUT: artifactsOut,
       });
       return await this.readArtifactsFromDirectory(artifactsOut);
-    } catch (error) {
-      throw ExecutionError.Script.execution_failed({
-        message: error instanceof Error ? error.message : String(error)
-      });
     } finally {
       await Promise.all([
         rm(artifactsIn, { recursive: true, force: true }), //
@@ -41,20 +37,16 @@ export class ScriptAdapter extends AbstractAdapter {
   }
 
   private async executeScript(scriptPath: string, env: Record<string, string> = {}): Promise<void> {
-    const proc = spawn({
+    const { exitCode, stdall } = await CommandRunner.run({
       cmd: ["bash", "-c", `./${basename(scriptPath)} 2>&1`],
       cwd: dirname(scriptPath),
       env: {
         ...process.env,
         ...env,
       },
-      stdout: "pipe",
-      stderr: "pipe",
     });
-    await proc.exited;
-    const output = await new Response(proc.stdout).text();
-    if (proc.exitCode !== 0) {
-      throw ExecutionError.Script.script_exited_with_error({ exitCode: proc.exitCode, output });
+    if (exitCode !== 0) {
+      throw ExecutionError.Script.script_exited_with_error({ exitCode, stdall });
     }
   }
 
