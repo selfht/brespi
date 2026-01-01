@@ -27,6 +27,9 @@ QA
 * Set up a pipeline for typechecking, unit testing and e2e testing
 * Create a "regression suite" consisting of all sorts of possible data, to try and detect accidental backwards-incompatible changes
 
+Technical
+* Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
+
 Distribution
 * Create a shell script for building docker images with the appropriate toolset (only requirements: git + bash + docker)
 * Experiment with different Postgres/MySQL versions, and corresponding dump/restore tools
