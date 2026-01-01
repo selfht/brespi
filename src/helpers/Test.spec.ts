@@ -2,6 +2,7 @@ import { AdapterService } from "@/adapters/AdapterService";
 import { $execution } from "@/drizzle/schema";
 import { initializeSqlite, Sqlite } from "@/drizzle/sqlite";
 import { Env } from "@/Env";
+import { ConfigurationRepository } from "@/repositories/ConfigurationRepository";
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { mock, Mock } from "bun:test";
@@ -112,8 +113,9 @@ export namespace Test {
 
   export async function initializeRepositories() {
     const sqlite = await initializeSqlite({ X_BRESPI_DATABASE: ":memory:" } as Env.Private);
+    const configurationRepository = new ConfigurationRepository({ X_BRESPI_CONFIGURATION: ":memory:" } as Env.Private);
     return {
-      pipelineRepository: new PipelineRepository(),
+      pipelineRepository: new PipelineRepository(configurationRepository),
       executionRepository: new (class extends ExecutionRepository {
         public constructor(sqlite: Sqlite) {
           super(sqlite);

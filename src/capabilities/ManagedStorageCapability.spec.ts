@@ -1,9 +1,9 @@
-import { Manifest } from "@/models/versioning/Manifest";
 import { describe, expect, it } from "bun:test";
-import { ArtifactIndex } from "@/models/versioning/ArtifactIndex";
 import { Temporal } from "@js-temporal/polyfill";
 import { ManagedStorageCapability } from "./ManagedStorageCapability";
 import { Test } from "@/helpers/Test.spec";
+import { Manifest } from "./managedstorage/Manifest";
+import { ArtifactIndex } from "./managedstorage/ArtifactIndex";
 
 describe(ManagedStorageCapability.name, () => {
   const Regex = {

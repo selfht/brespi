@@ -19,6 +19,7 @@ import { ExecutionService } from "./services/ExecutionService";
 import { PipelineService } from "./services/PipelineService";
 import { RestrictedService } from "./services/RestrictedService";
 import { StepService } from "./services/StepService";
+import { ConfigurationRepository } from "./repositories/ConfigurationRepository";
 
 export class ServerRegistry {
   public static async bootstrap(env: Env.Private, sqlite: Sqlite): Promise<ServerRegistry> {
@@ -55,7 +56,8 @@ export class ServerRegistry {
     ));
 
     // Repositories
-    const pipelineRepository = (this.registry[PipelineRepository.name] = new PipelineRepository());
+    const configurationRepository = (this.registry[ConfigurationRepository.name] = new ConfigurationRepository(env));
+    const pipelineRepository = (this.registry[PipelineRepository.name] = new PipelineRepository(configurationRepository));
     const executionRepository = (this.registry[ExecutionRepository.name] = new ExecutionRepository(sqlite));
 
     // Services

@@ -1,4 +1,4 @@
-import { mkdir, rm } from "fs/promises";
+import { mkdir } from "fs/promises";
 import { initializeSqlite } from "./drizzle/sqlite";
 import { Env } from "./Env";
 import { Server } from "./Server";
@@ -14,14 +14,14 @@ const env = Env.initialize();
  * Create the main directories
  */
 await Promise.all([
-  mkdir(env.X_BRESPI_TMP_ROOT, { recursive: true }), //
+  mkdir(env.X_BRESPI_TMP_ROOT, { recursive: true }),
   mkdir(env.X_BRESPI_DATA_ROOT, { recursive: true }),
+  mkdir(env.X_BRESPI_CONFIG_ROOT, { recursive: true }),
 ]);
 
 /**
  * Initialize the database
  */
-await rm(env.X_BRESPI_DATABASE); // TODO remove
 const sqlite = await initializeSqlite(env);
 
 /**

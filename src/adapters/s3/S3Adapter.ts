@@ -5,11 +5,11 @@ import { Mutex } from "@/helpers/Mutex";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { TrailStep } from "@/models/TrailStep";
-import { Manifest } from "@/models/versioning/Manifest";
 import { S3Client } from "bun";
 import { join, relative } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 import { FilterCapability } from "@/capabilities/FilterCapability";
+import { Manifest } from "@/capabilities/managedstorage/Manifest";
 
 export class S3Adapter extends AbstractAdapter {
   public constructor(

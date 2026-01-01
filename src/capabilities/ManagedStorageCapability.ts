@@ -2,8 +2,8 @@ import { Generate } from "@/helpers/Generate";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { TrailStep } from "@/models/TrailStep";
-import { ArtifactIndex } from "@/models/versioning/ArtifactIndex";
-import { Manifest } from "@/models/versioning/Manifest";
+import { ArtifactIndex } from "@/capabilities/managedstorage/ArtifactIndex";
+import { Manifest } from "@/capabilities/managedstorage/Manifest";
 import { Temporal } from "@js-temporal/polyfill";
 import { dirname, join } from "path";
 

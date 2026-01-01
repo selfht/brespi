@@ -1,30 +1,88 @@
 import { Pipeline } from "@/models/Pipeline";
-import { GenericInMemoryRepository } from "./GenericInMemoryRepository";
+import { ConfigurationRepository } from "./ConfigurationRepository";
 
 export class PipelineRepository {
-  protected readonly delegate = new GenericInMemoryRepository<Pipeline>();
+  public constructor(private readonly configuration: ConfigurationRepository) {}
 
   public list(): Promise<Pipeline[]> {
-    return this.delegate.list();
+    return this.configuration.read(({ pipelines }) => pipelines);
   }
 
   public findById(id: string): Promise<Pipeline | undefined> {
-    return this.delegate.findById(id);
+    return this.configuration.read(({ pipelines }) => pipelines.find((p) => p.id === id));
   }
 
-  public create(pipeline: Pipeline): Promise<Pipeline | undefined> {
-    return this.delegate.create(pipeline);
+  public async create(pipeline: Pipeline): Promise<Pipeline | undefined> {
+    const { result } = await this.configuration.write((configuration) => {
+      const existing = configuration.pipelines.find((p) => p.id === pipeline.id);
+      if (existing) {
+        return {
+          result: existing,
+          configuration,
+        };
+      }
+      return {
+        result: pipeline,
+        configuration: {
+          ...configuration,
+          pipelines: [pipeline, ...configuration.pipelines],
+        },
+      };
+    });
+    return result;
   }
 
-  public update(pipeline: Pipeline): Promise<Pipeline | undefined> {
-    return this.delegate.update(pipeline);
+  public async update(pipeline: Pipeline): Promise<Pipeline | undefined> {
+    const { result } = await this.configuration.write((configuration) => {
+      const existing = configuration.pipelines.find((p) => p.id === pipeline.id);
+      if (!existing) {
+        return {
+          result: undefined,
+          configuration,
+        };
+      }
+      return {
+        result: pipeline,
+        configuration: {
+          ...configuration,
+          pipelines: configuration.pipelines.map((p) => {
+            if (p.id === pipeline.id) {
+              return pipeline;
+            }
+            return p;
+          }),
+        },
+      };
+    });
+    return result;
   }
 
-  public remove(id: string): Promise<Pipeline | undefined> {
-    return this.delegate.remove(id);
+  public async remove(id: string): Promise<Pipeline | undefined> {
+    const { result } = await this.configuration.write((configuration) => {
+      const existing = configuration.pipelines.find((p) => p.id === id);
+      if (!existing) {
+        return {
+          result: undefined,
+          configuration,
+        };
+      }
+      return {
+        result: existing,
+        configuration: {
+          ...configuration,
+          pipelines: configuration.pipelines.filter((p) => p.id !== id),
+        },
+      };
+    });
+    return result;
   }
 
-  public removeAll(): Promise<void> {
-    return this.delegate.removeAll();
+  public async removeAll(): Promise<void> {
+    await this.configuration.write((configuration) => ({
+      configuration: {
+        ...configuration,
+        pipelines: [],
+      },
+    }));
   }
 }

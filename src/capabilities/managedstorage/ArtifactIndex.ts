@@ -1,6 +1,6 @@
 import { ZodParser } from "@/helpers/ZodParser";
 import z from "zod/v4";
-import { Artifact } from "../Artifact";
+import { Artifact } from "../../models/Artifact";
 import { Generate } from "@/helpers/Generate";
 
 export type ArtifactIndex = {

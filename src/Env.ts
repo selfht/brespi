@@ -16,18 +16,24 @@ export namespace Env {
         ...env,
         X_BRESPI_ROOT: isAbsolute(env.X_BRESPI_ROOT) ? env.X_BRESPI_ROOT : join(process.cwd(), env.X_BRESPI_ROOT),
       }))
-      .transform((env) => ({
-        ...env,
-        X_BRESPI_TMP_ROOT: join(env.X_BRESPI_ROOT, "tmp"),
-        X_BRESPI_DATA_ROOT: join(env.X_BRESPI_ROOT, "data"),
-        X_BRESPI_DATABASE: join(env.X_BRESPI_ROOT, "data", "db.sqlite"),
-        X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from(
-          env.O_BRESPI_STAGE === "development" ? { seconds: 0 } : { seconds: 0 }, //
-        ),
-        X_BRESPI_TMP_ITEMS_RETENTION_PERIOD: Temporal.Duration.from(
-          env.O_BRESPI_STAGE === "development" ? { minutes: 5 } : { days: 3 }, //
-        ),
-      }))
+      .transform((env) => {
+        const data = "data";
+        const config = "config";
+        return {
+          ...env,
+          X_BRESPI_TMP_ROOT: join(env.X_BRESPI_ROOT, "tmp"),
+          X_BRESPI_DATA_ROOT: join(env.X_BRESPI_ROOT, data),
+          X_BRESPI_CONFIG_ROOT: join(env.X_BRESPI_ROOT, config),
+          X_BRESPI_DATABASE: join(env.X_BRESPI_ROOT, data, "db.sqlite"),
+          X_BRESPI_CONFIGURATION: join(env.X_BRESPI_ROOT, config, "brespi.json"),
+          X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from(
+            env.O_BRESPI_STAGE === "development" ? { seconds: 0 } : { seconds: 0 }, //
+          ),
+          X_BRESPI_TMP_ITEMS_RETENTION_PERIOD: Temporal.Duration.from(
+            env.O_BRESPI_STAGE === "development" ? { minutes: 5 } : { days: 3 }, //
+          ),
+        };
+      })
       .parse(Bun.env);
   }
 
