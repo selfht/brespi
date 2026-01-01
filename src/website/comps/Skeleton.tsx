@@ -45,7 +45,9 @@ export namespace Skeleton {
             >
               <span className="relative text-lg">
                 {title}
-                {title === "Configuration" && !synchronized && <div className="absolute rounded-full size-2 bg-c-error -right-2 -top-1" />}
+                {title === "Configuration" && !synchronized && (
+                  <div data-testid="conf-out-of-sync" className="absolute rounded-full size-2 bg-c-error -right-2 -top-1" />
+                )}
               </span>
             </Link>
           ))}
