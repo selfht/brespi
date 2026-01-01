@@ -1,17 +1,83 @@
+import { Sqlite } from "@/drizzle/sqlite";
+import { $action } from "@/drizzle/tables/$action";
+import { $execution } from "@/drizzle/tables/$execution";
 import { Execution } from "@/models/Execution";
+import { eq } from "drizzle-orm";
+import { ExecutionConverter } from "./converters/ExecutionConverter";
 
-export interface ExecutionRepository {
-  list(): Promise<Execution[]>;
+export class ExecutionRepository {
+  public constructor(private readonly sqlite: Sqlite) {}
 
-  query(q: { pipelineId: string }): Promise<Execution[]>;
+  public async list(): Promise<Execution[]> {
+    const executions = await this.sqlite.query.$execution.findMany({
+      with: {
+        actions: true,
+      },
+    });
+    return executions.map(ExecutionConverter.convert);
+  }
 
-  queryMostRecentExecutions(q: { pipelineIds: string[] }): Promise<Map<string, Execution | null>>;
+  public async query(q: { pipelineId: string }): Promise<Execution[]> {
+    const executions = await this.sqlite.query.$execution.findMany({
+      where: eq($execution.pipelineId, q.pipelineId),
+      with: {
+        actions: true,
+      },
+    });
+    return executions.map(ExecutionConverter.convert);
+  }
 
-  findById(id: string): Promise<Execution | undefined>;
+  public async queryMostRecentExecutions(q: { pipelineIds: string[] }): Promise<Map<string, Execution | null>> {
+    const result = new Map<string, Execution | null>();
+    for (const pipelineId of q.pipelineIds) {
+      const executions = await this.sqlite.query.$execution.findMany({
+        where: eq($execution.pipelineId, pipelineId),
+        with: {
+          actions: true,
+        },
+      });
+      const converted = executions.map(ExecutionConverter.convert);
+      const mostRecent = converted.toSorted(Execution.sort)[0] || null;
+      result.set(pipelineId, mostRecent);
+    }
+    return result;
+  }
 
-  create(pipeline: Execution): Promise<Execution | undefined>;
+  public async findById(id: string): Promise<Execution | undefined> {
+    const execution = await this.sqlite.query.$execution.findFirst({
+      where: eq($execution.id, id),
+      with: {
+        actions: true,
+      },
+    });
+    return execution ? ExecutionConverter.convert(execution) : undefined;
+  }
 
-  update(pipeline: Execution): Promise<Execution | undefined>;
+  public async create(execution: Execution): Promise<Execution | undefined> {
+    const db = ExecutionConverter.convert(execution);
+    await this.sqlite.insert($execution).values(db);
+    if (db.actions.length > 0) {
+      await this.sqlite.insert($action).values(db.actions);
+    }
+    const result = await this.findById(execution.id);
+    return result;
+  }
 
-  remove(id: string): Promise<Execution | undefined>;
+  public async update(execution: Execution): Promise<Execution | undefined> {
+    const db = ExecutionConverter.convert(execution);
+    await this.sqlite.update($execution).set(db).where(eq($execution.id, execution.id));
+    await this.sqlite.delete($action).where(eq($action.executionId, execution.id));
+    if (db.actions.length > 0) {
+      await this.sqlite.insert($action).values(db.actions);
+    }
+    return this.findById(execution.id);
+  }
+
+  public async remove(id: string): Promise<Execution | undefined> {
+    const execution = await this.findById(id);
+    if (execution) {
+      await this.sqlite.delete($execution).where(eq($execution.id, id));
+    }
+    return execution;
+  }
 }

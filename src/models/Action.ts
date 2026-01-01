@@ -5,10 +5,12 @@ import { Artifact } from "./Artifact";
 import { Outcome } from "./Outcome";
 
 export type Action = {
-  stepId: string;
-  previousStepId: string | null;
+  id: string;
   object: "action";
+  executionId: string;
+  stepId: string;
   stepType: string;
+  previousStepId: string | null;
   startedAt: Temporal.PlainDateTime | null;
   result: {
     outcome: Outcome;
@@ -30,10 +32,12 @@ export namespace Action {
   export const parse = ZodParser.forType<Action>()
     .ensureSchemaMatchesType(() =>
       z.object({
-        stepId: z.string(),
-        previousStepId: z.string().nullable(),
+        id: z.string(),
         object: z.literal("action"),
+        executionId: z.string(),
+        stepId: z.string(),
         stepType: z.string(),
+        previousStepId: z.string().nullable(),
         startedAt: z
           .string()
           .transform((x) => Temporal.PlainDateTime.from(x))

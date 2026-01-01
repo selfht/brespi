@@ -1,15 +1,30 @@
 import { Pipeline } from "@/models/Pipeline";
+import { GenericInMemoryRepository } from "./GenericInMemoryRepository";
 
-export interface PipelineRepository {
-  list(): Promise<Pipeline[]>;
+export class PipelineRepository {
+  protected readonly delegate = new GenericInMemoryRepository<Pipeline>();
 
-  findById(id: string): Promise<Pipeline | undefined>;
+  public list(): Promise<Pipeline[]> {
+    return this.delegate.list();
+  }
 
-  create(pipeline: Pipeline): Promise<Pipeline | undefined>;
+  public findById(id: string): Promise<Pipeline | undefined> {
+    return this.delegate.findById(id);
+  }
 
-  update(pipeline: Pipeline): Promise<Pipeline | undefined>;
+  public create(pipeline: Pipeline): Promise<Pipeline | undefined> {
+    return this.delegate.create(pipeline);
+  }
 
-  remove(id: string): Promise<Pipeline | undefined>;
+  public update(pipeline: Pipeline): Promise<Pipeline | undefined> {
+    return this.delegate.update(pipeline);
+  }
 
-  removeAll(): Promise<void>;
+  public remove(id: string): Promise<Pipeline | undefined> {
+    return this.delegate.remove(id);
+  }
+
+  public removeAll(): Promise<void> {
+    return this.delegate.removeAll();
+  }
 }

@@ -1,5 +1,5 @@
 export class GenericInMemoryRepository<T extends { id: string }> {
-  public constructor(public readonly storage: T[] = []) {}
+  public constructor(protected readonly storage: T[] = []) {}
 
   public async list(): Promise<T[]> {
     return this.storage;

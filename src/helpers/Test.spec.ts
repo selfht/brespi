@@ -1,8 +1,9 @@
 import { AdapterService } from "@/adapters/AdapterService";
+import { $execution } from "@/drizzle/schema";
+import { initializeSqlite, Sqlite } from "@/drizzle/sqlite";
 import { Env } from "@/Env";
-import { Execution } from "@/models/Execution";
-import { Pipeline } from "@/models/Pipeline";
-import { GenericInMemoryRepository } from "@/repositories/implementations/GenericInMemoryRepository";
+import { ExecutionRepository } from "@/repositories/ExecutionRepository";
+import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { mock, Mock } from "bun:test";
 import { join } from "path";
 
@@ -82,40 +83,46 @@ export namespace Test {
     };
   }
 
-  export class MockRegistry {
-    public static readonly adapterService: Mocked<AdapterService> = {
-      submit: mock(),
-    };
+  export function initializeMocks() {
+    return class MockRegistry {
+      public static readonly adapterService: Mocked<AdapterService> = {
+        submit: mock(),
+      };
 
-    public static resetAllMocks() {
-      // Iterate through all static properties
-      for (const serviceKey of Object.keys(MockRegistry)) {
-        const potentialMock = MockRegistry[serviceKey as keyof typeof MockRegistry];
-        // Skip if it's a function (like resetAllMocks itself)
-        if (typeof potentialMock === "function") {
-          continue;
-        }
-        // Iterate through all methods in the service
-        if (typeof potentialMock === "object" && Boolean(potentialMock)) {
-          for (const method of Object.values(potentialMock)) {
-            if (typeof method === "function" && "mockClear" in method) {
-              (method as Mock<any>).mockClear();
+      public static resetAllMocks() {
+        // Iterate through all static properties
+        for (const serviceKey of Object.keys(MockRegistry)) {
+          const potentialMock = MockRegistry[serviceKey as keyof typeof MockRegistry];
+          // Skip if it's a function (like resetAllMocks itself)
+          if (typeof potentialMock === "function") {
+            continue;
+          }
+          // Iterate through all methods in the service
+          if (typeof potentialMock === "object" && Boolean(potentialMock)) {
+            for (const method of Object.values(potentialMock)) {
+              if (typeof method === "function" && "mockClear" in method) {
+                (method as Mock<any>).mockClear();
+              }
             }
           }
         }
       }
-    }
+    };
   }
 
-  export namespace RepoRegistry {
-    export const inMemoryPipelineRepository = new (class inMemoryPipelineRepository extends GenericInMemoryRepository<Pipeline> {})();
-    export const inMemoryExecutionRepository = new (class InMemoryExecutionRepository extends GenericInMemoryRepository<Execution> {
-      public async query(q: { pipelineId: string }): Promise<Execution[]> {
-        throw new Error("Not implemented");
-      }
-      public async queryMostRecentExecutions(q: { pipelineIds: string[] }): Promise<Map<string, Execution | null>> {
-        throw new Error("Not implemented");
-      }
-    })();
+  export async function initializeRepositories() {
+    const sqlite = await initializeSqlite({ X_BRESPI_DATABASE: ":memory:" } as Env.Private);
+    return {
+      pipelineRepository: new PipelineRepository(),
+      executionRepository: new (class extends ExecutionRepository {
+        public constructor(sqlite: Sqlite) {
+          super(sqlite);
+        }
+        public async removeAll(): Promise<void> {
+          await sqlite.delete($execution);
+        }
+      })(sqlite),
+    };
   }
+  export namespace RepoRegistry {}
 }

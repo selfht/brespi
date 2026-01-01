@@ -7,26 +7,27 @@ import { FilterAdapter } from "./adapters/filter/FilterAdapter";
 import { PostgresAdapter } from "./adapters/postgres/PostgresAdapter";
 import { S3Adapter } from "./adapters/s3/S3Adapter";
 import { ScriptAdapter } from "./adapters/scripting/ScriptAdapter";
+import { FilterCapability } from "./capabilities/FilterCapability";
 import { ManagedStorageCapability } from "./capabilities/ManagedStorageCapability";
+import { Sqlite } from "./drizzle/sqlite";
 import { Env } from "./Env";
-import { ExecutionRepositoryDefault } from "./repositories/implementations/ExecutionRepositoryDefault";
-import { PipelineRepositoryDefault } from "./repositories/implementations/PipelineRepositoryDefault";
+import { ExecutionRepository } from "./repositories/ExecutionRepository";
+import { PipelineRepository } from "./repositories/PipelineRepository";
 import { Server } from "./Server";
 import { CleanupService } from "./services/CleanupService";
 import { ExecutionService } from "./services/ExecutionService";
 import { PipelineService } from "./services/PipelineService";
 import { RestrictedService } from "./services/RestrictedService";
 import { StepService } from "./services/StepService";
-import { FilterCapability } from "./capabilities/FilterCapability";
 
 export class ServerRegistry {
-  public static async bootstrap(env: Env.Private): Promise<ServerRegistry> {
-    return new ServerRegistry(env);
+  public static async bootstrap(env: Env.Private, sqlite: Sqlite): Promise<ServerRegistry> {
+    return new ServerRegistry(env, sqlite);
   }
 
   private readonly registry: Record<string, any> = {};
 
-  private constructor(env: Env.Private) {
+  private constructor(env: Env.Private, sqlite: Sqlite) {
     // Capabilities
     const filterCapability = (this.registry[FilterCapability.name] = new FilterCapability());
     const managedStorageCapability = (this.registry[ManagedStorageCapability.name] = new ManagedStorageCapability());
@@ -54,23 +55,23 @@ export class ServerRegistry {
     ));
 
     // Repositories
-    const pipelineRepositoryDefault = (this.registry[PipelineRepositoryDefault.name] = new PipelineRepositoryDefault());
-    const executionRepositoryDefault = (this.registry[ExecutionRepositoryDefault.name] = new ExecutionRepositoryDefault());
+    const pipelineRepository = (this.registry[PipelineRepository.name] = new PipelineRepository());
+    const executionRepository = (this.registry[ExecutionRepository.name] = new ExecutionRepository(sqlite));
 
     // Services
     const stepService = (this.registry[StepService.name] = new StepService());
     const pipelineService = (this.registry[PipelineService.name] = new PipelineService(
-      pipelineRepositoryDefault,
-      executionRepositoryDefault,
+      pipelineRepository,
+      executionRepository,
       stepService,
     ));
     const executionService = (this.registry[ExecutionService.name] = new ExecutionService(
       env,
-      executionRepositoryDefault,
-      pipelineRepositoryDefault,
+      executionRepository,
+      pipelineRepository,
       adapterService,
     ));
-    const restrictedService = (this.registry[RestrictedService.name] = new RestrictedService(pipelineRepositoryDefault));
+    const restrictedService = (this.registry[RestrictedService.name] = new RestrictedService(pipelineRepository));
     this.registry[CleanupService.name] = new CleanupService(env);
 
     // Server

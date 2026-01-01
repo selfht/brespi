@@ -9,27 +9,28 @@ import { beforeEach, describe, expect, it } from "bun:test";
 import { ExecutionService } from "./ExecutionService";
 
 describe(ExecutionService.name, async () => {
-  const { inMemoryExecutionRepository, inMemoryPipelineRepository } = Test.RepoRegistry;
-  const { resetAllMocks, adapterService } = Test.MockRegistry;
+  const { executionRepository, pipelineRepository } = await Test.initializeRepositories();
+  const { resetAllMocks, adapterService } = Test.initializeMocks();
+
   const service = new ExecutionService(
     await Test.env({
       X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from({ seconds: 0 }),
     }),
-    inMemoryExecutionRepository,
-    inMemoryPipelineRepository,
+    executionRepository,
+    pipelineRepository,
     Test.impl(adapterService),
   );
 
   beforeEach(async () => {
     resetAllMocks();
-    await inMemoryPipelineRepository.removeAll();
-    await inMemoryExecutionRepository.removeAll();
+    await pipelineRepository.removeAll();
+    await executionRepository.removeAll();
   });
 
   it("successfully executes a linear pipeline", async () => {
     // given
     const steps = [Step.Type.postgres_backup, Step.Type.compression, Step.Type.encryption, Step.Type.s3_upload];
-    const pipeline = await inMemoryPipelineRepository.create(linearPipeline(steps));
+    const pipeline = await pipelineRepository.create(linearPipeline(steps));
     adapterService.submit.mockResolvedValue({
       artifacts: [],
       runtimeInformation: {},
@@ -37,7 +38,7 @@ describe(ExecutionService.name, async () => {
     // when
     const { id } = await service.create({ pipelineId: pipeline!.id });
     const completedExecution = await Test.waitUntil(
-      () => inMemoryExecutionRepository.findById(id) as Promise<Execution>,
+      () => executionRepository.findById(id) as Promise<Execution>,
       (x) => Boolean(x?.result),
     );
     // then (validate execution and action results)
@@ -66,7 +67,7 @@ describe(ExecutionService.name, async () => {
   it("fails to execute a linear pipeline if there are errors", async () => {
     // given
     const steps = [Step.Type.postgres_backup, Step.Type.compression, Step.Type.encryption, Step.Type.s3_upload];
-    const pipeline = await inMemoryPipelineRepository.create(linearPipeline(steps));
+    const pipeline = await pipelineRepository.create(linearPipeline(steps));
     adapterService.submit.mockImplementation((_artifacts, step, _trail) => {
       if (step.type === Step.Type.encryption) {
         return Promise.reject(new Error("Encryption failed for unknown reason"));
@@ -79,7 +80,7 @@ describe(ExecutionService.name, async () => {
     // when
     const { id } = await service.create({ pipelineId: pipeline!.id });
     const completedExecution = await Test.waitUntil(
-      () => inMemoryExecutionRepository.findById(id) as Promise<Execution>,
+      () => executionRepository.findById(id) as Promise<Execution>,
       (x) => Boolean(x?.result),
     );
     // then (validate execution and action results)

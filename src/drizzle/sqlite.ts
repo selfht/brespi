@@ -16,4 +16,4 @@ export async function initializeSqlite(env: Env.Private) {
   return sqlite;
 }
 
-export type Sqlite = ReturnType<typeof initializeSqlite>;
+export type Sqlite = Awaited<ReturnType<typeof initializeSqlite>>;

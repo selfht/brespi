@@ -70,16 +70,19 @@ export class ExecutionService {
       throw PipelineError.not_found();
     }
 
+    const id = Bun.randomUUIDv7();
     const execution: Execution = {
-      id: Bun.randomUUIDv7(),
+      id,
       object: "execution",
       pipelineId,
       startedAt: Temporal.Now.plainDateTimeISO(),
       actions: pipeline.steps.map((step) => ({
-        stepId: step.id,
-        previousStepId: step.previousId,
+        id: Bun.randomUUIDv7(),
         object: "action",
+        executionId: id,
+        stepId: step.id,
         stepType: step.type,
+        previousStepId: step.previousId,
         startedAt: null,
         result: null,
       })),
