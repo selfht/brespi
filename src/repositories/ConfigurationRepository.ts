@@ -11,7 +11,7 @@ export class ConfigurationRepository {
     | { mode: "on_disk"; diskFile: Bun.BunFile };
 
   private memoryObject?: Configuration;
-  private memorySynchronisedWithDisk = true;
+  private memorySynchronisedWithDisk?: boolean;
 
   public constructor(env: Env.Private) {
     if (env.X_BRESPI_CONFIGURATION === ":memory:") {
