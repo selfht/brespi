@@ -111,6 +111,7 @@ describe("execution | postgres", () => {
     });
     const backupDir = FilesystemBoundary.SCRATCH_PAD.join("backups");
     const initialData = await PostgresBoundary.queryAll({ database, table: "films" });
+    expect(initialData.length).toBeGreaterThan(0);
 
     // when (perform a backup)
     await createBackupPipeline(page, { backupDir, databases: [database] });
@@ -124,7 +125,8 @@ describe("execution | postgres", () => {
       rows: [{ id: 4, title: "Fight Club", director: "David Fincher", year: 1999, rating: 8 }],
     });
     const dataAfterModification = await PostgresBoundary.queryAll({ database, table: "films" });
-    expect(initialData).not.toEqual(dataAfterModification);
+    expect(dataAfterModification.length).toBeGreaterThan(0);
+    expect(dataAfterModification).not.toEqual(initialData);
 
     // when (perform a restore)
     await createRestorePipeline(page, { backupDir, database });

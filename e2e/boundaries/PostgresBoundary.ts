@@ -1,5 +1,3 @@
-import { sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 
 export namespace PostgresBoundary {
@@ -131,8 +129,7 @@ export namespace PostgresBoundary {
     });
     try {
       await client.connect();
-      const db = drizzle(client);
-      const result = await db.execute(sql.raw(sqlToExecute));
+      const result = await client.query(sqlToExecute);
       return result.rows as Row[];
     } finally {
       await client.end();
