@@ -1,21 +1,28 @@
-# bun-react-tailwind-template
+# Brespi
 
-To install dependencies:
+This is a work in progress with the following TODO's:
 
-```bash
-bun install
-```
+Execution
+* Add descriptions and useful helper functions to each step
+* Share the `Fields` enum between the `StepForm` and `StepTranslation`
+* Add pagination to the execution overview
+* Make sure pipelines are ordered from new to old in the `Configuration`
+* Add support for MySQL backups and restores
+* Provide runtime information when appropriate
 
-To start a development server:
+Configuration
+* Describe the red circle, and the entire configuration mechanism in general
+* Provide buttons for "Save" and "Copy to Clipboard"
 
-```bash
-bun dev
-```
+Schedules
+* Implement cron-style scheduled pipeline executions
 
-To run for production:
+Policies
+* Update the `ManagedStorageCapability` to track total sizes as well per `ArtifactIndex`
+* Offer automated cleanup policies for both `S3 Upload` and `Filesystem Write`: last N versions, max X gigabyte (strict/lenient mode)
+* Trigger these policies before/after every execution
 
-```bash
-bun start
-```
-
-This project was created using `bun init` in bun v1.2.12. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+Distribution
+* Create a shell script for building docker images with the appropriate toolset (only requirements: git + bash + docker)
+* Experiment with different Postgres/MySQL versions, and corresponding dump/restore tools
+* Think about how to match postgres/pgdump/pgrestore versions during execution (user provided? algorithmically?)

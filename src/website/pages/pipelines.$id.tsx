@@ -237,7 +237,7 @@ export function pipelines_$id() {
       mainForm.clearErrors("root");
       await FormHelper.snoozeBeforeSubmit();
       try {
-        if (confirm("Delete pipeline?")) {
+        if (confirm("Are you sure about deleting this pipeline?")) {
           await pipelineClient.delete(id!);
           navigate("/pipelines", { replace: true });
         }
@@ -440,11 +440,7 @@ export function pipelines_$id() {
                   <>
                     {!mainForm.formState.isSubmitting && (
                       <>
-                        <Button
-                          onClick={mainFormApi.cancel}
-                          disabled={Boolean(stepForm)}
-                          className="border-c-primary/80! text-c-primary hover:bg-c-primary/30"
-                        >
+                        <Button onClick={mainFormApi.cancel} disabled={Boolean(stepForm)}>
                           Cancel
                         </Button>
                         {id !== "new" && (

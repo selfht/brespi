@@ -126,7 +126,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
         />
       </FormElements.Left>
       <FormElements.Right formState={formState} clearErrors={clearErrors}>
-        <p>This step is used for filtering (TODO)</p>
+        <p>This step is used for filtering</p>
       </FormElements.Right>
     </FormElements.Container>
   );

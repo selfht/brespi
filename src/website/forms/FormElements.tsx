@@ -64,12 +64,12 @@ export namespace FormElements {
       <div className={clsx("flex flex-row-reverse justify-between gap-4", className)}>
         <div className="flex gap-4">
           {!formState.isSubmitting && <Button onClick={onCancel}>Cancel</Button>}
-          <Button disabled={formState.isSubmitting} onClick={onSubmit} className="border-c-success text-c-success hover:bg-c-success/20">
+          <Button disabled={formState.isSubmitting} onClick={onSubmit} className="border-c-success text-c-success hover:bg-c-success/30">
             {formState.isSubmitting ? <Spinner className="border-c-success" /> : existing ? "Update Step" : "Add Step"}
           </Button>
         </div>
         {existing && !formState.isSubmitting && (
-          <Button className="border-c-error! text-c-error hover:bg-c-error/20" onClick={() => onDelete(existing.id)}>
+          <Button className="border-c-error! text-c-error hover:bg-c-error/30" onClick={() => onDelete(existing.id)}>
             Delete Step
           </Button>
         )}

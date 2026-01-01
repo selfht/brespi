@@ -1,10 +1,9 @@
 import { Temporal } from "@js-temporal/polyfill";
 import clsx from "clsx";
 import { JSX } from "react";
-import { Paper } from "./Paper";
-import { Link } from "react-router";
-import { useLocation } from "react-router";
+import { Link, useLocation } from "react-router";
 import { useConfigurationStatus } from "../hooks/useConfigurationStatus";
+import { Paper } from "./Paper";
 
 type Props = JSX.IntrinsicElements["main"];
 export function Skeleton(props: Props) {
@@ -25,14 +24,14 @@ export namespace Skeleton {
     const navigationLinks = [
       { title: "Pipelines", link: "/pipelines", rounding: "left" },
       { title: "Schedules", link: "/schedules", rounding: undefined },
-      { title: "Settings", link: "/settings", rounding: undefined },
+      { title: "Policies", link: "/policies", rounding: undefined },
       { title: "Configuration", link: "/configuration", rounding: "right" },
     ] as const;
 
     return (
       <Paper className="u-root-grid-minus-gutters mt-10">
         <nav className="flex">
-          {navigationLinks.map(({ title, link, rounding }, index, { length }) => (
+          {navigationLinks.map(({ title, link, rounding }) => (
             <Link
               key={title}
               to={link}

@@ -11,7 +11,7 @@ export function Button({ icon, className, children, ...props }: Props) {
       {...props}
       className={clsx(
         "inline-flex gap-2 items-center p-2 border-2 font-bold border-c-primary rounded-lg",
-        "hover:cursor-pointer hover:bg-c-dim/20",
+        "hover:cursor-pointer hover:bg-c-dim/30",
         "disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
