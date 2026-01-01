@@ -79,6 +79,7 @@ export namespace EditorFlow {
         connectionReference?: string;
         database?: string;
       });
+
   export type CreatePipelineOptions = {
     name: string;
     steps: StepOptions[];
@@ -154,6 +155,23 @@ export namespace EditorFlow {
       throw new Error("Invalid url");
     }
     return pipelineId;
+  }
+
+  export type DeletePipelineOptions = {
+    id?: string;
+  };
+  export async function deletePipeline(page: Page, { id } = {} as DeletePipelineOptions): Promise<void> {
+    if (id) {
+      await page.goto(`pipelines/${id}`);
+    } else {
+      const pipelineIdFromUrl = Common.extractCurrentPipelineIdFromUrl(page);
+      if (!pipelineIdFromUrl) {
+        throw new Error("Cannot execute pipeline; no active pipeline view is open, and no id was supplied");
+      }
+    }
+
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await page.getByRole("button", { name: "Delete", exact: true }).click();
   }
 
   async function fillStepForm(page: Page, step: StepOptions): Promise<string> {

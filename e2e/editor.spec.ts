@@ -9,7 +9,7 @@ describe("editor", () => {
     await ResetBoundary.reset({ request });
   });
 
-  test("creates a backup pipeline", async ({ page }) => {
+  test("creates and deletes a simple backup pipeline", async ({ page }) => {
     // given
     const pipeline: EditorFlow.CreatePipelineOptions = {
       name: "Typical Backup Pipeline",
@@ -42,10 +42,21 @@ describe("editor", () => {
         },
       ],
     };
+
     // when
     await EditorFlow.createPipeline(page, pipeline);
-    // then
+    // then (there's a pipeline on the main page)
     await page.getByRole("link", { name: "Pipelines" }).click();
-    await expect(page.getByRole("link", { name: pipeline.name })).toBeVisible();
+    const pipelineLink = page.getByRole("link", { name: pipeline.name });
+    await expect(pipelineLink).toBeVisible();
+
+    // when
+    await pipelineLink.click();
+    page.on("dialog", (dialog) => dialog.accept());
+    await EditorFlow.deletePipeline(page);
+    // then
+    await expect(page).toHaveTitle("Pipelines | Brespi");
+    expect(page.url()).toMatch(/\/pipelines$/);
+    await expect(pipelineLink).not.toBeVisible();
   });
 });
