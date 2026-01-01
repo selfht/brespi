@@ -4,6 +4,7 @@ import { JSX } from "react";
 import { Paper } from "./Paper";
 import { Link } from "react-router";
 import { useLocation } from "react-router";
+import { useConfigurationStatus } from "../hooks/useConfigurationStatus";
 
 type Props = JSX.IntrinsicElements["main"];
 export function Skeleton(props: Props) {
@@ -17,20 +18,16 @@ export function Skeleton(props: Props) {
 }
 
 export namespace Skeleton {
-  type NavigationLink = {
-    title: string;
-    link: string;
-    rounding: "left" | "right" | undefined;
-  };
-
   export function Header() {
     const { pathname } = useLocation();
-    const navigationLinks: NavigationLink[] = [
+    const { synchronized } = useConfigurationStatus();
+
+    const navigationLinks = [
       { title: "Pipelines", link: "/pipelines", rounding: "left" },
       { title: "Schedules", link: "/schedules", rounding: undefined },
       { title: "Settings", link: "/settings", rounding: undefined },
       { title: "Configuration", link: "/configuration", rounding: "right" },
-    ];
+    ] as const;
 
     return (
       <Paper className="u-root-grid-minus-gutters mt-10">
@@ -43,12 +40,12 @@ export namespace Skeleton {
                 "rounded-l-2xl": rounding === "left",
                 "rounded-r-2xl": rounding === "right",
                 "bg-c-dim/20": pathname.startsWith(link),
-                "ml-auto": index + 1 === length,
+                "ml-auto": title === "Configuration",
               })}
             >
               <span className="relative text-lg">
                 {title}
-                {index + 1 === length && <div className="absolute rounded-full size-2 bg-c-error -right-2 -top-1" />}
+                {title === "Configuration" && !synchronized && <div className="absolute rounded-full size-2 bg-c-error -right-2 -top-1" />}
               </span>
             </Link>
           ))}

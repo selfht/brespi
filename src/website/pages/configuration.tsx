@@ -1,14 +1,13 @@
-import { Configuration } from "@/models/Configuration";
+import { CoreConfiguration } from "@/models/CoreConfiguration";
+import { ProblemDetails } from "@/models/ProblemDetails";
 import { ConfigurationClient } from "../clients/ConfigurationClient";
+import { ErrorDump } from "../comps/ErrorDump";
 import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
+import { Spinner } from "../comps/Spinner";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRegistry } from "../hooks/useRegistry";
 import { useYesQuery } from "../hooks/useYesQuery";
-import { ProblemDetails } from "@/models/ProblemDetails";
-import { ErrorDump } from "../comps/ErrorDump";
-import { Spinner } from "../comps/Spinner";
-import { CoreConfiguration } from "@/models/CoreConfiguration";
 
 export function configuration() {
   useDocumentTitle("Configuration | Brespi");

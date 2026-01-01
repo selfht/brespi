@@ -9,7 +9,7 @@ import { Step } from "@/models/Step";
 import { PipelineView } from "@/views/PipelineView";
 import { Temporal } from "@js-temporal/polyfill";
 import clsx from "clsx";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { Form, useNavigate, useParams } from "react-router";
 import { Block } from "../canvas/Block";
@@ -29,12 +29,12 @@ import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
 import { FormHelper } from "../forms/FormHelper";
 import { StepForm } from "../forms/StepForm";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useFullScreen } from "../hooks/useFullScreen";
 import { useRegistry } from "../hooks/useRegistry";
 import { useStateRef } from "../hooks/useStateRef";
 import { useYesQuery } from "../hooks/useYesQuery";
 import { StepTranslation } from "../translation/StepTranslation";
-import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 type Form = {
   interactivity: Interactivity;
@@ -226,6 +226,20 @@ export function pipelines_$id() {
           });
           pipelineQuery.setData(pipeline);
           // Implicitly leads to a "reset" via the effect listener on "query.data"
+        }
+      } catch (error) {
+        mainForm.setError("root", {
+          message: FormHelper.formatError(error),
+        });
+      }
+    },
+    async delete() {
+      mainForm.clearErrors("root");
+      await FormHelper.snoozeBeforeSubmit();
+      try {
+        if (confirm("Delete pipeline?")) {
+          await pipelineClient.delete(id!);
+          navigate("/pipelines", { replace: true });
         }
       } catch (error) {
         mainForm.setError("root", {
@@ -425,18 +439,29 @@ export function pipelines_$id() {
                 ) : (
                   <>
                     {!mainForm.formState.isSubmitting && (
-                      <Button
-                        onClick={mainFormApi.cancel}
-                        disabled={mainForm.formState.isSubmitting || Boolean(stepForm)}
-                        className="border-c-primary/80 bg-c-primary/80 text-c-dark hover:bg-c-primary"
-                      >
-                        Cancel
-                      </Button>
+                      <>
+                        <Button
+                          onClick={mainFormApi.cancel}
+                          disabled={Boolean(stepForm)}
+                          className="border-c-primary/80! text-c-primary hover:bg-c-primary/30"
+                        >
+                          Cancel
+                        </Button>
+                        {id !== "new" && (
+                          <Button
+                            onClick={mainForm.handleSubmit(mainFormApi.delete)}
+                            disabled={Boolean(stepForm)}
+                            className="border-c-error/80! text-c-error hover:bg-c-error/30"
+                          >
+                            Delete
+                          </Button>
+                        )}
+                      </>
                     )}
                     <Button
                       onClick={mainForm.handleSubmit(mainFormApi.save)}
                       disabled={mainForm.formState.isSubmitting || Boolean(stepForm)}
-                      className="border-c-success/80 bg-c-success/80 text-c-dark hover:bg-c-success"
+                      className="border-c-success/80! text-c-success hover:bg-c-success/30"
                     >
                       {mainForm.formState.isSubmitting ? <Spinner className="border-black! border-t-transparent!" /> : "Save"}
                     </Button>

@@ -28,4 +28,9 @@ export class PipelineClient {
     });
     return PipelineView.parse(body);
   }
+
+  public async delete(id: string): Promise<PipelineView> {
+    const { body } = await this.yesttp.delete(`/pipelines/${id}`);
+    return PipelineView.parse(body);
+  }
 }
