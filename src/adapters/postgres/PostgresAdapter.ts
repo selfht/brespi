@@ -36,31 +36,17 @@ export class PostgresAdapter extends AbstractAdapter {
       });
       const output = z
         .object({
-          timestamp: z.string(),
-          backupDir: z.string(),
           databases: z.array(
-            z.union([
-              z.object({
-                name: z.string(),
-                status: z.literal("success"),
-                path: z.string(),
-              }),
-              z.object({
-                name: z.string(),
-                status: z.literal("error"),
-                error: z.string(),
-              }),
-              z.object({
-                name: z.string(),
-                status: z.literal("skipped"),
-              }),
-            ]),
+            z.object({
+              name: z.string(),
+              path: z.string(),
+            }),
           ),
         })
         .parse(JSON.parse(stdout));
-      // Extract artifacts (only successful backups)
+      // All databases in output are successful (script fails on first error)
       const artifacts: Artifact[] = [];
-      for (const db of output.databases.filter((db): db is Extract<typeof db, { status: "success" }> => db.status === "success")) {
+      for (const db of output.databases) {
         const { outputId, outputPath } = this.generateArtifactDestination();
         await rename(db.path, outputPath);
         artifacts.push({
