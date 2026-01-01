@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1767272827422,
+      "tag": "0000_create_execution_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1767276598769,
+      "tag": "0001_create_action_table",
+      "breakpoints": true
+    }
+  ]
+}

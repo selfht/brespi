@@ -20,6 +20,7 @@ export namespace Env {
         ...env,
         X_BRESPI_TMP_ROOT: join(env.X_BRESPI_ROOT, "tmp"),
         X_BRESPI_DATA_ROOT: join(env.X_BRESPI_ROOT, "data"),
+        X_BRESPI_DATABASE: join(env.X_BRESPI_ROOT, "data", "db.sqlite"),
         X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from(
           env.O_BRESPI_STAGE === "development" ? { seconds: 0 } : { seconds: 0 }, //
         ),
