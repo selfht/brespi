@@ -11,15 +11,16 @@ import { FilterCapability } from "./capabilities/FilterCapability";
 import { ManagedStorageCapability } from "./capabilities/ManagedStorageCapability";
 import { Sqlite } from "./drizzle/sqlite";
 import { Env } from "./Env";
+import { ConfigurationRepository } from "./repositories/ConfigurationRepository";
 import { ExecutionRepository } from "./repositories/ExecutionRepository";
 import { PipelineRepository } from "./repositories/PipelineRepository";
 import { Server } from "./Server";
 import { CleanupService } from "./services/CleanupService";
+import { ConfigurationService } from "./services/ConfigurationService";
 import { ExecutionService } from "./services/ExecutionService";
 import { PipelineService } from "./services/PipelineService";
 import { RestrictedService } from "./services/RestrictedService";
 import { StepService } from "./services/StepService";
-import { ConfigurationRepository } from "./repositories/ConfigurationRepository";
 
 export class ServerRegistry {
   public static async bootstrap(env: Env.Private, sqlite: Sqlite): Promise<ServerRegistry> {
@@ -73,11 +74,12 @@ export class ServerRegistry {
       pipelineRepository,
       adapterService,
     ));
+    const configurationService = (this.registry[ConfigurationService.name] = new ConfigurationService(configurationRepository));
     const restrictedService = (this.registry[RestrictedService.name] = new RestrictedService(pipelineRepository));
     this.registry[CleanupService.name] = new CleanupService(env);
 
     // Server
-    this.registry[Server.name] = new Server(env, stepService, pipelineService, executionService, restrictedService);
+    this.registry[Server.name] = new Server(env, stepService, pipelineService, executionService, restrictedService, configurationService);
   }
 
   public get<T>(klass: Class<T>): T {

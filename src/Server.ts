@@ -11,6 +11,8 @@ import { PipelineService } from "./services/PipelineService";
 import { StepService } from "./services/StepService";
 import { PipelineView } from "./views/PipelineView";
 import { RestrictedService } from "./services/RestrictedService";
+import { ConfigurationService } from "./services/ConfigurationService";
+import { Configuration } from "./models/Configuration";
 
 export class Server {
   private static readonly SOCKET_ENDPOINT = "/socket";
@@ -21,6 +23,7 @@ export class Server {
     private readonly pipelineService: PipelineService,
     private readonly executionService: ExecutionService,
     private readonly restrictedService: RestrictedService,
+    private readonly configurationService: ConfigurationService,
   ) {}
 
   public listen() {
@@ -48,9 +51,11 @@ export class Server {
         },
         open: (socket) => {
           this.executionService.registerSocket(socket);
+          this.configurationService.registerSocket(socket);
         },
         close: (socket) => {
           this.executionService.unregisterSocket(socket);
+          this.configurationService.unregisterSocket(socket);
         },
       },
       routes: {
@@ -72,6 +77,16 @@ export class Server {
               .map(([key, value]) => ({ [key]: value }))
               .reduce((kv1, kv2) => Object.assign({}, kv1, kv2), {});
             return Response.json(response as Env.Public);
+          },
+        },
+
+        /**
+         * Configuration
+         */
+        "/api/configuration": {
+          GET: async () => {
+            const configuration: Configuration = await this.configurationService.get();
+            return Response.json(configuration);
           },
         },
 

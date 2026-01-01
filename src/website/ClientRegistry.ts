@@ -7,6 +7,7 @@ import { ExecutionClient } from "./clients/ExecutionClient";
 import { PipelineClient } from "./clients/PipelineClient";
 import { SocketClient } from "./clients/SocketClient";
 import { StepClient } from "./clients/StepClient.ts";
+import { ConfigurationClient } from "./clients/ConfigurationClient";
 
 export class ClientRegistry {
   /**
@@ -35,6 +36,7 @@ export class ClientRegistry {
     this.registry[PipelineClient.name] = new PipelineClient(yesttp);
     this.registry[PipelineClient.name] = new PipelineClient(yesttp);
     this.registry[ExecutionClient.name] = new ExecutionClient(yesttp);
+    this.registry[ConfigurationClient.name] = new ConfigurationClient(yesttp);
   }
 
   public getEnv() {

@@ -3,6 +3,8 @@ import { Mutex } from "@/helpers/Mutex";
 import { Configuration } from "@/models/Configuration";
 import { CoreConfiguration } from "@/models/CoreConfiguration";
 
+type SynchronizationChangeListener = (conf: Configuration) => unknown;
+
 export class ConfigurationRepository {
   private readonly mutex = new Mutex();
 
@@ -12,6 +14,8 @@ export class ConfigurationRepository {
 
   private memoryObject?: CoreConfiguration;
   private memoryObjectMatchesDiskFile: boolean = true; // by definition, this will initially be true
+
+  private readonly synchronizationChangeListeners: SynchronizationChangeListener[] = [];
 
   public constructor(env: Env.Private) {
     if (env.X_BRESPI_CONFIGURATION === ":memory:") {
@@ -24,6 +28,10 @@ export class ConfigurationRepository {
         diskFile: Bun.file(env.X_BRESPI_CONFIGURATION),
       };
     }
+  }
+
+  public subscribe(_event: "synchronization_change", listener: SynchronizationChangeListener) {
+    this.synchronizationChangeListeners.push(listener);
   }
 
   public async read<T = void>(fn: (configuration: Configuration) => T | Promise<T>): Promise<T> {
@@ -44,7 +52,18 @@ export class ConfigurationRepository {
       this.memoryObject = {
         pipelines: output.configuration.pipelines,
       };
+
+      const oldMemoryObjectMatchesDiskFile = this.memoryObjectMatchesDiskFile;
       this.memoryObjectMatchesDiskFile = await this.compareMemoryObjectWithDiskFile(this.memoryObject);
+
+      if (oldMemoryObjectMatchesDiskFile !== this.memoryObjectMatchesDiskFile) {
+        const latestConfiguration: Configuration = {
+          ...this.memoryObject,
+          synchronized: this.memoryObjectMatchesDiskFile,
+        };
+        this.synchronizationChangeListeners.forEach((listener) => listener(latestConfiguration));
+      }
+
       return output;
     } finally {
       release();
