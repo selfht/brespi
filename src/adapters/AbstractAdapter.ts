@@ -1,4 +1,5 @@
 import { Env } from "@/Env";
+import { Exception } from "@/errors/exception/Exception";
 import { ExecutionError } from "@/errors/ExecutionError";
 import { CommandRunner } from "@/helpers/CommandRunner";
 import { Generate } from "@/helpers/Generate";
@@ -49,31 +50,46 @@ export abstract class AbstractAdapter {
   protected requireArtifactType(requiredType: Artifact["type"], ...artifacts: Artifact[]): void {
     const badArtifact = artifacts.find((a) => a.type !== requiredType);
     if (badArtifact) {
-      throw ExecutionError.artifact_type_invalid({ name: badArtifact.name, type: badArtifact.type });
+      throw ExecutionError.artifact_type_invalid({ name: badArtifact.name, type: badArtifact.type, requiredType });
+    }
+  }
+
+  protected requireArtifactSize({ length }: Artifact[], { min, max }: { min?: number; max?: number }): void {
+    if ((typeof min === "number" && length < min) || (typeof max === "number" && length > max)) {
+      throw ExecutionError.artifact_count_invalid({ count: length, min, max });
     }
   }
 
   // Overload signatures
   protected async requireFilesystemExistence<T extends "file" | "directory">(path: string, expectedType: T): Promise<{ type: T }>;
   protected async requireFilesystemExistence(path: string): Promise<{ type: "file" | "directory" }>;
-  protected async requireFilesystemExistence(path: string, expectedType?: "file" | "directory"): Promise<{ type: "file" | "directory" }> {
+  protected async requireFilesystemExistence(path: string, requiredType?: "file" | "directory"): Promise<{ type: "file" | "directory" }> {
     try {
       const s = await stat(path);
-      const actualType = s.isFile() ? "file" : "directory";
+      const type = s.isFile() ? "file" : "directory";
       // Validate type if expected type was provided
-      if (expectedType && actualType !== expectedType) {
-        throw ExecutionError.filesystem_item_type_invalid({
+      if (requiredType && type !== requiredType) {
+        throw ExecutionError.fspath_type_invalid({
           path,
-          expected: expectedType,
-          actual: actualType,
+          type,
+          requiredType,
         });
       }
-      return { type: actualType };
+      return { type };
     } catch (err: any) {
       if (err.code === "ENOENT") {
-        throw ExecutionError.filesystem_item_does_not_exist({ path });
+        throw ExecutionError.fspath_does_not_exist({ path });
       }
       throw err; // real error (permissions, etc.)
     }
+  }
+
+  protected mapError(e: unknown, custom: (opt: { cause: string }) => Exception): Exception {
+    if (Exception.isInstance(e)) {
+      return e;
+    }
+    return custom({
+      cause: e instanceof Error ? e.message : String(e),
+    });
   }
 }

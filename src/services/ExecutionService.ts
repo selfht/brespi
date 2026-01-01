@@ -322,13 +322,12 @@ export class ExecutionService {
       let details: string = "";
       if (e.details) {
         const { exitCode, stdall } = e.details;
-        if (exitCode) {
-          details += ` (${exitCode})`;
-        }
-        if (stdall === undefined || stdall === null) {
-          details += ` ${JSON.stringify(e.details, null, 2)}`;
+        if (exitCode && stdall) {
+          details += ` (${exitCode})\n\n${stdall}`;
+        } else if (e.details.cause) {
+          details += `\n\n${e.details.cause}`;
         } else {
-          details += `\n\n${stdall}`;
+          details += ` ${JSON.stringify(e.details, null, 2)}`;
         }
       }
       return `${e.problem}${details}`;

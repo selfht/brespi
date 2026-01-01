@@ -4,7 +4,6 @@ import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
 import { createReadStream, createWriteStream } from "fs";
-import { stat } from "fs/promises";
 import { pipeline } from "stream/promises";
 import { AbstractAdapter } from "../AbstractAdapter";
 
@@ -23,22 +22,24 @@ export class EncryptionAdapter extends AbstractAdapter {
     const inputPath = artifact.path;
     const { outputId, outputPath } = this.generateArtifactDestination();
 
-    // Derive a 32-byte key from the hardcoded key using SHA-256
-    const keyBuffer = createHash("sha256").update(key).digest();
-
-    // Encrypt
-    const iv = randomBytes(16);
-    const cipher = createCipheriv(algorithm, keyBuffer, iv);
-    const outputStream = createWriteStream(outputPath);
-    outputStream.write(iv);
-    await pipeline(createReadStream(inputPath), cipher, outputStream);
-
-    return {
-      id: outputId,
-      type: "file",
-      path: outputPath,
-      name: this.addExtension(artifact.name, this.EXTENSION),
-    };
+    try {
+      // Derive a 32-byte key from the hardcoded key using SHA-256
+      const keyBuffer = createHash("sha256").update(key).digest();
+      // Encrypt
+      const iv = randomBytes(16);
+      const cipher = createCipheriv(algorithm, keyBuffer, iv);
+      const outputStream = createWriteStream(outputPath);
+      outputStream.write(iv);
+      await pipeline(createReadStream(inputPath), cipher, outputStream);
+      return {
+        id: outputId,
+        type: "file",
+        path: outputPath,
+        name: this.addExtension(artifact.name, this.EXTENSION),
+      };
+    } catch (e) {
+      throw this.mapError(e, ExecutionError.encryption_failed);
+    }
   }
 
   public async decrypt(artifact: Artifact, step: Step.Decryption): Promise<Artifact> {
@@ -49,36 +50,38 @@ export class EncryptionAdapter extends AbstractAdapter {
     const inputPath = artifact.path;
     const { outputId, outputPath } = this.generateArtifactDestination();
 
-    // Derive the same 32-byte key
-    const keyBuffer = createHash("sha256").update(key).digest();
-
-    // Decrypt
-    const inputStream = createReadStream(inputPath);
-    const iv = await new Promise<Buffer>((resolve, reject) => {
-      inputStream.once("readable", () => {
-        const chunk = inputStream.read(16);
-        if (!chunk || chunk.length !== 16) {
-          throw new Error("Failed to read IV");
-        } else {
-          resolve(chunk);
-        }
+    try {
+      // Derive the same 32-byte key
+      const keyBuffer = createHash("sha256").update(key).digest();
+      // Decrypt
+      const inputStream = createReadStream(inputPath);
+      const iv = await new Promise<Buffer>((resolve, reject) => {
+        inputStream.once("readable", () => {
+          const chunk = inputStream.read(16);
+          if (!chunk || chunk.length !== 16) {
+            throw new Error("Failed to read IV");
+          } else {
+            resolve(chunk);
+          }
+        });
+        inputStream.once("error", reject);
       });
-      inputStream.once("error", reject);
-    });
-    const decipher = createDecipheriv(algorithm, keyBuffer, iv);
-    await pipeline(inputStream, decipher, createWriteStream(outputPath));
-
-    return {
-      id: outputId,
-      type: "file",
-      path: outputPath,
-      name: this.stripExtension(artifact.name, this.EXTENSION),
-    };
+      const decipher = createDecipheriv(algorithm, keyBuffer, iv);
+      await pipeline(inputStream, decipher, createWriteStream(outputPath));
+      return {
+        id: outputId,
+        type: "file",
+        path: outputPath,
+        name: this.stripExtension(artifact.name, this.EXTENSION),
+      };
+    } catch (e) {
+      throw this.mapError(e, ExecutionError.decryption_failed);
+    }
   }
 
   private translateAlgorithm(algorithm: string): string {
     if (algorithm !== "aes256cbc") {
-      throw ExecutionError.Encryption.algorithm_unsupported({ algorithm });
+      throw ExecutionError.algorithm_unsupported({ algorithm });
     }
     return "aes-256-cbc";
   }

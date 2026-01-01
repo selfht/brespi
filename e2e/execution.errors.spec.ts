@@ -1,7 +1,6 @@
 import test, { expect } from "@playwright/test";
 import { mkdir } from "fs/promises";
 import { describe } from "node:test";
-import { join } from "path";
 import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { Common } from "./common/Common";
@@ -15,7 +14,7 @@ describe("execution | errors", () => {
 
   test("shows an error when trying to decompress a directory", async ({ page }) => {
     // given
-    const dir = FilesystemBoundary.SCRATCH_PAD.join("mydir");
+    const dir = FilesystemBoundary.SCRATCH_PAD.join("folderboy");
     await mkdir(dir);
     // when
     await EditorFlow.createPipeline(page, {
@@ -36,38 +35,56 @@ describe("execution | errors", () => {
     await ExecutionFlow.executePipeline(page, { expectedOutcome: "error" });
     // then
     const error = `ExecutionError::artifact_type_invalid {
-      "name": "mydir",
-      "type": "directory"
+      "name": "folderboy",
+      "type": "directory",
+      "requiredType": "file"
     }`;
     await expect(page.getByText(error)).toBeVisible();
   });
 
   test("shows an error when trying to decrypt a corrupted file", async ({ page }) => {
     // given
-    const dir = FilesystemBoundary.SCRATCH_PAD.join("mydir");
-    await mkdir(dir);
+    const file = FilesystemBoundary.SCRATCH_PAD.join("file.txt");
+    await Common.writeFileRecursive(file, "This is my file!");
+    const corruptingScript = FilesystemBoundary.SCRATCH_PAD.join("corrupting.sh");
+    await Common.writeScript(corruptingScript).withContents(`
+      #!/bin/bash
+      # Get the encrypted file (there's exactly 1 file)
+      file=$(ls $BRESPI_ARTIFACTS_IN/*)
+      # Remove first byte for corruption
+      tail -c +2 "$file" > "$BRESPI_ARTIFACTS_OUT/$(basename "$file")"
+    `);
     // when
     await EditorFlow.createPipeline(page, {
-      name: "Decompression Error",
+      name: "Decryption Error",
       steps: [
         {
           id: "A",
           type: "Filesystem Read",
-          fileOrFolder: dir,
+          fileOrFolder: file,
         },
         {
           previousId: "A",
           id: "B",
-          type: "Decompression",
+          type: "Encryption",
+          keyReference: "MY_ENCRYPTION_KEY",
+        },
+        {
+          previousId: "B",
+          id: "C",
+          type: "Custom Script",
+          path: corruptingScript,
+        },
+        {
+          previousId: "C",
+          type: "Decryption",
+          keyReference: "MY_ENCRYPTION_KEY",
         },
       ],
     });
     await ExecutionFlow.executePipeline(page, { expectedOutcome: "error" });
     // then
-    const error = `ExecutionError::artifact_type_invalid {
-      "name": "mydir",
-      "type": "directory"
-    }`;
+    const error = "ExecutionError::decryption_failed";
     await expect(page.getByText(error)).toBeVisible();
   });
 

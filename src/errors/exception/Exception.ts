@@ -5,8 +5,8 @@ import { Json } from "@/types/Json";
 export class Exception extends Error {
   public static readonly ID = "@brespi/Exception";
 
-  public static initializeFields(klass: Exception.ErrorClass) {
-    const group = klass[Exception.NS];
+  public static initializeFields(klass: Class) {
+    const group = klass.name;
     for (const key of Object.keys(klass)) {
       if (key !== Exception.NS) {
         Object.assign(klass, {
@@ -39,8 +39,6 @@ export namespace Exception {
   export type Fn<T extends Record<string, Json> | void = void> = T extends void
     ? (details?: Record<string, Json>) => Exception
     : (details: T) => Exception;
-
-  export type ErrorClass = Class & { [NS]: string };
 
   export function isInstance(e: any): e is Exception {
     return "id" in e && e.id === Exception.ID;
