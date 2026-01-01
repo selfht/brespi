@@ -1,6 +1,4 @@
 import { Env } from "@/Env";
-import { ExecutionError } from "@/errors/ExecutionError";
-import { CommandRunner } from "@/helpers/CommandRunner";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { readdir, rename, rm } from "fs/promises";
@@ -37,17 +35,14 @@ export class ScriptAdapter extends AbstractAdapter {
   }
 
   private async executeScript(scriptPath: string, env: Record<string, string> = {}): Promise<void> {
-    const { exitCode, stdall } = await CommandRunner.run({
-      cmd: ["bash", "-c", `./${basename(scriptPath)} 2>&1`],
+    await this.runCommand({
+      cmd: ["bash", "-c", `./${basename(scriptPath)}`],
       cwd: dirname(scriptPath),
       env: {
         ...process.env,
         ...env,
       },
     });
-    if (exitCode !== 0) {
-      throw ExecutionError.Script.nonzero_exit({ exitCode, stdall });
-    }
   }
 
   private async moveArtifacts(artifacts: Artifact[], targetDir: string): Promise<void> {

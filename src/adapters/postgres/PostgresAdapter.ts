@@ -1,6 +1,5 @@
 import { Env } from "@/Env";
 import { ExecutionError } from "@/errors/ExecutionError";
-import { CommandRunner } from "@/helpers/CommandRunner";
 import { UrlParser } from "@/helpers/UrlParser";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
@@ -37,17 +36,13 @@ export class PostgresAdapter extends AbstractAdapter {
     }
 
     try {
-      const { exitCode, stdout, stdall } = await CommandRunner.run({
+      const { stdout } = await this.runCommand({
         cmd: ["bash", scriptPath],
         env: {
           ...process.env,
           ...env,
         },
       });
-      if (exitCode !== 0) {
-        throw new Error(stdall);
-      }
-
       // Parse and validate the JSON output with Zod
       const output = z
         .object({
@@ -116,16 +111,13 @@ export class PostgresAdapter extends AbstractAdapter {
     };
 
     try {
-      const { exitCode, stdout, stdall } = await CommandRunner.run({
+      const { stdout } = await this.runCommand({
         cmd: ["bash", scriptPath],
         env: {
           ...process.env,
           ...env,
         },
       });
-      if (exitCode !== 0) {
-        throw new Error(stdall);
-      }
       // Parse and validate the JSON output with Zod
       z.object({
         status: z.literal("success"),

@@ -1,13 +1,22 @@
-import { readdir } from "fs/promises";
-import { mkdir, rm } from "fs/promises";
+import { mkdir, readdir, rm } from "fs/promises";
 import path, { join } from "path";
 
 export namespace FilesystemBoundary {
-  export const SCRATCH_PAD = path.join("opt", "scratchpad");
+  export const SCRATCH_PAD = class {
+    public static readonly root = path.join("opt", "scratchpad");
+
+    public static join(...segments: string[]) {
+      return path.join(this.root, ...segments);
+    }
+
+    public static async ensureEmpty() {
+      await rm(this.root, { recursive: true, force: true });
+      await mkdir(this.root, { recursive: true });
+    }
+  };
 
   export async function ensureEmptyScratchPad() {
-    await rm(SCRATCH_PAD, { recursive: true, force: true });
-    await mkdir(SCRATCH_PAD, { recursive: true });
+    await SCRATCH_PAD.ensureEmpty();
   }
 
   export async function listFlattenedFolderEntries(folder: string): Promise<string[]> {

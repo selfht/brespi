@@ -1,12 +1,20 @@
 import { Env } from "@/Env";
 import { ExecutionError } from "@/errors/ExecutionError";
+import { CommandRunner } from "@/helpers/CommandRunner";
 import { Generate } from "@/helpers/Generate";
 import { Artifact } from "@/models/Artifact";
-import { stat } from "fs/promises";
-import { mkdir } from "fs/promises";
+import { mkdir, stat } from "fs/promises";
 
 export abstract class AbstractAdapter {
   protected constructor(protected readonly env: Env.Private) {}
+
+  protected async runCommand(options: CommandRunner.Options) {
+    const { exitCode, ...result } = await CommandRunner.run(options);
+    if (exitCode !== 0) {
+      throw ExecutionError.nonzero_script_exit({ exitCode: exitCode, stdall: result.stdall });
+    }
+    return result;
+  }
 
   protected addExtension(name: string, extension: string): string {
     return name.endsWith(extension) ? name : `${name}${extension}`;

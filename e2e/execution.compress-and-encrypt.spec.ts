@@ -8,12 +8,12 @@ import { EditorFlow } from "./flows/EditorFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
 
 const path = {
-  originalFile: join(FilesystemBoundary.SCRATCH_PAD, "original.txt"),
-  forwardProcessingDir: join(FilesystemBoundary.SCRATCH_PAD, "forward"),
+  originalFile: FilesystemBoundary.SCRATCH_PAD.join("original.txt"),
+  forwardProcessingDir: FilesystemBoundary.SCRATCH_PAD.join("forward"),
   get forwardProcessingFile() {
     return join(this.forwardProcessingDir, "original.txt.tar.gz.enc");
   },
-  reverseProcessingDir: join(FilesystemBoundary.SCRATCH_PAD, "backward"),
+  reverseProcessingDir: FilesystemBoundary.SCRATCH_PAD.join("backward"),
   get reverseProcessingFile() {
     return join(this.reverseProcessingDir, "original.txt");
   },

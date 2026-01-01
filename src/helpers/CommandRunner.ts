@@ -1,17 +1,6 @@
-type Options = {
-  cmd: string[];
-  cwd?: string;
-  env?: Record<string, string | undefined>;
-};
-type Result = {
-  exitCode: number;
-  stdout: string;
-  stderr: string;
-  stdall: string;
-};
 export class CommandRunner {
-  public static async run({ cmd, cwd, env }: Options): Promise<Result> {
-    const proc = Bun.spawn({
+  public static async run({ cmd, cwd, env }: CommandRunner.Options): Promise<CommandRunner.Result> {
+    const process = Bun.spawn({
       cmd,
       cwd,
       env,
@@ -26,7 +15,7 @@ export class CommandRunner {
     // Read both streams concurrently and capture interleaved output
     await Promise.all([
       (async () => {
-        const reader = proc.stdout.getReader();
+        const reader = process.stdout.getReader();
         const decoder = new TextDecoder();
         try {
           while (true) {
@@ -41,7 +30,7 @@ export class CommandRunner {
         }
       })(),
       (async () => {
-        const reader = proc.stderr.getReader();
+        const reader = process.stderr.getReader();
         const decoder = new TextDecoder();
         try {
           while (true) {
@@ -57,13 +46,26 @@ export class CommandRunner {
       })(),
     ]);
 
-    await proc.exited;
-
+    await process.exited;
     return {
-      exitCode: proc.exitCode!,
+      exitCode: process.exitCode!,
       stdout: stdoutChunks.join(""),
       stderr: stderrChunks.join(""),
       stdall: stdallChunks.join(""),
     };
   }
+}
+
+export namespace CommandRunner {
+  export type Options = {
+    cmd: string[];
+    cwd?: string;
+    env?: Record<string, string | undefined>;
+  };
+  export type Result = {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+    stdall: string;
+  };
 }

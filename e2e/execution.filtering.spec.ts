@@ -16,8 +16,8 @@ describe("execution | filtering", () => {
     expectedArtifacts: string[];
   };
 
-  const inputDir = join(FilesystemBoundary.SCRATCH_PAD, "input");
-  const outputDir = join(FilesystemBoundary.SCRATCH_PAD, "output");
+  const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
+  const outputDir = FilesystemBoundary.SCRATCH_PAD.join("output");
 
   test.beforeEach(async ({ request }) => {
     await ResetBoundary.reset({ request });
@@ -123,7 +123,7 @@ describe("execution | filtering", () => {
   }
 
   async function createFilesystemReadFilterPipeline(page: Page, filterCriteria: PipelineOptions) {
-    const temporaryStorageFolder = join(FilesystemBoundary.SCRATCH_PAD, "temporary-storage");
+    const temporaryStorageFolder = FilesystemBoundary.SCRATCH_PAD.join("temporary-storage");
     return await EditorFlow.createPipeline(page, {
       name: "Filesystem Read Filter",
       steps: [

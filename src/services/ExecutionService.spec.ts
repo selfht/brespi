@@ -101,7 +101,7 @@ describe(ExecutionService.name, async () => {
       }
       if (action.stepType === Step.Type.encryption) {
         expect(action.result!.outcome).toEqual(Outcome.error);
-        expect(action.result!.errorMessage).toEqual("Encryption failed for unknown reason");
+        expect(action.result!.errorMessage).toEqual("ExecutionError::unknown\n\nEncryption failed for unknown reason");
         expect(action.result!.completedAt).toBeTruthy();
         expect(action.result!.duration).toBeTruthy();
       }

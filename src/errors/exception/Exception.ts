@@ -35,7 +35,11 @@ export class Exception extends Error {
 
 export namespace Exception {
   export const NS = "NS" as const;
-  export type Fn = (details?: Record<string, Json>) => Exception;
+
+  export type Fn<T extends Record<string, Json> | void = void> = T extends void
+    ? (details?: Record<string, Json>) => Exception
+    : (details: T) => Exception;
+
   export type ErrorClass = Class & { [NS]: string };
 
   export function isInstance(e: any): e is Exception {

@@ -14,8 +14,8 @@ describe("execution | custom-script", () => {
   });
 
   test("executes a transformer script which merges files", async ({ page }) => {
-    const inputDir = join(FilesystemBoundary.SCRATCH_PAD, "input");
-    const outputDir = join(FilesystemBoundary.SCRATCH_PAD, "output");
+    const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
+    const outputDir = FilesystemBoundary.SCRATCH_PAD.join("output");
     // given
     const fileA = join(inputDir, "A.txt");
     await Common.writeFileRecursive(fileA, "This is line A\n");
@@ -23,7 +23,7 @@ describe("execution | custom-script", () => {
     await Common.writeFileRecursive(fileB, "This is line B\n");
     const fileC = join(inputDir, "C.txt");
     await Common.writeFileRecursive(fileC, "This is line C\n");
-    const script = join(FilesystemBoundary.SCRATCH_PAD, "merge.sh");
+    const script = FilesystemBoundary.SCRATCH_PAD.join("merge.sh");
     await Common.writeScript(script).withContents(`
       #!/bin/bash
       cat $BRESPI_ARTIFACTS_IN/* > $BRESPI_ARTIFACTS_OUT/ABC.txt

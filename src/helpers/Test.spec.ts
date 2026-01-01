@@ -5,7 +5,6 @@ import { Pipeline } from "@/models/Pipeline";
 import { GenericInMemoryRepository } from "@/repositories/implementations/GenericInMemoryRepository";
 import { mock, Mock } from "bun:test";
 import { join } from "path";
-import { CommandRunner } from "./CommandRunner";
 
 export namespace Test {
   export type Mocked<T> = {
@@ -86,9 +85,6 @@ export namespace Test {
   export class MockRegistry {
     public static readonly adapterService: Mocked<AdapterService> = {
       submit: mock(),
-    };
-    public static readonly commandHelper: Mocked<CommandRunner> = {
-      run: mock(),
     };
 
     public static resetAllMocks() {

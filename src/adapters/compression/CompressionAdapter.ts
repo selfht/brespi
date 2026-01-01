@@ -1,6 +1,5 @@
 import { Env } from "@/Env";
 import { ExecutionError } from "@/errors/ExecutionError";
-import { CommandRunner } from "@/helpers/CommandRunner";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { readdir, rename, rm } from "fs/promises";
@@ -20,12 +19,9 @@ export class CompressionAdapter extends AbstractAdapter {
     // Use tar with gzip for both files and directories
     // For files: tar -czf output.tar.gz -C /parent/dir filename
     // For directories: tar -czf output.tar.gz -C /parent/dir dirname
-    const { exitCode, stdall } = await CommandRunner.run({
+    await this.runCommand({
       cmd: ["tar", "-czf", outputPath, "-C", dirname(inputPath), basename(inputPath)],
     });
-    if (exitCode !== 0) {
-      throw new Error(stdall);
-    }
     return {
       id: outputId,
       type: "file",
@@ -41,12 +37,9 @@ export class CompressionAdapter extends AbstractAdapter {
     try {
       // Use tar to extract (works for both single files and directories)
       // Will place the resulting "item" (file or folder) as the only child inside the temp dir
-      const { exitCode, stdall } = await CommandRunner.run({
+      await this.runCommand({
         cmd: ["tar", "-xzf", inputPath, "-C", tempPath],
       });
-      if (exitCode !== 0) {
-        throw new Error(stdall);
-      }
 
       const singleChildPath = await this.findSingleChildPathWithinDirectory(tempPath);
       const { outputId, outputPath } = this.generateArtifactDestination();

@@ -44,7 +44,7 @@ describe("execution | managed-storage", () => {
   });
 
   test("filesystem", async ({ page }) => {
-    const storageFolder = join(FilesystemBoundary.SCRATCH_PAD, "storage", "my-backups");
+    const storageFolder = FilesystemBoundary.SCRATCH_PAD.join("storage", "my-backups");
     await mkdir(storageFolder, { recursive: true });
     await performStorageTest({
       page,
@@ -75,8 +75,8 @@ describe("execution | managed-storage", () => {
   };
   async function performStorageTest({ page, listStorageEntries, storage }: Options) {
     // given
-    const inputDir = join(FilesystemBoundary.SCRATCH_PAD, "input");
-    const outputDir = join(FilesystemBoundary.SCRATCH_PAD, "output");
+    const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
+    const outputDir = FilesystemBoundary.SCRATCH_PAD.join("output");
     expect(await listStorageEntries()).toHaveLength(0);
 
     // when (write files)

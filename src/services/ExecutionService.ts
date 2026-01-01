@@ -319,12 +319,22 @@ export class ExecutionService {
 
   private formatAdapterError(e: unknown): string {
     if (Exception.isInstance(e)) {
-      return e.details ? `${e.problem} ${JSON.stringify(e.details, null, 2)}` : e.problem;
+      let details: string = "";
+      if (e.details) {
+        const { exitCode, stdall } = e.details;
+        if (exitCode) {
+          details += ` (${exitCode})`;
+        }
+        if (stdall === undefined || stdall === null) {
+          details += ` ${JSON.stringify(e.details, null, 2)}`;
+        } else {
+          details += `\n\n${stdall}`;
+        }
+      }
+      return `${e.problem}${details}`;
     }
-    if (e instanceof Error) {
-      return e.message;
-    }
-    return String(e);
+    const message = e instanceof Error ? e.message : String(e);
+    return `${ExecutionError.unknown().problem}\n\n${message}`;
   }
 }
 
