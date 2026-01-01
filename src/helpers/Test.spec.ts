@@ -1,6 +1,6 @@
 import { AdapterService } from "@/adapters/AdapterService";
 import { $execution } from "@/drizzle/schema";
-import { initializeSqlite, Sqlite } from "@/drizzle/sqlite";
+import { initializeSqlite } from "@/drizzle/sqlite";
 import { Env } from "@/Env";
 import { ConfigurationRepository } from "@/repositories/ConfigurationRepository";
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";
@@ -84,47 +84,34 @@ export namespace Test {
     };
   }
 
-  export function initializeMocks() {
-    return class MockRegistry {
-      public static readonly adapterService: Mocked<AdapterService> = {
-        submit: mock(),
-      };
-
-      public static resetAllMocks() {
-        // Iterate through all static properties
-        for (const serviceKey of Object.keys(MockRegistry)) {
-          const potentialMock = MockRegistry[serviceKey as keyof typeof MockRegistry];
-          // Skip if it's a function (like resetAllMocks itself)
-          if (typeof potentialMock === "function") {
-            continue;
-          }
-          // Iterate through all methods in the service
-          if (typeof potentialMock === "object" && Boolean(potentialMock)) {
-            for (const method of Object.values(potentialMock)) {
-              if (typeof method === "function" && "mockClear" in method) {
-                (method as Mock<any>).mockClear();
-              }
-            }
-          }
-        }
-      }
-    };
-  }
-
-  export async function initializeRepositories() {
+  export async function initializeMockRegistry() {
     const sqlite = await initializeSqlite({ X_BRESPI_DATABASE: ":memory:" } as Env.Private);
-    const configurationRepository = new ConfigurationRepository({ X_BRESPI_CONFIGURATION: ":memory:" } as Env.Private);
-    return {
-      pipelineRepository: new PipelineRepository(configurationRepository),
-      executionRepository: new (class extends ExecutionRepository {
-        public constructor(sqlite: Sqlite) {
+
+    const mockFns: Mock<any>[] = [];
+    function registerMockObject<T>(mockObject: Mocked<T>): Mocked<T> {
+      Object.values(mockObject as Record<string, Mock<any>>).forEach((mock) => mockFns.push(mock));
+      return mockObject;
+    }
+
+    return class MockRegistry {
+      public static readonly configurationRepository = new ConfigurationRepository({ X_BRESPI_CONFIGURATION: ":memory:" } as Env.Private);
+      public static readonly pipelineRepository = new PipelineRepository(this.configurationRepository);
+      public static readonly executionRepository = new (class extends ExecutionRepository {
+        public constructor() {
           super(sqlite);
         }
         public async removeAll(): Promise<void> {
           await sqlite.delete($execution);
         }
-      })(sqlite),
+      })();
+
+      public static readonly adapterService = registerMockObject<AdapterService>({
+        submit: mock(),
+      });
+
+      public static resetAllMocks() {
+        mockFns.forEach((mock) => mock.mockClear());
+      }
     };
   }
-  export namespace RepoRegistry {}
 }

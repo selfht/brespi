@@ -9,8 +9,7 @@ import { beforeEach, describe, expect, it } from "bun:test";
 import { ExecutionService } from "./ExecutionService";
 
 describe(ExecutionService.name, async () => {
-  const { executionRepository, pipelineRepository } = await Test.initializeRepositories();
-  const { resetAllMocks, adapterService } = Test.initializeMocks();
+  const { executionRepository, pipelineRepository, adapterService, resetAllMocks } = await Test.initializeMockRegistry();
 
   const service = new ExecutionService(
     await Test.env({

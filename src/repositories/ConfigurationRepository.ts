@@ -1,7 +1,7 @@
 import { Env } from "@/Env";
 import { Mutex } from "@/helpers/Mutex";
 import { Configuration } from "@/models/Configuration";
-import { config } from "zod";
+import { CoreConfiguration } from "@/models/CoreConfiguration";
 
 export class ConfigurationRepository {
   private readonly mutex = new Mutex();
@@ -10,8 +10,8 @@ export class ConfigurationRepository {
     | { mode: "in_memory" } //
     | { mode: "on_disk"; diskFile: Bun.BunFile };
 
-  private memoryObject?: Configuration;
-  private memorySynchronisedWithDisk?: boolean;
+  private memoryObject?: CoreConfiguration;
+  private memoryObjectMatchesDiskFile: boolean = true; // by definition, this will initially be true
 
   public constructor(env: Env.Private) {
     if (env.X_BRESPI_CONFIGURATION === ":memory:") {
@@ -36,13 +36,15 @@ export class ConfigurationRepository {
     }
   }
 
-  public async write<T extends { configuration: Configuration }>(fn: (configuration: Configuration) => T | Promise<T>): Promise<T> {
+  public async write<T extends { configuration: CoreConfiguration }>(fn: (configuration: Configuration) => T | Promise<T>): Promise<T> {
     const { release } = await this.mutex.acquire();
     try {
-      const configuration = await this.getCurrentValueOrInitialize();
-      const output = await fn(configuration);
-      this.memoryObject = output.configuration;
-      this.memorySynchronisedWithDisk = await this.matchesDiskConfiguration(this.memoryObject);
+      const input = await this.getCurrentValueOrInitialize();
+      const output = await fn(input);
+      this.memoryObject = {
+        pipelines: output.configuration.pipelines,
+      };
+      this.memoryObjectMatchesDiskFile = await this.compareMemoryObjectWithDiskFile(this.memoryObject);
       return output;
     } finally {
       release();
@@ -52,18 +54,21 @@ export class ConfigurationRepository {
   private async getCurrentValueOrInitialize(): Promise<Configuration> {
     if (!this.memoryObject) {
       if (this.storage.mode === "in_memory") {
-        this.memoryObject = Configuration.empty();
+        this.memoryObject = CoreConfiguration.empty();
       } else {
         this.memoryObject = await this.readDiskConfiguration(this.storage);
       }
     }
-    return this.memoryObject;
+    return {
+      ...this.memoryObject,
+      synchronized: this.memoryObjectMatchesDiskFile,
+    };
   }
 
-  private async matchesDiskConfiguration(inMemory: Configuration): Promise<boolean> {
+  private async compareMemoryObjectWithDiskFile(inMemory: CoreConfiguration): Promise<boolean> {
     if (this.storage.mode === "on_disk") {
-      const onDisk = await this.readDiskConfiguration(this.storage);
-      return Bun.deepEquals(inMemory, onDisk);
+      const onDiskValue = await this.readDiskConfiguration(this.storage);
+      return Bun.deepEquals(inMemory, onDiskValue);
     }
     return true;
   }
@@ -74,8 +79,8 @@ export class ConfigurationRepository {
   private async readDiskConfiguration({ diskFile }: Extract<typeof this.storage, { mode: "on_disk" }>) {
     if (await diskFile.exists()) {
       const json = await diskFile.json();
-      return Configuration.parse(json);
+      return CoreConfiguration.parse(json);
     }
-    return Configuration.empty();
+    return CoreConfiguration.empty();
   }
 }

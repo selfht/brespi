@@ -1,23 +1,19 @@
 import { ZodParser } from "@/helpers/ZodParser";
 import z from "zod/v4";
-import { Pipeline } from "./Pipeline";
+import { CoreConfiguration } from "./CoreConfiguration";
 
-export type Configuration = {
-  pipelines: Pipeline[];
+export type Configuration = CoreConfiguration & {
+  synchronized: boolean;
 };
 
 export namespace Configuration {
-  export function empty(): Configuration {
-    return {
-      pipelines: [],
-    };
-  }
-
   export const parse = ZodParser.forType<Configuration>()
     .ensureSchemaMatchesType(() => {
-      return z.object({
-        pipelines: z.array(Pipeline.parse.SCHEMA),
-      });
+      return CoreConfiguration.parse.SCHEMA.and(
+        z.object({
+          synchronized: z.boolean(),
+        }),
+      );
     })
     .ensureTypeMatchesSchema();
 }
