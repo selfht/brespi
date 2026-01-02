@@ -29,6 +29,8 @@ QA
 
 Technical
 * Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
+* Firefox: test canvas and `foreignObject`
+* Webkit: attempt to migrate away from [`foreignObject`](https://bugs.webkit.org/show_bug.cgi?id=23113)
 
 Distribution
 * Create a shell script for building docker images with the appropriate toolset (only requirements: git + bash + docker)
@@ -36,6 +38,7 @@ Distribution
 * Write a README.md, CONTRIBUTING.md and LICENSE.md
 * Accept an (optional) environment variable with comma separated basic auth users
 * Automatically include the application version
+* Background and footer link to org
 
 Marketing
 * Create an accompanying landing page, with pretty and exhaustive documentation
