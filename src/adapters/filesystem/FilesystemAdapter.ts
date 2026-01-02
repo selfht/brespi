@@ -21,16 +21,16 @@ export class FilesystemAdapter extends AbstractAdapter {
   }
 
   public async write(artifacts: Artifact[], step: Step.FilesystemWrite, trail: StepWithRuntime[]): Promise<AdapterResult> {
-    this.requireArtifactType("file", ...artifacts);
-    await mkdir(step.folder, { recursive: true });
+    await mkdir(step.folderPath, { recursive: true });
     if (step.managedStorage) {
+      this.requireArtifactType("file", ...artifacts);
       const { manifestModifier, artifactIndex, insertableArtifacts } = this.managedStorageCapability.prepareInsertion({
-        baseFolder: step.folder,
+        baseFolder: step.folderPath,
         artifacts,
         trail,
       });
       // Save manifest
-      await this.handleManifestExclusively(step.folder, async (manifest, save) => {
+      await this.handleManifestExclusively(step.folderPath, async (manifest, save) => {
         await save(manifestModifier({ manifest }));
       });
       // Save index
@@ -41,7 +41,7 @@ export class FilesystemAdapter extends AbstractAdapter {
       }
     } else {
       for (const artifact of artifacts) {
-        const destinationPath = join(step.folder, artifact.name);
+        const destinationPath = join(step.folderPath, artifact.name);
         if (artifact.type === "file") {
           await copyFile(artifact.path, destinationPath);
         } else if (artifact.type === "directory") {
@@ -56,12 +56,12 @@ export class FilesystemAdapter extends AbstractAdapter {
     if (step.managedStorage) {
       // Prepare selaction
       const { selectableArtifactsFn } = this.managedStorageCapability.prepareSelection({
-        baseFolder: step.fileOrFolder,
+        baseFolder: step.path,
         configuration: step.managedStorage,
         storageReaderFn: ({ absolutePath }) => Bun.file(absolutePath).json(),
       });
       // Provide manifest
-      let { selectableArtifacts, version } = await this.handleManifestExclusively(step.fileOrFolder, async (manifest) => {
+      let { selectableArtifacts, version } = await this.handleManifestExclusively(step.path, async (manifest) => {
         return await selectableArtifactsFn({ manifest });
       });
       // Optional: filter
@@ -84,13 +84,13 @@ export class FilesystemAdapter extends AbstractAdapter {
       return AdapterResult.create(artifacts, { version });
     } else {
       const { outputId, outputPath } = this.generateArtifactDestination();
-      const stats = await this.requireFilesystemExistence(step.fileOrFolder);
-      await cp(step.fileOrFolder, outputPath, { recursive: true });
+      const stats = await this.requireFilesystemExistence(step.path);
+      await cp(step.path, outputPath, { recursive: true });
       return AdapterResult.create({
         id: outputId,
         type: stats.type,
         path: outputPath,
-        name: basename(step.fileOrFolder),
+        name: basename(step.path),
       });
     }
   }

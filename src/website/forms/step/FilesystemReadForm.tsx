@@ -4,7 +4,7 @@ import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 enum Field {
-  fileOrFolder = "fileOrFolder",
+  path = "path",
   managedStorage = "managedStorage",
   managedStorage_target = "managedStorage_target",
   managedStorage_version = "managedStorage_version",
@@ -15,7 +15,7 @@ enum Field {
   filterCriteria_nameRegex = "filterCriteria_nameRegex",
 }
 const Label: Record<Field, string> = {
-  [Field.fileOrFolder]: "File or folder",
+  [Field.path]: "Path",
   [Field.managedStorage]: "Use managed storage?",
   [Field.managedStorage_target]: "Managed storage: target",
   [Field.managedStorage_version]: "Managed storage: version",
@@ -27,7 +27,7 @@ const Label: Record<Field, string> = {
 };
 
 type Form = {
-  [Field.fileOrFolder]: string;
+  [Field.path]: string;
   [Field.managedStorage]: "true" | "false";
   [Field.managedStorage_target]: "latest" | "specific";
   [Field.managedStorage_version]: string;
@@ -48,7 +48,7 @@ type Props = {
 export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      [Field.fileOrFolder]: existing?.fileOrFolder ?? "",
+      [Field.path]: existing?.path ?? "",
       [Field.managedStorage]: existing ? (existing.managedStorage ? "true" : "false") : "false",
       [Field.managedStorage_target]: existing?.managedStorage?.target ?? "latest",
       [Field.managedStorage_version]: existing?.managedStorage?.target ?? "",
@@ -67,7 +67,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
         previousId: existing?.previousId || null,
         object: "step",
         type: Step.Type.filesystem_read,
-        fileOrFolder: form[Field.fileOrFolder],
+        path: form[Field.path],
         managedStorage:
           form[Field.managedStorage] === "true"
             ? form[Field.managedStorage_target] === "latest"
@@ -100,7 +100,11 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.filesystem_read}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.fileOrFolder} label={managedStorage === "true" ? "Folder" : Label[Field.fileOrFolder]} input="text" />
+          <LabeledInput
+            field={Field.path}
+            label={managedStorage === "true" ? `Folder ${Label[Field.path].toLowerCase()}` : Label[Field.path]}
+            input="text"
+          />
           <LabeledInput field={Field.managedStorage} input="select" options={["true", "false"]} />
           {managedStorage === "true" && (
             <>

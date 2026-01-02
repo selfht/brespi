@@ -48,7 +48,7 @@ describe("execution | compress_and_encrypt", () => {
         {
           id: "A",
           type: "Filesystem Read",
-          fileOrFolder: path.originalFile,
+          path: path.originalFile,
         },
         {
           previousId: "A",
@@ -77,7 +77,7 @@ describe("execution | compress_and_encrypt", () => {
         {
           id: "A",
           type: "Filesystem Read",
-          fileOrFolder: path.forwardProcessingFile,
+          path: path.forwardProcessingFile,
         },
         {
           previousId: "A",

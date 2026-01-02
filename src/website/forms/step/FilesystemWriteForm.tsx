@@ -1,20 +1,19 @@
 import { Step } from "@/models/Step";
-import clsx from "clsx";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 enum Field {
-  folder = "folder",
+  folderPath = "folderPath",
   managedStorage = "managedStorage",
 }
 const Label: Record<Field, string> = {
-  [Field.folder]: "Folder",
+  [Field.folderPath]: "Folder path",
   [Field.managedStorage]: "Use managed storage?",
 };
 
 type Form = {
-  [Field.folder]: string;
+  [Field.folderPath]: string;
   [Field.managedStorage]: "true" | "false";
 };
 type Props = {
@@ -28,7 +27,7 @@ type Props = {
 export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      [Field.folder]: existing?.folder ?? "",
+      [Field.folderPath]: existing?.folderPath ?? "",
       [Field.managedStorage]: existing ? (existing.managedStorage ? "true" : "false") : "false",
     } satisfies Form,
   });
@@ -40,7 +39,7 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
         previousId: existing?.previousId || null,
         object: "step",
         type: Step.Type.filesystem_write,
-        folder: form[Field.folder],
+        folderPath: form[Field.folderPath],
         managedStorage: form[Field.managedStorage] === "true",
       });
     } catch (error) {
@@ -54,7 +53,7 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.filesystem_write}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.folder} input="text" />
+          <LabeledInput field={Field.folderPath} input="text" />
           <LabeledInput field={Field.managedStorage} input="select" options={["true", "false"]} />
         </fieldset>
         <FormElements.ButtonBar

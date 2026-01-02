@@ -32,7 +32,7 @@ export namespace EditorFlow {
       })
     | (StepCommon & {
         type: "Filesystem Read";
-        fileOrFolder?: string;
+        path?: string;
         managedStorage?: "true" | "false";
         managedStorageSelectionTarget?: "latest" | "specific";
         managedStorageSelectionSpecificVersion?: string;
@@ -223,7 +223,7 @@ export namespace EditorFlow {
         return await findCurrentlyActiveStepId(page);
       }
       case "Filesystem Read": {
-        if (step.fileOrFolder) await page.getByLabel("File or folder").fill(step.fileOrFolder);
+        if (step.path) await page.getByLabel("Path").fill(step.path);
         if (step.managedStorage) await page.getByLabel("Use managed storage?").selectOption(step.managedStorage);
         if (step.managedStorage === "true" && step.managedStorageSelectionTarget) {
           await page.getByLabel("Managed storage: target").selectOption(step.managedStorageSelectionTarget);

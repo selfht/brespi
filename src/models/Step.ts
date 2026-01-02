@@ -69,13 +69,13 @@ export namespace Step {
 
   export type FilesystemWrite = Common & {
     type: Type.filesystem_write;
-    folder: string;
+    folderPath: string;
     managedStorage: boolean;
   };
 
   export type FilesystemRead = Common & {
     type: Type.filesystem_read;
-    fileOrFolder: string;
+    path: string;
     managedStorage: ManagedStorage | null;
     filterCriteria: FilterCriteria | null;
   };
@@ -278,7 +278,7 @@ export namespace Step {
         z.object({
           ...subSchema.common,
           type: z.literal(Type.filesystem_write),
-          folder: z.string(),
+          folderPath: z.string(),
           managedStorage: z.boolean(),
         } satisfies SubSchema<Step.FilesystemWrite>),
 
@@ -286,7 +286,7 @@ export namespace Step {
           .object({
             ...subSchema.common,
             type: z.literal(Type.filesystem_read),
-            fileOrFolder: z.string(),
+            path: z.string(),
             managedStorage: subSchema.managedStorage.nullable(),
             filterCriteria: subSchema.filterCriteria.nullable(),
           } satisfies SubSchema<Step.FilesystemRead>)

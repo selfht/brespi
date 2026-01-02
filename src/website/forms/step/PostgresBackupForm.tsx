@@ -9,8 +9,8 @@ enum Field {
   toolkit_psql = "toolkit_psql",
   toolkit_pg_dump = "toolkit_pg_dump",
   databaseSelection_strategy = "databaseSelection_strategy",
-  databaseSelection_inclusions = "databaseSelection_include",
-  databaseSelection_exclusions = "databaseSelection_exclude",
+  databaseSelection_inclusions = "databaseSelection_inclusions",
+  databaseSelection_exclusions = "databaseSelection_exclusions",
 }
 const Label: Record<Field, string> = {
   [Field.connectionReference]: "Connection reference",

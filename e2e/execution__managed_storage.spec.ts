@@ -58,7 +58,7 @@ describe("execution | managed_storage", () => {
         },
         readStep: {
           type: "Filesystem Read",
-          fileOrFolder: storageFolder,
+          path: storageFolder,
           managedStorage: "true",
           managedStorageSelectionTarget: "latest",
         },
@@ -167,7 +167,7 @@ describe("execution | managed_storage", () => {
         {
           id: "A",
           type: "Filesystem Read",
-          fileOrFolder: inputDir,
+          path: inputDir,
         },
         {
           previousId: "A",

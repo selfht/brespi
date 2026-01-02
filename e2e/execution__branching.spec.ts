@@ -34,7 +34,7 @@ describe("execution | branching", () => {
         {
           id: "A",
           type: "Filesystem Read",
-          fileOrFolder: inputDir,
+          path: inputDir,
         },
         {
           previousId: "A",

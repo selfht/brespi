@@ -1,4 +1,3 @@
-import { StepData } from "@/__testdata__/StepData";
 import { Test } from "@/helpers/Test.spec";
 import { Execution } from "@/models/Execution";
 import { Outcome } from "@/models/Outcome";
@@ -10,7 +9,6 @@ import { ExecutionService } from "./ExecutionService";
 
 describe(ExecutionService.name, async () => {
   const { executionRepository, pipelineRepository, adapterService, resetAllMocks } = await Test.initializeMockRegistry();
-
   const service = new ExecutionService(
     await Test.env({
       X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from({ seconds: 0 }),
@@ -132,7 +130,7 @@ describe(ExecutionService.name, async () => {
       object: "pipeline",
       name: "my pipeline",
       steps: steps.map((type, index) =>
-        StepData.createStep(type, {
+        Test.createStep(type, {
           id: `${index}`,
           previousId: index > 0 ? `${index - 1}` : null,
         }),

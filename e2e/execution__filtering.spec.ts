@@ -97,7 +97,7 @@ describe("execution | filtering", () => {
         {
           id: "A",
           type: "Filesystem Read",
-          fileOrFolder: inputDir,
+          path: inputDir,
         },
         {
           previousId: "A",
@@ -130,7 +130,7 @@ describe("execution | filtering", () => {
         {
           id: "A",
           type: "Filesystem Read",
-          fileOrFolder: inputDir,
+          path: inputDir,
         },
         {
           previousId: "A",
@@ -148,7 +148,7 @@ describe("execution | filtering", () => {
           previousId: "C",
           id: "D",
           type: "Filesystem Read",
-          fileOrFolder: temporaryStorageFolder,
+          path: temporaryStorageFolder,
           managedStorage: "true",
           managedStorageSelectionTarget: "latest",
           filterCriteria: "true",
@@ -173,7 +173,7 @@ describe("execution | filtering", () => {
         {
           id: "A",
           type: "Filesystem Read",
-          fileOrFolder: inputDir,
+          path: inputDir,
         },
         {
           previousId: "A",

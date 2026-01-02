@@ -5,7 +5,6 @@ import { Step } from "@/models/Step";
 import { readdir, rename, rm } from "fs/promises";
 import { basename, dirname, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
-import { Exception } from "@/errors/exception/Exception";
 
 export class CompressionAdapter extends AbstractAdapter {
   private readonly EXTENSION = ".tar.gz";

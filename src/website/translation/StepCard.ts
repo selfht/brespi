@@ -66,12 +66,12 @@ export namespace StepCard {
         });
       case Step.Type.filesystem_write:
         return performLabeling<typeof FilesystemWriteForm.Field>(FilesystemWriteForm.Label, {
-          folder: step.folder,
+          folderPath: step.folderPath,
           managedStorage: step.managedStorage,
         });
       case Step.Type.filesystem_read:
         return performLabeling<typeof FilesystemReadForm.Field>(FilesystemReadForm.Label, {
-          fileOrFolder: step.fileOrFolder,
+          path: step.path,
           managedStorage: Boolean(step.managedStorage),
           managedStorage_target: step.managedStorage ? step.managedStorage.target : undefined,
           managedStorage_version: step.managedStorage?.target === "specific" ? step.managedStorage.version : undefined,
@@ -114,8 +114,8 @@ export namespace StepCard {
           toolkit_psql: step.toolkit.resolution === "manual" ? step.toolkit.psql : undefined,
           toolkit_pg_dump: step.toolkit.resolution === "manual" ? step.toolkit.pg_dump : undefined,
           databaseSelection_strategy: step.databaseSelection.strategy,
-          databaseSelection_include: step.databaseSelection.strategy === "include" ? step.databaseSelection.inclusions : undefined,
-          databaseSelection_exclude: step.databaseSelection.strategy === "exclude" ? step.databaseSelection.exclusions : undefined,
+          databaseSelection_inclusions: step.databaseSelection.strategy === "include" ? step.databaseSelection.inclusions : undefined,
+          databaseSelection_exclusions: step.databaseSelection.strategy === "exclude" ? step.databaseSelection.exclusions : undefined,
         });
       case Step.Type.postgres_restore:
         return performLabeling<typeof PostgresRestoreForm.Field>(PostgresRestoreForm.Label, {

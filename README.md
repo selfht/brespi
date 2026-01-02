@@ -28,6 +28,7 @@ QA
 * Create a "regression suite" consisting of a healthy mix of possible data configurations, to try and detect accidental backwards-incompatible changes
 
 Technical
+* Implement more unit tests for adapters in the style of `FilesystemAdapter.spec.ts` which can be reasonably expected to execute on basic unix systems (`CompressionAdapter`, `EncryptionAdapter`, `ScriptAdapter`)
 * Use consistent casing in all form labels and E2E fixtures
 * Create a reusable method for spreading a resource (step) object over form labels
 * Refactor `null` into `undefined` or optional, so options can be added without requiring migrations

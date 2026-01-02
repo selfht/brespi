@@ -70,7 +70,7 @@ describe("execution | custom_script", () => {
         {
           id: "A",
           type: "Filesystem Read",
-          fileOrFolder: inputDir,
+          path: inputDir,
         },
         {
           previousId: "A",

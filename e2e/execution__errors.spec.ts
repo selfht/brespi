@@ -23,7 +23,7 @@ describe("execution | errors", () => {
         {
           id: "A",
           type: "Filesystem Read",
-          fileOrFolder: dir,
+          path: dir,
         },
         {
           previousId: "A",
@@ -61,7 +61,7 @@ describe("execution | errors", () => {
         {
           id: "A",
           type: "Filesystem Read",
-          fileOrFolder: file,
+          path: file,
         },
         {
           previousId: "A",

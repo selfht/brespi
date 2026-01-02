@@ -175,7 +175,7 @@ describe("execution | postgres", () => {
         {
           id: "A",
           type: "Filesystem Read",
-          fileOrFolder: backupDir,
+          path: backupDir,
         },
         {
           previousId: "A",
