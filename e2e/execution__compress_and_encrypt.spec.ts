@@ -7,19 +7,19 @@ import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { EditorFlow } from "./flows/EditorFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
 
-const path = {
-  originalFile: FilesystemBoundary.SCRATCH_PAD.join("original.txt"),
-  forwardProcessingDir: FilesystemBoundary.SCRATCH_PAD.join("forward"),
-  get forwardProcessingFile() {
-    return join(this.forwardProcessingDir, "original.txt.tar.gz.enc");
-  },
-  reverseProcessingDir: FilesystemBoundary.SCRATCH_PAD.join("backward"),
-  get reverseProcessingFile() {
-    return join(this.reverseProcessingDir, "original.txt");
-  },
-};
+describe("execution | compress_and_encrypt", () => {
+  const path = {
+    originalFile: FilesystemBoundary.SCRATCH_PAD.join("original.txt"),
+    forwardProcessingDir: FilesystemBoundary.SCRATCH_PAD.join("forward"),
+    get forwardProcessingFile() {
+      return join(this.forwardProcessingDir, "original.txt.tar.gz.enc");
+    },
+    reverseProcessingDir: FilesystemBoundary.SCRATCH_PAD.join("backward"),
+    get reverseProcessingFile() {
+      return join(this.reverseProcessingDir, "original.txt");
+    },
+  };
 
-describe("execution | compress-and-encrypt", () => {
   test.beforeEach(async ({ request }) => {
     await ResetBoundary.reset({ request });
   });

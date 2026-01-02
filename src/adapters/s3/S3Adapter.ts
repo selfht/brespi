@@ -6,7 +6,7 @@ import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { TrailStep } from "@/models/TrailStep";
 import { S3Client } from "bun";
-import { join, relative } from "path";
+import { isAbsolute, join, relative } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 import { FilterCapability } from "@/capabilities/FilterCapability";
 import { Manifest } from "@/capabilities/managedstorage/Manifest";
@@ -79,7 +79,7 @@ export class S3Adapter extends AbstractAdapter {
    * For example: `/my-backups` --> `my-backups`
    */
   private relativize(baseFolder: string): string {
-    return relative("/", baseFolder);
+    return isAbsolute(baseFolder) ? relative("/", baseFolder) : baseFolder;
   }
 
   private constructClient(connection: Step.S3Connection): S3Client {

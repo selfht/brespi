@@ -8,12 +8,12 @@ import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { EditorFlow } from "./flows/EditorFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
 
-enum Database {
-  e2e_movies = "e2e_movies",
-  e2e_travel = "e2e_travel",
-}
-
 describe("execution | postgres", () => {
+  enum Database {
+    e2e_movies = "e2e_movies",
+    e2e_travel = "e2e_travel",
+  }
+
   test.beforeEach(async ({ request }) => {
     await ResetBoundary.reset({ request });
   });

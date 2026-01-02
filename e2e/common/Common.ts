@@ -1,17 +1,13 @@
 import { Page } from "@playwright/test";
-import { writeFile } from "fs/promises";
-import { readFile } from "fs/promises";
-import { rm } from "fs/promises";
-import { chmod } from "fs/promises";
-import { mkdir } from "fs/promises";
+import fsp from "fs/promises";
 import { dirname } from "path";
 
 export namespace Common {
   export const Regex = {
-    RANDOM_ID: /\w+/.source,
+    RANDOM: /\w+/.source,
     TIMESTAMP: /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+/.source,
     get TIMESTAMP_FOLDER() {
-      return new RegExp(`${this.TIMESTAMP}-${this.RANDOM_ID}`).source;
+      return new RegExp(`${this.TIMESTAMP}-${this.RANDOM}`).source;
     },
   };
 
@@ -24,25 +20,25 @@ export namespace Common {
     return match[1];
   }
 
-  export async function emptyDir(path: string) {
-    await rm(path, { recursive: true, force: true });
-    await mkdir(path, { recursive: true });
+  export async function emptyDirectory(path: string) {
+    await fsp.rm(path, { recursive: true, force: true });
+    await fsp.mkdir(path, { recursive: true });
   }
 
-  export async function readFileUtf8(path: string) {
-    return await readFile(path, { encoding: "utf-8" });
+  export async function readFile(path: string) {
+    return await fsp.readFile(path, { encoding: "utf-8" });
   }
 
-  export async function writeFileRecursive(path: string, contents: string) {
-    await mkdir(dirname(path), { recursive: true });
-    await writeFile(path, contents);
+  export async function writeFile(path: string, contents: string) {
+    await fsp.mkdir(dirname(path), { recursive: true });
+    await fsp.writeFile(path, contents);
   }
 
-  export function writeScript(path: string) {
+  export function writeExecutableFile(path: string) {
     return {
       async withContents(contents: string) {
-        await writeFileRecursive(path, contents.trim());
-        await chmod(path, 0o755);
+        await writeFile(path, contents.trim());
+        await fsp.chmod(path, 0o755);
       },
     };
   }

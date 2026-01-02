@@ -45,9 +45,9 @@ describe("execution | errors", () => {
   test("shows an error when trying to decrypt a corrupted file", async ({ page }) => {
     // given
     const file = FilesystemBoundary.SCRATCH_PAD.join("file.txt");
-    await Common.writeFileRecursive(file, "This is my file!");
+    await Common.writeFile(file, "This is my file!");
     const corruptingScript = FilesystemBoundary.SCRATCH_PAD.join("corrupting.sh");
-    await Common.writeScript(corruptingScript).withContents(`
+    await Common.writeExecutableFile(corruptingScript).withContents(`
       #!/bin/bash
       # Get the encrypted file (there's exactly 1 file)
       file=$(ls $BRESPI_ARTIFACTS_IN/*)
@@ -91,7 +91,7 @@ describe("execution | errors", () => {
   test("shows an error when script execution fails", async ({ page }) => {
     // given
     const script = FilesystemBoundary.SCRATCH_PAD.join("script.sh");
-    await Common.writeScript(script).withContents(`
+    await Common.writeExecutableFile(script).withContents(`
       #!/bin/bash
       echo "Thriving in STDOUT ..."
       echo "... but suffering in STDERR" >&2

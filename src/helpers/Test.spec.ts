@@ -1,4 +1,6 @@
 import { AdapterService } from "@/adapters/AdapterService";
+import { FilterCapability } from "@/capabilities/FilterCapability";
+import { ManagedStorageCapability } from "@/capabilities/ManagedStorageCapability";
 import { $execution } from "@/drizzle/schema";
 import { initializeSqlite } from "@/drizzle/sqlite";
 import { Env } from "@/Env";
@@ -105,6 +107,13 @@ export namespace Test {
         }
       })();
 
+      public static readonly filterCapability = registerMockObject<FilterCapability>({
+        createPredicate: mock(),
+      });
+      public static readonly managedStorageCapability = registerMockObject<ManagedStorageCapability>({
+        prepareInsertion: mock(),
+        prepareSelection: mock(),
+      });
       public static readonly adapterService = registerMockObject<AdapterService>({
         submit: mock(),
       });

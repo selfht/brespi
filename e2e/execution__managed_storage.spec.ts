@@ -1,7 +1,7 @@
 import test, { expect, Page } from "@playwright/test";
 import { mkdir, readdir, readFile } from "fs/promises";
 import { describe } from "node:test";
-import { join } from "path";
+import { dirname, join } from "path";
 import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { S3Boundary } from "./boundaries/S3Boundary";
@@ -9,13 +9,14 @@ import { Common } from "./common/Common";
 import { EditorFlow } from "./flows/EditorFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
 
-describe("execution | managed-storage", () => {
+describe("execution | managed_storage", () => {
+  const namespace = "my-backups";
+
   test.beforeEach(async ({ request }) => {
     await ResetBoundary.reset({ request });
   });
 
   test("s3", async ({ page }) => {
-    const storageFolder = "my-backups";
     await performStorageTest({
       page,
       listStorageEntries: S3Boundary.listBucket,
@@ -27,7 +28,7 @@ describe("execution | managed-storage", () => {
           endpoint: S3Boundary.ENDPOINT,
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
-          baseFolder: storageFolder,
+          baseFolder: namespace,
         },
         readStep: {
           type: "S3 Download",
@@ -36,7 +37,7 @@ describe("execution | managed-storage", () => {
           endpoint: S3Boundary.ENDPOINT,
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
-          baseFolder: storageFolder,
+          baseFolder: namespace,
           managedStorageSelectionTarget: "latest",
         },
       },
@@ -44,11 +45,11 @@ describe("execution | managed-storage", () => {
   });
 
   test("filesystem", async ({ page }) => {
-    const storageFolder = FilesystemBoundary.SCRATCH_PAD.join("storage", "my-backups");
+    const storageFolder = FilesystemBoundary.SCRATCH_PAD.join("storage", namespace);
     await mkdir(storageFolder, { recursive: true });
     await performStorageTest({
       page,
-      listStorageEntries: () => FilesystemBoundary.listFlattenedFolderEntries(storageFolder),
+      listStorageEntries: () => FilesystemBoundary.listFlattenedFolderEntries(dirname(storageFolder)),
       storage: {
         writeStep: {
           type: "Filesystem Write",
@@ -83,7 +84,7 @@ describe("execution | managed-storage", () => {
     const fruits = ["Apple", "Banana", "Coconut"];
     for (const fruit of fruits) {
       const path = join(inputDir, `${fruit}.txt`);
-      await Common.writeFileRecursive(path, `My name is ${fruit}`);
+      await Common.writeFile(path, `My name is ${fruit}`);
     }
     // when (backup to storage)
     const writePipelineId = await createWritePipeline(page, { inputDir, writeStep: storage.writeStep });
@@ -93,11 +94,13 @@ describe("execution | managed-storage", () => {
     expect(firstStorageSnapshot).toHaveLength(5);
     expect(firstStorageSnapshot).toEqual(
       expect.arrayContaining([
-        expect.stringContaining("__brespi_manifest__.json"),
-        expect.stringMatching(/__brespi_artifact_index_\w+__.json/),
-        expect.stringContaining("Apple.txt"),
-        expect.stringContaining("Banana.txt"),
-        expect.stringContaining("Coconut.txt"),
+        expect.stringMatching(new RegExp(`^${namespace}/__brespi_manifest__\.json$`)),
+        expect.stringMatching(
+          new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/__brespi_artifact_index_${Common.Regex.RANDOM}__\.json$`),
+        ),
+        expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Apple.txt`)),
+        expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Banana.txt`)),
+        expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Coconut.txt`)),
       ]),
     );
 
@@ -113,12 +116,12 @@ describe("execution | managed-storage", () => {
     }
 
     // when (write different files)
-    await Common.emptyDir(inputDir);
-    await Common.emptyDir(outputDir);
+    await Common.emptyDirectory(inputDir);
+    await Common.emptyDirectory(outputDir);
     const vegetables = ["Daikon", "Eggplant"];
     for (const vegetable of vegetables) {
       const path = join(inputDir, `${vegetable}.txt`);
-      await Common.writeFileRecursive(path, `I am a warrior named ${vegetable}`);
+      await Common.writeFile(path, `I am a warrior named ${vegetable}`);
     }
     // when (backup to storage)
     await ExecutionFlow.executePipeline(page, { id: writePipelineId });
@@ -127,14 +130,18 @@ describe("execution | managed-storage", () => {
     expect(secondStorageSnapshot).toHaveLength(8);
     expect(secondStorageSnapshot).toEqual(
       expect.arrayContaining([
-        expect.stringContaining("__brespi_manifest__.json"),
-        expect.stringMatching(/__brespi_artifact_index_\w+__.json/),
-        expect.stringContaining("Apple.txt"),
-        expect.stringContaining("Banana.txt"),
-        expect.stringContaining("Coconut.txt"),
-        expect.stringMatching(/__brespi_artifact_index_\w+__.json/),
-        expect.stringContaining("Daikon.txt"),
-        expect.stringContaining("Eggplant.txt"),
+        expect.stringMatching(new RegExp(`^${namespace}/__brespi_manifest__\.json$`)),
+        expect.stringMatching(
+          new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/__brespi_artifact_index_${Common.Regex.RANDOM}__\.json$`),
+        ),
+        expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Apple.txt`)),
+        expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Banana.txt`)),
+        expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Coconut.txt`)),
+        expect.stringMatching(
+          new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/__brespi_artifact_index_${Common.Regex.RANDOM}__\.json$`),
+        ),
+        expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Daikon.txt`)),
+        expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Eggplant.txt`)),
       ]),
     );
 

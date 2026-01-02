@@ -78,7 +78,7 @@ describe("execution | filtering", () => {
     // given
     for (const artifact of testCase.artifacts) {
       const path = join(inputDir, `${artifact}`);
-      await Common.writeFileRecursive(path, `These are the contents for ${artifact}`);
+      await Common.writeFile(path, `These are the contents for ${artifact}`);
     }
     // when
     await createPipelineFn(page, testCase.filterCriteria);

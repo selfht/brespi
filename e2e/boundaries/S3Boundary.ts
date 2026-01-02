@@ -15,13 +15,13 @@ export namespace S3Boundary {
     forcePathStyle: true,
   });
 
-  export async function listBucket(): Promise<string[]> {
+  export async function listBucket(baseFolder = ""): Promise<string[]> {
     const keys: string[] = [];
     const listCommand = new ListObjectsV2Command({ Bucket: BUCKET });
     const { Contents = [] } = await client.send(listCommand);
     if (Contents.length > 0) {
       for (const object of Contents) {
-        if (object.Key) {
+        if (object.Key && object.Key.startsWith(baseFolder)) {
           keys.push(object.Key);
         }
       }

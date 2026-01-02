@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { describe } from "node:test";
 
-describe("basics", () => {
+describe("basics | page_titles", () => {
   test("all main pages load and have the right title", async ({ page }) => {
     type TestCase = {
       url: string;
@@ -13,7 +13,7 @@ describe("basics", () => {
     const testCases: TestCase[] = [
       { url: "", expectation: { title: "Pipelines | Brespi" } },
       { url: "schedules", expectation: { title: "Schedules | Brespi" } },
-      { url: "settings", expectation: { title: "Settings | Brespi" } },
+      { url: "policies", expectation: { title: "Policies | Brespi" } },
       { url: "configuration", expectation: { title: "Configuration | Brespi" } },
     ];
     for (const { url, expectation } of testCases) {
