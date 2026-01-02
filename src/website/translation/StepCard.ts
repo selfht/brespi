@@ -1,0 +1,135 @@
+import { Prettify } from "@/helpers/Prettify";
+import { Action } from "@/models/Action";
+import { Outcome } from "@/models/Outcome";
+import { Step } from "@/models/Step";
+import { Block } from "../canvas/Block";
+
+export namespace StepCard {
+  export function getDetails(step: Step): Block.Details {
+    switch (step.type) {
+      case Step.Type.compression:
+        return {
+          Algorithm: step.algorithm.implementation,
+          "Compression level": step.algorithm.level,
+        };
+      case Step.Type.decompression:
+        return {
+          Algorithm: step.algorithm.implementation,
+        };
+      case Step.Type.encryption:
+        return {
+          "Key reference": step.keyReference,
+          Algorithm: step.algorithm.implementation,
+        };
+      case Step.Type.decryption:
+        return {
+          "Key reference": step.keyReference,
+          Algorithm: step.algorithm.implementation,
+        };
+      case Step.Type.folder_flatten:
+        return {};
+      case Step.Type.folder_group:
+        return {};
+      case Step.Type.filter:
+        return {
+          Method: step.filterCriteria.method,
+          Name: step.filterCriteria.method === "exact" ? step.filterCriteria.name : undefined,
+          "Name glob": step.filterCriteria.method === "glob" ? step.filterCriteria.nameGlob : undefined,
+          "Name regex": step.filterCriteria.method === "regex" ? step.filterCriteria.nameRegex : undefined,
+        };
+      case Step.Type.custom_script:
+        return {
+          Path: step.path,
+          "Passthrough?": step.passthrough,
+        };
+      case Step.Type.filesystem_write:
+        return {
+          Folder: step.folder,
+          "Managed storage?": step.managedStorage,
+        };
+      case Step.Type.filesystem_read:
+        return {
+          "File or folder": step.fileOrFolder,
+          "Managed storage?": Boolean(step.managedStorage),
+          "Managed storage: target": step.managedStorage ? step.managedStorage.target : undefined,
+          "Managed storage: version": step.managedStorage
+            ? step.managedStorage.target === "specific"
+              ? step.managedStorage.version
+              : undefined
+            : undefined,
+          "Filter?": Boolean(step.filterCriteria),
+          "Filter: method": step.filterCriteria ? step.filterCriteria.method : undefined,
+          "Filter: name": step.filterCriteria?.method === "exact" ? step.filterCriteria.name : undefined,
+          "Filter: name glob": step.filterCriteria?.method === "glob" ? step.filterCriteria.nameGlob : undefined,
+          "Filter: name regex": step.filterCriteria?.method === "regex" ? step.filterCriteria.nameRegex : undefined,
+        };
+      case Step.Type.s3_upload:
+        return {
+          Bucket: step.connection.bucket,
+          Region: step.connection.region,
+          Endpoint: step.connection.endpoint,
+          "Access key reference": step.connection.accessKeyReference,
+          "Secret key reference": step.connection.secretKeyReference,
+          "Base folder": step.baseFolder,
+        };
+      case Step.Type.s3_download:
+        return {
+          Bucket: step.connection.bucket,
+          Region: step.connection.region,
+          Endpoint: step.connection.endpoint,
+          "Access key reference": step.connection.accessKeyReference,
+          "Secret key reference": step.connection.secretKeyReference,
+          "Base folder": step.baseFolder,
+          "Managed storage: target": step.managedStorage.target,
+          "Managed storge: version": step.managedStorage.target === "specific" ? step.managedStorage.version : undefined,
+          "Filter?": Boolean(step.filterCriteria),
+          "Filter: method": step.filterCriteria ? step.filterCriteria.method : undefined,
+          "Filter: name": step.filterCriteria?.method === "exact" ? step.filterCriteria.name : undefined,
+          "Filter: name glob": step.filterCriteria?.method === "glob" ? step.filterCriteria.nameGlob : undefined,
+          "Filter: name regex": step.filterCriteria?.method === "regex" ? step.filterCriteria.nameRegex : undefined,
+        };
+      case Step.Type.postgres_backup:
+        return {
+          "Connection reference": step.connectionReference,
+          Selection: step.databaseSelection.strategy,
+          "Selection include": step.databaseSelection.strategy === "include" ? step.databaseSelection.include : undefined,
+          "Selection exclude": step.databaseSelection.strategy === "exclude" ? step.databaseSelection.exclude : undefined,
+        };
+      case Step.Type.postgres_restore:
+        return {
+          "Connection reference": step.connectionReference,
+          Database: step.database,
+        };
+    }
+  }
+  export function actionDetails(action: Action): Block.Details | null {
+    const result: Block.Details = {};
+    if (action.startedAt) {
+      result["Started"] = Prettify.timestamp(action.startedAt);
+      if (action.result) {
+        result["Completed"] = Prettify.timestamp(action.result.completedAt);
+        result["Duration"] = Prettify.duration(action.result.duration);
+        switch (action.result.outcome) {
+          case Outcome.success: {
+            const maxLength = 10;
+            for (const category of ["consumed", "produced"] as const) {
+              const artifacts = action.result[category].slice(0, maxLength).map(({ name }) => name);
+              const artifactsRemainder = Math.min(0, action.result[category].length - maxLength);
+              if (artifactsRemainder > 0) {
+                artifacts.push(`+${artifactsRemainder}`);
+              }
+              const capitalizedCategory = `${category[0].toUpperCase()}${category.slice(1)}`;
+              result[capitalizedCategory] = artifacts.length > 0 ? artifacts : { custom: "empty_array" };
+            }
+            break;
+          }
+          case Outcome.error: {
+            result["Error"] = action.result.errorMessage;
+            break;
+          }
+        }
+      }
+    }
+    return Object.entries(result).length > 0 ? result : null;
+  }
+}

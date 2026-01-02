@@ -34,6 +34,8 @@ import { useFullScreen } from "../hooks/useFullScreen";
 import { useRegistry } from "../hooks/useRegistry";
 import { useStateRef } from "../hooks/useStateRef";
 import { useYesQuery } from "../hooks/useYesQuery";
+import { ActionCard } from "../translation/ActionCard";
+import { StepCard } from "../translation/StepCard";
 import { StepTranslation } from "../translation/StepTranslation";
 
 type Form = {
@@ -569,7 +571,7 @@ namespace Internal {
       incomingId: step.previousId,
       theme: "default",
       label: StepTranslation.type(step.type),
-      details: StepTranslation.stepDetails(step),
+      details: StepCard.getDetails(step),
       handles: convertTypeToHandles(step.type),
       selected: false,
     };
@@ -586,7 +588,7 @@ namespace Internal {
             ? "success"
             : "error",
       label: Step.TypeInstance(action.stepType) ? StepTranslation.type(action.stepType) : action.stepType,
-      details: StepTranslation.actionDetails(action),
+      details: ActionCard.getDetails(action),
       handles: Step.TypeInstance(action.stepType) ? convertTypeToHandles(action.stepType) : [Block.Handle.input, Block.Handle.output],
       selected: false,
     };
