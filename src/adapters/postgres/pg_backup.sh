@@ -43,6 +43,30 @@ if [ "$SELECTION_MODE" = "exclude" ] && [ -z "$EXCLUDE_DBS" ]; then
     exit 1
 fi
 
+# Toolkit resolution (default to automatic if not specified)
+TOOLKIT_RESOLUTION="${TOOLKIT_RESOLUTION:-automatic}"
+
+# Define tool commands based on resolution mode
+if [ "$TOOLKIT_RESOLUTION" = "manual" ]; then
+    # Manual mode: validate all paths are provided
+    if [ -z "$TOOLKIT_PSQL" ] || [ -z "$TOOLKIT_PG_DUMP" ]; then
+        echo "ERROR: All tool paths required for manual resolution" >&2
+        exit 1
+    fi
+    PSQL_CMD="$TOOLKIT_PSQL"
+    PG_DUMP_CMD="$TOOLKIT_PG_DUMP"
+else
+    # Automatic mode: use PATH resolution
+    PSQL_CMD="psql"
+    PG_DUMP_CMD="pg_dump"
+fi
+
+# Capture tool metadata (version and resolved path)
+PSQL_VERSION=$($PSQL_CMD --version 2>&1 | head -n 1)
+PSQL_PATH=$(command -v "$PSQL_CMD")
+PG_DUMP_VERSION=$($PG_DUMP_CMD --version 2>&1 | head -n 1)
+PG_DUMP_PATH=$(command -v "$PG_DUMP_CMD")
+
 # Export for child processes
 export PGHOST
 export PGUSER
@@ -57,7 +81,7 @@ BACKUP_DIR="${BACKUP_ROOT}/${TIMESTAMP}"
 mkdir -p "${BACKUP_DIR}"
 
 # Always get ALL databases (excluding system databases)
-ALL_DBS=$(psql -h ${PGHOST} -U ${PGUSER} -t -c "SELECT datname FROM pg_database WHERE datistemplate = false AND datname != 'postgres';" 2>&1)
+ALL_DBS=$($PSQL_CMD -h ${PGHOST} -U ${PGUSER} -t -c "SELECT datname FROM pg_database WHERE datistemplate = false AND datname != 'postgres';" 2>&1)
 
 # Check if the query failed (foundational failure)
 if [ $? -ne 0 ]; then
@@ -110,7 +134,7 @@ for db in ${ALL_DBS}; do
     if [ "$SHOULD_BACKUP" = true ]; then
         # Backup this database in custom format
         BACKUP_FILE="${BACKUP_DIR}/${db}.dump"
-        pg_dump -h ${PGHOST} -U ${PGUSER} -Fc ${db} > "${BACKUP_FILE}" 2>&1
+        $PG_DUMP_CMD -h ${PGHOST} -U ${PGUSER} -Fc ${db} > "${BACKUP_FILE}" 2>&1
 
         if [ $? -ne 0 ]; then
             echo "ERROR: Failed to backup database '${db}'" >&2
@@ -138,5 +162,15 @@ done
 
 # Output JSON array end
 echo ""
-echo "  ]"
+echo "  ],"
+echo "  \"runtime\": {"
+echo "    \"psql\": {"
+echo "      \"version\": \"${PSQL_VERSION}\","
+echo "      \"path\": \"${PSQL_PATH}\""
+echo "    },"
+echo "    \"pg_dump\": {"
+echo "      \"version\": \"${PG_DUMP_VERSION}\","
+echo "      \"path\": \"${PG_DUMP_PATH}\""
+echo "    }"
+echo "  }"
 echo "}"

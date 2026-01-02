@@ -88,9 +88,10 @@ describe("execution | postgres", () => {
     await createBackupPipeline(page, { backupDir, databases: Object.values(Database) });
     await ExecutionFlow.executePipeline(page);
     // then
-    const expectedDumpFiles = Object.values(Database).map((db) => `${db}.dump`);
-    expect(await readdir(backupDir)).toHaveLength(expectedDumpFiles.length);
-    expect(await readdir(backupDir)).toEqual(expect.arrayContaining(expectedDumpFiles));
+    const entries = await FilesystemBoundary.listFlattenedFolderEntries(backupDir);
+    Object.values(Database).forEach((db) => {
+      expect(entries).toContainEqual(expect.stringMatching(new RegExp(`${db}\.dump$`)));
+    });
   });
 
   test("performs a backup and restore", async ({ page }) => {
@@ -156,6 +157,7 @@ describe("execution | postgres", () => {
           previousId: "A",
           id: "B",
           type: "Filesystem Write",
+          managedStorage: "true",
           folder: backupDir,
         },
       ],

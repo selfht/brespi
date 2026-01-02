@@ -50,14 +50,6 @@ export namespace Step {
     object: "step";
   };
 
-  export type S3Connection = {
-    bucket: string;
-    region: string | null;
-    endpoint: string;
-    accessKeyReference: string;
-    secretKeyReference: string;
-  };
-
   export type ManagedStorage =
     | { target: "latest" } //
     | { target: "specific"; version: string };
@@ -66,6 +58,14 @@ export namespace Step {
     | { method: "exact"; name: string } //
     | { method: "glob"; nameGlob: string }
     | { method: "regex"; nameRegex: string };
+
+  export type S3Connection = {
+    bucket: string;
+    region: string | null;
+    endpoint: string;
+    accessKeyReference: string;
+    secretKeyReference: string;
+  };
 
   export type FilesystemWrite = Common & {
     type: Type.filesystem_write;
@@ -147,6 +147,9 @@ export namespace Step {
   export type PostgresBackup = Common & {
     type: Type.postgres_backup;
     connectionReference: string;
+    toolkit:
+      | { resolution: "automatic" } //
+      | { resolution: "manual"; psql: string; pg_dump: string };
     databaseSelection:
       | { strategy: "all" } //
       | { strategy: "include"; include: string[] }
@@ -156,6 +159,9 @@ export namespace Step {
   export type PostgresRestore = Common & {
     type: Type.postgres_restore;
     connectionReference: string;
+    toolkit:
+      | { resolution: "automatic" } //
+      | { resolution: "manual"; psql: string; pg_restore: string };
     database: string;
   };
 
@@ -190,14 +196,6 @@ export namespace Step {
           object: z.literal("step"),
         },
 
-        s3Connection: z.object({
-          bucket: z.string(),
-          region: z.string().nullable(),
-          endpoint: z.string(),
-          accessKeyReference: z.string(),
-          secretKeyReference: z.string(),
-        } satisfies SubSchema<S3Connection>),
-
         managedStorage: z.union([
           z.object({ target: z.literal("latest") }), //
           z.object({ target: z.literal("specific"), version: z.string() }),
@@ -208,6 +206,14 @@ export namespace Step {
           z.object({ method: z.literal("glob"), nameGlob: z.string() }),
           z.object({ method: z.literal("regex"), nameRegex: z.string() }),
         ]),
+
+        s3Connection: z.object({
+          bucket: z.string(),
+          region: z.string().nullable(),
+          endpoint: z.string(),
+          accessKeyReference: z.string(),
+          secretKeyReference: z.string(),
+        } satisfies SubSchema<S3Connection>),
       };
 
       return z.discriminatedUnion("type", [
@@ -314,6 +320,14 @@ export namespace Step {
           ...subSchema.common,
           type: z.literal(Type.postgres_backup),
           connectionReference: z.string(),
+          toolkit: z.union([
+            z.object({ resolution: z.literal("automatic") }),
+            z.object({
+              resolution: z.literal("manual"),
+              psql: z.string(),
+              pg_dump: z.string(),
+            }),
+          ]),
           databaseSelection: z.union([
             z.object({ strategy: z.literal("all") }),
             z.object({ strategy: z.literal("include"), include: z.array(z.string()) }),
@@ -325,6 +339,14 @@ export namespace Step {
           ...subSchema.common,
           type: z.literal(Type.postgres_restore),
           connectionReference: z.string(),
+          toolkit: z.union([
+            z.object({ resolution: z.literal("automatic") }),
+            z.object({
+              resolution: z.literal("manual"),
+              psql: z.string(),
+              pg_restore: z.string(),
+            }),
+          ]),
           database: z.string(),
         } satisfies SubSchema<Step.PostgresRestore>),
       ]);

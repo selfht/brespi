@@ -148,6 +148,7 @@ export namespace StepData {
         const step: Step.PostgresBackup = {
           type: Step.Type.postgres_backup,
           connectionReference: "MY_POSTGRES_URL",
+          toolkit: { resolution: "automatic" },
           databaseSelection: {
             strategy: "all",
           },
@@ -159,6 +160,7 @@ export namespace StepData {
         const step: Step.PostgresRestore = {
           type: Step.Type.postgres_restore,
           connectionReference: "MY_POSTGRES_URL",
+          toolkit: { resolution: "automatic" },
           database: "test_db",
           ...common,
         };

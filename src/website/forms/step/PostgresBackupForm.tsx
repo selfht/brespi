@@ -5,12 +5,18 @@ import { FormHelper } from "../FormHelper";
 
 enum Field {
   connectionReference = "connectionReference",
+  toolkit_resolution = "toolkit_resolution",
+  toolkit_psql = "toolkit_psql",
+  toolkit_pg_dump = "toolkit_pg_dump",
   databaseSelection_strategy = "databaseSelection_strategy",
   databaseSelection_include = "databaseSelection_include",
   databaseSelection_exclude = "databaseSelection_exclude",
 }
 type Form = {
   [Field.connectionReference]: string;
+  [Field.toolkit_resolution]: "automatic" | "manual";
+  [Field.toolkit_psql]: string;
+  [Field.toolkit_pg_dump]: string;
   [Field.databaseSelection_strategy]: "all" | "include" | "exclude";
   [Field.databaseSelection_include]: string[];
   [Field.databaseSelection_exclude]: string[];
@@ -27,6 +33,9 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.connectionReference]: existing?.connectionReference ?? "",
+      [Field.toolkit_resolution]: existing?.toolkit.resolution ?? "automatic",
+      [Field.toolkit_psql]: existing?.toolkit.resolution === "manual" ? existing.toolkit.psql : "",
+      [Field.toolkit_pg_dump]: existing?.toolkit.resolution === "manual" ? existing.toolkit.pg_dump : "",
       [Field.databaseSelection_strategy]: existing?.databaseSelection.strategy ?? "all",
       [Field.databaseSelection_include]: existing?.databaseSelection.strategy === "include" ? existing?.databaseSelection.include : [],
       [Field.databaseSelection_exclude]: existing?.databaseSelection.strategy === "exclude" ? existing?.databaseSelection.exclude : [],
@@ -41,6 +50,14 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
         object: "step",
         type: Step.Type.postgres_backup,
         connectionReference: form[Field.connectionReference],
+        toolkit:
+          form[Field.toolkit_resolution] === "automatic"
+            ? { resolution: "automatic" }
+            : {
+                resolution: "manual",
+                psql: form[Field.toolkit_psql],
+                pg_dump: form[Field.toolkit_pg_dump],
+              },
         databaseSelection:
           form[Field.databaseSelection_strategy] === "all"
             ? {
@@ -63,6 +80,7 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
     }
   };
 
+  const toolkitResolution = watch(Field.toolkit_resolution);
   const databaseSelectionStrategy = watch(Field.databaseSelection_strategy);
   return (
     <FormElements.Container className={className}>
@@ -79,6 +97,45 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
               {...register(Field.connectionReference)}
             />
           </div>
+          <div className="flex items-center">
+            <label htmlFor={Field.toolkit_resolution} className="w-72">
+              Toolkit resolution
+            </label>
+            <select
+              id={Field.toolkit_resolution}
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.toolkit_resolution)}
+            >
+              <option value="automatic">automatic</option>
+              <option value="manual">manual</option>
+            </select>
+          </div>
+          {toolkitResolution === "manual" && (
+            <>
+              <div className="flex items-center">
+                <label htmlFor={Field.toolkit_psql} className="w-72">
+                  <span className="text-c-dim">Toolkit:</span> psql path
+                </label>
+                <input
+                  id={Field.toolkit_psql}
+                  type="text"
+                  className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+                  {...register(Field.toolkit_psql)}
+                />
+              </div>
+              <div className="flex items-center">
+                <label htmlFor={Field.toolkit_pg_dump} className="w-72">
+                  <span className="text-c-dim">Toolkit:</span> pg_dump path
+                </label>
+                <input
+                  id={Field.toolkit_pg_dump}
+                  type="text"
+                  className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+                  {...register(Field.toolkit_pg_dump)}
+                />
+              </div>
+            </>
+          )}
           <div className="flex items-center">
             <label htmlFor={Field.databaseSelection_strategy} className="w-72">
               Database selection

@@ -18,6 +18,7 @@ export class PostgresAdapter extends AbstractAdapter {
 
   public async backup(step: Step.PostgresBackup): Promise<AdapterResult> {
     const { username, password, host, port } = UrlParser.postgres(this.readEnvironmentVariable(step.connectionReference));
+    const { toolkit } = step;
     const tempDir = await this.createTmpDestination();
     try {
       const scriptPath = join(import.meta.dir, "pg_backup.sh");
@@ -33,6 +34,13 @@ export class PostgresAdapter extends AbstractAdapter {
           SELECTION_MODE: step.databaseSelection.strategy,
           ...(step.databaseSelection.strategy === "include" ? { INCLUDE_DBS: step.databaseSelection.include.join(" ") } : {}),
           ...(step.databaseSelection.strategy === "exclude" ? { EXCLUDE_DBS: step.databaseSelection.exclude.join(" ") } : {}),
+          ...(toolkit.resolution === "automatic"
+            ? { TOOLKIT_RESOLUTION: "automatic" }
+            : {
+                TOOLKIT_RESOLUTION: "manual",
+                TOOLKIT_PSQL: toolkit.psql,
+                TOOLKIT_PG_DUMP: toolkit.pg_dump,
+              }),
         },
       });
       const output = z
@@ -43,6 +51,16 @@ export class PostgresAdapter extends AbstractAdapter {
               path: z.string(),
             }),
           ),
+          runtime: z.object({
+            psql: z.object({
+              version: z.string(),
+              path: z.string(),
+            }),
+            pg_dump: z.object({
+              version: z.string(),
+              path: z.string(),
+            }),
+          }),
         })
         .parse(JSON.parse(stdout));
       // All databases in output are successful (script fails on first error)
@@ -57,7 +75,7 @@ export class PostgresAdapter extends AbstractAdapter {
           name: this.addExtension(db.name, this.EXTENSION),
         });
       }
-      return AdapterResult.create(artifacts);
+      return AdapterResult.create(artifacts, output.runtime);
     } catch (e) {
       throw this.mapError(e, ExecutionError.postgres_backup_failed);
     } finally {
@@ -70,6 +88,7 @@ export class PostgresAdapter extends AbstractAdapter {
     const artifact = artifacts[0];
     this.requireArtifactType("file", artifact);
     const { username, password, host, port } = UrlParser.postgres(this.readEnvironmentVariable(step.connectionReference));
+    const { toolkit } = step;
     try {
       const { stdout } = await this.runCommand({
         cmd: ["bash", join(import.meta.dir, "pg_restore.sh")],
@@ -81,13 +100,32 @@ export class PostgresAdapter extends AbstractAdapter {
           PGPORT: port,
           RESTORE_FILE: artifact.path,
           DATABASE: step.database,
+          ...(toolkit.resolution === "automatic"
+            ? { TOOLKIT_RESOLUTION: "automatic" }
+            : {
+                TOOLKIT_RESOLUTION: "manual",
+                TOOLKIT_PSQL: toolkit.psql,
+                TOOLKIT_PG_RESTORE: toolkit.pg_restore,
+              }),
         },
       });
-      z.object({
-        status: z.literal("success"),
-        database: z.string(),
-      }).parse(JSON.parse(stdout));
-      return AdapterResult.create();
+      const output = z
+        .object({
+          status: z.literal("success"),
+          database: z.string(),
+          runtime: z.object({
+            psql: z.object({
+              version: z.string(),
+              path: z.string(),
+            }),
+            pg_restore: z.object({
+              version: z.string(),
+              path: z.string(),
+            }),
+          }),
+        })
+        .parse(JSON.parse(stdout));
+      return AdapterResult.create([], output.runtime);
     } catch (e) {
       throw this.mapError(e, ExecutionError.postgres_restore_failed);
     }

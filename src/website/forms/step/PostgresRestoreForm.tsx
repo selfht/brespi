@@ -5,10 +5,16 @@ import { FormHelper } from "../FormHelper";
 
 enum Field {
   connectionReference = "connectionReference",
+  toolkit_resolution = "toolkit_resolution",
+  toolkit_psql = "toolkit_psql",
+  toolkit_pg_restore = "toolkit_pg_restore",
   database = "database",
 }
 type Form = {
   [Field.connectionReference]: string;
+  [Field.toolkit_resolution]: "automatic" | "manual";
+  [Field.toolkit_psql]: string;
+  [Field.toolkit_pg_restore]: string;
   [Field.database]: string;
 };
 type Props = {
@@ -20,9 +26,12 @@ type Props = {
   className?: string;
 };
 export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
+  const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.connectionReference]: existing?.connectionReference ?? "",
+      [Field.toolkit_resolution]: existing?.toolkit.resolution ?? "automatic",
+      [Field.toolkit_psql]: existing?.toolkit.resolution === "manual" ? existing.toolkit.psql : "",
+      [Field.toolkit_pg_restore]: existing?.toolkit.resolution === "manual" ? existing.toolkit.pg_restore : "",
       [Field.database]: existing?.database ?? "",
     } satisfies Form,
   });
@@ -35,6 +44,14 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
         object: "step",
         type: Step.Type.postgres_restore,
         connectionReference: form[Field.connectionReference],
+        toolkit:
+          form[Field.toolkit_resolution] === "automatic"
+            ? { resolution: "automatic" }
+            : {
+                resolution: "manual",
+                psql: form[Field.toolkit_psql],
+                pg_restore: form[Field.toolkit_pg_restore],
+              },
         database: form[Field.database],
       });
     } catch (error) {
@@ -43,6 +60,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
       });
     }
   };
+  const toolkitResolution = watch(Field.toolkit_resolution);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.postgres_restore}>
@@ -58,6 +76,45 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
               {...register(Field.connectionReference)}
             />
           </div>
+          <div className="flex items-center">
+            <label htmlFor={Field.toolkit_resolution} className="w-72">
+              Toolkit resolution
+            </label>
+            <select
+              id={Field.toolkit_resolution}
+              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+              {...register(Field.toolkit_resolution)}
+            >
+              <option value="automatic">automatic</option>
+              <option value="manual">manual</option>
+            </select>
+          </div>
+          {toolkitResolution === "manual" && (
+            <>
+              <div className="flex items-center">
+                <label htmlFor={Field.toolkit_psql} className="w-72">
+                  <span className="text-c-dim">Toolkit:</span> psql path
+                </label>
+                <input
+                  id={Field.toolkit_psql}
+                  type="text"
+                  className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+                  {...register(Field.toolkit_psql)}
+                />
+              </div>
+              <div className="flex items-center">
+                <label htmlFor={Field.toolkit_pg_restore} className="w-72">
+                  <span className="text-c-dim">Toolkit:</span> pg_restore path
+                </label>
+                <input
+                  id={Field.toolkit_pg_restore}
+                  type="text"
+                  className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+                  {...register(Field.toolkit_pg_restore)}
+                />
+              </div>
+            </>
+          )}
           <div className="flex items-center">
             <label htmlFor={Field.database} className="w-72">
               Database
