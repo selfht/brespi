@@ -186,11 +186,11 @@ export namespace EditorFlow {
         return await findCurrentlyActiveStepId(page);
       }
       case "Encryption": {
-        if (step.keyReference) await page.getByLabel("Key Reference").fill(step.keyReference);
+        if (step.keyReference) await page.getByLabel("Key reference").fill(step.keyReference);
         return await findCurrentlyActiveStepId(page);
       }
       case "Decryption": {
-        if (step.keyReference) await page.getByLabel("Key Reference").fill(step.keyReference);
+        if (step.keyReference) await page.getByLabel("Key reference").fill(step.keyReference);
         return await findCurrentlyActiveStepId(page);
       }
       case "Folder Flatten": {
@@ -250,7 +250,7 @@ export namespace EditorFlow {
         if (step.region) await page.getByLabel("Region").fill(step.region);
         if (step.accessKeyReference) await page.getByLabel("Access key reference").fill(step.accessKeyReference);
         if (step.secretKeyReference) await page.getByLabel("Secret key reference").fill(step.secretKeyReference);
-        if (step.baseFolder) await page.getByLabel("Base Folder").fill(step.baseFolder);
+        if (step.baseFolder) await page.getByLabel("Base folder").fill(step.baseFolder);
         return await findCurrentlyActiveStepId(page);
       }
       case "S3 Download": {
@@ -259,7 +259,7 @@ export namespace EditorFlow {
         if (step.region) await page.getByLabel("Region").fill(step.region);
         if (step.accessKeyReference) await page.getByLabel("Access key reference").fill(step.accessKeyReference);
         if (step.secretKeyReference) await page.getByLabel("Secret key reference").fill(step.secretKeyReference);
-        if (step.baseFolder) await page.getByLabel("Base Folder").fill(step.baseFolder);
+        if (step.baseFolder) await page.getByLabel("Base folder").fill(step.baseFolder);
         if (step.managedStorageSelectionTarget) {
           await page.getByLabel("Managed storage: target").selectOption(step.managedStorageSelectionTarget);
           if (step.managedStorageSelectionTarget === "specific" && step.managedStorageSelectionVersion) {
@@ -280,7 +280,7 @@ export namespace EditorFlow {
         return await findCurrentlyActiveStepId(page);
       }
       case "Postgres Backup": {
-        if (step.connectionReference) await page.getByLabel("Connection Reference").fill(step.connectionReference);
+        if (step.connectionReference) await page.getByLabel("Connection reference").fill(step.connectionReference);
         if (step.databaseSelectionStrategy) {
           await page.getByLabel("Database selection").selectOption(step.databaseSelectionStrategy);
           if (step.databaseSelectionStrategy === "include" && step.databaseSelectionInclude) {
@@ -292,7 +292,7 @@ export namespace EditorFlow {
         return await findCurrentlyActiveStepId(page);
       }
       case "Postgres Restore": {
-        if (step.connectionReference) await page.getByLabel("Connection Reference").fill(step.connectionReference);
+        if (step.connectionReference) await page.getByLabel("Connection reference").fill(step.connectionReference);
         if (step.database) await page.getByLabel("Database").fill(step.database);
         return await findCurrentlyActiveStepId(page);
       }

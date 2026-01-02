@@ -17,13 +17,13 @@ enum Field {
 const Label: Record<Field, string> = {
   [Field.fileOrFolder]: "File or folder",
   [Field.managedStorage]: "Use managed storage?",
-  [Field.managedStorage_target]: "target",
-  [Field.managedStorage_version]: "version",
+  [Field.managedStorage_target]: "Managed storage: target",
+  [Field.managedStorage_version]: "Managed storage: version",
   [Field.filterCriteria]: "Use filter?",
-  [Field.filterCriteria_method]: "method",
-  [Field.filterCriteria_name]: "name",
-  [Field.filterCriteria_nameGlob]: "name glob",
-  [Field.filterCriteria_nameRegex]: "name regex",
+  [Field.filterCriteria_method]: "Filter: method",
+  [Field.filterCriteria_name]: "Filter: name",
+  [Field.filterCriteria_nameGlob]: "Filter: name glob",
+  [Field.filterCriteria_nameRegex]: "Filter: name regex",
 };
 
 type Form = {
@@ -95,128 +95,28 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
   const filterCriteria = watch(Field.filterCriteria);
   const filterCriteriaMethod = watch(Field.filterCriteria_method);
   const filterCriteriaMethodOptions: Array<typeof filterCriteriaMethod> = ["exact", "glob", "regex"];
+  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.filesystem_read}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <div className="flex items-center">
-            <label htmlFor={Field.fileOrFolder} className="w-72">
-              {managedStorage === "true" ? "Folder" : Label[Field.fileOrFolder]}
-            </label>
-            <input
-              id={Field.fileOrFolder}
-              type="text"
-              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.fileOrFolder)}
-            />
-          </div>
-          <div className="flex items-center">
-            <label htmlFor={Field.managedStorage} className="w-72">
-              {Label[Field.managedStorage]}
-            </label>
-            <select id={Field.managedStorage} className="rounded p-2 bg-c-dim/20" {...register(Field.managedStorage)}>
-              <option value="true">yes</option>
-              <option value="false">no</option>
-            </select>
-          </div>
-          {managedStorage === "true" ? (
+          <LabeledInput field={Field.fileOrFolder} label={managedStorage === "true" ? "Folder" : Label[Field.fileOrFolder]} input="text" />
+          <LabeledInput field={Field.managedStorage} input="select" options={["true", "false"]} />
+          {managedStorage === "true" && (
             <>
-              <div className="flex items-center">
-                <label htmlFor={Field.managedStorage_target} className="w-72">
-                  <span className="text-c-dim">Managed storage:</span> {Label[Field.managedStorage_target]}
-                </label>
-                <select
-                  id={Field.managedStorage_target}
-                  className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                  {...register(Field.managedStorage_target)}
-                >
-                  <option value="latest">latest</option>
-                  <option value="specific">specific</option>
-                </select>
-              </div>
-              {managedStorageSelectionTarget === "specific" && (
-                <div className="flex items-center">
-                  <label htmlFor={Field.managedStorage_version} className="w-72">
-                    <span className="text-c-dim">Managed storage:</span> {Label[Field.managedStorage_version]}
-                  </label>
-                  <input
-                    id={Field.managedStorage_version}
-                    type="text"
-                    className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                    {...register(Field.managedStorage_version)}
-                  />
-                </div>
-              )}
-              <div className="flex items-center">
-                <label htmlFor={Field.filterCriteria} className="w-72">
-                  {Label[Field.filterCriteria]}
-                </label>
-                <select id={Field.filterCriteria} className="rounded p-2 bg-c-dim/20" {...register(Field.filterCriteria)}>
-                  <option value="true">yes</option>
-                  <option value="false">no</option>
-                </select>
-              </div>
-              {filterCriteria === "true" ? (
+              <LabeledInput field={Field.managedStorage_target} input="select" options={["latest", "specific"]} />
+              {managedStorageSelectionTarget === "specific" && <LabeledInput field={Field.managedStorage_version} input="text" />}
+              <LabeledInput field={Field.filterCriteria} input="select" options={["true", "false"]} />
+              {filterCriteria === "true" && (
                 <>
-                  <div className="flex items-center">
-                    <label htmlFor={Field.filterCriteria_method} className="w-72">
-                      <span className="text-c-dim">Filter:</span> {Label[Field.filterCriteria_method]}
-                    </label>
-                    <select
-                      id={Field.filterCriteria_method}
-                      className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                      {...register(Field.filterCriteria_method)}
-                    >
-                      {filterCriteriaMethodOptions.map((value) => (
-                        <option key={value} value={value}>
-                          {value}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  {filterCriteriaMethod === "exact" && (
-                    <div className="flex items-center">
-                      <label htmlFor={Field.filterCriteria_name} className="w-72">
-                        <span className="text-c-dim">Filter:</span> {Label[Field.filterCriteria_name]}
-                      </label>
-                      <input
-                        id={Field.filterCriteria_name}
-                        type="text"
-                        className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                        {...register(Field.filterCriteria_name)}
-                      />
-                    </div>
-                  )}
-                  {filterCriteriaMethod === "glob" && (
-                    <div className="flex items-center">
-                      <label htmlFor={Field.filterCriteria_nameGlob} className="w-72">
-                        <span className="text-c-dim">Filter:</span> {Label[Field.filterCriteria_nameGlob]}
-                      </label>
-                      <input
-                        id={Field.filterCriteria_nameGlob}
-                        type="text"
-                        className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                        {...register(Field.filterCriteria_nameGlob)}
-                      />
-                    </div>
-                  )}
-                  {filterCriteriaMethod === "regex" && (
-                    <div className="flex items-center">
-                      <label htmlFor={Field.filterCriteria_nameRegex} className="w-72">
-                        <span className="text-c-dim">Filter:</span> {Label[Field.filterCriteria_nameRegex]}
-                      </label>
-                      <input
-                        id={Field.filterCriteria_nameRegex}
-                        type="text"
-                        className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                        {...register(Field.filterCriteria_nameRegex)}
-                      />
-                    </div>
-                  )}
+                  <LabeledInput field={Field.filterCriteria_method} input="select" options={filterCriteriaMethodOptions} />
+                  {filterCriteriaMethod === "exact" && <LabeledInput field={Field.filterCriteria_name} input="text" />}
+                  {filterCriteriaMethod === "glob" && <LabeledInput field={Field.filterCriteria_nameGlob} input="text" />}
+                  {filterCriteriaMethod === "regex" && <LabeledInput field={Field.filterCriteria_nameRegex} input="text" />}
                 </>
-              ) : null}
+              )}
             </>
-          ) : null}
+          )}
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

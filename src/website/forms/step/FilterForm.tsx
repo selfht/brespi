@@ -60,6 +60,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
       });
     }
   };
+  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
 
   const filterCriteriaMethod = watch(Field.filterCriteria_method);
   const filterCriteriaMethodOptions: Array<typeof filterCriteriaMethod> = ["exact", "glob", "regex"];
@@ -67,61 +68,10 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.filter}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <div className="flex items-center">
-            <label htmlFor={Field.filterCriteria_method} className="w-72">
-              {Label[Field.filterCriteria_method]}
-            </label>
-            <select
-              id={Field.filterCriteria_method}
-              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.filterCriteria_method)}
-            >
-              {filterCriteriaMethodOptions.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </div>
-          {filterCriteriaMethod === "exact" && (
-            <div className="flex items-center">
-              <label htmlFor={Field.filterCriteria_name} className="w-72">
-                {Label[Field.filterCriteria_name]}
-              </label>
-              <input
-                id={Field.filterCriteria_name}
-                type="text"
-                className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                {...register(Field.filterCriteria_name)}
-              />
-            </div>
-          )}
-          {filterCriteriaMethod === "glob" && (
-            <div className="flex items-center">
-              <label htmlFor={Field.filterCriteria_nameGlob} className="w-72">
-                {Label[Field.filterCriteria_nameGlob]}
-              </label>
-              <input
-                id={Field.filterCriteria_nameGlob}
-                type="text"
-                className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                {...register(Field.filterCriteria_nameGlob)}
-              />
-            </div>
-          )}
-          {filterCriteriaMethod === "regex" && (
-            <div className="flex items-center">
-              <label htmlFor={Field.filterCriteria_nameRegex} className="w-72">
-                {Label[Field.filterCriteria_nameRegex]}
-              </label>
-              <input
-                id={Field.filterCriteria_nameRegex}
-                type="text"
-                className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                {...register(Field.filterCriteria_nameRegex)}
-              />
-            </div>
-          )}
+          <LabeledInput field={Field.filterCriteria_method} input="select" options={filterCriteriaMethodOptions} />
+          {filterCriteriaMethod === "exact" && <LabeledInput field={Field.filterCriteria_name} input="text" />}
+          {filterCriteriaMethod === "glob" && <LabeledInput field={Field.filterCriteria_nameGlob} input="text" />}
+          {filterCriteriaMethod === "regex" && <LabeledInput field={Field.filterCriteria_nameRegex} input="text" />}
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

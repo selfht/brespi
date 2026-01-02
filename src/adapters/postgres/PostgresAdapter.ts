@@ -32,8 +32,8 @@ export class PostgresAdapter extends AbstractAdapter {
           PGPORT: port,
           BACKUP_ROOT: tempDir,
           SELECTION_MODE: step.databaseSelection.strategy,
-          ...(step.databaseSelection.strategy === "include" ? { INCLUDE_DBS: step.databaseSelection.include.join(" ") } : {}),
-          ...(step.databaseSelection.strategy === "exclude" ? { EXCLUDE_DBS: step.databaseSelection.exclude.join(" ") } : {}),
+          ...(step.databaseSelection.strategy === "include" ? { DB_INCLUSIONS: step.databaseSelection.inclusions.join(" ") } : {}),
+          ...(step.databaseSelection.strategy === "exclude" ? { DB_EXCLUSIONS: step.databaseSelection.exclusions.join(" ") } : {}),
           ...(toolkit.resolution === "automatic"
             ? { TOOLKIT_RESOLUTION: "automatic" }
             : {

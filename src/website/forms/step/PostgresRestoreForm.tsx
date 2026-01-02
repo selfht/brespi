@@ -11,10 +11,10 @@ enum Field {
   database = "database",
 }
 const Label: Record<Field, string> = {
-  [Field.connectionReference]: "Connection Reference",
+  [Field.connectionReference]: "Connection reference",
   [Field.toolkit_resolution]: "Toolkit resolution",
-  [Field.toolkit_psql]: "psql path",
-  [Field.toolkit_pg_restore]: "pg_restore path",
+  [Field.toolkit_psql]: "Toolkit: 'psql' path",
+  [Field.toolkit_pg_restore]: "Toolkit: 'pg_restore' path",
   [Field.database]: "Database",
 };
 
@@ -69,66 +69,20 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
     }
   };
   const toolkitResolution = watch(Field.toolkit_resolution);
+  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.postgres_restore}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <div className="flex items-center">
-            <label htmlFor={Field.connectionReference} className="w-72">
-              {Label[Field.connectionReference]}
-            </label>
-            <input
-              id={Field.connectionReference}
-              type="text"
-              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.connectionReference)}
-            />
-          </div>
-          <div className="flex items-center">
-            <label htmlFor={Field.toolkit_resolution} className="w-72">
-              {Label[Field.toolkit_resolution]}
-            </label>
-            <select
-              id={Field.toolkit_resolution}
-              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.toolkit_resolution)}
-            >
-              <option value="automatic">automatic</option>
-              <option value="manual">manual</option>
-            </select>
-          </div>
+          <LabeledInput field={Field.connectionReference} input="text" />
+          <LabeledInput field={Field.toolkit_resolution} input="select" options={["automatic", "manual"]} />
           {toolkitResolution === "manual" && (
             <>
-              <div className="flex items-center">
-                <label htmlFor={Field.toolkit_psql} className="w-72">
-                  <span className="text-c-dim">Toolkit:</span> {Label[Field.toolkit_psql]}
-                </label>
-                <input
-                  id={Field.toolkit_psql}
-                  type="text"
-                  className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                  {...register(Field.toolkit_psql)}
-                />
-              </div>
-              <div className="flex items-center">
-                <label htmlFor={Field.toolkit_pg_restore} className="w-72">
-                  <span className="text-c-dim">Toolkit:</span> {Label[Field.toolkit_pg_restore]}
-                </label>
-                <input
-                  id={Field.toolkit_pg_restore}
-                  type="text"
-                  className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                  {...register(Field.toolkit_pg_restore)}
-                />
-              </div>
+              <LabeledInput field={Field.toolkit_psql} input="text" />
+              <LabeledInput field={Field.toolkit_pg_restore} input="text" />
             </>
           )}
-          <div className="flex items-center">
-            <label htmlFor={Field.database} className="w-72">
-              {Label[Field.database]}
-            </label>
-            <input id={Field.database} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.database)} />
-          </div>
+          <LabeledInput field={Field.database} input="text" />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

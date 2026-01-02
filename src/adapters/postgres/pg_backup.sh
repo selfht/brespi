@@ -33,13 +33,13 @@ if [ "$SELECTION_MODE" != "all" ] && [ "$SELECTION_MODE" != "include" ] && [ "$S
 fi
 
 # Validate required variables for each mode
-if [ "$SELECTION_MODE" = "include" ] && [ -z "$INCLUDE_DBS" ]; then
-    echo "ERROR: INCLUDE_DBS is required when SELECTION_MODE is 'include'" >&2
+if [ "$SELECTION_MODE" = "include" ] && [ -z "$DB_INCLUSIONS" ]; then
+    echo "ERROR: DB_INCLUSIONS is required when SELECTION_MODE is 'include'" >&2
     exit 1
 fi
 
-if [ "$SELECTION_MODE" = "exclude" ] && [ -z "$EXCLUDE_DBS" ]; then
-    echo "ERROR: EXCLUDE_DBS is required when SELECTION_MODE is 'exclude'" >&2
+if [ "$SELECTION_MODE" = "exclude" ] && [ -z "$DB_EXCLUSIONS" ]; then
+    echo "ERROR: DB_EXCLUSIONS is required when SELECTION_MODE is 'exclude'" >&2
     exit 1
 fi
 
@@ -93,14 +93,14 @@ fi
 if [ "$SELECTION_MODE" = "all" ]; then
     BACKUP_DBS=$ALL_DBS
 elif [ "$SELECTION_MODE" = "include" ]; then
-    BACKUP_DBS=$INCLUDE_DBS
+    BACKUP_DBS=$DB_INCLUSIONS
 elif [ "$SELECTION_MODE" = "exclude" ]; then
-    # For exclude mode, backup all except those in EXCLUDE_DBS
+    # For exclude mode, backup all except those in DB_EXCLUSIONS
     BACKUP_DBS=""
     for db in ${ALL_DBS}; do
         db=$(echo "$db" | xargs)
         SHOULD_EXCLUDE=false
-        for exclude_db in ${EXCLUDE_DBS}; do
+        for exclude_db in ${DB_EXCLUSIONS}; do
             exclude_db=$(echo "$exclude_db" | xargs)
             if [ "$db" = "$exclude_db" ]; then
                 SHOULD_EXCLUDE=true

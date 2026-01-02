@@ -1,7 +1,7 @@
 import { Step } from "@/models/Step";
 import clsx from "clsx";
 import { ReactNode } from "react";
-import { FormState } from "react-hook-form";
+import { FieldValues, FormState, Path, UseFormRegister } from "react-hook-form";
 import { Button } from "../comps/Button";
 import { Icon } from "../comps/Icon";
 import { Spinner } from "../comps/Spinner";
@@ -75,5 +75,79 @@ export namespace FormElements {
         )}
       </div>
     );
+  }
+
+  type LabeledInputProps<FORM extends FieldValues, F extends keyof FORM> = {
+    field: F;
+    label?: ReactNode;
+    labels: Record<keyof FORM, string>;
+    register: UseFormRegister<FORM>;
+  } & ({ input: "text" } | { input: "number" } | { input: "select"; options: string[] });
+  export function LabeledInput<FORM extends FieldValues, F extends keyof FORM>(props: LabeledInputProps<FORM, F>) {
+    const { field, label, labels, register, ...variant } = props;
+
+    const fieldStr = field.toString();
+    const fieldPath = field as unknown as Path<FORM>;
+
+    // Determine the label to display
+    const displayLabel = label ?? labels[field];
+
+    // If it's a string with a colon, split and style the prefix
+    const renderedLabel =
+      typeof displayLabel === "string" && displayLabel.includes(":")
+        ? (() => {
+            const colonIndex = displayLabel.indexOf(":");
+            const prefix = displayLabel.slice(0, colonIndex + 1); // Include the colon
+            const suffix = displayLabel.slice(colonIndex + 1); // After the colon
+            return (
+              <>
+                <span className="text-c-dim">{prefix}</span>
+                {suffix}
+              </>
+            );
+          })()
+        : displayLabel;
+
+    return (
+      <div className="flex items-center">
+        <label htmlFor={fieldStr} className="w-72">
+          {renderedLabel}
+        </label>
+        {variant.input === "text" && (
+          <input type="text" id={fieldStr} className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(fieldPath)} />
+        )}
+        {variant.input === "number" && (
+          <input
+            type="number"
+            id={fieldStr}
+            className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+            {...register(fieldPath, { valueAsNumber: true })}
+          />
+        )}
+        {variant.input === "select" && (
+          <select id={fieldStr} className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(fieldPath)}>
+            {variant.options.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+    );
+  }
+
+  export function createLabeledInputComponent<FORM extends FieldValues>(
+    labels: Record<keyof FORM, string>,
+    register: UseFormRegister<FORM>,
+  ) {
+    type BoundLabeledInputProps<F extends string> = {
+      field: F;
+      label?: ReactNode;
+    } & ({ input: "text" } | { input: "number" } | { input: "select"; options: string[] });
+
+    return function BoundLabeledInput<F extends keyof FORM>(props: BoundLabeledInputProps<F & string>) {
+      return LabeledInput<FORM, F>({ ...props, labels, register });
+    };
   }
 }

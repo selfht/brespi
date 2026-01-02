@@ -152,8 +152,8 @@ export namespace Step {
       | { resolution: "manual"; psql: string; pg_dump: string };
     databaseSelection:
       | { strategy: "all" } //
-      | { strategy: "include"; include: string[] }
-      | { strategy: "exclude"; exclude: string[] };
+      | { strategy: "include"; inclusions: string[] }
+      | { strategy: "exclude"; exclusions: string[] };
   };
 
   export type PostgresRestore = Common & {
@@ -330,8 +330,8 @@ export namespace Step {
           ]),
           databaseSelection: z.union([
             z.object({ strategy: z.literal("all") }),
-            z.object({ strategy: z.literal("include"), include: z.array(z.string()) }),
-            z.object({ strategy: z.literal("exclude"), exclude: z.array(z.string()) }),
+            z.object({ strategy: z.literal("include"), inclusions: z.array(z.string()) }),
+            z.object({ strategy: z.literal("exclude"), exclusions: z.array(z.string()) }),
           ]),
         } satisfies SubSchema<Step.PostgresBackup>),
 

@@ -48,25 +48,13 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
       });
     }
   };
+  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.custom_script}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <div className="flex items-center">
-            <label htmlFor={Field.path} className="w-72">
-              {Label[Field.path]}
-            </label>
-            <input id={Field.path} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.path)} />
-          </div>
-          <div className="flex items-center">
-            <label htmlFor={Field.passthrough} className="w-72">
-              {Label[Field.passthrough]}
-            </label>
-            <select id={Field.passthrough} className="rounded p-2 bg-c-dim/20" {...register(Field.passthrough)}>
-              <option value="true">yes</option>
-              <option value="false">no</option>
-            </select>
-          </div>
+          <LabeledInput field={Field.path} input="text" />
+          <LabeledInput field={Field.passthrough} input="select" options={["true", "false"]} />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

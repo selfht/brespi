@@ -49,25 +49,13 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
       });
     }
   };
+  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.filesystem_write}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <div className="flex items-center">
-            <label htmlFor={Field.folder} className="w-72">
-              {Label[Field.folder]}
-            </label>
-            <input id={Field.folder} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.folder)} />
-          </div>
-          <div className="flex items-center">
-            <label htmlFor={Field.managedStorage} className="w-72">
-              {Label[Field.managedStorage]}
-            </label>
-            <select id={Field.managedStorage} className="rounded p-2 bg-c-dim/20" {...register(Field.managedStorage)}>
-              <option value="true">yes</option>
-              <option value="false">no</option>
-            </select>
-          </div>
+          <LabeledInput field={Field.folder} input="text" />
+          <LabeledInput field={Field.managedStorage} input="select" options={["true", "false"]} />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

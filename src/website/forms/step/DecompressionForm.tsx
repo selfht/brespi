@@ -46,22 +46,12 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
       });
     }
   };
+  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.decompression}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <div className="flex items-center">
-            <label htmlFor={Field.algorithm_implementation} className="w-72">
-              {Label[Field.algorithm_implementation]}
-            </label>
-            <select
-              id={Field.algorithm_implementation}
-              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.algorithm_implementation)}
-            >
-              <option value="targzip">targzip</option>
-            </select>
-          </div>
+          <LabeledInput field={Field.algorithm_implementation} input="select" options={["targzip"]} />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

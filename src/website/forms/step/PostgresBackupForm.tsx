@@ -13,10 +13,10 @@ enum Field {
   databaseSelection_exclude = "databaseSelection_exclude",
 }
 const Label: Record<Field, string> = {
-  [Field.connectionReference]: "Connection Reference",
+  [Field.connectionReference]: "Connection reference",
   [Field.toolkit_resolution]: "Toolkit resolution",
-  [Field.toolkit_psql]: "psql path",
-  [Field.toolkit_pg_dump]: "pg_dump path",
+  [Field.toolkit_psql]: "Toolkit: 'psql' path",
+  [Field.toolkit_pg_dump]: "Toolkit: 'pg_dump' path",
   [Field.databaseSelection_strategy]: "Database selection",
   [Field.databaseSelection_include]: "Include",
   [Field.databaseSelection_exclude]: "Exclude",
@@ -28,8 +28,8 @@ type Form = {
   [Field.toolkit_psql]: string;
   [Field.toolkit_pg_dump]: string;
   [Field.databaseSelection_strategy]: "all" | "include" | "exclude";
-  [Field.databaseSelection_include]: string[];
-  [Field.databaseSelection_exclude]: string[];
+  [Field.databaseSelection_include]: string;
+  [Field.databaseSelection_exclude]: string;
 };
 type Props = {
   id: string;
@@ -47,8 +47,10 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
       [Field.toolkit_psql]: existing?.toolkit.resolution === "manual" ? existing.toolkit.psql : "",
       [Field.toolkit_pg_dump]: existing?.toolkit.resolution === "manual" ? existing.toolkit.pg_dump : "",
       [Field.databaseSelection_strategy]: existing?.databaseSelection.strategy ?? "all",
-      [Field.databaseSelection_include]: existing?.databaseSelection.strategy === "include" ? existing?.databaseSelection.include : [],
-      [Field.databaseSelection_exclude]: existing?.databaseSelection.strategy === "exclude" ? existing?.databaseSelection.exclude : [],
+      [Field.databaseSelection_include]:
+        existing?.databaseSelection.strategy === "include" ? existing.databaseSelection.inclusions.join(",") : "",
+      [Field.databaseSelection_exclude]:
+        existing?.databaseSelection.strategy === "exclude" ? existing.databaseSelection.exclusions.join(",") : "",
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -76,11 +78,11 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
             : form[Field.databaseSelection_strategy] === "include"
               ? {
                   strategy: form[Field.databaseSelection_strategy],
-                  include: form[Field.databaseSelection_include],
+                  inclusions: form[Field.databaseSelection_include].split(",").filter(Boolean),
                 }
               : {
                   strategy: form[Field.databaseSelection_strategy],
-                  exclude: form[Field.databaseSelection_exclude],
+                  exclusions: form[Field.databaseSelection_exclude].split(",").filter(Boolean),
                 },
       });
     } catch (error) {
@@ -92,106 +94,22 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
 
   const toolkitResolution = watch(Field.toolkit_resolution);
   const databaseSelectionStrategy = watch(Field.databaseSelection_strategy);
+  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.postgres_backup}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <div className="flex items-center">
-            <label htmlFor={Field.connectionReference} className="w-72">
-              {Label[Field.connectionReference]}
-            </label>
-            <input
-              id={Field.connectionReference}
-              type="text"
-              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.connectionReference)}
-            />
-          </div>
-          <div className="flex items-center">
-            <label htmlFor={Field.toolkit_resolution} className="w-72">
-              {Label[Field.toolkit_resolution]}
-            </label>
-            <select
-              id={Field.toolkit_resolution}
-              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.toolkit_resolution)}
-            >
-              <option value="automatic">automatic</option>
-              <option value="manual">manual</option>
-            </select>
-          </div>
+          <LabeledInput field={Field.connectionReference} input="text" />
+          <LabeledInput field={Field.toolkit_resolution} input="select" options={["automatic", "manual"]} />
           {toolkitResolution === "manual" && (
             <>
-              <div className="flex items-center">
-                <label htmlFor={Field.toolkit_psql} className="w-72">
-                  <span className="text-c-dim">Toolkit:</span> {Label[Field.toolkit_psql]}
-                </label>
-                <input
-                  id={Field.toolkit_psql}
-                  type="text"
-                  className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                  {...register(Field.toolkit_psql)}
-                />
-              </div>
-              <div className="flex items-center">
-                <label htmlFor={Field.toolkit_pg_dump} className="w-72">
-                  <span className="text-c-dim">Toolkit:</span> {Label[Field.toolkit_pg_dump]}
-                </label>
-                <input
-                  id={Field.toolkit_pg_dump}
-                  type="text"
-                  className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                  {...register(Field.toolkit_pg_dump)}
-                />
-              </div>
+              <LabeledInput field={Field.toolkit_psql} input="text" />
+              <LabeledInput field={Field.toolkit_pg_dump} input="text" />
             </>
           )}
-          <div className="flex items-center">
-            <label htmlFor={Field.databaseSelection_strategy} className="w-72">
-              {Label[Field.databaseSelection_strategy]}
-            </label>
-            <select
-              id={Field.databaseSelection_strategy}
-              className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-              {...register(Field.databaseSelection_strategy)}
-            >
-              {["all", "include", "exclude"].map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </div>
-          {databaseSelectionStrategy === "include" && (
-            <div className="flex items-center">
-              <label htmlFor={Field.databaseSelection_include} className="w-72">
-                {Label[Field.databaseSelection_include]}
-              </label>
-              <input
-                id={Field.databaseSelection_include}
-                type="text"
-                className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                {...register(Field.databaseSelection_include, {
-                  setValueAs: (values: string | string[]) => (typeof values === "string" ? values.split(",") : values.join(",")),
-                })}
-              />
-            </div>
-          )}
-          {databaseSelectionStrategy === "exclude" && (
-            <div className="flex items-center">
-              <label htmlFor={Field.databaseSelection_exclude} className="w-72">
-                {Label[Field.databaseSelection_exclude]}
-              </label>
-              <input
-                id={Field.databaseSelection_exclude}
-                type="text"
-                className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-                {...register(Field.databaseSelection_exclude, {
-                  setValueAs: (values: string | string[]) => (typeof values === "string" ? values.split(",") : values.join(",")),
-                })}
-              />
-            </div>
-          )}
+          <LabeledInput field={Field.databaseSelection_strategy} input="select" options={["all", "include", "exclude"]} />
+          {databaseSelectionStrategy === "include" && <LabeledInput field={Field.databaseSelection_include} input="text" />}
+          {databaseSelectionStrategy === "exclude" && <LabeledInput field={Field.databaseSelection_exclude} input="text" />}
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

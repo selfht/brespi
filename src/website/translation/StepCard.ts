@@ -114,8 +114,8 @@ export namespace StepCard {
           toolkit_psql: step.toolkit.resolution === "manual" ? step.toolkit.psql : undefined,
           toolkit_pg_dump: step.toolkit.resolution === "manual" ? step.toolkit.pg_dump : undefined,
           databaseSelection_strategy: step.databaseSelection.strategy,
-          databaseSelection_include: step.databaseSelection.strategy === "include" ? step.databaseSelection.include : undefined,
-          databaseSelection_exclude: step.databaseSelection.strategy === "exclude" ? step.databaseSelection.exclude : undefined,
+          databaseSelection_include: step.databaseSelection.strategy === "include" ? step.databaseSelection.inclusions : undefined,
+          databaseSelection_exclude: step.databaseSelection.strategy === "exclude" ? step.databaseSelection.exclusions : undefined,
         });
       case Step.Type.postgres_restore:
         return performLabeling<typeof PostgresRestoreForm.Field>(PostgresRestoreForm.Label, {
