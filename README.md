@@ -33,6 +33,10 @@ Technical
 Distribution
 * Create a shell script for building docker images with the appropriate toolset (only requirements: git + bash + docker)
 * 👉 Setup strategy for dealing with different Postgres/MySQL versions and corresponding dump/restore tools
-* Write a README.md and a CONTRIBUTING.md
+* Write a README.md, CONTRIBUTING.md and LICENSE.md
+* Accept an (optional) environment variable with comma separated basic auth users
+* Automatically include the application version
+
+Marketing
 * Create an accompanying landing page, with pretty and exhaustive documentation
 * Move this repository to a different org
