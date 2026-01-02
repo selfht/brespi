@@ -151,7 +151,7 @@ describe("execution | postgres", () => {
           type: "Postgres Backup",
           connectionReference: "MY_POSTGRES_URL",
           databaseSelectionStrategy: "include",
-          databaseSelectionInclude: databases.join(","),
+          databaseSelectionInclusions: databases.join(","),
         },
         {
           previousId: "A",

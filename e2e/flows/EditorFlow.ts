@@ -71,8 +71,8 @@ export namespace EditorFlow {
         type: "Postgres Backup";
         connectionReference?: string;
         databaseSelectionStrategy?: "all" | "include" | "exclude";
-        databaseSelectionInclude?: string;
-        databaseSelectionExclude?: string;
+        databaseSelectionInclusions?: string;
+        databaseSelectionExclusions?: string;
       })
     | (StepCommon & {
         type: "Postgres Restore";
@@ -283,10 +283,10 @@ export namespace EditorFlow {
         if (step.connectionReference) await page.getByLabel("Connection reference").fill(step.connectionReference);
         if (step.databaseSelectionStrategy) {
           await page.getByLabel("Database selection").selectOption(step.databaseSelectionStrategy);
-          if (step.databaseSelectionStrategy === "include" && step.databaseSelectionInclude) {
-            await page.getByLabel("Include").fill(step.databaseSelectionInclude);
-          } else if (step.databaseSelectionStrategy === "exclude" && step.databaseSelectionExclude) {
-            await page.getByLabel("Exclude").fill(step.databaseSelectionExclude);
+          if (step.databaseSelectionStrategy === "include" && step.databaseSelectionInclusions) {
+            await page.getByLabel("Database: inclusions").fill(step.databaseSelectionInclusions);
+          } else if (step.databaseSelectionStrategy === "exclude" && step.databaseSelectionExclusions) {
+            await page.getByLabel("Database: exclusions").fill(step.databaseSelectionExclusions);
           }
         }
         return await findCurrentlyActiveStepId(page);

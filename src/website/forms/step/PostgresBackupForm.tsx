@@ -9,8 +9,8 @@ enum Field {
   toolkit_psql = "toolkit_psql",
   toolkit_pg_dump = "toolkit_pg_dump",
   databaseSelection_strategy = "databaseSelection_strategy",
-  databaseSelection_include = "databaseSelection_include",
-  databaseSelection_exclude = "databaseSelection_exclude",
+  databaseSelection_inclusions = "databaseSelection_include",
+  databaseSelection_exclusions = "databaseSelection_exclude",
 }
 const Label: Record<Field, string> = {
   [Field.connectionReference]: "Connection reference",
@@ -18,8 +18,8 @@ const Label: Record<Field, string> = {
   [Field.toolkit_psql]: "Toolkit: 'psql' path",
   [Field.toolkit_pg_dump]: "Toolkit: 'pg_dump' path",
   [Field.databaseSelection_strategy]: "Database selection",
-  [Field.databaseSelection_include]: "Include",
-  [Field.databaseSelection_exclude]: "Exclude",
+  [Field.databaseSelection_inclusions]: "Database: inclusions",
+  [Field.databaseSelection_exclusions]: "Database: exclusions",
 };
 
 type Form = {
@@ -28,8 +28,8 @@ type Form = {
   [Field.toolkit_psql]: string;
   [Field.toolkit_pg_dump]: string;
   [Field.databaseSelection_strategy]: "all" | "include" | "exclude";
-  [Field.databaseSelection_include]: string;
-  [Field.databaseSelection_exclude]: string;
+  [Field.databaseSelection_inclusions]: string;
+  [Field.databaseSelection_exclusions]: string;
 };
 type Props = {
   id: string;
@@ -47,9 +47,9 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
       [Field.toolkit_psql]: existing?.toolkit.resolution === "manual" ? existing.toolkit.psql : "",
       [Field.toolkit_pg_dump]: existing?.toolkit.resolution === "manual" ? existing.toolkit.pg_dump : "",
       [Field.databaseSelection_strategy]: existing?.databaseSelection.strategy ?? "all",
-      [Field.databaseSelection_include]:
+      [Field.databaseSelection_inclusions]:
         existing?.databaseSelection.strategy === "include" ? existing.databaseSelection.inclusions.join(",") : "",
-      [Field.databaseSelection_exclude]:
+      [Field.databaseSelection_exclusions]:
         existing?.databaseSelection.strategy === "exclude" ? existing.databaseSelection.exclusions.join(",") : "",
     } satisfies Form,
   });
@@ -78,11 +78,11 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
             : form[Field.databaseSelection_strategy] === "include"
               ? {
                   strategy: form[Field.databaseSelection_strategy],
-                  inclusions: form[Field.databaseSelection_include].split(",").filter(Boolean),
+                  inclusions: form[Field.databaseSelection_inclusions].split(",").filter(Boolean),
                 }
               : {
                   strategy: form[Field.databaseSelection_strategy],
-                  exclusions: form[Field.databaseSelection_exclude].split(",").filter(Boolean),
+                  exclusions: form[Field.databaseSelection_exclusions].split(",").filter(Boolean),
                 },
       });
     } catch (error) {
@@ -108,8 +108,8 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
             </>
           )}
           <LabeledInput field={Field.databaseSelection_strategy} input="select" options={["all", "include", "exclude"]} />
-          {databaseSelectionStrategy === "include" && <LabeledInput field={Field.databaseSelection_include} input="text" />}
-          {databaseSelectionStrategy === "exclude" && <LabeledInput field={Field.databaseSelection_exclude} input="text" />}
+          {databaseSelectionStrategy === "include" && <LabeledInput field={Field.databaseSelection_inclusions} input="text" />}
+          {databaseSelectionStrategy === "exclude" && <LabeledInput field={Field.databaseSelection_exclusions} input="text" />}
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"
