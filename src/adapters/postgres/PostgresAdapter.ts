@@ -7,6 +7,7 @@ import { rename, rm } from "fs/promises";
 import { join } from "path";
 import { z } from "zod/v4";
 import { AbstractAdapter } from "../AbstractAdapter";
+import { AdapterResult } from "../AdapterResult";
 
 export class PostgresAdapter extends AbstractAdapter {
   private readonly EXTENSION = ".dump";
@@ -15,7 +16,7 @@ export class PostgresAdapter extends AbstractAdapter {
     super(env);
   }
 
-  public async backup(step: Step.PostgresBackup): Promise<Artifact[]> {
+  public async backup(step: Step.PostgresBackup): Promise<AdapterResult> {
     const { username, password, host, port } = UrlParser.postgres(this.readEnvironmentVariable(step.connectionReference));
     const tempDir = await this.createTmpDestination();
     try {
@@ -56,7 +57,7 @@ export class PostgresAdapter extends AbstractAdapter {
           name: this.addExtension(db.name, this.EXTENSION),
         });
       }
-      return artifacts;
+      return AdapterResult.create(artifacts);
     } catch (e) {
       throw this.mapError(e, ExecutionError.postgres_backup_failed);
     } finally {
@@ -64,7 +65,7 @@ export class PostgresAdapter extends AbstractAdapter {
     }
   }
 
-  public async restore(artifacts: Artifact[], step: Step.PostgresRestore): Promise<void> {
+  public async restore(artifacts: Artifact[], step: Step.PostgresRestore): Promise<AdapterResult> {
     this.requireArtifactSize(artifacts, { min: 1, max: 1 });
     const artifact = artifacts[0];
     this.requireArtifactType("file", artifact);
@@ -86,6 +87,7 @@ export class PostgresAdapter extends AbstractAdapter {
         status: z.literal("success"),
         database: z.string(),
       }).parse(JSON.parse(stdout));
+      return AdapterResult.create();
     } catch (e) {
       throw this.mapError(e, ExecutionError.postgres_restore_failed);
     }

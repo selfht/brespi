@@ -20,7 +20,7 @@ export class AdapterService {
   private readonly registry: InternalRegistry;
 
   public constructor(
-    fileSystemAdapter: FilesystemAdapter,
+    filesystemAdapter: FilesystemAdapter,
     compressionAdapter: CompressionAdapter,
     encryptionAdapter: EncryptionAdapter,
     filterAdapter: FilterAdapter,
@@ -30,11 +30,10 @@ export class AdapterService {
   ) {
     this.registry = {
       [Step.Type.filesystem_read]: async (_, options) => {
-        return AdapterResult.create(await fileSystemAdapter.read(options));
+        return await filesystemAdapter.read(options);
       },
       [Step.Type.filesystem_write]: async (artifacts, options, trail) => {
-        await fileSystemAdapter.write(artifacts, options, trail);
-        return AdapterResult.create();
+        return await filesystemAdapter.write(artifacts, options, trail);
       },
       [Step.Type.compression]: async (artifacts, options) => {
         return AdapterResult.create(await this.spreadAndCollect(artifacts, (a) => compressionAdapter.compress(a, options)));
@@ -49,30 +48,28 @@ export class AdapterService {
         return AdapterResult.create(await this.spreadAndCollect(artifacts, (a) => encryptionAdapter.decrypt(a, options)));
       },
       [Step.Type.folder_flatten]: async (artifacts, options) => {
-        return AdapterResult.create(await fileSystemAdapter.folderFlatten(artifacts, options));
+        return await filesystemAdapter.folderFlatten(artifacts, options);
       },
       [Step.Type.folder_group]: async (artifacts, options) => {
-        return AdapterResult.create([await fileSystemAdapter.folderGroup(artifacts, options)]);
+        return await filesystemAdapter.folderGroup(artifacts, options);
       },
       [Step.Type.filter]: async (artifacts, options) => {
-        return AdapterResult.create(await filterAdapter.filter(artifacts, options));
+        return await filterAdapter.filter(artifacts, options);
       },
       [Step.Type.custom_script]: async (artifacts, options) => {
-        return AdapterResult.create(await scriptAdapter.execute(artifacts, options));
+        return await scriptAdapter.execute(artifacts, options);
       },
       [Step.Type.s3_upload]: async (artifacts, options, trail) => {
-        await s3Adapter.upload(artifacts, options, trail);
-        return AdapterResult.create();
+        return await s3Adapter.upload(artifacts, options, trail);
       },
       [Step.Type.s3_download]: async (_, options) => {
-        return AdapterResult.create(await s3Adapter.download(options));
+        return await s3Adapter.download(options);
       },
       [Step.Type.postgres_backup]: async (_, options) => {
-        return AdapterResult.create(await postgresAdapter.backup(options));
+        return await postgresAdapter.backup(options);
       },
       [Step.Type.postgres_restore]: async (artifacts, options) => {
-        await postgresAdapter.restore(artifacts, options);
-        return AdapterResult.create();
+        return await postgresAdapter.restore(artifacts, options);
       },
     };
   }

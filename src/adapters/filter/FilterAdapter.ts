@@ -3,6 +3,7 @@ import { FilterCapability } from "@/capabilities/FilterCapability";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { AbstractAdapter } from "../AbstractAdapter";
+import { AdapterResult } from "../AdapterResult";
 
 export class FilterAdapter extends AbstractAdapter {
   public constructor(
@@ -12,8 +13,8 @@ export class FilterAdapter extends AbstractAdapter {
     super(env);
   }
 
-  public async filter(artifacts: Artifact[], { filterCriteria }: Step.Filter): Promise<Artifact[]> {
+  public async filter(artifacts: Artifact[], { filterCriteria }: Step.Filter): Promise<AdapterResult> {
     const { predicate } = this.filterCapability.createPredicate(filterCriteria);
-    return artifacts.filter(predicate);
+    return AdapterResult.create(artifacts.filter(predicate));
   }
 }

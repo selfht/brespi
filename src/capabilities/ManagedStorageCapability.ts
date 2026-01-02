@@ -72,10 +72,14 @@ export class ManagedStorageCapability {
         const artifactIndexPath = join(baseFolder, item.artifactIndexPath);
         const artifactIndexParentDir = dirname(artifactIndexPath);
         const index = ArtifactIndex.parse(await storageReaderFn({ absolutePath: artifactIndexPath }));
-        return index.artifacts.map<ManagedStorageCapability.SelectableArtifact>(({ path }) => ({
+        const selectableArtifacts = index.artifacts.map<ManagedStorageCapability.SelectableArtifact>(({ path }) => ({
           name: path,
           path: join(artifactIndexParentDir, path),
         }));
+        return {
+          selectableArtifacts,
+          version: dirname(item.artifactIndexPath),
+        };
       },
     };
   }
@@ -130,6 +134,9 @@ export namespace ManagedStorageCapability {
     storageReaderFn: (arg: { absolutePath: string }) => Promise<any>;
   };
   export type PrepareSelectionResult = {
-    selectableArtifactsFn: (arg: { manifest: Manifest }) => Promise<SelectableArtifact[]>;
+    selectableArtifactsFn: (arg: { manifest: Manifest }) => Promise<{
+      selectableArtifacts: SelectableArtifact[];
+      version: string;
+    }>;
   };
 }

@@ -212,10 +212,10 @@ describe(ManagedStorageCapability.name, () => {
         configuration: { target: "latest" },
         storageReaderFn: () => Promise.resolve(artifactIndex),
       });
-      const artifacts = await selectableArtifactsFn({ manifest });
+      const { selectableArtifacts } = await selectableArtifactsFn({ manifest });
       // then
-      expect(artifacts).toHaveLength(2);
-      expect(artifacts).toEqual([
+      expect(selectableArtifacts).toHaveLength(2);
+      expect(selectableArtifacts).toEqual([
         { name: "file1.txt", path: `base-folder/${Timestamp.PRESENT}-def456/file1.txt` },
         { name: "file2.txt", path: `base-folder/${Timestamp.PRESENT}-def456/file2.txt` },
       ]);
@@ -246,10 +246,10 @@ describe(ManagedStorageCapability.name, () => {
         storageReaderFn: () => Promise.resolve(artifactIndex),
         baseFolder: "my-base",
       });
-      const artifacts = await selectableArtifactsFn({ manifest });
+      const { selectableArtifacts } = await selectableArtifactsFn({ manifest });
       // then
-      expect(artifacts).toHaveLength(1);
-      expect(artifacts[0]).toEqual({
+      expect(selectableArtifacts).toHaveLength(1);
+      expect(selectableArtifacts[0]).toEqual({
         name: "specific-file.txt",
         path: `my-base/${Timestamp.LAST_YEAR}-abc123/specific-file.txt`,
       });
@@ -288,10 +288,10 @@ describe(ManagedStorageCapability.name, () => {
         storageReaderFn: () => Promise.resolve(artifactIndex),
         baseFolder: "/storage",
       });
-      const artifacts = await selectableArtifactsFn({ manifest });
+      const { selectableArtifacts } = await selectableArtifactsFn({ manifest });
       // then
-      expect(artifacts).toHaveLength(3);
-      expect(artifacts).toEqual([
+      expect(selectableArtifacts).toHaveLength(3);
+      expect(selectableArtifacts).toEqual([
         { name: "doc1.pdf", path: `/storage/${Timestamp.VERY_LONG_AGO}-abc123/doc1.pdf` },
         { name: "doc2.pdf", path: `/storage/${Timestamp.VERY_LONG_AGO}-abc123/doc2.pdf` },
         { name: "doc3.pdf", path: `/storage/${Timestamp.VERY_LONG_AGO}-abc123/doc3.pdf` },
@@ -438,11 +438,11 @@ describe(ManagedStorageCapability.name, () => {
         storageReaderFn: () => Promise.resolve(artifactIndex),
         baseFolder,
       });
-      const artifacts = await selectableArtifactsFn({ manifest });
+      const { selectableArtifacts } = await selectableArtifactsFn({ manifest });
       // then
-      expect(artifacts).toHaveLength(1);
-      expect(artifacts[0].path).toEqual(`${expectation.artifactPathPrefix}/test-file.txt`);
-      expect(artifacts[0].name).toEqual("test-file.txt");
+      expect(selectableArtifacts).toHaveLength(1);
+      expect(selectableArtifacts[0].path).toEqual(`${expectation.artifactPathPrefix}/test-file.txt`);
+      expect(selectableArtifacts[0].name).toEqual("test-file.txt");
     });
   });
 });

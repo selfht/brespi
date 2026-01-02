@@ -4,16 +4,17 @@ import { Step } from "@/models/Step";
 import { readdir, rename, rm } from "fs/promises";
 import { basename, dirname, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
+import { AdapterResult } from "../AdapterResult";
 
 export class ScriptAdapter extends AbstractAdapter {
   public constructor(protected readonly env: Env.Private) {
     super(env);
   }
 
-  public async execute(artifacts: Artifact[], step: Step.ScriptExecution): Promise<Artifact[]> {
+  public async execute(artifacts: Artifact[], step: Step.ScriptExecution): Promise<AdapterResult> {
     if (step.passthrough) {
       await this.executeScript(step.path);
-      return artifacts;
+      return AdapterResult.create(artifacts);
     }
     const [artifactsIn, artifactsOut] = await Promise.all([
       this.createTmpDestination(), //
@@ -25,7 +26,7 @@ export class ScriptAdapter extends AbstractAdapter {
         BRESPI_ARTIFACTS_IN: artifactsIn,
         BRESPI_ARTIFACTS_OUT: artifactsOut,
       });
-      return await this.readArtifactsFromDirectory(artifactsOut);
+      return AdapterResult.create(await this.readArtifactsFromDirectory(artifactsOut));
     } finally {
       await Promise.all([
         rm(artifactsIn, { recursive: true, force: true }), //

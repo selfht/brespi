@@ -9,6 +9,7 @@ import { StepWithRuntime } from "@/models/StepWithRuntime";
 import { copyFile, cp, mkdir, readdir, rename } from "fs/promises";
 import { basename, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
+import { AdapterResult } from "../AdapterResult";
 
 export class FilesystemAdapter extends AbstractAdapter {
   public constructor(
@@ -19,10 +20,7 @@ export class FilesystemAdapter extends AbstractAdapter {
     super(env);
   }
 
-  /**
-   * Write artifacts from pipeline to a directory on filesystem
-   */
-  public async write(artifacts: Artifact[], step: Step.FilesystemWrite, trail: StepWithRuntime[]): Promise<void> {
+  public async write(artifacts: Artifact[], step: Step.FilesystemWrite, trail: StepWithRuntime[]): Promise<AdapterResult> {
     this.requireArtifactType("file", ...artifacts);
     await mkdir(step.folder, { recursive: true });
     if (step.managedStorage) {
@@ -51,12 +49,10 @@ export class FilesystemAdapter extends AbstractAdapter {
         }
       }
     }
+    return AdapterResult.create();
   }
 
-  /**
-   * Read file(s) from filesystem and convert to artifacts
-   */
-  public async read(step: Step.FilesystemRead): Promise<Artifact[]> {
+  public async read(step: Step.FilesystemRead): Promise<AdapterResult> {
     if (step.managedStorage) {
       // Prepare selaction
       const { selectableArtifactsFn } = this.managedStorageCapability.prepareSelection({
@@ -65,7 +61,7 @@ export class FilesystemAdapter extends AbstractAdapter {
         storageReaderFn: ({ absolutePath }) => Bun.file(absolutePath).json(),
       });
       // Provide manifest
-      let selectableArtifacts = await this.handleManifestExclusively(step.fileOrFolder, async (manifest) => {
+      let { selectableArtifacts, version } = await this.handleManifestExclusively(step.fileOrFolder, async (manifest) => {
         return await selectableArtifactsFn({ manifest });
       });
       // Optional: filter
@@ -85,23 +81,21 @@ export class FilesystemAdapter extends AbstractAdapter {
           name,
         });
       }
-      return artifacts;
+      return AdapterResult.create(artifacts, { version });
     } else {
       const { outputId, outputPath } = this.generateArtifactDestination();
       const stats = await this.requireFilesystemExistence(step.fileOrFolder);
       await cp(step.fileOrFolder, outputPath, { recursive: true });
-      return [
-        {
-          id: outputId,
-          type: stats.type,
-          path: outputPath,
-          name: basename(step.fileOrFolder),
-        },
-      ];
+      return AdapterResult.create({
+        id: outputId,
+        type: stats.type,
+        path: outputPath,
+        name: basename(step.fileOrFolder),
+      });
     }
   }
 
-  public async folderFlatten(artifacts: Artifact[], step: Step.FolderFlatten): Promise<Artifact[]> {
+  public async folderFlatten(artifacts: Artifact[], step: Step.FolderFlatten): Promise<AdapterResult> {
     const result: Artifact[] = [];
     for (const artifact of artifacts) {
       if (artifact.type === "file") {
@@ -110,21 +104,21 @@ export class FilesystemAdapter extends AbstractAdapter {
         result.push(...(await this.readDirectoryRecursively(artifact.path)));
       }
     }
-    return result;
+    return AdapterResult.create(result);
   }
 
-  public async folderGroup(artifacts: Artifact[], step: Step.FolderGroup): Promise<Artifact> {
+  public async folderGroup(artifacts: Artifact[], step: Step.FolderGroup): Promise<AdapterResult> {
     const { outputId, outputPath } = this.generateArtifactDestination();
     await mkdir(outputPath);
     for (const artifact of artifacts) {
       await rename(artifact.path, join(outputPath, artifact.name));
     }
-    return {
+    return AdapterResult.create({
       id: outputId,
       type: "directory",
       name: `group(${artifacts.length})`,
       path: outputPath,
-    };
+    });
   }
 
   private async handleManifestExclusively<T>(

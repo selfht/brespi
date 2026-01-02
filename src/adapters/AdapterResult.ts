@@ -1,15 +1,15 @@
 import { Artifact } from "@/models/Artifact";
-import { Json } from "@/types/Json";
+import { Runtime } from "@/models/Runtime";
 
 export type AdapterResult = {
   artifacts: Artifact[];
-  runtime: Record<string, Json> | null;
+  runtime: Runtime | null;
 };
 
 export namespace AdapterResult {
-  export function create(artifacts = [] as Artifact[], runtime = null as AdapterResult["runtime"]): AdapterResult {
+  export function create(artifacts = [] as Artifact | Artifact[], runtime = null as Runtime | null): AdapterResult {
     return {
-      artifacts,
+      artifacts: Array.isArray(artifacts) ? artifacts : [artifacts],
       runtime,
     };
   }

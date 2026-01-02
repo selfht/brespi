@@ -9,6 +9,7 @@ import { StepWithRuntime } from "@/models/StepWithRuntime";
 import { S3Client } from "bun";
 import { isAbsolute, join, relative } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
+import { AdapterResult } from "../AdapterResult";
 
 export class S3Adapter extends AbstractAdapter {
   public constructor(
@@ -19,7 +20,7 @@ export class S3Adapter extends AbstractAdapter {
     super(env);
   }
 
-  public async upload(artifacts: Artifact[], { baseFolder, ...step }: Step.S3Upload, trail: StepWithRuntime[]): Promise<void> {
+  public async upload(artifacts: Artifact[], { baseFolder, ...step }: Step.S3Upload, trail: StepWithRuntime[]): Promise<AdapterResult> {
     this.requireArtifactType("file", ...artifacts);
     baseFolder = this.relativize(baseFolder);
     const client = this.constructClient(step.connection);
@@ -38,9 +39,10 @@ export class S3Adapter extends AbstractAdapter {
     for (const { sourcePath, destinationPath } of insertableArtifacts) {
       await client.write(destinationPath, Bun.file(sourcePath));
     }
+    return AdapterResult.create();
   }
 
-  public async download({ baseFolder, ...step }: Step.S3Download): Promise<Artifact[]> {
+  public async download({ baseFolder, ...step }: Step.S3Download): Promise<AdapterResult> {
     baseFolder = this.relativize(baseFolder);
     const client = this.constructClient(step.connection);
     // Prepare selaction
@@ -50,7 +52,7 @@ export class S3Adapter extends AbstractAdapter {
       storageReaderFn: ({ absolutePath }) => client.file(absolutePath).json(),
     });
     // Provide manifest
-    let selectableArtifacts = await this.handleManifestExclusively(client, baseFolder, async (manifest) => {
+    let { selectableArtifacts, version } = await this.handleManifestExclusively(client, baseFolder, async (manifest) => {
       return await selectableArtifactsFn({ manifest });
     });
     // Optional: filter
@@ -70,7 +72,7 @@ export class S3Adapter extends AbstractAdapter {
         name,
       });
     }
-    return artifacts;
+    return AdapterResult.create(artifacts, { version });
   }
 
   /**
