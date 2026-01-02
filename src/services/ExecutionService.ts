@@ -15,7 +15,7 @@ import { Pipeline } from "@/models/Pipeline";
 import { ServerMessage } from "@/models/socket/ServerMessage";
 import { Socket } from "@/models/socket/Socket";
 import { Step } from "@/models/Step";
-import { TrailStep } from "@/models/TrailStep";
+import { StepWithRuntime } from "@/models/StepWithRuntime";
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { Temporal } from "@js-temporal/polyfill";
@@ -146,7 +146,7 @@ export class ExecutionService {
     executionId: string;
     step: Step;
     input: Artifact[];
-    trail: TrailStep[];
+    trail: StepWithRuntime[];
     childrenMap: Map<string | null, Step[]>;
     mutex: Mutex;
   }): Promise<void> {
@@ -159,13 +159,13 @@ export class ExecutionService {
     });
 
     let output: Artifact[] = [];
-    let outputTrail: TrailStep[] = [];
+    let outputTrail: StepWithRuntime[] = [];
     let outcome: Outcome;
     let errorMessage: string | null;
     try {
-      const { artifacts, runtimeInformation } = await this.adapterService.submit(input, step, trail);
+      const { artifacts, runtime } = await this.adapterService.submit(input, step, trail);
       output = this.ensureUniqueArtifactNames(artifacts);
-      outputTrail = [...trail, { ...step, runtimeInformation }];
+      outputTrail = [...trail, { ...step, runtime }];
       outcome = Outcome.success;
       errorMessage = null;
     } catch (e) {

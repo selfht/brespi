@@ -1,15 +1,14 @@
+import { FilterCapability } from "@/capabilities/FilterCapability";
+import { Manifest } from "@/capabilities/managedstorage/Manifest";
 import { ManagedStorageCapability } from "@/capabilities/ManagedStorageCapability";
 import { Env } from "@/Env";
-import { ExecutionError } from "@/errors/ExecutionError";
 import { Mutex } from "@/helpers/Mutex";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
-import { TrailStep } from "@/models/TrailStep";
-import { copyFile, cp, mkdir, readdir, rename, stat } from "fs/promises";
+import { StepWithRuntime } from "@/models/StepWithRuntime";
+import { copyFile, cp, mkdir, readdir, rename } from "fs/promises";
 import { basename, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
-import { FilterCapability } from "@/capabilities/FilterCapability";
-import { Manifest } from "@/capabilities/managedstorage/Manifest";
 
 export class FilesystemAdapter extends AbstractAdapter {
   public constructor(
@@ -23,7 +22,7 @@ export class FilesystemAdapter extends AbstractAdapter {
   /**
    * Write artifacts from pipeline to a directory on filesystem
    */
-  public async write(artifacts: Artifact[], step: Step.FilesystemWrite, trail: TrailStep[]): Promise<void> {
+  public async write(artifacts: Artifact[], step: Step.FilesystemWrite, trail: StepWithRuntime[]): Promise<void> {
     this.requireArtifactType("file", ...artifacts);
     await mkdir(step.folder, { recursive: true });
     if (step.managedStorage) {

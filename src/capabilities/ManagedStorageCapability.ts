@@ -1,9 +1,9 @@
+import { ArtifactIndex } from "@/capabilities/managedstorage/ArtifactIndex";
+import { Manifest } from "@/capabilities/managedstorage/Manifest";
 import { Generate } from "@/helpers/Generate";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
-import { TrailStep } from "@/models/TrailStep";
-import { ArtifactIndex } from "@/capabilities/managedstorage/ArtifactIndex";
-import { Manifest } from "@/capabilities/managedstorage/Manifest";
+import { StepWithRuntime } from "@/models/StepWithRuntime";
 import { Temporal } from "@js-temporal/polyfill";
 import { dirname, join } from "path";
 
@@ -112,7 +112,7 @@ export namespace ManagedStorageCapability {
   export type PrepareInsertionOptions = {
     baseFolder: string;
     artifacts: Array<Pick<Artifact, "name" | "path">>;
-    trail: TrailStep[];
+    trail: StepWithRuntime[];
   };
   export type PrepareInsertionResult = {
     manifestModifier: (arg: { manifest: Manifest }) => Manifest;

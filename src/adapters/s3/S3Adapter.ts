@@ -1,15 +1,14 @@
+import { FilterCapability } from "@/capabilities/FilterCapability";
+import { Manifest } from "@/capabilities/managedstorage/Manifest";
 import { ManagedStorageCapability } from "@/capabilities/ManagedStorageCapability";
 import { Env } from "@/Env";
-import { ExecutionError } from "@/errors/ExecutionError";
 import { Mutex } from "@/helpers/Mutex";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
-import { TrailStep } from "@/models/TrailStep";
+import { StepWithRuntime } from "@/models/StepWithRuntime";
 import { S3Client } from "bun";
 import { isAbsolute, join, relative } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
-import { FilterCapability } from "@/capabilities/FilterCapability";
-import { Manifest } from "@/capabilities/managedstorage/Manifest";
 
 export class S3Adapter extends AbstractAdapter {
   public constructor(
@@ -20,7 +19,7 @@ export class S3Adapter extends AbstractAdapter {
     super(env);
   }
 
-  public async upload(artifacts: Artifact[], { baseFolder, ...step }: Step.S3Upload, trail: TrailStep[]): Promise<void> {
+  public async upload(artifacts: Artifact[], { baseFolder, ...step }: Step.S3Upload, trail: StepWithRuntime[]): Promise<void> {
     this.requireArtifactType("file", ...artifacts);
     baseFolder = this.relativize(baseFolder);
     const client = this.constructClient(step.connection);

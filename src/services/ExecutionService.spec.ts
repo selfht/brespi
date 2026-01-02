@@ -32,7 +32,7 @@ describe(ExecutionService.name, async () => {
     const pipeline = await pipelineRepository.create(linearPipeline(steps));
     adapterService.submit.mockResolvedValue({
       artifacts: [],
-      runtimeInformation: {},
+      runtime: {},
     });
     // when
     const { id } = await service.create({ pipelineId: pipeline!.id });
@@ -73,7 +73,7 @@ describe(ExecutionService.name, async () => {
       }
       return Promise.resolve({
         artifacts: [],
-        runtimeInformation: {},
+        runtime: {},
       });
     });
     // when

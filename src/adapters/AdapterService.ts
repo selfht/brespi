@@ -1,6 +1,6 @@
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
-import { TrailStep } from "@/models/TrailStep";
+import { StepWithRuntime } from "@/models/StepWithRuntime";
 import { AdapterResult } from "./AdapterResult";
 import { CompressionAdapter } from "./compression/CompressionAdapter";
 import { EncryptionAdapter } from "./encyption/EncryptionAdapter";
@@ -10,7 +10,7 @@ import { PostgresAdapter } from "./postgres/PostgresAdapter";
 import { S3Adapter } from "./s3/S3Adapter";
 import { ScriptAdapter } from "./scripting/ScriptAdapter";
 
-type Handler<S extends Step> = (artifacts: Artifact[], step: S, trail: TrailStep[]) => Promise<AdapterResult>;
+type Handler<S extends Step> = (artifacts: Artifact[], step: S, trail: StepWithRuntime[]) => Promise<AdapterResult>;
 
 type InternalRegistry = {
   [T in Step.Type]: Handler<Extract<Step, { type: T }>>;
@@ -77,7 +77,7 @@ export class AdapterService {
     };
   }
 
-  public async submit<S extends Step>(artifacts: Artifact[], step: S, trail: TrailStep[]): Promise<AdapterResult> {
+  public async submit<S extends Step>(artifacts: Artifact[], step: S, trail: StepWithRuntime[]): Promise<AdapterResult> {
     const handler = this.registry[step.type] as Handler<S>;
     if (!handler) {
       throw new Error(`Unknown step type: ${step.type}`);

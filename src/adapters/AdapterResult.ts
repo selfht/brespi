@@ -3,14 +3,14 @@ import { Json } from "@/types/Json";
 
 export type AdapterResult = {
   artifacts: Artifact[];
-  runtimeInformation: Record<string, Json> | null;
+  runtime: Record<string, Json> | null;
 };
 
 export namespace AdapterResult {
-  export function create(artifacts = [] as Artifact[], runtimeInformation = null as AdapterResult["runtimeInformation"]): AdapterResult {
+  export function create(artifacts = [] as Artifact[], runtime = null as AdapterResult["runtime"]): AdapterResult {
     return {
       artifacts,
-      runtimeInformation,
+      runtime,
     };
   }
 }
