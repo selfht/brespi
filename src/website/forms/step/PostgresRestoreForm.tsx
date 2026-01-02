@@ -10,6 +10,14 @@ enum Field {
   toolkit_pg_restore = "toolkit_pg_restore",
   database = "database",
 }
+const Label: Record<Field, string> = {
+  [Field.connectionReference]: "Connection Reference",
+  [Field.toolkit_resolution]: "Toolkit resolution",
+  [Field.toolkit_psql]: "psql path",
+  [Field.toolkit_pg_restore]: "pg_restore path",
+  [Field.database]: "Database",
+};
+
 type Form = {
   [Field.connectionReference]: string;
   [Field.toolkit_resolution]: "automatic" | "manual";
@@ -67,7 +75,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label htmlFor={Field.connectionReference} className="w-72">
-              Connection Reference
+              {Label[Field.connectionReference]}
             </label>
             <input
               id={Field.connectionReference}
@@ -78,7 +86,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.toolkit_resolution} className="w-72">
-              Toolkit resolution
+              {Label[Field.toolkit_resolution]}
             </label>
             <select
               id={Field.toolkit_resolution}
@@ -93,7 +101,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
             <>
               <div className="flex items-center">
                 <label htmlFor={Field.toolkit_psql} className="w-72">
-                  <span className="text-c-dim">Toolkit:</span> psql path
+                  <span className="text-c-dim">Toolkit:</span> {Label[Field.toolkit_psql]}
                 </label>
                 <input
                   id={Field.toolkit_psql}
@@ -104,7 +112,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
               </div>
               <div className="flex items-center">
                 <label htmlFor={Field.toolkit_pg_restore} className="w-72">
-                  <span className="text-c-dim">Toolkit:</span> pg_restore path
+                  <span className="text-c-dim">Toolkit:</span> {Label[Field.toolkit_pg_restore]}
                 </label>
                 <input
                   id={Field.toolkit_pg_restore}
@@ -117,7 +125,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
           )}
           <div className="flex items-center">
             <label htmlFor={Field.database} className="w-72">
-              Database
+              {Label[Field.database]}
             </label>
             <input id={Field.database} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.database)} />
           </div>
@@ -140,3 +148,5 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
     </FormElements.Container>
   );
 }
+PostgresRestoreForm.Field = Field;
+PostgresRestoreForm.Label = Label;

@@ -14,6 +14,18 @@ enum Field {
   filterCriteria_nameGlob = "filterCriteria_nameGlob",
   filterCriteria_nameRegex = "filterCriteria_nameRegex",
 }
+const Label: Record<Field, string> = {
+  [Field.fileOrFolder]: "File or folder",
+  [Field.managedStorage]: "Use managed storage?",
+  [Field.managedStorage_target]: "target",
+  [Field.managedStorage_version]: "version",
+  [Field.filterCriteria]: "Use filter?",
+  [Field.filterCriteria_method]: "method",
+  [Field.filterCriteria_name]: "name",
+  [Field.filterCriteria_nameGlob]: "name glob",
+  [Field.filterCriteria_nameRegex]: "name regex",
+};
+
 type Form = {
   [Field.fileOrFolder]: string;
   [Field.managedStorage]: "true" | "false";
@@ -89,7 +101,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label htmlFor={Field.fileOrFolder} className="w-72">
-              {managedStorage === "true" ? "Folder" : "File or folder"}
+              {managedStorage === "true" ? "Folder" : Label[Field.fileOrFolder]}
             </label>
             <input
               id={Field.fileOrFolder}
@@ -100,7 +112,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.managedStorage} className="w-72">
-              Use managed storage?
+              {Label[Field.managedStorage]}
             </label>
             <select id={Field.managedStorage} className="rounded p-2 bg-c-dim/20" {...register(Field.managedStorage)}>
               <option value="true">yes</option>
@@ -111,7 +123,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
             <>
               <div className="flex items-center">
                 <label htmlFor={Field.managedStorage_target} className="w-72">
-                  <span className="text-c-dim">Managed storage:</span> target
+                  <span className="text-c-dim">Managed storage:</span> {Label[Field.managedStorage_target]}
                 </label>
                 <select
                   id={Field.managedStorage_target}
@@ -125,7 +137,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
               {managedStorageSelectionTarget === "specific" && (
                 <div className="flex items-center">
                   <label htmlFor={Field.managedStorage_version} className="w-72">
-                    <span className="text-c-dim">Managed storage:</span> version
+                    <span className="text-c-dim">Managed storage:</span> {Label[Field.managedStorage_version]}
                   </label>
                   <input
                     id={Field.managedStorage_version}
@@ -137,7 +149,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
               )}
               <div className="flex items-center">
                 <label htmlFor={Field.filterCriteria} className="w-72">
-                  Use filter?
+                  {Label[Field.filterCriteria]}
                 </label>
                 <select id={Field.filterCriteria} className="rounded p-2 bg-c-dim/20" {...register(Field.filterCriteria)}>
                   <option value="true">yes</option>
@@ -148,7 +160,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
                 <>
                   <div className="flex items-center">
                     <label htmlFor={Field.filterCriteria_method} className="w-72">
-                      <span className="text-c-dim">Filter:</span> method
+                      <span className="text-c-dim">Filter:</span> {Label[Field.filterCriteria_method]}
                     </label>
                     <select
                       id={Field.filterCriteria_method}
@@ -165,7 +177,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
                   {filterCriteriaMethod === "exact" && (
                     <div className="flex items-center">
                       <label htmlFor={Field.filterCriteria_name} className="w-72">
-                        <span className="text-c-dim">Filter:</span> name
+                        <span className="text-c-dim">Filter:</span> {Label[Field.filterCriteria_name]}
                       </label>
                       <input
                         id={Field.filterCriteria_name}
@@ -178,7 +190,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
                   {filterCriteriaMethod === "glob" && (
                     <div className="flex items-center">
                       <label htmlFor={Field.filterCriteria_nameGlob} className="w-72">
-                        <span className="text-c-dim">Filter:</span> name glob
+                        <span className="text-c-dim">Filter:</span> {Label[Field.filterCriteria_nameGlob]}
                       </label>
                       <input
                         id={Field.filterCriteria_nameGlob}
@@ -191,7 +203,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
                   {filterCriteriaMethod === "regex" && (
                     <div className="flex items-center">
                       <label htmlFor={Field.filterCriteria_nameRegex} className="w-72">
-                        <span className="text-c-dim">Filter:</span> name regex
+                        <span className="text-c-dim">Filter:</span> {Label[Field.filterCriteria_nameRegex]}
                       </label>
                       <input
                         id={Field.filterCriteria_nameRegex}
@@ -224,3 +236,5 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
     </FormElements.Container>
   );
 }
+FilesystemReadForm.Field = Field;
+FilesystemReadForm.Label = Label;

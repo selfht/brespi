@@ -19,6 +19,23 @@ enum Field {
   filterCriteria_nameGlob = "filterCriteria_nameGlob",
   filterCriteria_nameRegex = "filterCriteria_nameRegex",
 }
+const Label: Record<Field, string> = {
+  [Field.connection_bucket]: "Bucket",
+  [Field.connection_region]: "Region",
+  [Field.connection_endpoint]: "Endpoint",
+  [Field.connection_accessKeyReference]: "Access key reference",
+  [Field.connection_secretKeyReference]: "Secret key reference",
+  [Field.baseFolder]: "Base Folder",
+  [Field.managedStorage]: "Use managed storage?",
+  [Field.managedStorage_target]: "target",
+  [Field.managedStorage_version]: "version",
+  [Field.filterCriteria]: "Use filter?",
+  [Field.filterCriteria_method]: "method",
+  [Field.filterCriteria_name]: "name",
+  [Field.filterCriteria_nameGlob]: "name glob",
+  [Field.filterCriteria_nameRegex]: "name regex",
+};
+
 type Form = {
   [Field.connection_bucket]: string;
   [Field.connection_region]: string;
@@ -108,7 +125,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label htmlFor={Field.connection_bucket} className="w-72">
-              Bucket
+              {Label[Field.connection_bucket]}
             </label>
             <input
               id={Field.connection_bucket}
@@ -119,7 +136,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.connection_region} className="w-72">
-              Region
+              {Label[Field.connection_region]}
             </label>
             <input
               id={Field.connection_region}
@@ -130,7 +147,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.connection_endpoint} className="w-72">
-              Endpoint
+              {Label[Field.connection_endpoint]}
             </label>
             <input
               id={Field.connection_endpoint}
@@ -141,7 +158,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.connection_accessKeyReference} className="w-72">
-              Access key reference
+              {Label[Field.connection_accessKeyReference]}
             </label>
             <input
               id={Field.connection_accessKeyReference}
@@ -152,7 +169,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.connection_secretKeyReference} className="w-72">
-              Secret key reference
+              {Label[Field.connection_secretKeyReference]}
             </label>
             <input
               id={Field.connection_secretKeyReference}
@@ -163,13 +180,13 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.baseFolder} className="w-72">
-              Base Folder
+              {Label[Field.baseFolder]}
             </label>
             <input id={Field.baseFolder} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.baseFolder)} />
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.managedStorage} className="w-72">
-              Use managed storage?
+              {Label[Field.managedStorage]}
             </label>
             <select id={Field.managedStorage} className="rounded p-2 bg-c-dim/20" {...register(Field.managedStorage)}>
               <option value="true">yes</option>
@@ -177,7 +194,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.managedStorage_target} className="w-72">
-              <span className="text-c-dim">Managed storage:</span> target
+              <span className="text-c-dim">Managed storage:</span> {Label[Field.managedStorage_target]}
             </label>
             <select
               id={Field.managedStorage_target}
@@ -191,7 +208,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           {managedStorageSelectionTarget === "specific" && (
             <div className="flex items-center">
               <label htmlFor={Field.managedStorage_version} className="w-72">
-                <span className="text-c-dim">Managed storage:</span> version
+                <span className="text-c-dim">Managed storage:</span> {Label[Field.managedStorage_version]}
               </label>
               <input
                 id={Field.managedStorage_version}
@@ -203,7 +220,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           )}
           <div className="flex items-center">
             <label htmlFor={Field.filterCriteria} className="w-72">
-              Use filter?
+              {Label[Field.filterCriteria]}
             </label>
             <select id={Field.filterCriteria} className="rounded p-2 bg-c-dim/20" {...register(Field.filterCriteria)}>
               <option value="true">yes</option>
@@ -214,7 +231,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
             <>
               <div className="flex items-center">
                 <label htmlFor={Field.filterCriteria_method} className="w-72">
-                  <span className="text-c-dim">Filter:</span> method
+                  <span className="text-c-dim">Filter:</span> {Label[Field.filterCriteria_method]}
                 </label>
                 <select
                   id={Field.filterCriteria_method}
@@ -231,7 +248,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
               {filterCriteriaMethod === "exact" && (
                 <div className="flex items-center">
                   <label htmlFor={Field.filterCriteria_name} className="w-72">
-                    <span className="text-c-dim">Filter:</span> name
+                    <span className="text-c-dim">Filter:</span> {Label[Field.filterCriteria_name]}
                   </label>
                   <input
                     id={Field.filterCriteria_name}
@@ -244,7 +261,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
               {filterCriteriaMethod === "glob" && (
                 <div className="flex items-center">
                   <label htmlFor={Field.filterCriteria_nameGlob} className="w-72">
-                    <span className="text-c-dim">Filter:</span> name glob
+                    <span className="text-c-dim">Filter:</span> {Label[Field.filterCriteria_nameGlob]}
                   </label>
                   <input
                     id={Field.filterCriteria_nameGlob}
@@ -257,7 +274,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
               {filterCriteriaMethod === "regex" && (
                 <div className="flex items-center">
                   <label htmlFor={Field.filterCriteria_nameRegex} className="w-72">
-                    <span className="text-c-dim">Filter:</span> name regex
+                    <span className="text-c-dim">Filter:</span> {Label[Field.filterCriteria_nameRegex]}
                   </label>
                   <input
                     id={Field.filterCriteria_nameRegex}
@@ -296,3 +313,5 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
     </FormElements.Container>
   );
 }
+S3DownloadForm.Field = Field;
+S3DownloadForm.Label = Label;

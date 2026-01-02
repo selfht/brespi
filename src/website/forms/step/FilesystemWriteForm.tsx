@@ -8,6 +8,11 @@ enum Field {
   folder = "folder",
   managedStorage = "managedStorage",
 }
+const Label: Record<Field, string> = {
+  [Field.folder]: "Folder",
+  [Field.managedStorage]: "Use managed storage?",
+};
+
 type Form = {
   [Field.folder]: string;
   [Field.managedStorage]: "true" | "false";
@@ -50,13 +55,13 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label htmlFor={Field.folder} className="w-72">
-              Folder
+              {Label[Field.folder]}
             </label>
             <input id={Field.folder} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.folder)} />
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.managedStorage} className="w-72">
-              Use managed storage?
+              {Label[Field.managedStorage]}
             </label>
             <select id={Field.managedStorage} className="rounded p-2 bg-c-dim/20" {...register(Field.managedStorage)}>
               <option value="true">yes</option>
@@ -82,3 +87,5 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
     </FormElements.Container>
   );
 }
+FilesystemWriteForm.Field = Field;
+FilesystemWriteForm.Label = Label;

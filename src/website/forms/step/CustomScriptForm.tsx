@@ -7,6 +7,11 @@ enum Field {
   path = "path",
   passthrough = "passthrough",
 }
+const Label: Record<Field, string> = {
+  [Field.path]: "Script path",
+  [Field.passthrough]: "Passthrough?",
+};
+
 type Form = {
   [Field.path]: string;
   [Field.passthrough]: "true" | "false";
@@ -49,13 +54,13 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label htmlFor={Field.path} className="w-72">
-              Script path
+              {Label[Field.path]}
             </label>
             <input id={Field.path} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.path)} />
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.passthrough} className="w-72">
-              Passthrough?
+              {Label[Field.passthrough]}
             </label>
             <select id={Field.passthrough} className="rounded p-2 bg-c-dim/20" {...register(Field.passthrough)}>
               <option value="true">yes</option>
@@ -84,3 +89,5 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
     </FormElements.Container>
   );
 }
+CustomScriptForm.Field = Field;
+CustomScriptForm.Label = Label;

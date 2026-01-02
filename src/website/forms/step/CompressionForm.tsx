@@ -7,6 +7,11 @@ enum Field {
   algorithm_implementation = "algorithm_implementation",
   algorithm_level = "algorithm_level",
 }
+const Label: Record<Field, string> = {
+  [Field.algorithm_implementation]: "Algorithm",
+  [Field.algorithm_level]: "Compression level",
+};
+
 type Form = {
   [Field.algorithm_implementation]: "targzip";
   [Field.algorithm_level]: number;
@@ -51,7 +56,7 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label htmlFor={Field.algorithm_implementation} className="w-72">
-              Algorithm
+              {Label[Field.algorithm_implementation]}
             </label>
             <select
               id={Field.algorithm_implementation}
@@ -63,7 +68,7 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.algorithm_level} className="w-72">
-              Compression level
+              {Label[Field.algorithm_level]}
             </label>
             <input
               id={Field.algorithm_level}
@@ -90,3 +95,5 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
     </FormElements.Container>
   );
 }
+CompressionForm.Field = Field;
+CompressionForm.Label = Label;

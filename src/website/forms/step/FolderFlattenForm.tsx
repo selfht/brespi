@@ -3,6 +3,9 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
+enum Field {}
+const Label: Record<Field, string> = {};
+
 type Form = Record<string, never>;
 type Props = {
   id: string;
@@ -51,3 +54,5 @@ export function FolderFlattenForm({ id, existing, onSave, onDelete, onCancel, cl
     </FormElements.Container>
   );
 }
+FolderFlattenForm.Field = Field;
+FolderFlattenForm.Label = Label;

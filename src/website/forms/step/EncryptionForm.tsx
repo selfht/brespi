@@ -8,6 +8,11 @@ enum Field {
   keyReference = "keyReference",
   algorithm_implementation = "algorithm_implementation",
 }
+const Label: Record<Field, string> = {
+  [Field.keyReference]: "Key reference",
+  [Field.algorithm_implementation]: "Algorithm",
+};
+
 type Form = {
   [Field.keyReference]: string;
   [Field.algorithm_implementation]: "aes256cbc";
@@ -52,7 +57,7 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label htmlFor={Field.keyReference} className="w-72">
-              Key Reference
+              {Label[Field.keyReference]}
             </label>
             <input
               id={Field.keyReference}
@@ -63,7 +68,7 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.algorithm_implementation} className="w-72">
-              Algorithm
+              {Label[Field.algorithm_implementation]}
             </label>
             <select
               id={Field.algorithm_implementation}
@@ -92,3 +97,5 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
     </FormElements.Container>
   );
 }
+EncryptionForm.Field = Field;
+EncryptionForm.Label = Label;

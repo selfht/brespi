@@ -7,6 +7,10 @@ import { FormHelper } from "../FormHelper";
 enum Field {
   algorithm_implementation = "algorithm_implementation",
 }
+const Label: Record<Field, string> = {
+  [Field.algorithm_implementation]: "Algorithm",
+};
+
 type Form = {
   [Field.algorithm_implementation]: "targzip";
 };
@@ -48,7 +52,7 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label htmlFor={Field.algorithm_implementation} className="w-72">
-              Algorithm
+              {Label[Field.algorithm_implementation]}
             </label>
             <select
               id={Field.algorithm_implementation}
@@ -74,3 +78,5 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
     </FormElements.Container>
   );
 }
+DecompressionForm.Field = Field;
+DecompressionForm.Label = Label;

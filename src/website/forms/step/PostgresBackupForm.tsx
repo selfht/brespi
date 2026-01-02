@@ -12,6 +12,16 @@ enum Field {
   databaseSelection_include = "databaseSelection_include",
   databaseSelection_exclude = "databaseSelection_exclude",
 }
+const Label: Record<Field, string> = {
+  [Field.connectionReference]: "Connection Reference",
+  [Field.toolkit_resolution]: "Toolkit resolution",
+  [Field.toolkit_psql]: "psql path",
+  [Field.toolkit_pg_dump]: "pg_dump path",
+  [Field.databaseSelection_strategy]: "Database selection",
+  [Field.databaseSelection_include]: "Include",
+  [Field.databaseSelection_exclude]: "Exclude",
+};
+
 type Form = {
   [Field.connectionReference]: string;
   [Field.toolkit_resolution]: "automatic" | "manual";
@@ -88,7 +98,7 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label htmlFor={Field.connectionReference} className="w-72">
-              Connection Reference
+              {Label[Field.connectionReference]}
             </label>
             <input
               id={Field.connectionReference}
@@ -99,7 +109,7 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.toolkit_resolution} className="w-72">
-              Toolkit resolution
+              {Label[Field.toolkit_resolution]}
             </label>
             <select
               id={Field.toolkit_resolution}
@@ -114,7 +124,7 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
             <>
               <div className="flex items-center">
                 <label htmlFor={Field.toolkit_psql} className="w-72">
-                  <span className="text-c-dim">Toolkit:</span> psql path
+                  <span className="text-c-dim">Toolkit:</span> {Label[Field.toolkit_psql]}
                 </label>
                 <input
                   id={Field.toolkit_psql}
@@ -125,7 +135,7 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
               </div>
               <div className="flex items-center">
                 <label htmlFor={Field.toolkit_pg_dump} className="w-72">
-                  <span className="text-c-dim">Toolkit:</span> pg_dump path
+                  <span className="text-c-dim">Toolkit:</span> {Label[Field.toolkit_pg_dump]}
                 </label>
                 <input
                   id={Field.toolkit_pg_dump}
@@ -138,7 +148,7 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
           )}
           <div className="flex items-center">
             <label htmlFor={Field.databaseSelection_strategy} className="w-72">
-              Database selection
+              {Label[Field.databaseSelection_strategy]}
             </label>
             <select
               id={Field.databaseSelection_strategy}
@@ -155,7 +165,7 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
           {databaseSelectionStrategy === "include" && (
             <div className="flex items-center">
               <label htmlFor={Field.databaseSelection_include} className="w-72">
-                Include
+                {Label[Field.databaseSelection_include]}
               </label>
               <input
                 id={Field.databaseSelection_include}
@@ -170,7 +180,7 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
           {databaseSelectionStrategy === "exclude" && (
             <div className="flex items-center">
               <label htmlFor={Field.databaseSelection_exclude} className="w-72">
-                Exclude
+                {Label[Field.databaseSelection_exclude]}
               </label>
               <input
                 id={Field.databaseSelection_exclude}
@@ -198,3 +208,5 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
     </FormElements.Container>
   );
 }
+PostgresBackupForm.Field = Field;
+PostgresBackupForm.Label = Label;

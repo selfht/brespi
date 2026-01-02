@@ -11,6 +11,15 @@ enum Field {
   connection_secretKeyReference = "connection_secretKeyReference",
   baseFolder = "baseFolder",
 }
+const Label: Record<Field, string> = {
+  [Field.connection_bucket]: "Bucket",
+  [Field.connection_region]: "Region",
+  [Field.connection_endpoint]: "Endpoint",
+  [Field.connection_accessKeyReference]: "Access key reference",
+  [Field.connection_secretKeyReference]: "Secret key reference",
+  [Field.baseFolder]: "Base Folder",
+};
+
 type Form = {
   [Field.connection_bucket]: string;
   [Field.connection_region]: string;
@@ -67,7 +76,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label htmlFor={Field.connection_bucket} className="w-72">
-              Bucket
+              {Label[Field.connection_bucket]}
             </label>
             <input
               id={Field.connection_bucket}
@@ -78,7 +87,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.connection_region} className="w-72">
-              Region
+              {Label[Field.connection_region]}
             </label>
             <input
               id={Field.connection_region}
@@ -89,7 +98,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.connection_endpoint} className="w-72">
-              Endpoint
+              {Label[Field.connection_endpoint]}
             </label>
             <input
               id={Field.connection_endpoint}
@@ -100,7 +109,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.connection_accessKeyReference} className="w-72">
-              Access key reference
+              {Label[Field.connection_accessKeyReference]}
             </label>
             <input
               id={Field.connection_accessKeyReference}
@@ -111,7 +120,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.connection_secretKeyReference} className="w-72">
-              Secret key reference
+              {Label[Field.connection_secretKeyReference]}
             </label>
             <input
               id={Field.connection_secretKeyReference}
@@ -122,7 +131,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
           </div>
           <div className="flex items-center">
             <label htmlFor={Field.baseFolder} className="w-72">
-              Base Folder
+              {Label[Field.baseFolder]}
             </label>
             <input id={Field.baseFolder} type="text" className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(Field.baseFolder)} />
           </div>
@@ -149,3 +158,5 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
     </FormElements.Container>
   );
 }
+S3UploadForm.Field = Field;
+S3UploadForm.Label = Label;

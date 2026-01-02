@@ -9,6 +9,13 @@ enum Field {
   filterCriteria_nameGlob = "filterCriteria_nameGlob",
   filterCriteria_nameRegex = "filterCriteria_nameRegex",
 }
+const Label: Record<Field, string> = {
+  [Field.filterCriteria_method]: "Method",
+  [Field.filterCriteria_name]: "Name",
+  [Field.filterCriteria_nameGlob]: "Name glob",
+  [Field.filterCriteria_nameRegex]: "Name regex",
+};
+
 type Form = {
   [Field.filterCriteria_method]: "exact" | "glob" | "regex";
   [Field.filterCriteria_name]: string;
@@ -62,7 +69,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <div className="flex items-center">
             <label htmlFor={Field.filterCriteria_method} className="w-72">
-              Method
+              {Label[Field.filterCriteria_method]}
             </label>
             <select
               id={Field.filterCriteria_method}
@@ -79,7 +86,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
           {filterCriteriaMethod === "exact" && (
             <div className="flex items-center">
               <label htmlFor={Field.filterCriteria_name} className="w-72">
-                Name
+                {Label[Field.filterCriteria_name]}
               </label>
               <input
                 id={Field.filterCriteria_name}
@@ -92,7 +99,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
           {filterCriteriaMethod === "glob" && (
             <div className="flex items-center">
               <label htmlFor={Field.filterCriteria_nameGlob} className="w-72">
-                Name glob
+                {Label[Field.filterCriteria_nameGlob]}
               </label>
               <input
                 id={Field.filterCriteria_nameGlob}
@@ -105,7 +112,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
           {filterCriteriaMethod === "regex" && (
             <div className="flex items-center">
               <label htmlFor={Field.filterCriteria_nameRegex} className="w-72">
-                Name regex
+                {Label[Field.filterCriteria_nameRegex]}
               </label>
               <input
                 id={Field.filterCriteria_nameRegex}
@@ -131,3 +138,5 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
     </FormElements.Container>
   );
 }
+FilterForm.Field = Field;
+FilterForm.Label = Label;
