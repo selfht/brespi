@@ -3,7 +3,7 @@ import { Test } from "@/helpers/Test.spec";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { beforeEach, describe, expect, it } from "bun:test";
-import { readdir, rm } from "fs/promises";
+import { readdir } from "fs/promises";
 import { join } from "path";
 import { FilesystemAdapter } from "./FilesystemAdapter";
 
@@ -11,14 +11,10 @@ describe(FilesystemAdapter.name, async () => {
   const { managedStorageCapability, filterCapability, resetAllMocks } = await Test.initializeMockRegistry();
   const adapter = new FilesystemAdapter(await Test.env(), Test.impl(managedStorageCapability), Test.impl(filterCapability));
 
-  const scratchpad = await Test.scratchpad();
-  const scratchpadCleanup = async () => {
-    await rm(scratchpad.unitTest, { force: true, recursive: true });
-  };
-
+  const { scratchpad, cleanScratchpad } = await Test.scratchpad();
   beforeEach(async () => {
     resetAllMocks();
-    await scratchpadCleanup();
+    await cleanScratchpad();
   });
 
   it("writes files to a directory", async () => {

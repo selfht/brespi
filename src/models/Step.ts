@@ -34,7 +34,7 @@ export namespace Step {
     postgres_backup = "postgres_backup",
     postgres_restore = "postgres_restore",
   }
-  export function TypeInstance(value: string): value is Type {
+  export function isTypeInstance(value: string): value is Type {
     return Object.values(Type).includes(value as Type);
   }
 

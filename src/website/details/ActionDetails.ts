@@ -3,8 +3,8 @@ import { Action } from "@/models/Action";
 import { Outcome } from "@/models/Outcome";
 import { Block } from "../canvas/Block";
 
-export namespace ActionCard {
-  export function getDetails(action: Action): Block.Details | null {
+export namespace ActionDetails {
+  export function get(action: Action): Block.Details | null {
     const result: Block.Details = {};
     if (action.startedAt) {
       result["Started"] = Prettify.timestamp(action.startedAt);

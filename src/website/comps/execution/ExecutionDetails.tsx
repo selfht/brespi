@@ -3,7 +3,7 @@ import { Execution } from "@/models/Execution";
 import { Outcome } from "@/models/Outcome";
 import { Step } from "@/models/Step";
 import { Icon } from "../Icon";
-import { StepTranslation } from "@/website/translation/StepTranslation";
+import { StepDescription } from "@/website/details/StepDescription";
 import { Action } from "@/models/Action";
 import { BetterOmit } from "@/types/BetterOmit";
 
@@ -34,7 +34,7 @@ export function ExecutionDetails({ execution }: Props) {
         <div>
           <p className="flex items-center gap-1">
             <Icon variant="error" className="size-4" />
-            <span className="font-semibold">{StepTranslation.type(stepType as Step.Type) || stepType}</span>
+            <span className="font-semibold">{StepDescription.forType(stepType as Step.Type) || stepType}</span>
             {stepTypeIndex > 0 && <span>(#{stepTypeIndex + 1})</span>}
           </p>
           <pre className="min-w-0 whitespace-pre-wrap break-all p-1 bg-c-dim/20 rounded m-0">{error}</pre>

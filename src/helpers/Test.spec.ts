@@ -9,6 +9,7 @@ import { ConfigurationRepository } from "@/repositories/ConfigurationRepository"
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { mock, Mock } from "bun:test";
+import { rm } from "fs/promises";
 import { join } from "path";
 
 export namespace Test {
@@ -40,9 +41,13 @@ export namespace Test {
 
   export async function scratchpad() {
     const application = join("opt", "scratchpad");
+    const unitTest = join(await ensureValidCwd(), application);
     return {
-      application,
-      unitTest: join(await ensureValidCwd(), application),
+      scratchpad: {
+        application,
+        unitTest,
+      },
+      cleanScratchpad: () => rm(unitTest, { force: true, recursive: true }),
     };
   }
 

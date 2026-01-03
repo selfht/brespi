@@ -23,11 +23,11 @@ const categories: Record<Step.Category, string> = {
   [Step.Category.consumer]: "Artifact consumers",
 };
 
-export namespace StepTranslation {
-  export function type(type: Step.Type): string {
+export namespace StepDescription {
+  export function forType(type: Step.Type): string {
     return types[type];
   }
-  export function category(category: Step.Category): string {
+  export function forCategory(category: Step.Category): string {
     return categories[category];
   }
 }

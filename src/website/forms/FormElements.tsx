@@ -5,7 +5,7 @@ import { FieldValues, FormState, Path, UseFormRegister } from "react-hook-form";
 import { Button } from "../comps/Button";
 import { Icon } from "../comps/Icon";
 import { Spinner } from "../comps/Spinner";
-import { StepTranslation } from "../translation/StepTranslation";
+import { StepDescription } from "../details/StepDescription";
 
 export namespace FormElements {
   type ContainerProps = {
@@ -23,7 +23,7 @@ export namespace FormElements {
   export function Left({ stepType, children }: LeftProps) {
     return (
       <div className="flex-1 pr-3">
-        <h1 className="text-2xl font-extralight text-c-dim">{StepTranslation.type(stepType)}</h1>
+        <h1 className="text-2xl font-extralight text-c-dim">{StepDescription.forType(stepType)}</h1>
         {children}
       </div>
     );

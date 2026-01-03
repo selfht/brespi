@@ -3,7 +3,7 @@
 This is a work in progress with the following TODO's:
 
 Execution
-* Add descriptions with label hovering mechanics to each step
+* Add descriptions with label hovering/clicking mechanics to each step
 * ✅ ~Share the `Fields` enum between the `StepForm` and `StepTranslation` (rename the latter)~
 * Add pagination to the execution overview
 * Make sure pipelines are ordered from new to old in the `Configuration` with uuidv7

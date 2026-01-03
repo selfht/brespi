@@ -34,9 +34,9 @@ import { useFullScreen } from "../hooks/useFullScreen";
 import { useRegistry } from "../hooks/useRegistry";
 import { useStateRef } from "../hooks/useStateRef";
 import { useYesQuery } from "../hooks/useYesQuery";
-import { ActionCard } from "../translation/ActionCard";
-import { StepCard } from "../translation/StepCard";
-import { StepTranslation } from "../translation/StepTranslation";
+import { ActionDetails } from "../details/ActionDetails";
+import { StepDetails } from "../details/StepDetails";
+import { StepDescription } from "../details/StepDescription";
 
 type Form = {
   interactivity: Interactivity;
@@ -277,7 +277,7 @@ export function pipelines_$id() {
         canvasApi.current?.insert({
           id: stepId,
           theme: "default",
-          label: StepTranslation.type(type),
+          label: StepDescription.forType(type),
           details: {},
           handles: Internal.convertTypeToHandles(type),
           selected: true,
@@ -570,8 +570,8 @@ namespace Internal {
       id: step.id,
       incomingId: step.previousId,
       theme: "default",
-      label: StepTranslation.type(step.type),
-      details: StepCard.getDetails(step),
+      label: StepDescription.forType(step.type),
+      details: StepDetails.get(step),
       handles: convertTypeToHandles(step.type),
       selected: false,
     };
@@ -587,9 +587,9 @@ namespace Internal {
           : action.result?.outcome === Outcome.success
             ? "success"
             : "error",
-      label: Step.TypeInstance(action.stepType) ? StepTranslation.type(action.stepType) : action.stepType,
-      details: ActionCard.getDetails(action),
-      handles: Step.TypeInstance(action.stepType) ? convertTypeToHandles(action.stepType) : [Block.Handle.input, Block.Handle.output],
+      label: Step.isTypeInstance(action.stepType) ? StepDescription.forType(action.stepType) : action.stepType,
+      details: ActionDetails.get(action),
+      handles: Step.isTypeInstance(action.stepType) ? convertTypeToHandles(action.stepType) : [Block.Handle.input, Block.Handle.output],
       selected: false,
     };
   }
@@ -674,7 +674,7 @@ namespace Internal {
       Step.Type.decryption,
       Step.Type.folder_group,
       Step.Type.folder_flatten,
-      Step.Type.decryption,
+      Step.Type.filter,
       Step.Type.custom_script,
       // Consumers
       Step.Type.filesystem_write,
@@ -688,16 +688,16 @@ namespace Internal {
       if (existing) {
         existing.steps.push({
           type,
-          typeLabel: StepTranslation.type(type),
+          typeLabel: StepDescription.forType(type),
         });
       } else {
         buttonGroups.push({
           category,
-          categoryLabel: StepTranslation.category(category),
+          categoryLabel: StepDescription.forCategory(category),
           steps: [
             {
               type,
-              typeLabel: StepTranslation.type(type),
+              typeLabel: StepDescription.forType(type),
             },
           ],
         });

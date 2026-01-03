@@ -18,7 +18,7 @@ import { PostgresRestoreForm } from "../forms/step/PostgresRestoreForm";
 import { S3DownloadForm } from "../forms/step/S3DownloadForm";
 import { S3UploadForm } from "../forms/step/S3UploadForm";
 
-export namespace StepCard {
+export namespace StepDetails {
   function performLabeling<F>(labels: Record<keyof F, string>, values: Record<keyof F, ValueOf<Block.Details>>): Block.Details {
     const result: Block.Details = {};
     Object.entries(labels).forEach(([key, value]) => {
@@ -27,7 +27,7 @@ export namespace StepCard {
     return result;
   }
 
-  export function getDetails(step: Step): Block.Details {
+  export function get(step: Step): Block.Details {
     switch (step.type) {
       case Step.Type.compression:
         return performLabeling<typeof CompressionForm.Field>(CompressionForm.Label, {
