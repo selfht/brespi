@@ -46,12 +46,14 @@ export namespace Test {
     };
   }
 
-  export async function env(env = {} as Partial<Env.Private>) {
-    const X_BRESPI_ROOT = join(await ensureValidCwd(), "opt", "brespi");
-    const result: Partial<Env.Private> = {
-      X_BRESPI_ROOT,
+  export async function env(overrides = {} as Partial<Env.Private>) {
+    return {
+      ...Env.initialize({
+        O_BRESPI_STAGE: "development",
+        X_BRESPI_ROOT: join(await ensureValidCwd(), "opt", "brespi"),
+      }),
+      ...overrides,
     };
-    return Object.assign(result, env) as Env.Private;
   }
 
   async function ensureValidCwd(): Promise<string> {

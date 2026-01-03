@@ -3,15 +3,12 @@ import { isAbsolute, join } from "path";
 import { z } from "zod/v4";
 
 export namespace Env {
-  export function initialize(): Readonly<ReturnType<typeof readAndValidateEnvironment>> {
-    return readAndValidateEnvironment();
-  }
-  function readAndValidateEnvironment() {
-    return z
-      .object({
-        O_BRESPI_STAGE: z.enum(["development", "production"]),
-        X_BRESPI_ROOT: z.string(),
-      })
+  const baseEnv = z.object({
+    O_BRESPI_STAGE: z.enum(["development", "production"]),
+    X_BRESPI_ROOT: z.string(),
+  });
+  export function initialize(environment = Bun.env as z.output<typeof baseEnv>) {
+    return baseEnv
       .transform((env) => ({
         ...env,
         X_BRESPI_ROOT: isAbsolute(env.X_BRESPI_ROOT) ? env.X_BRESPI_ROOT : join(process.cwd(), env.X_BRESPI_ROOT),
@@ -34,7 +31,7 @@ export namespace Env {
           ),
         };
       })
-      .parse(Bun.env);
+      .parse(environment);
   }
 
   export type Private = ReturnType<typeof initialize>;

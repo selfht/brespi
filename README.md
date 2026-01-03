@@ -3,10 +3,10 @@
 This is a work in progress with the following TODO's:
 
 Execution
-* Add descriptions and useful helper functions to each step
+* Add descriptions with label hovering mechanics to each step
 * ✅ ~Share the `Fields` enum between the `StepForm` and `StepTranslation` (rename the latter)~
 * Add pagination to the execution overview
-* Make sure pipelines are ordered from new to old in the `Configuration`
+* Make sure pipelines are ordered from new to old in the `Configuration` with uuidv7
 * Add support for MySQL backups and restores
 * ✅ ~Provide runtime information when appropriate for specific steps~
 
@@ -25,12 +25,11 @@ Policies
 QA
 * Configure Playwright to use a `Dockerfile.e2e` which runs the app in "production" mode (unless port 3000 is already listening)
 * Set up a pipeline for typechecking, unit testing and e2e testing
-* Create a "regression suite" consisting of a healthy mix of possible data configurations, to try and detect accidental backwards-incompatible changes
+* Create a "regression suite" consisting of a healthy mix of possible data configurations, to try and detect accidental backwards-incompatible data changes
 
 Technical
-* Implement more unit tests for adapters in the style of `FilesystemAdapter.spec.ts` which can be reasonably expected to execute on basic unix systems (`CompressionAdapter`, `EncryptionAdapter`, `ScriptAdapter`)
-* Use consistent casing in all form labels and E2E fixtures
-* Create a reusable method for spreading a resource (step) object over form labels
+* Implement more unit tests for adapters in the style of `FilesystemAdapter.spec.ts` which can be reasonably expected to execute on basic unix hosts (`CompressionAdapter`, `EncryptionAdapter`, `ScriptAdapter`)
+* ✅ ~Use consistent casing in all form labels and E2E fixtures~
 * Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
 * Firefox: test canvas and `foreignObject`
 * Webkit: attempt to migrate away from [`foreignObject`](https://bugs.webkit.org/show_bug.cgi?id=23113)
