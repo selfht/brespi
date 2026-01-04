@@ -75,12 +75,12 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.s3_upload}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.connection_bucket} input="text" />
-          <LabeledInput field={Field.connection_region} input="text" />
-          <LabeledInput field={Field.connection_endpoint} input="text" />
-          <LabeledInput field={Field.connection_accessKeyReference} input="text" />
-          <LabeledInput field={Field.connection_secretKeyReference} input="text" />
-          <LabeledInput field={Field.baseFolder} input="text" />
+          <LabeledInput field={Field.connection_bucket} input={{ type: "text" }} />
+          <LabeledInput field={Field.connection_region} input={{ type: "text" }} />
+          <LabeledInput field={Field.connection_endpoint} input={{ type: "text" }} />
+          <LabeledInput field={Field.connection_accessKeyReference} input={{ type: "text" }} />
+          <LabeledInput field={Field.connection_secretKeyReference} input={{ type: "text" }} />
+          <LabeledInput field={Field.baseFolder} input={{ type: "text" }} />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

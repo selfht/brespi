@@ -53,8 +53,8 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.custom_script}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.path} input="text" />
-          <LabeledInput field={Field.passthrough} input="select" options={["true", "false"]} />
+          <LabeledInput field={Field.path} input={{ type: "text" }} />
+          <LabeledInput field={Field.passthrough} input={{ type: "select", options: ["true", "false"] }} />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

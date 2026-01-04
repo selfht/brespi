@@ -56,8 +56,8 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.encryption}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.keyReference} input="text" />
-          <LabeledInput field={Field.algorithm_implementation} input="select" options={["aes256cbc"]} />
+          <LabeledInput field={Field.keyReference} input={{ type: "text" }} />
+          <LabeledInput field={Field.algorithm_implementation} input={{ type: "select", options: ["aes256cbc"] }} />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

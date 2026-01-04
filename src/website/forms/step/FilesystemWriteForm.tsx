@@ -53,8 +53,8 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.filesystem_write}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.folderPath} input="text" />
-          <LabeledInput field={Field.managedStorage} input="select" options={["true", "false"]} />
+          <LabeledInput field={Field.folderPath} input={{ type: "text" }} />
+          <LabeledInput field={Field.managedStorage} input={{ type: "select", options: ["true", "false"] }} />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

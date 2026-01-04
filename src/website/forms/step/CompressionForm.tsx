@@ -55,8 +55,8 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.compression}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.algorithm_implementation} input="select" options={["targzip"]} />
-          <LabeledInput field={Field.algorithm_compression_level} input="number" />
+          <LabeledInput field={Field.algorithm_implementation} input={{ type: "select", options: ["targzip"] }} />
+          <LabeledInput field={Field.algorithm_compression_level} input={{ type: "number" }} />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

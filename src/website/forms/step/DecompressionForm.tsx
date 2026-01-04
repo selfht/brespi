@@ -51,7 +51,7 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.decompression}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.algorithm_implementation} input="select" options={["targzip"]} />
+          <LabeledInput field={Field.algorithm_implementation} input={{ type: "select", options: ["targzip"] }} />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

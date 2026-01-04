@@ -124,22 +124,22 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.s3_download}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.connection_bucket} input="text" />
-          <LabeledInput field={Field.connection_region} input="text" />
-          <LabeledInput field={Field.connection_endpoint} input="text" />
-          <LabeledInput field={Field.connection_accessKeyReference} input="text" />
-          <LabeledInput field={Field.connection_secretKeyReference} input="text" />
-          <LabeledInput field={Field.baseFolder} input="text" />
-          <LabeledInput field={Field.managedStorage} input="select" options={["true"]} />
-          <LabeledInput field={Field.managedStorage_target} input="select" options={["latest", "specific"]} />
-          {managedStorageSelectionTarget === "specific" && <LabeledInput field={Field.managedStorage_version} input="text" />}
-          <LabeledInput field={Field.filterCriteria} input="select" options={["true", "false"]} />
+          <LabeledInput field={Field.connection_bucket} input={{ type: "text" }} />
+          <LabeledInput field={Field.connection_region} input={{ type: "text" }} />
+          <LabeledInput field={Field.connection_endpoint} input={{ type: "text" }} />
+          <LabeledInput field={Field.connection_accessKeyReference} input={{ type: "text" }} />
+          <LabeledInput field={Field.connection_secretKeyReference} input={{ type: "text" }} />
+          <LabeledInput field={Field.baseFolder} input={{ type: "text" }} />
+          <LabeledInput field={Field.managedStorage} input={{ type: "select", options: ["true"] }} />
+          <LabeledInput field={Field.managedStorage_target} input={{ type: "select", options: ["latest", "specific"] }} />
+          {managedStorageSelectionTarget === "specific" && <LabeledInput field={Field.managedStorage_version} input={{ type: "text" }} />}
+          <LabeledInput field={Field.filterCriteria} input={{ type: "select", options: ["true", "false"] }} />
           {filterCriteria === "true" ? (
             <>
-              <LabeledInput field={Field.filterCriteria_method} input="select" options={filterCriteriaMethodOptions} />
-              {filterCriteriaMethod === "exact" && <LabeledInput field={Field.filterCriteria_name} input="text" />}
-              {filterCriteriaMethod === "glob" && <LabeledInput field={Field.filterCriteria_nameGlob} input="text" />}
-              {filterCriteriaMethod === "regex" && <LabeledInput field={Field.filterCriteria_nameRegex} input="text" />}
+              <LabeledInput field={Field.filterCriteria_method} input={{ type: "select", options: filterCriteriaMethodOptions }} />
+              {filterCriteriaMethod === "exact" && <LabeledInput field={Field.filterCriteria_name} input={{ type: "text" }} />}
+              {filterCriteriaMethod === "glob" && <LabeledInput field={Field.filterCriteria_nameGlob} input={{ type: "text" }} />}
+              {filterCriteriaMethod === "regex" && <LabeledInput field={Field.filterCriteria_nameRegex} input={{ type: "text" }} />}
             </>
           ) : null}
         </fieldset>

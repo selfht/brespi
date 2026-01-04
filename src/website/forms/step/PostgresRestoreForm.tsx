@@ -74,15 +74,15 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.postgres_restore}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.connectionReference} input="text" />
-          <LabeledInput field={Field.toolkit_resolution} input="select" options={["automatic", "manual"]} />
+          <LabeledInput field={Field.connectionReference} input={{ type: "text" }} />
+          <LabeledInput field={Field.toolkit_resolution} input={{ type: "select", options: ["automatic", "manual"] }} />
           {toolkitResolution === "manual" && (
             <>
-              <LabeledInput field={Field.toolkit_psql} input="text" />
-              <LabeledInput field={Field.toolkit_pg_restore} input="text" />
+              <LabeledInput field={Field.toolkit_psql} input={{ type: "text" }} />
+              <LabeledInput field={Field.toolkit_pg_restore} input={{ type: "text" }} />
             </>
           )}
-          <LabeledInput field={Field.database} input="text" />
+          <LabeledInput field={Field.database} input={{ type: "text" }} />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

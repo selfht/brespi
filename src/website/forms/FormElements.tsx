@@ -84,15 +84,19 @@ export namespace FormElements {
     register: UseFormRegister<FORM>;
     activeField: keyof FORM | undefined;
     onActiveFieldChange: (field: keyof FORM | undefined) => unknown;
-  } & ({ input: "text" } | { input: "number" } | { input: "select"; options: string[] });
+    input:
+      | { type: "text" } //
+      | { type: "number" }
+      | { type: "select"; options: string[] };
+  };
   function LabeledInput<FORM extends FieldValues, F extends keyof FORM>(props: LabeledInputProps<FORM, F>) {
-    const { field, label, labels, register, activeField, ...variant } = props;
+    const { field, label, labels, register, activeField, input } = props;
     const onFocus = () => {
-      props.onActiveFieldChange(field);
+      // props.onActiveFieldChange(field);
     };
     const onLabelClick = () => {
       if (field === activeField) {
-        props.onActiveFieldChange(undefined);
+        // props.onActiveFieldChange(undefined);
       }
     };
 
@@ -129,7 +133,7 @@ export namespace FormElements {
         >
           {renderedLabel}
         </label>
-        {variant.input === "text" && (
+        {input.type === "text" && (
           <input
             type="text"
             id={fieldStr}
@@ -138,7 +142,7 @@ export namespace FormElements {
             {...register(fieldPath)}
           />
         )}
-        {variant.input === "number" && (
+        {input.type === "number" && (
           <input
             type="number"
             id={fieldStr}
@@ -147,9 +151,9 @@ export namespace FormElements {
             {...register(fieldPath, { valueAsNumber: true })}
           />
         )}
-        {variant.input === "select" && (
+        {input.type === "select" && (
           <select id={fieldStr} className="rounded flex-1 p-2 bg-c-dim/20 font-mono" onFocus={onFocus} {...register(fieldPath)}>
-            {variant.options.map((opt) => (
+            {input.options.map((opt) => (
               <option key={opt} value={opt}>
                 {opt}
               </option>
@@ -163,15 +167,14 @@ export namespace FormElements {
   export function useLabeledInput<FORM extends FieldValues>(labels: Record<keyof FORM, string>, register: UseFormRegister<FORM>) {
     const [activeField, setActiveField] = useState<keyof FORM>();
 
-    type BoundLabeledInputProps<F extends string> = {
-      field: F;
-      label?: ReactNode;
-    } & ({ input: "text" } | { input: "number" } | { input: "select"; options: string[] });
+    type BoundLabeledInputProps<F extends FieldValues> = Pick<LabeledInputProps<F, any>, "field" | "label" | "input">;
+    function BoundLabeledInput<F extends keyof FORM>(props: BoundLabeledInputProps<F extends FieldValues ? F : never>) {
+      return LabeledInput<FORM, F>({ ...props, labels, register, activeField, onActiveFieldChange: setActiveField });
+    }
+
     return {
       activeField,
-      LabeledInput<F extends keyof FORM>(props: BoundLabeledInputProps<F & string>) {
-        return LabeledInput<FORM, F>({ ...props, labels, register, activeField, onActiveFieldChange: setActiveField });
-      },
+      LabeledInput: BoundLabeledInput,
     };
   }
 }

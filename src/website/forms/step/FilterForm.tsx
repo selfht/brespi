@@ -68,10 +68,10 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.filter}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.filterCriteria_method} input="select" options={filterCriteriaMethodOptions} />
-          {filterCriteriaMethod === "exact" && <LabeledInput field={Field.filterCriteria_name} input="text" />}
-          {filterCriteriaMethod === "glob" && <LabeledInput field={Field.filterCriteria_nameGlob} input="text" />}
-          {filterCriteriaMethod === "regex" && <LabeledInput field={Field.filterCriteria_nameRegex} input="text" />}
+          <LabeledInput field={Field.filterCriteria_method} input={{ type: "select", options: filterCriteriaMethodOptions }} />
+          {filterCriteriaMethod === "exact" && <LabeledInput field={Field.filterCriteria_name} input={{ type: "text" }} />}
+          {filterCriteriaMethod === "glob" && <LabeledInput field={Field.filterCriteria_nameGlob} input={{ type: "text" }} />}
+          {filterCriteriaMethod === "regex" && <LabeledInput field={Field.filterCriteria_nameRegex} input={{ type: "text" }} />}
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"
