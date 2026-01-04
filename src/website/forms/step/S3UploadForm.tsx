@@ -70,7 +70,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
       });
     }
   };
-  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
+  const { LabeledInput } = FormElements.useLabeledInput(Label, register);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.s3_upload}>

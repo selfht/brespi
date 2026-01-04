@@ -119,7 +119,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
   const filterCriteria = watch(Field.filterCriteria);
   const filterCriteriaMethod = watch(Field.filterCriteria_method);
   const filterCriteriaMethodOptions: Array<typeof filterCriteriaMethod> = ["exact", "glob", "regex"];
-  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
+  const { LabeledInput } = FormElements.useLabeledInput(Label, register);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.s3_download}>

@@ -94,7 +94,7 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
 
   const toolkitResolution = watch(Field.toolkit_resolution);
   const databaseSelectionStrategy = watch(Field.databaseSelection_strategy);
-  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
+  const { LabeledInput } = FormElements.useLabeledInput(Label, register);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.postgres_backup}>

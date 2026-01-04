@@ -69,7 +69,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
     }
   };
   const toolkitResolution = watch(Field.toolkit_resolution);
-  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
+  const { LabeledInput } = FormElements.useLabeledInput(Label, register);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.postgres_restore}>

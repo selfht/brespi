@@ -48,7 +48,7 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
       });
     }
   };
-  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
+  const { LabeledInput } = FormElements.useLabeledInput(Label, register);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.filesystem_write}>

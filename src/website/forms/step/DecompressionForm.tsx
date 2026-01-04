@@ -46,7 +46,7 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
       });
     }
   };
-  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
+  const { LabeledInput } = FormElements.useLabeledInput(Label, register);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.decompression}>

@@ -48,7 +48,7 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
       });
     }
   };
-  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
+  const { LabeledInput } = FormElements.useLabeledInput(Label, register);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.custom_script}>

@@ -32,7 +32,7 @@ export namespace StepDetails {
       case Step.Type.compression:
         return performLabeling<typeof CompressionForm.Field>(CompressionForm.Label, {
           algorithm_implementation: step.algorithm.implementation,
-          algorithm_level: step.algorithm.level,
+          algorithm_compression_level: step.algorithm.level,
         });
       case Step.Type.decompression:
         return performLabeling<typeof DecompressionForm.Field>(DecompressionForm.Label, {

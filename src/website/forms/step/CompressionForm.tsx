@@ -5,16 +5,16 @@ import { FormHelper } from "../FormHelper";
 
 enum Field {
   algorithm_implementation = "algorithm_implementation",
-  algorithm_level = "algorithm_level",
+  algorithm_compression_level = "algorithm_compression_level",
 }
 const Label: Record<Field, string> = {
   [Field.algorithm_implementation]: "Algorithm",
-  [Field.algorithm_level]: "Compression level",
+  [Field.algorithm_compression_level]: "Algorithm: compression level",
 };
 
 type Form = {
   [Field.algorithm_implementation]: "targzip";
-  [Field.algorithm_level]: number;
+  [Field.algorithm_compression_level]: number;
 };
 type Props = {
   id: string;
@@ -28,7 +28,7 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.algorithm_implementation]: existing?.algorithm.implementation ?? "targzip",
-      [Field.algorithm_level]: existing?.algorithm.level ?? 9,
+      [Field.algorithm_compression_level]: existing?.algorithm.level ?? 9,
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -41,7 +41,7 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
         type: Step.Type.compression,
         algorithm: {
           implementation: form[Field.algorithm_implementation],
-          level: form[Field.algorithm_level],
+          level: form[Field.algorithm_compression_level],
         },
       });
     } catch (error) {
@@ -50,13 +50,13 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
       });
     }
   };
-  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
+  const { LabeledInput, activeField } = FormElements.useLabeledInput(Label, register);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.compression}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
           <LabeledInput field={Field.algorithm_implementation} input="select" options={["targzip"]} />
-          <LabeledInput field={Field.algorithm_level} input="number" />
+          <LabeledInput field={Field.algorithm_compression_level} input="number" />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"
@@ -69,6 +69,7 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
       </FormElements.Left>
       <FormElements.Right formState={formState} clearErrors={clearErrors}>
         <p>This step can be used for compressing artifacts</p>
+        <p>{activeField}</p>
       </FormElements.Right>
     </FormElements.Container>
   );

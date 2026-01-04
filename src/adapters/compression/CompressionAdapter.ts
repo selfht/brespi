@@ -13,6 +13,7 @@ export class CompressionAdapter extends AbstractAdapter {
     super(env);
   }
 
+  // TODO: use the compression level!
   public async compress(artifact: Artifact, step: Step.Compression): Promise<Artifact> {
     try {
       const inputPath = artifact.path;

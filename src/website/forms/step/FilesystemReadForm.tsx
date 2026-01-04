@@ -95,7 +95,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
   const filterCriteria = watch(Field.filterCriteria);
   const filterCriteriaMethod = watch(Field.filterCriteria_method);
   const filterCriteriaMethodOptions: Array<typeof filterCriteriaMethod> = ["exact", "glob", "regex"];
-  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
+  const { LabeledInput } = FormElements.useLabeledInput(Label, register);
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.filesystem_read}>

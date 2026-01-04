@@ -1,6 +1,6 @@
 import { Step } from "@/models/Step";
 import clsx from "clsx";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { FieldValues, FormState, Path, UseFormRegister } from "react-hook-form";
 import { Button } from "../comps/Button";
 import { Icon } from "../comps/Icon";
@@ -82,9 +82,19 @@ export namespace FormElements {
     label?: ReactNode;
     labels: Record<keyof FORM, string>;
     register: UseFormRegister<FORM>;
+    activeField: keyof FORM | undefined;
+    onActiveFieldChange: (field: keyof FORM | undefined) => unknown;
   } & ({ input: "text" } | { input: "number" } | { input: "select"; options: string[] });
-  export function LabeledInput<FORM extends FieldValues, F extends keyof FORM>(props: LabeledInputProps<FORM, F>) {
-    const { field, label, labels, register, ...variant } = props;
+  function LabeledInput<FORM extends FieldValues, F extends keyof FORM>(props: LabeledInputProps<FORM, F>) {
+    const { field, label, labels, register, activeField, ...variant } = props;
+    const onFocus = () => {
+      props.onActiveFieldChange(field);
+    };
+    const onLabelClick = () => {
+      if (field === activeField) {
+        props.onActiveFieldChange(undefined);
+      }
+    };
 
     const fieldStr = field.toString();
     const fieldPath = field as unknown as Path<FORM>;
@@ -110,22 +120,35 @@ export namespace FormElements {
 
     return (
       <div className="flex items-center">
-        <label htmlFor={fieldStr} className="w-72">
+        <label
+          htmlFor={fieldStr}
+          className={clsx("w-72 cursor-pointer", {
+            "underline underline-offset-2 decoration-2 decoration-c-info": field === activeField,
+          })}
+          onClick={onLabelClick}
+        >
           {renderedLabel}
         </label>
         {variant.input === "text" && (
-          <input type="text" id={fieldStr} className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(fieldPath)} />
+          <input
+            type="text"
+            id={fieldStr}
+            className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+            onFocus={onFocus}
+            {...register(fieldPath)}
+          />
         )}
         {variant.input === "number" && (
           <input
             type="number"
             id={fieldStr}
             className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+            onFocus={onFocus}
             {...register(fieldPath, { valueAsNumber: true })}
           />
         )}
         {variant.input === "select" && (
-          <select id={fieldStr} className="rounded flex-1 p-2 bg-c-dim/20 font-mono" {...register(fieldPath)}>
+          <select id={fieldStr} className="rounded flex-1 p-2 bg-c-dim/20 font-mono" onFocus={onFocus} {...register(fieldPath)}>
             {variant.options.map((opt) => (
               <option key={opt} value={opt}>
                 {opt}
@@ -137,17 +160,18 @@ export namespace FormElements {
     );
   }
 
-  export function createLabeledInputComponent<FORM extends FieldValues>(
-    labels: Record<keyof FORM, string>,
-    register: UseFormRegister<FORM>,
-  ) {
+  export function useLabeledInput<FORM extends FieldValues>(labels: Record<keyof FORM, string>, register: UseFormRegister<FORM>) {
+    const [activeField, setActiveField] = useState<keyof FORM>();
+
     type BoundLabeledInputProps<F extends string> = {
       field: F;
       label?: ReactNode;
     } & ({ input: "text" } | { input: "number" } | { input: "select"; options: string[] });
-
-    return function BoundLabeledInput<F extends keyof FORM>(props: BoundLabeledInputProps<F & string>) {
-      return LabeledInput<FORM, F>({ ...props, labels, register });
+    return {
+      activeField,
+      LabeledInput<F extends keyof FORM>(props: BoundLabeledInputProps<F & string>) {
+        return LabeledInput<FORM, F>({ ...props, labels, register, activeField, onActiveFieldChange: setActiveField });
+      },
     };
   }
 }

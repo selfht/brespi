@@ -60,7 +60,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
       });
     }
   };
-  const LabeledInput = FormElements.createLabeledInputComponent(Label, register);
+  const { LabeledInput } = FormElements.useLabeledInput(Label, register);
 
   const filterCriteriaMethod = watch(Field.filterCriteria_method);
   const filterCriteriaMethodOptions: Array<typeof filterCriteriaMethod> = ["exact", "glob", "regex"];

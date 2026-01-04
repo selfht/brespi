@@ -4,13 +4,15 @@ import { ManagedStorageCapability } from "@/capabilities/ManagedStorageCapabilit
 import { $execution } from "@/drizzle/schema";
 import { initializeSqlite } from "@/drizzle/sqlite";
 import { Env } from "@/Env";
+import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { ConfigurationRepository } from "@/repositories/ConfigurationRepository";
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { mock, Mock } from "bun:test";
-import { rm } from "fs/promises";
+import { mkdir, rm } from "fs/promises";
 import { join } from "path";
+import { Generate } from "./Generate";
 
 export namespace Test {
   export type Mocked<T> = {
@@ -39,15 +41,11 @@ export namespace Test {
     }
   }
 
-  export async function scratchpad() {
-    const application = join("opt", "scratchpad");
-    const unitTest = join(await ensureValidCwd(), application);
+  export async function getScratchpad() {
+    const scratchpad = join(await ensureValidCwd(), "opt", "scratchpad");
     return {
-      scratchpad: {
-        application,
-        unitTest,
-      },
-      cleanScratchpad: () => rm(unitTest, { force: true, recursive: true }),
+      scratchpad,
+      cleanScratchpad: () => rm(scratchpad, { force: true, recursive: true }),
     };
   }
 
@@ -59,6 +57,30 @@ export namespace Test {
       }),
       ...overrides,
     };
+  }
+
+  export async function createArtifacts(...artifacts: Array<`${"f" | "d"}:${string}`>): Promise<Artifact[]> {
+    const result: Artifact[] = [];
+    for (const artifact of artifacts) {
+      const { destinationId, destinationPath } = Generate.tmpDestination(await env());
+      const name = artifact.slice(2);
+      let type: Artifact["type"];
+      if (artifact.startsWith("f:")) {
+        type = "file";
+        await Bun.write(destinationPath, `Content for ${name}`);
+      } else {
+        type = "directory";
+        await Bun.write(join(destinationPath, "index"), `Index file for ${name}`);
+      }
+      result.push({ id: destinationId, type, name, path: destinationPath });
+    }
+    return result;
+  }
+
+  export async function cleanArtifacts() {
+    const { X_BRESPI_TMP_ROOT } = await env();
+    await rm(X_BRESPI_TMP_ROOT, { recursive: true, force: true });
+    await mkdir(X_BRESPI_TMP_ROOT);
   }
 
   async function ensureValidCwd(): Promise<string> {
