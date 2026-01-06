@@ -34,7 +34,7 @@ export namespace FormElements {
   };
   export function Right({ stepType, formState, clearErrors, children, className, fieldDescriptions, fieldCurrentlyActive }: RightProps) {
     return (
-      <div className={clsx("flex-1 pl-3 border-l-2 border-c-dim/20 text-lg flex flex-col gap-4 items-start", className)}>
+      <div className={clsx("flex-1 pl-3 border-l-2 border-c-dim/20", className)}>
         {formState.errors.root?.message ? (
           <div className="self-stretch border-3 border-c-error p-3 rounded-lg flex justify-between items-start">
             <pre className="text-c-error min-w-0 whitespace-pre-wrap break-all">{formState.errors.root.message}</pre>
@@ -43,15 +43,19 @@ export namespace FormElements {
             </button>
           </div>
         ) : (
-          <>
-            <h1 className="text-2xl font-extralight text-c-dim">{StepDescription.forType(stepType)}</h1>
-            {children}
-            {fieldCurrentlyActive ? (
-              <p className="text-c-info text-base animate-fade-in">{fieldDescriptions[fieldCurrentlyActive]}</p>
+          <div className="flex flex-col items-start">
+            <h1 className="mb-4 text-2xl font-extralight text-c-dim">{StepDescription.forType(stepType)}</h1>
+            <div className="mb-2 text-lg">{children}</div>
+            {Object.entries(fieldDescriptions) ? (
+              fieldCurrentlyActive ? (
+                <p className="text-c-info">{fieldDescriptions[fieldCurrentlyActive]}</p>
+              ) : (
+                <p className="text-c-dim italic">Select a field for more information.</p>
+              )
             ) : (
-              <p className="text-c-dim text-base italic animate-fade-in">Select a field for more information.</p>
+              <p className="text-c-dim italic">This step has no fields.</p>
             )}
-          </>
+          </div>
         )}
       </div>
     );
