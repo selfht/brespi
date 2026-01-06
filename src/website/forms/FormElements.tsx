@@ -192,4 +192,15 @@ export namespace FormElements {
       setActiveField,
     };
   }
+
+  type FieldDescriptionProps = {
+    descriptions: Record<string, ReactNode>;
+    activeField: string | undefined;
+  };
+  export function FieldDescription({ descriptions, activeField }: FieldDescriptionProps) {
+    if (activeField) {
+      return <p className="text-c-info animate-fade-in">{descriptions[activeField]}</p>;
+    }
+    return <p className="text-c-dim text-base italic animate-fade-in">Select a field for more information.</p>;
+  }
 }
