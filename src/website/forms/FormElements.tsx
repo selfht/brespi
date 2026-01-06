@@ -34,8 +34,10 @@ export namespace FormElements {
     clearErrors: () => unknown;
     children?: ReactNode;
     className?: string;
+    fieldDescriptions: Record<string, ReactNode>;
+    fieldCurrentlyActive?: string;
   };
-  export function Right({ formState, clearErrors, children, className }: RightProps) {
+  export function Right({ formState, clearErrors, children, className, fieldDescriptions, fieldCurrentlyActive }: RightProps) {
     return (
       <div className={clsx("flex-1 pl-3 border-l-2 border-c-dim/20 text-lg flex flex-col gap-4 items-start", className)}>
         {formState.errors.root?.message ? (
@@ -46,7 +48,14 @@ export namespace FormElements {
             </button>
           </div>
         ) : (
-          children
+          <>
+            {children}
+            {fieldCurrentlyActive ? (
+              <p className="text-c-info animate-fade-in">{fieldDescriptions[fieldCurrentlyActive]}</p>
+            ) : (
+              <p className="text-c-dim text-base italic animate-fade-in">Select a field for more information.</p>
+            )}
+          </>
         )}
       </div>
     );
@@ -191,16 +200,5 @@ export namespace FormElements {
       activeField,
       setActiveField,
     };
-  }
-
-  type FieldDescriptionProps = {
-    descriptions: Record<string, ReactNode>;
-    activeField: string | undefined;
-  };
-  export function FieldDescription({ descriptions, activeField }: FieldDescriptionProps) {
-    if (activeField) {
-      return <p className="text-c-info animate-fade-in">{descriptions[activeField]}</p>;
-    }
-    return <p className="text-c-dim text-base italic animate-fade-in">Select a field for more information.</p>;
   }
 }

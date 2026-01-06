@@ -87,9 +87,13 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
           onCancel={onCancel}
         />
       </FormElements.Left>
-      <FormElements.Right formState={formState} clearErrors={clearErrors}>
+      <FormElements.Right
+        formState={formState}
+        clearErrors={clearErrors}
+        fieldDescriptions={Description}
+        fieldCurrentlyActive={activeField}
+      >
         <p>This step can be used for compressing both file and folder artifacts.</p>
-        <FormElements.FieldDescription descriptions={Description} activeField={activeField} />
       </FormElements.Right>
     </FormElements.Container>
   );
