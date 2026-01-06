@@ -153,7 +153,7 @@ export namespace FormElements {
           <input
             type="text"
             id={fieldStr}
-            className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+            className="rounded flex-1 p-2 bg-c-dim/20 font-mono focus:outline-2 focus:outline-c-info"
             onFocus={activateField}
             {...register(fieldPath)}
           />
@@ -162,13 +162,18 @@ export namespace FormElements {
           <input
             type="number"
             id={fieldStr}
-            className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
+            className="rounded flex-1 p-2 bg-c-dim/20 font-mono focus:outline-2 focus:outline-c-info"
             onFocus={activateField}
             {...register(fieldPath, { valueAsNumber: true })}
           />
         )}
         {input.type === "select" && (
-          <select id={fieldStr} className="rounded flex-1 p-2 bg-c-dim/20 font-mono" onFocus={activateField} {...register(fieldPath)}>
+          <select
+            id={fieldStr}
+            className="rounded flex-1 p-2 bg-c-dim/20 font-mono focus:outline-2 focus:outline-c-info"
+            onFocus={activateField}
+            {...register(fieldPath)}
+          >
             {input.options.map((opt) => (
               <option key={opt} value={opt}>
                 {opt}

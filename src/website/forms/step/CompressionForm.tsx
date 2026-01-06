@@ -13,8 +13,8 @@ const Label: Record<Field, string> = {
   [Field.algorithm_targzip_level]: "Algorithm: compression level",
 };
 const Description: Record<Field, ReactNode> = {
-  [Field.algorithm_implementation]: "The selected field specifies which compression algorithm to use.",
-  [Field.algorithm_targzip_level]: "The selected field specifies the tar/gzip compression level.",
+  [Field.algorithm_implementation]: "This field specifies which compression algorithm to use.",
+  [Field.algorithm_targzip_level]: "This field specifies the tar/gzip compression level.",
 };
 
 type Form = {
@@ -89,7 +89,7 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
       </FormElements.Left>
       <FormElements.Right formState={formState} clearErrors={clearErrors}>
         <p>This step can be used for compressing both file and folder artifacts.</p>
-        {activeField && <p className="text-c-info">{Description[activeField]}</p>}
+        {activeField && <p className="text-c-info animate-fade-in">{Description[activeField]}</p>}
       </FormElements.Right>
     </FormElements.Container>
   );
