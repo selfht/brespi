@@ -33,13 +33,14 @@ export namespace FormElements {
     formState: FormState<{}>;
     clearErrors: () => unknown;
     children?: ReactNode;
+    className?: string;
   };
-  export function Right({ formState, clearErrors, children }: RightProps) {
+  export function Right({ formState, clearErrors, children, className }: RightProps) {
     return (
-      <div className="flex-1 pl-3 border-l-2 border-c-dim/20">
+      <div className={clsx("flex-1 pl-3 border-l-2 border-c-dim/20 text-lg flex flex-col gap-4 items-start", className)}>
         {formState.errors.root?.message ? (
-          <div className="border-3 border-c-error p-3 rounded-lg flex justify-between items-start">
-            <pre className="text-c-error">{formState.errors.root.message}</pre>
+          <div className="self-stretch border-3 border-c-error p-3 rounded-lg flex justify-between items-start">
+            <pre className="text-c-error min-w-0 whitespace-pre-wrap break-all">{formState.errors.root.message}</pre>
             <button className="cursor-pointer" onClick={() => clearErrors()}>
               <Icon variant="close" className="size-5" />
             </button>

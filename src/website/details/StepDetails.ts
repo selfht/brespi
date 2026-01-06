@@ -29,102 +29,130 @@ export namespace StepDetails {
 
   export function get(step: Step): Block.Details {
     switch (step.type) {
-      case Step.Type.compression:
-        return performLabeling<typeof CompressionForm.Field>(CompressionForm.Label, {
-          algorithm_implementation: step.algorithm.implementation,
-          algorithm_compression_level: step.algorithm.level,
+      case Step.Type.compression: {
+        const F = CompressionForm.Field;
+        return performLabeling<typeof F>(CompressionForm.Label, {
+          [F.algorithm_implementation]: step.algorithm.implementation,
+          [F.algorithm_targzip_level]: step.algorithm.level,
         });
-      case Step.Type.decompression:
-        return performLabeling<typeof DecompressionForm.Field>(DecompressionForm.Label, {
-          algorithm_implementation: step.algorithm.implementation,
+      }
+      case Step.Type.decompression: {
+        const F = DecompressionForm.Field;
+        return performLabeling<typeof F>(DecompressionForm.Label, {
+          [F.algorithm_implementation]: step.algorithm.implementation,
         });
-      case Step.Type.encryption:
-        return performLabeling<typeof EncryptionForm.Field>(EncryptionForm.Label, {
-          keyReference: step.keyReference,
-          algorithm_implementation: step.algorithm.implementation,
+      }
+      case Step.Type.encryption: {
+        const F = EncryptionForm.Field;
+        return performLabeling<typeof F>(EncryptionForm.Label, {
+          [F.keyReference]: step.keyReference,
+          [F.algorithm_implementation]: step.algorithm.implementation,
         });
-      case Step.Type.decryption:
-        return performLabeling<typeof DecryptionForm.Field>(DecryptionForm.Label, {
-          keyReference: step.keyReference,
-          algorithm_implementation: step.algorithm.implementation,
+      }
+      case Step.Type.decryption: {
+        const F = DecryptionForm.Field;
+        return performLabeling<typeof F>(DecryptionForm.Label, {
+          [F.keyReference]: step.keyReference,
+          [F.algorithm_implementation]: step.algorithm.implementation,
         });
-      case Step.Type.folder_flatten:
-        return performLabeling<typeof FolderFlattenForm.Field>(FolderFlattenForm.Label, {});
-      case Step.Type.folder_group:
-        return performLabeling<typeof FolderGroupForm.Field>(FolderGroupForm.Label, {});
-      case Step.Type.filter:
-        return performLabeling<typeof FilterForm.Field>(FilterForm.Label, {
-          filterCriteria_method: step.filterCriteria.method,
-          filterCriteria_name: step.filterCriteria.method === "exact" ? step.filterCriteria.name : undefined,
-          filterCriteria_nameGlob: step.filterCriteria.method === "glob" ? step.filterCriteria.nameGlob : undefined,
-          filterCriteria_nameRegex: step.filterCriteria.method === "regex" ? step.filterCriteria.nameRegex : undefined,
+      }
+      case Step.Type.folder_flatten: {
+        const F = FolderFlattenForm.Field;
+        return performLabeling<typeof F>(FolderFlattenForm.Label, {});
+      }
+      case Step.Type.folder_group: {
+        const F = FolderGroupForm.Field;
+        return performLabeling<typeof F>(FolderGroupForm.Label, {});
+      }
+      case Step.Type.filter: {
+        const F = FilterForm.Field;
+        return performLabeling<typeof F>(FilterForm.Label, {
+          [F.filterCriteria_method]: step.filterCriteria.method,
+          [F.filterCriteria_name]: step.filterCriteria.method === "exact" ? step.filterCriteria.name : undefined,
+          [F.filterCriteria_nameGlob]: step.filterCriteria.method === "glob" ? step.filterCriteria.nameGlob : undefined,
+          [F.filterCriteria_nameRegex]: step.filterCriteria.method === "regex" ? step.filterCriteria.nameRegex : undefined,
         });
-      case Step.Type.custom_script:
-        return performLabeling<typeof CustomScriptForm.Field>(CustomScriptForm.Label, {
-          path: step.path,
-          passthrough: step.passthrough,
+      }
+      case Step.Type.custom_script: {
+        const F = CustomScriptForm.Field;
+        return performLabeling<typeof F>(CustomScriptForm.Label, {
+          [F.path]: step.path,
+          [F.passthrough]: step.passthrough,
         });
-      case Step.Type.filesystem_write:
-        return performLabeling<typeof FilesystemWriteForm.Field>(FilesystemWriteForm.Label, {
-          folderPath: step.folderPath,
-          managedStorage: step.managedStorage,
+      }
+      case Step.Type.filesystem_write: {
+        const F = FilesystemWriteForm.Field;
+        return performLabeling<typeof F>(FilesystemWriteForm.Label, {
+          [F.folderPath]: step.folderPath,
+          [F.managedStorage]: step.managedStorage,
         });
-      case Step.Type.filesystem_read:
-        return performLabeling<typeof FilesystemReadForm.Field>(FilesystemReadForm.Label, {
-          path: step.path,
+      }
+      case Step.Type.filesystem_read: {
+        const F = FilesystemReadForm.Field;
+        return performLabeling<typeof F>(FilesystemReadForm.Label, {
+          [F.path]: step.path,
           managedStorage: Boolean(step.managedStorage),
-          managedStorage_target: step.managedStorage ? step.managedStorage.target : undefined,
-          managedStorage_version: step.managedStorage?.target === "specific" ? step.managedStorage.version : undefined,
+          [F.managedStorage_target]: step.managedStorage ? step.managedStorage.target : undefined,
+          [F.managedStorage_version]: step.managedStorage?.target === "specific" ? step.managedStorage.version : undefined,
           filterCriteria: Boolean(step.filterCriteria),
-          filterCriteria_method: step.filterCriteria ? step.filterCriteria.method : undefined,
-          filterCriteria_name: step.filterCriteria?.method === "exact" ? step.filterCriteria.name : undefined,
-          filterCriteria_nameGlob: step.filterCriteria?.method === "glob" ? step.filterCriteria.nameGlob : undefined,
-          filterCriteria_nameRegex: step.filterCriteria?.method === "regex" ? step.filterCriteria.nameRegex : undefined,
+          [F.filterCriteria_method]: step.filterCriteria ? step.filterCriteria.method : undefined,
+          [F.filterCriteria_name]: step.filterCriteria?.method === "exact" ? step.filterCriteria.name : undefined,
+          [F.filterCriteria_nameGlob]: step.filterCriteria?.method === "glob" ? step.filterCriteria.nameGlob : undefined,
+          [F.filterCriteria_nameRegex]: step.filterCriteria?.method === "regex" ? step.filterCriteria.nameRegex : undefined,
         });
-      case Step.Type.s3_upload:
-        return performLabeling<typeof S3UploadForm.Field>(S3UploadForm.Label, {
-          connection_bucket: step.connection.bucket,
-          connection_region: step.connection.region,
-          connection_endpoint: step.connection.endpoint,
-          connection_accessKeyReference: step.connection.accessKeyReference,
-          connection_secretKeyReference: step.connection.secretKeyReference,
-          baseFolder: step.baseFolder,
+      }
+      case Step.Type.s3_upload: {
+        const F = S3UploadForm.Field;
+        return performLabeling<typeof F>(S3UploadForm.Label, {
+          [F.connection_bucket]: step.connection.bucket,
+          [F.connection_region]: step.connection.region,
+          [F.connection_endpoint]: step.connection.endpoint,
+          [F.connection_accessKeyReference]: step.connection.accessKeyReference,
+          [F.connection_secretKeyReference]: step.connection.secretKeyReference,
+          [F.baseFolder]: step.baseFolder,
         });
-      case Step.Type.s3_download:
-        return performLabeling<typeof S3DownloadForm.Field>(S3DownloadForm.Label, {
-          connection_bucket: step.connection.bucket,
-          connection_region: step.connection.region,
-          connection_endpoint: step.connection.endpoint,
-          connection_accessKeyReference: step.connection.accessKeyReference,
-          connection_secretKeyReference: step.connection.secretKeyReference,
-          baseFolder: step.baseFolder,
+      }
+      case Step.Type.s3_download: {
+        const F = S3DownloadForm.Field;
+        return performLabeling<typeof F>(S3DownloadForm.Label, {
+          [F.connection_bucket]: step.connection.bucket,
+          [F.connection_region]: step.connection.region,
+          [F.connection_endpoint]: step.connection.endpoint,
+          [F.connection_accessKeyReference]: step.connection.accessKeyReference,
+          [F.connection_secretKeyReference]: step.connection.secretKeyReference,
+          [F.baseFolder]: step.baseFolder,
           managedStorage: true,
-          managedStorage_target: step.managedStorage.target,
-          managedStorage_version: step.managedStorage.target === "specific" ? step.managedStorage.version : undefined,
+          [F.managedStorage_target]: step.managedStorage.target,
+          [F.managedStorage_version]: step.managedStorage.target === "specific" ? step.managedStorage.version : undefined,
           filterCriteria: Boolean(step.filterCriteria),
-          filterCriteria_method: step.filterCriteria ? step.filterCriteria.method : undefined,
-          filterCriteria_name: step.filterCriteria?.method === "exact" ? step.filterCriteria.name : undefined,
-          filterCriteria_nameGlob: step.filterCriteria?.method === "glob" ? step.filterCriteria.nameGlob : undefined,
-          filterCriteria_nameRegex: step.filterCriteria?.method === "regex" ? step.filterCriteria.nameRegex : undefined,
+          [F.filterCriteria_method]: step.filterCriteria ? step.filterCriteria.method : undefined,
+          [F.filterCriteria_name]: step.filterCriteria?.method === "exact" ? step.filterCriteria.name : undefined,
+          [F.filterCriteria_nameGlob]: step.filterCriteria?.method === "glob" ? step.filterCriteria.nameGlob : undefined,
+          [F.filterCriteria_nameRegex]: step.filterCriteria?.method === "regex" ? step.filterCriteria.nameRegex : undefined,
         });
-      case Step.Type.postgres_backup:
-        return performLabeling<typeof PostgresBackupForm.Field>(PostgresBackupForm.Label, {
-          connectionReference: step.connectionReference,
-          toolkit_resolution: step.toolkit.resolution,
-          toolkit_psql: step.toolkit.resolution === "manual" ? step.toolkit.psql : undefined,
-          toolkit_pg_dump: step.toolkit.resolution === "manual" ? step.toolkit.pg_dump : undefined,
-          databaseSelection_strategy: step.databaseSelection.strategy,
-          databaseSelection_inclusions: step.databaseSelection.strategy === "include" ? step.databaseSelection.inclusions : undefined,
-          databaseSelection_exclusions: step.databaseSelection.strategy === "exclude" ? step.databaseSelection.exclusions : undefined,
+      }
+      case Step.Type.postgres_backup: {
+        const F = PostgresBackupForm.Field;
+        return performLabeling<typeof F>(PostgresBackupForm.Label, {
+          [F.connectionReference]: step.connectionReference,
+          [F.toolkit_resolution]: step.toolkit.resolution,
+          [F.toolkit_psql]: step.toolkit.resolution === "manual" ? step.toolkit.psql : undefined,
+          [F.toolkit_pg_dump]: step.toolkit.resolution === "manual" ? step.toolkit.pg_dump : undefined,
+          [F.databaseSelection_strategy]: step.databaseSelection.strategy,
+          [F.databaseSelection_inclusions]: step.databaseSelection.strategy === "include" ? step.databaseSelection.inclusions : undefined,
+          [F.databaseSelection_exclusions]: step.databaseSelection.strategy === "exclude" ? step.databaseSelection.exclusions : undefined,
         });
-      case Step.Type.postgres_restore:
-        return performLabeling<typeof PostgresRestoreForm.Field>(PostgresRestoreForm.Label, {
-          connectionReference: step.connectionReference,
-          toolkit_resolution: step.toolkit.resolution,
-          toolkit_psql: step.toolkit.resolution === "manual" ? step.toolkit.psql : undefined,
-          toolkit_pg_restore: step.toolkit.resolution === "manual" ? step.toolkit.pg_restore : undefined,
-          database: step.database,
+      }
+      case Step.Type.postgres_restore: {
+        const F = PostgresRestoreForm.Field;
+        return performLabeling<typeof F>(PostgresRestoreForm.Label, {
+          [F.connectionReference]: step.connectionReference,
+          [F.toolkit_resolution]: step.toolkit.resolution,
+          [F.toolkit_psql]: step.toolkit.resolution === "manual" ? step.toolkit.psql : undefined,
+          [F.toolkit_pg_restore]: step.toolkit.resolution === "manual" ? step.toolkit.pg_restore : undefined,
+          [F.database]: step.database,
         });
+      }
     }
   }
   export function actionDetails(action: Action): Block.Details | null {

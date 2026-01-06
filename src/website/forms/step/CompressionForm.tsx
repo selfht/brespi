@@ -1,21 +1,25 @@
 import { Step } from "@/models/Step";
-import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { ReactNode } from "react";
 
 enum Field {
   algorithm_implementation = "algorithm_implementation",
-  algorithm_compression_level = "algorithm_compression_level",
+  algorithm_targzip_level = "algorithm_targzip_level",
 }
 const Label: Record<Field, string> = {
   [Field.algorithm_implementation]: "Algorithm",
-  [Field.algorithm_compression_level]: "Algorithm: compression level",
+  [Field.algorithm_targzip_level]: "Algorithm: compression level",
+};
+const Description: Record<Field, ReactNode> = {
+  [Field.algorithm_implementation]: "The selected field specifies which compression algorithm to use.",
+  [Field.algorithm_targzip_level]: "The selected field specifies the tar/gzip compression level.",
 };
 
 type Form = {
   [Field.algorithm_implementation]: "targzip";
-  [Field.algorithm_compression_level]: number;
+  [Field.algorithm_targzip_level]: number;
 };
 type Props = {
   id: string;
@@ -29,7 +33,7 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.algorithm_implementation]: existing?.algorithm.implementation ?? "targzip",
-      [Field.algorithm_compression_level]: existing?.algorithm.level ?? 9,
+      [Field.algorithm_targzip_level]: existing?.algorithm.level ?? 9,
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -42,7 +46,7 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
         type: Step.Type.compression,
         algorithm: {
           implementation: form[Field.algorithm_implementation],
-          level: form[Field.algorithm_compression_level],
+          level: form[Field.algorithm_targzip_level],
         },
       });
     } catch (error) {
@@ -66,7 +70,7 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
             input={{ type: "select", options: ["targzip"] }}
           />
           <FormElements.LabeledInput
-            field={Field.algorithm_compression_level}
+            field={Field.algorithm_targzip_level}
             labels={Label}
             register={register}
             activeField={activeField}
@@ -84,8 +88,8 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
         />
       </FormElements.Left>
       <FormElements.Right formState={formState} clearErrors={clearErrors}>
-        <p>This step can be used for compressing artifacts</p>
-        <p>{activeField}</p>
+        <p>This step can be used for compressing both file and folder artifacts.</p>
+        {activeField && <p className="text-c-info">{Description[activeField]}</p>}
       </FormElements.Right>
     </FormElements.Container>
   );

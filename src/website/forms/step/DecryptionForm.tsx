@@ -1,6 +1,4 @@
 import { Step } from "@/models/Step";
-import clsx from "clsx";
-import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
