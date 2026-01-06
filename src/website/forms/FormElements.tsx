@@ -17,19 +17,14 @@ export namespace FormElements {
   }
 
   type LeftProps = {
-    stepType: Step.Type;
     children?: ReactNode;
   };
-  export function Left({ stepType, children }: LeftProps) {
-    return (
-      <div className="flex-1 pr-3">
-        <h1 className="text-2xl font-extralight text-c-dim">{StepDescription.forType(stepType)}</h1>
-        {children}
-      </div>
-    );
+  export function Left({ children }: LeftProps) {
+    return <div className="flex-1 pr-3">{children}</div>;
   }
 
   type RightProps = {
+    stepType: Step.Type;
     formState: FormState<{}>;
     clearErrors: () => unknown;
     children?: ReactNode;
@@ -37,7 +32,7 @@ export namespace FormElements {
     fieldDescriptions: Record<string, ReactNode>;
     fieldCurrentlyActive?: string;
   };
-  export function Right({ formState, clearErrors, children, className, fieldDescriptions, fieldCurrentlyActive }: RightProps) {
+  export function Right({ stepType, formState, clearErrors, children, className, fieldDescriptions, fieldCurrentlyActive }: RightProps) {
     return (
       <div className={clsx("flex-1 pl-3 border-l-2 border-c-dim/20 text-lg flex flex-col gap-4 items-start", className)}>
         {formState.errors.root?.message ? (
@@ -49,9 +44,10 @@ export namespace FormElements {
           </div>
         ) : (
           <>
+            <h1 className="text-2xl font-extralight text-c-dim">{StepDescription.forType(stepType)}</h1>
             {children}
             {fieldCurrentlyActive ? (
-              <p className="text-c-info animate-fade-in">{fieldDescriptions[fieldCurrentlyActive]}</p>
+              <p className="text-c-info text-base animate-fade-in">{fieldDescriptions[fieldCurrentlyActive]}</p>
             ) : (
               <p className="text-c-dim text-base italic animate-fade-in">Select a field for more information.</p>
             )}

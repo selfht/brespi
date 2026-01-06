@@ -2,9 +2,11 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { ReactNode } from "react";
 
 enum Field {}
 const Label: Record<Field, string> = {};
+const Description: Record<Field, ReactNode> = {};
 
 type Form = Record<string, never>;
 type Props = {
@@ -34,8 +36,8 @@ export function FolderFlattenForm({ id, existing, onSave, onDelete, onCancel, cl
   };
   return (
     <FormElements.Container className={className}>
-      <FormElements.Left stepType={Step.Type.folder_flatten}>
-        <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
+      <FormElements.Left>
+        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
           <p className="text-c-dim">This step requires no additional configuration.</p>
         </fieldset>
         <FormElements.ButtonBar
@@ -47,9 +49,13 @@ export function FolderFlattenForm({ id, existing, onSave, onDelete, onCancel, cl
           onCancel={onCancel}
         />
       </FormElements.Left>
-      <FormElements.Right formState={formState} clearErrors={clearErrors}>
-        <p>This step can be used for flattening folder structures.</p>
-        <p>All files from nested directories will be moved to a single level.</p>
+      <FormElements.Right
+        stepType={Step.Type.folder_flatten}
+        formState={formState}
+        clearErrors={clearErrors}
+        fieldDescriptions={Description}
+      >
+        <p>This step can be used for flattening nested folder structures into a single level of files.</p>
       </FormElements.Right>
     </FormElements.Container>
   );

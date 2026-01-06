@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { ReactNode } from "react";
 
 enum Field {
   keyReference = "keyReference",
@@ -10,6 +11,10 @@ enum Field {
 const Label: Record<Field, string> = {
   [Field.keyReference]: "Key reference",
   [Field.algorithm_implementation]: "Algorithm",
+};
+const Description: Record<Field, ReactNode> = {
+  [Field.keyReference]: "This field specifies which environment variable contains the encryption key.",
+  [Field.algorithm_implementation]: "This field specifies which encryption algorithm to use.",
 };
 
 type Form = {
@@ -54,8 +59,8 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
-      <FormElements.Left stepType={Step.Type.encryption}>
-        <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
+      <FormElements.Left>
+        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.keyReference}
             labels={Label}
@@ -82,11 +87,14 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
           onCancel={onCancel}
         />
       </FormElements.Left>
-      <FormElements.Right formState={formState} clearErrors={clearErrors}>
-        <p>This step can be used for encrypting artifacts.</p>
-        <p>
-          The <strong className="font-bold">key reference</strong> specifies which encryption key to use.
-        </p>
+      <FormElements.Right
+        stepType={Step.Type.encryption}
+        formState={formState}
+        clearErrors={clearErrors}
+        fieldDescriptions={Description}
+        fieldCurrentlyActive={activeField}
+      >
+        <p>A step used for encrypting file artifacts.</p>
       </FormElements.Right>
     </FormElements.Container>
   );

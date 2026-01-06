@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { ReactNode } from "react";
 
 enum Field {
   connection_bucket = "connection_bucket",
@@ -18,6 +19,14 @@ const Label: Record<Field, string> = {
   [Field.connection_accessKeyReference]: "Access key reference",
   [Field.connection_secretKeyReference]: "Secret key reference",
   [Field.baseFolder]: "Base folder",
+};
+const Description: Record<Field, ReactNode> = {
+  [Field.connection_bucket]: "This field specifies the S3 bucket name to upload to.",
+  [Field.connection_region]: "This field specifies the AWS region for the S3 bucket.",
+  [Field.connection_endpoint]: "This field specifies the S3-compatible endpoint URL.",
+  [Field.connection_accessKeyReference]: "This field specifies which environment variable contains the S3 access key.",
+  [Field.connection_secretKeyReference]: "This field specifies which environment variable contains the S3 secret key.",
+  [Field.baseFolder]: "This field specifies the S3 path prefix where artifacts will be uploaded.",
 };
 
 type Form = {
@@ -74,8 +83,8 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
-      <FormElements.Left stepType={Step.Type.s3_upload}>
-        <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
+      <FormElements.Left>
+        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.connection_bucket}
             labels={Label}
@@ -134,15 +143,14 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
           onCancel={onCancel}
         />
       </FormElements.Left>
-      <FormElements.Right formState={formState} clearErrors={clearErrors}>
-        <p>This step can be used for uploading artifacts to S3.</p>
-        <p>
-          The <strong className="font-bold">access key</strong> and <strong className="font-bold">secret key</strong> references specify
-          which S3 credentials to use.
-        </p>
-        <p>
-          The <strong className="font-bold">base folder</strong> specifies the S3 path where artifacts will be uploaded.
-        </p>
+      <FormElements.Right
+        stepType={Step.Type.s3_upload}
+        formState={formState}
+        clearErrors={clearErrors}
+        fieldDescriptions={Description}
+        fieldCurrentlyActive={activeField}
+      >
+        <p>A step used for uploading artifacts to S3-compatible storage.</p>
       </FormElements.Right>
     </FormElements.Container>
   );

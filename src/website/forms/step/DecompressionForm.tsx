@@ -2,12 +2,16 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { ReactNode } from "react";
 
 enum Field {
   algorithm_implementation = "algorithm_implementation",
 }
 const Label: Record<Field, string> = {
   [Field.algorithm_implementation]: "Algorithm",
+};
+const Description: Record<Field, ReactNode> = {
+  [Field.algorithm_implementation]: "This field specifies which decompression algorithm to use.",
 };
 
 type Form = {
@@ -49,8 +53,8 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
-      <FormElements.Left stepType={Step.Type.decompression}>
-        <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
+      <FormElements.Left>
+        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.algorithm_implementation}
             labels={Label}
@@ -69,8 +73,14 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
           onCancel={onCancel}
         />
       </FormElements.Left>
-      <FormElements.Right formState={formState} clearErrors={clearErrors}>
-        <p>This step can be used for decompressing artifacts.</p>
+      <FormElements.Right
+        stepType={Step.Type.decompression}
+        formState={formState}
+        clearErrors={clearErrors}
+        fieldDescriptions={Description}
+        fieldCurrentlyActive={activeField}
+      >
+        <p>A step used for decompressing artifacts.</p>
       </FormElements.Right>
     </FormElements.Container>
   );

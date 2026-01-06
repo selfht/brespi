@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { ReactNode } from "react";
 
 enum Field {
   folderPath = "folderPath",
@@ -10,6 +11,10 @@ enum Field {
 const Label: Record<Field, string> = {
   [Field.folderPath]: "Folder path",
   [Field.managedStorage]: "Use managed storage?",
+};
+const Description: Record<Field, ReactNode> = {
+  [Field.folderPath]: "This field specifies the local filesystem path where artifacts will be written.",
+  [Field.managedStorage]: "This field enables writing to a versioned managed storage location.",
 };
 
 type Form = {
@@ -52,8 +57,8 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
-      <FormElements.Left stepType={Step.Type.filesystem_write}>
-        <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
+      <FormElements.Left>
+        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.folderPath}
             labels={Label}
@@ -80,11 +85,14 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
           onCancel={onCancel}
         />
       </FormElements.Left>
-      <FormElements.Right formState={formState} clearErrors={clearErrors}>
-        <p>This step can be used for writing to the local filesystem.</p>
-        <p>
-          The <strong className="font-bold">path</strong> references the target location where artifacts will be written.
-        </p>
+      <FormElements.Right
+        stepType={Step.Type.filesystem_write}
+        formState={formState}
+        clearErrors={clearErrors}
+        fieldDescriptions={Description}
+        fieldCurrentlyActive={activeField}
+      >
+        <p>A step used for writing to the local filesystem.</p>
       </FormElements.Right>
     </FormElements.Container>
   );

@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { ReactNode } from "react";
 
 enum Field {
   path = "path",
@@ -10,6 +11,10 @@ enum Field {
 const Label: Record<Field, string> = {
   [Field.path]: "Script path",
   [Field.passthrough]: "Passthrough?",
+};
+const Description: Record<Field, ReactNode> = {
+  [Field.path]: "This field specifies the local filesystem path to the bash script to execute.",
+  [Field.passthrough]: "This field enables passing through the original artifacts unchanged after script execution.",
 };
 
 type Form = {
@@ -31,7 +36,6 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
       [Field.passthrough]: existing ? (existing.passthrough ? "true" : "false") : "false",
     } satisfies Form,
   });
-
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
     try {
@@ -53,8 +57,8 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
-      <FormElements.Left stepType={Step.Type.custom_script}>
-        <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
+      <FormElements.Left>
+        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.path}
             labels={Label}
@@ -81,14 +85,14 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
           onCancel={onCancel}
         />
       </FormElements.Left>
-      <FormElements.Right formState={formState} clearErrors={clearErrors}>
-        <p>This step can be used for executing custom scripts on artifacts.</p>
-        <p>
-          The <strong className="font-bold">script path</strong> references the script file to execute.
-        </p>
-        <p>
-          If <strong className="font-bold">passthrough</strong> is enabled, the original artifacts will be passed along unchanged.
-        </p>
+      <FormElements.Right
+        stepType={Step.Type.custom_script}
+        formState={formState}
+        clearErrors={clearErrors}
+        fieldDescriptions={Description}
+        fieldCurrentlyActive={activeField}
+      >
+        <p>A step used for executing custom bash scripts, with the possiblity of generating, transform or processing artifacts.</p>
       </FormElements.Right>
     </FormElements.Container>
   );

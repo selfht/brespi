@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { ReactNode } from "react";
 
 enum Field {
   connection_bucket = "connection_bucket",
@@ -34,6 +35,22 @@ const Label: Record<Field, string> = {
   [Field.filterCriteria_name]: "Filter: name",
   [Field.filterCriteria_nameGlob]: "Filter: name glob",
   [Field.filterCriteria_nameRegex]: "Filter: name regex",
+};
+const Description: Record<Field, ReactNode> = {
+  [Field.connection_bucket]: "This field specifies the S3 bucket name to download from.",
+  [Field.connection_region]: "This field specifies the AWS region for the S3 bucket.",
+  [Field.connection_endpoint]: "This field specifies the S3-compatible endpoint URL.",
+  [Field.connection_accessKeyReference]: "This field specifies which environment variable contains the S3 access key.",
+  [Field.connection_secretKeyReference]: "This field specifies which environment variable contains the S3 secret key.",
+  [Field.baseFolder]: "This field specifies the S3 path prefix where artifacts are stored.",
+  [Field.managedStorage]: "This field enables downloading from a versioned managed storage location.",
+  [Field.managedStorage_target]: "This field specifies whether to download the latest version or a specific version.",
+  [Field.managedStorage_version]: "This field specifies which version to download when using specific version targeting.",
+  [Field.filterCriteria]: "This field enables filtering artifacts by name when downloading from managed storage.",
+  [Field.filterCriteria_method]: "This field specifies the matching method to use for filtering.",
+  [Field.filterCriteria_name]: "This field specifies the exact artifact name to match.",
+  [Field.filterCriteria_nameGlob]: "This field specifies the glob pattern to match artifact names.",
+  [Field.filterCriteria_nameRegex]: "This field specifies the regex pattern to match artifact names.",
 };
 
 type Form = {
@@ -122,8 +139,8 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
-      <FormElements.Left stepType={Step.Type.s3_download}>
-        <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
+      <FormElements.Left>
+        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.connection_bucket}
             labels={Label}
@@ -258,19 +275,14 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           onCancel={onCancel}
         />
       </FormElements.Left>
-      <FormElements.Right formState={formState} clearErrors={clearErrors}>
-        <p>This step can be used for downloading artifacts from S3.</p>
-        <p>
-          The <strong className="font-bold">access key</strong> and <strong className="font-bold">secret key</strong> references specify
-          which S3 credentials to use.
-        </p>
-        <p>
-          The <strong className="font-bold">base folder</strong> specifies the S3 path to download from.
-        </p>
-        <p>
-          The <strong className="font-bold">artifact</strong> specifies which artifact to download.
-        </p>
-        <p>You can choose to download the latest version or a specific version.</p>
+      <FormElements.Right
+        stepType={Step.Type.s3_download}
+        formState={formState}
+        clearErrors={clearErrors}
+        fieldDescriptions={Description}
+        fieldCurrentlyActive={activeField}
+      >
+        <p>A step used for downloading artifacts from S3-compatible storage.</p>
       </FormElements.Right>
     </FormElements.Container>
   );

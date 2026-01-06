@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { ReactNode } from "react";
 
 enum Field {
   filterCriteria_method = "filterCriteria_method",
@@ -14,6 +15,12 @@ const Label: Record<Field, string> = {
   [Field.filterCriteria_name]: "Name",
   [Field.filterCriteria_nameGlob]: "Name glob",
   [Field.filterCriteria_nameRegex]: "Name regex",
+};
+const Description: Record<Field, ReactNode> = {
+  [Field.filterCriteria_method]: "This field specifies the matching method to use for filtering artifacts.",
+  [Field.filterCriteria_name]: "This field specifies the exact artifact name to match.",
+  [Field.filterCriteria_nameGlob]: "This field specifies the glob pattern to match artifact names.",
+  [Field.filterCriteria_nameRegex]: "This field specifies the regex pattern to match artifact names.",
 };
 
 type Form = {
@@ -66,8 +73,8 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
-      <FormElements.Left stepType={Step.Type.filter}>
-        <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
+      <FormElements.Left>
+        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.filterCriteria_method}
             labels={Label}
@@ -116,8 +123,14 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
           onCancel={onCancel}
         />
       </FormElements.Left>
-      <FormElements.Right formState={formState} clearErrors={clearErrors}>
-        <p>This step is used for filtering</p>
+      <FormElements.Right
+        stepType={Step.Type.filter}
+        formState={formState}
+        clearErrors={clearErrors}
+        fieldDescriptions={Description}
+        fieldCurrentlyActive={activeField}
+      >
+        <p>A step used for filtering artifacts by name matching.</p>
       </FormElements.Right>
     </FormElements.Container>
   );

@@ -2,9 +2,11 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { ReactNode } from "react";
 
 enum Field {}
 const Label: Record<Field, string> = {};
+const Description: Record<Field, ReactNode> = {};
 
 type Form = Record<string, never>;
 type Props = {
@@ -34,8 +36,8 @@ export function FolderGroupForm({ id, existing, onSave, onDelete, onCancel, clas
   };
   return (
     <FormElements.Container className={className}>
-      <FormElements.Left stepType={Step.Type.folder_group}>
-        <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
+      <FormElements.Left>
+        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
           <p className="text-c-dim">This step requires no additional configuration.</p>
         </fieldset>
         <FormElements.ButtonBar
@@ -47,9 +49,8 @@ export function FolderGroupForm({ id, existing, onSave, onDelete, onCancel, clas
           onCancel={onCancel}
         />
       </FormElements.Left>
-      <FormElements.Right formState={formState} clearErrors={clearErrors}>
-        <p>This step can be used for grouping files into folders.</p>
-        <p>Files will be organized based on their attributes or naming patterns.</p>
+      <FormElements.Right stepType={Step.Type.folder_group} formState={formState} clearErrors={clearErrors} fieldDescriptions={Description}>
+        <p>This step can be used for grouping multiple files into a single folder artifact.</p>
       </FormElements.Right>
     </FormElements.Container>
   );

@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { ReactNode } from "react";
 
 enum Field {
   connectionReference = "connectionReference",
@@ -20,6 +21,15 @@ const Label: Record<Field, string> = {
   [Field.databaseSelection_strategy]: "Database selection",
   [Field.databaseSelection_inclusions]: "Database: inclusions",
   [Field.databaseSelection_exclusions]: "Database: exclusions",
+};
+const Description: Record<Field, ReactNode> = {
+  [Field.connectionReference]: "This field specifies which environment variable contains the PostgreSQL connection string.",
+  [Field.toolkit_resolution]: "This field specifies whether to automatically detect or manually specify PostgreSQL tools.",
+  [Field.toolkit_psql]: "This field specifies the path to the psql executable when using manual toolkit resolution.",
+  [Field.toolkit_pg_dump]: "This field specifies the path to the pg_dump executable when using manual toolkit resolution.",
+  [Field.databaseSelection_strategy]: "This field specifies which databases to backup (all, include list, or exclude list).",
+  [Field.databaseSelection_inclusions]: "This field specifies comma-separated database names to include in the backup.",
+  [Field.databaseSelection_exclusions]: "This field specifies comma-separated database names to exclude from the backup.",
 };
 
 type Form = {
@@ -97,8 +107,8 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
-      <FormElements.Left stepType={Step.Type.postgres_backup}>
-        <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
+      <FormElements.Left>
+        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.connectionReference}
             labels={Label}
@@ -173,8 +183,14 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
           onCancel={onCancel}
         />
       </FormElements.Left>
-      <FormElements.Right formState={formState} clearErrors={clearErrors}>
-        <p>This step can be used for creating a Postgres backup</p>
+      <FormElements.Right
+        stepType={Step.Type.postgres_backup}
+        formState={formState}
+        clearErrors={clearErrors}
+        fieldDescriptions={Description}
+        fieldCurrentlyActive={activeField}
+      >
+        <p>A step used for creating PostgreSQL backups using pg_dump.</p>
       </FormElements.Right>
     </FormElements.Container>
   );

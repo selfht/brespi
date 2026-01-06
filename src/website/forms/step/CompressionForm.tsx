@@ -59,8 +59,8 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
-      <FormElements.Left stepType={Step.Type.compression}>
-        <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
+      <FormElements.Left>
+        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.algorithm_implementation}
             labels={Label}
@@ -88,12 +88,13 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
         />
       </FormElements.Left>
       <FormElements.Right
+        stepType={Step.Type.compression}
         formState={formState}
         clearErrors={clearErrors}
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >
-        <p>This step can be used for compressing both file and folder artifacts.</p>
+        <p>A step used for compressing artifacts.</p>
       </FormElements.Right>
     </FormElements.Container>
   );

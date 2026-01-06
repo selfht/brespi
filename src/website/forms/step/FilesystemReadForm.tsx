@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { ReactNode } from "react";
 
 enum Field {
   path = "path",
@@ -24,6 +25,17 @@ const Label: Record<Field, string> = {
   [Field.filterCriteria_name]: "Filter: name",
   [Field.filterCriteria_nameGlob]: "Filter: name glob",
   [Field.filterCriteria_nameRegex]: "Filter: name regex",
+};
+const Description: Record<Field, ReactNode> = {
+  [Field.path]: "This field specifies the local filesystem path to read from.",
+  [Field.managedStorage]: "This field enables reading from a versioned managed storage location.",
+  [Field.managedStorage_target]: "This field specifies whether to read the latest version or a specific version.",
+  [Field.managedStorage_version]: "This field specifies which version to read when using specific version targeting.",
+  [Field.filterCriteria]: "This field enables filtering artifacts by name when reading from managed storage.",
+  [Field.filterCriteria_method]: "This field specifies the matching method to use for filtering.",
+  [Field.filterCriteria_name]: "This field specifies the exact artifact name to match.",
+  [Field.filterCriteria_nameGlob]: "This field specifies the glob pattern to match artifact names.",
+  [Field.filterCriteria_nameRegex]: "This field specifies the regex pattern to match artifact names.",
 };
 
 type Form = {
@@ -98,8 +110,8 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
-      <FormElements.Left stepType={Step.Type.filesystem_read}>
-        <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
+      <FormElements.Left>
+        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.path}
             label={managedStorage === "true" ? `Folder ${Label[Field.path].toLowerCase()}` : Label[Field.path]}
@@ -199,11 +211,14 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
           onCancel={onCancel}
         />
       </FormElements.Left>
-      <FormElements.Right formState={formState} clearErrors={clearErrors}>
-        <p>This step can be used for reading from the local filesystem.</p>
-        <p>
-          The <strong className="font-bold">path</strong> references either a file or a folder.
-        </p>
+      <FormElements.Right
+        stepType={Step.Type.filesystem_read}
+        formState={formState}
+        clearErrors={clearErrors}
+        fieldDescriptions={Description}
+        fieldCurrentlyActive={activeField}
+      >
+        <p>A step used for reading from the local filesystem.</p>
       </FormElements.Right>
     </FormElements.Container>
   );
