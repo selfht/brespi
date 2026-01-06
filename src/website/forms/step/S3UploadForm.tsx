@@ -1,4 +1,5 @@
 import { Step } from "@/models/Step";
+import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
@@ -70,17 +71,60 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
       });
     }
   };
-  const { LabeledInput } = FormElements.useLabeledInput(Label, register);
+
+  const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.s3_upload}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.connection_bucket} input={{ type: "text" }} />
-          <LabeledInput field={Field.connection_region} input={{ type: "text" }} />
-          <LabeledInput field={Field.connection_endpoint} input={{ type: "text" }} />
-          <LabeledInput field={Field.connection_accessKeyReference} input={{ type: "text" }} />
-          <LabeledInput field={Field.connection_secretKeyReference} input={{ type: "text" }} />
-          <LabeledInput field={Field.baseFolder} input={{ type: "text" }} />
+          <FormElements.LabeledInput
+            field={Field.connection_bucket}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "text" }}
+          />
+          <FormElements.LabeledInput
+            field={Field.connection_region}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "text" }}
+          />
+          <FormElements.LabeledInput
+            field={Field.connection_endpoint}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "text" }}
+          />
+          <FormElements.LabeledInput
+            field={Field.connection_accessKeyReference}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "text" }}
+          />
+          <FormElements.LabeledInput
+            field={Field.connection_secretKeyReference}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "text" }}
+          />
+          <FormElements.LabeledInput
+            field={Field.baseFolder}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "text" }}
+          />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

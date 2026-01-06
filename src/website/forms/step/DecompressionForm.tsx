@@ -1,5 +1,6 @@
 import { Step } from "@/models/Step";
 import clsx from "clsx";
+import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
@@ -46,12 +47,20 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
       });
     }
   };
-  const { LabeledInput } = FormElements.useLabeledInput(Label, register);
+
+  const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.decompression}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.algorithm_implementation} input={{ type: "select", options: ["targzip"] }} />
+          <FormElements.LabeledInput
+            field={Field.algorithm_implementation}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "select", options: ["targzip"] }}
+          />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

@@ -1,6 +1,6 @@
 import { Step } from "@/models/Step";
 import clsx from "clsx";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { FieldValues, FormState, Path, UseFormRegister } from "react-hook-form";
 import { Button } from "../comps/Button";
 import { Icon } from "../comps/Icon";
@@ -89,23 +89,38 @@ export namespace FormElements {
       | { type: "number" }
       | { type: "select"; options: string[] };
   };
-  function LabeledInput<FORM extends FieldValues, F extends keyof FORM>(props: LabeledInputProps<FORM, F>) {
-    const { field, label, labels, register, activeField, input } = props;
-    const onFocus = () => {
-      // props.onActiveFieldChange(field);
-    };
-    const onLabelClick = () => {
-      if (field === activeField) {
-        // props.onActiveFieldChange(undefined);
-      }
-    };
-
+  export function LabeledInput<FORM extends FieldValues, F extends keyof FORM>({
+    field,
+    label,
+    labels,
+    register,
+    input,
+    activeField,
+    onActiveFieldChange,
+  }: LabeledInputProps<FORM, F>) {
     const fieldStr = field.toString();
     const fieldPath = field as unknown as Path<FORM>;
+    const labelRef = useRef<HTMLLabelElement>(null);
+
+    const activateField = () => {
+      onActiveFieldChange(field);
+    };
+    useEffect(() => {
+      const deactivateField = (event: PointerEvent) => {
+        if (field === activeField) {
+          const clickedLabelOrInput = event.target === labelRef.current || event.target === document.getElementById(fieldStr);
+          if (!clickedLabelOrInput) {
+            console.log("Bye!");
+            onActiveFieldChange(undefined);
+          }
+        }
+      };
+      window.addEventListener("click", deactivateField);
+      return () => window.removeEventListener("click", deactivateField);
+    }, [activeField]);
 
     // Determine the label to display
     const displayLabel = label ?? labels[field];
-
     // If it's a string with a colon, split and style the prefix
     const renderedLabel =
       typeof displayLabel === "string" && displayLabel.includes(":")
@@ -126,10 +141,10 @@ export namespace FormElements {
       <div className="flex items-center">
         <label
           htmlFor={fieldStr}
-          className={clsx("w-72 cursor-pointer", {
-            "underline underline-offset-2 decoration-2 decoration-c-info": field === activeField,
+          className={clsx("w-72 text-lg cursor-pointer select-none", {
+            "underline underline-offset-4 decoration-3 decoration-c-info": field === activeField,
           })}
-          onClick={onLabelClick}
+          ref={labelRef}
         >
           {renderedLabel}
         </label>
@@ -138,7 +153,7 @@ export namespace FormElements {
             type="text"
             id={fieldStr}
             className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-            onFocus={onFocus}
+            onFocus={activateField}
             {...register(fieldPath)}
           />
         )}
@@ -147,12 +162,12 @@ export namespace FormElements {
             type="number"
             id={fieldStr}
             className="rounded flex-1 p-2 bg-c-dim/20 font-mono"
-            onFocus={onFocus}
+            onFocus={activateField}
             {...register(fieldPath, { valueAsNumber: true })}
           />
         )}
         {input.type === "select" && (
-          <select id={fieldStr} className="rounded flex-1 p-2 bg-c-dim/20 font-mono" onFocus={onFocus} {...register(fieldPath)}>
+          <select id={fieldStr} className="rounded flex-1 p-2 bg-c-dim/20 font-mono" onFocus={activateField} {...register(fieldPath)}>
             {input.options.map((opt) => (
               <option key={opt} value={opt}>
                 {opt}
@@ -164,17 +179,11 @@ export namespace FormElements {
     );
   }
 
-  export function useLabeledInput<FORM extends FieldValues>(labels: Record<keyof FORM, string>, register: UseFormRegister<FORM>) {
+  export function useActiveField<FORM extends FieldValues>() {
     const [activeField, setActiveField] = useState<keyof FORM>();
-
-    type BoundLabeledInputProps<F extends FieldValues> = Pick<LabeledInputProps<F, any>, "field" | "label" | "input">;
-    function BoundLabeledInput<F extends keyof FORM>(props: BoundLabeledInputProps<F extends FieldValues ? F : never>) {
-      return LabeledInput<FORM, F>({ ...props, labels, register, activeField, onActiveFieldChange: setActiveField });
-    }
-
     return {
       activeField,
-      LabeledInput: BoundLabeledInput,
+      setActiveField,
     };
   }
 }

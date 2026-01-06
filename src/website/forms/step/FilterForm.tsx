@@ -1,4 +1,5 @@
 import { Step } from "@/models/Step";
+import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
@@ -60,18 +61,52 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
       });
     }
   };
-  const { LabeledInput } = FormElements.useLabeledInput(Label, register);
 
   const filterCriteriaMethod = watch(Field.filterCriteria_method);
   const filterCriteriaMethodOptions: Array<typeof filterCriteriaMethod> = ["exact", "glob", "regex"];
+  const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.filter}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.filterCriteria_method} input={{ type: "select", options: filterCriteriaMethodOptions }} />
-          {filterCriteriaMethod === "exact" && <LabeledInput field={Field.filterCriteria_name} input={{ type: "text" }} />}
-          {filterCriteriaMethod === "glob" && <LabeledInput field={Field.filterCriteria_nameGlob} input={{ type: "text" }} />}
-          {filterCriteriaMethod === "regex" && <LabeledInput field={Field.filterCriteria_nameRegex} input={{ type: "text" }} />}
+          <FormElements.LabeledInput
+            field={Field.filterCriteria_method}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "select", options: filterCriteriaMethodOptions }}
+          />
+          {filterCriteriaMethod === "exact" && (
+            <FormElements.LabeledInput
+              field={Field.filterCriteria_name}
+              labels={Label}
+              register={register}
+              activeField={activeField}
+              onActiveFieldChange={setActiveField}
+              input={{ type: "text" }}
+            />
+          )}
+          {filterCriteriaMethod === "glob" && (
+            <FormElements.LabeledInput
+              field={Field.filterCriteria_nameGlob}
+              labels={Label}
+              register={register}
+              activeField={activeField}
+              onActiveFieldChange={setActiveField}
+              input={{ type: "text" }}
+            />
+          )}
+          {filterCriteriaMethod === "regex" && (
+            <FormElements.LabeledInput
+              field={Field.filterCriteria_nameRegex}
+              labels={Label}
+              register={register}
+              activeField={activeField}
+              onActiveFieldChange={setActiveField}
+              input={{ type: "text" }}
+            />
+          )}
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

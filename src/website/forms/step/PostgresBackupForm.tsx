@@ -1,4 +1,5 @@
 import { Step } from "@/models/Step";
+import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
@@ -94,22 +95,75 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
 
   const toolkitResolution = watch(Field.toolkit_resolution);
   const databaseSelectionStrategy = watch(Field.databaseSelection_strategy);
-  const { LabeledInput } = FormElements.useLabeledInput(Label, register);
+  const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.postgres_backup}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.connectionReference} input={{ type: "text" }} />
-          <LabeledInput field={Field.toolkit_resolution} input={{ type: "select", options: ["automatic", "manual"] }} />
+          <FormElements.LabeledInput
+            field={Field.connectionReference}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "text" }}
+          />
+          <FormElements.LabeledInput
+            field={Field.toolkit_resolution}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "select", options: ["automatic", "manual"] }}
+          />
           {toolkitResolution === "manual" && (
             <>
-              <LabeledInput field={Field.toolkit_psql} input={{ type: "text" }} />
-              <LabeledInput field={Field.toolkit_pg_dump} input={{ type: "text" }} />
+              <FormElements.LabeledInput
+                field={Field.toolkit_psql}
+                labels={Label}
+                register={register}
+                activeField={activeField}
+                onActiveFieldChange={setActiveField}
+                input={{ type: "text" }}
+              />
+              <FormElements.LabeledInput
+                field={Field.toolkit_pg_dump}
+                labels={Label}
+                register={register}
+                activeField={activeField}
+                onActiveFieldChange={setActiveField}
+                input={{ type: "text" }}
+              />
             </>
           )}
-          <LabeledInput field={Field.databaseSelection_strategy} input={{ type: "select", options: ["all", "include", "exclude"] }} />
-          {databaseSelectionStrategy === "include" && <LabeledInput field={Field.databaseSelection_inclusions} input={{ type: "text" }} />}
-          {databaseSelectionStrategy === "exclude" && <LabeledInput field={Field.databaseSelection_exclusions} input={{ type: "text" }} />}
+          <FormElements.LabeledInput
+            field={Field.databaseSelection_strategy}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "select", options: ["all", "include", "exclude"] }}
+          />
+          {databaseSelectionStrategy === "include" && (
+            <FormElements.LabeledInput
+              field={Field.databaseSelection_inclusions}
+              labels={Label}
+              register={register}
+              activeField={activeField}
+              onActiveFieldChange={setActiveField}
+              input={{ type: "text" }}
+            />
+          )}
+          {databaseSelectionStrategy === "exclude" && (
+            <FormElements.LabeledInput
+              field={Field.databaseSelection_exclusions}
+              labels={Label}
+              register={register}
+              activeField={activeField}
+              onActiveFieldChange={setActiveField}
+              input={{ type: "text" }}
+            />
+          )}
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

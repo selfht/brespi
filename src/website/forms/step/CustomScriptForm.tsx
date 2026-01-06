@@ -1,4 +1,5 @@
 import { Step } from "@/models/Step";
+import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
@@ -31,6 +32,7 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
       [Field.passthrough]: existing ? (existing.passthrough ? "true" : "false") : "false",
     } satisfies Form,
   });
+
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
     try {
@@ -48,13 +50,28 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
       });
     }
   };
-  const { LabeledInput } = FormElements.useLabeledInput(Label, register);
+
+  const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.custom_script}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.path} input={{ type: "text" }} />
-          <LabeledInput field={Field.passthrough} input={{ type: "select", options: ["true", "false"] }} />
+          <FormElements.LabeledInput
+            field={Field.path}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "text" }}
+          />
+          <FormElements.LabeledInput
+            field={Field.passthrough}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "select", options: ["true", "false"] }}
+          />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

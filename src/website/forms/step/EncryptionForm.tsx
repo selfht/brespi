@@ -1,5 +1,6 @@
 import { Step } from "@/models/Step";
 import clsx from "clsx";
+import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
@@ -51,13 +52,28 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
       });
     }
   };
-  const { LabeledInput } = FormElements.useLabeledInput(Label, register);
+
+  const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
       <FormElements.Left stepType={Step.Type.encryption}>
         <fieldset disabled={formState.isSubmitting} className="mt-8 flex flex-col gap-4">
-          <LabeledInput field={Field.keyReference} input={{ type: "text" }} />
-          <LabeledInput field={Field.algorithm_implementation} input={{ type: "select", options: ["aes256cbc"] }} />
+          <FormElements.LabeledInput
+            field={Field.keyReference}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "text" }}
+          />
+          <FormElements.LabeledInput
+            field={Field.algorithm_implementation}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "select", options: ["aes256cbc"] }}
+          />
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"
