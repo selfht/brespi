@@ -109,7 +109,8 @@ export namespace StepDetails {
           [F.connection_endpoint]: step.connection.endpoint,
           [F.connection_accessKeyReference]: step.connection.accessKeyReference,
           [F.connection_secretKeyReference]: step.connection.secretKeyReference,
-          [F.baseFolder]: step.baseFolder,
+          [F.managedStorage]: true,
+          [F.managedStorage_baseFolder]: step.baseFolder,
         });
       }
       case Step.Type.s3_download: {
@@ -120,8 +121,8 @@ export namespace StepDetails {
           [F.connection_endpoint]: step.connection.endpoint,
           [F.connection_accessKeyReference]: step.connection.accessKeyReference,
           [F.connection_secretKeyReference]: step.connection.secretKeyReference,
-          [F.baseFolder]: step.baseFolder,
-          managedStorage: true,
+          [F.managedStorage]: true,
+          [F.managedStorage_baseFolder]: step.baseFolder,
           [F.managedStorage_target]: step.managedStorage.target,
           [F.managedStorage_version]: step.managedStorage.target === "specific" ? step.managedStorage.version : undefined,
           filterCriteria: Boolean(step.filterCriteria),
@@ -138,9 +139,9 @@ export namespace StepDetails {
           [F.toolkit_resolution]: step.toolkit.resolution,
           [F.toolkit_psql]: step.toolkit.resolution === "manual" ? step.toolkit.psql : undefined,
           [F.toolkit_pg_dump]: step.toolkit.resolution === "manual" ? step.toolkit.pg_dump : undefined,
-          [F.databaseSelection_strategy]: step.databaseSelection.strategy,
-          [F.databaseSelection_inclusions]: step.databaseSelection.strategy === "include" ? step.databaseSelection.inclusions : undefined,
-          [F.databaseSelection_exclusions]: step.databaseSelection.strategy === "exclude" ? step.databaseSelection.exclusions : undefined,
+          [F.databaseSelection_strategy]: step.databaseSelection.method,
+          [F.databaseSelection_inclusions]: step.databaseSelection.method === "include" ? step.databaseSelection.inclusions : undefined,
+          [F.databaseSelection_exclusions]: step.databaseSelection.method === "exclude" ? step.databaseSelection.exclusions : undefined,
         });
       }
       case Step.Type.postgres_restore: {

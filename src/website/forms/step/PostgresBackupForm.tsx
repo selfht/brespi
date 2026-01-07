@@ -5,42 +5,54 @@ import { FormHelper } from "../FormHelper";
 
 const { summary, Field, Label, Description } = FormHelper.meta({
   summary: (
-    <p>
-      Used for creating PostgreSQL backups using <FormElements.Code noBreak>pg_dump</FormElements.Code>.
-    </p>
+    <>
+      Used for creating Postgres backups using <FormElements.Code>pg_dump</FormElements.Code>.
+    </>
   ),
   fields: {
     connectionReference: {
       label: "Connection reference",
       description: (
-        <p>
-          This field specifies which environment variable contains the PostgreSQL connection string in the form{" "}
-          <FormElements.Code>postgresql://username:password@hostname:5432</FormElements.Code>.
-        </p>
+        <>
+          This field specifies which environment variable contains the Postgres connection string in the format{" "}
+          <FormElements.Code break>postgresql://username:password@hostname:5432</FormElements.Code>.
+        </>
       ),
     },
     toolkit_resolution: {
       label: "Toolkit resolution",
-      description: "This field specifies whether to automatically detect or manually specify PostgreSQL tools.",
+      description: (
+        <>
+          This field specifies how to find Postgres executables (like <FormElements.Code>psql</FormElements.Code>).
+        </>
+      ),
     },
     toolkit_psql: {
-      label: "Toolkit: 'psql' path",
-      description: "This field specifies the path to the psql executable when using manual toolkit resolution.",
+      label: 'Toolkit: "psql" path',
+      description: (
+        <>
+          This field specifies where to find the <FormElements.Code>psql</FormElements.Code> executable.
+        </>
+      ),
     },
     toolkit_pg_dump: {
-      label: "Toolkit: 'pg_dump' path",
-      description: "This field specifies the path to the pg_dump executable when using manual toolkit resolution.",
+      label: 'Toolkit: "pg_dump" path',
+      description: (
+        <>
+          This field specifies where to find the <FormElements.Code>pg_dump</FormElements.Code> executable.
+        </>
+      ),
     },
     databaseSelection_strategy: {
-      label: "Database selection",
-      description: "This field specifies which databases to backup (all, include list, or exclude list).",
+      label: "Database selection method",
+      description: "This field specifies whether to backup all databases, or only a selection.",
     },
     databaseSelection_inclusions: {
-      label: "Database: inclusions",
+      label: "Database selection: inclusions",
       description: "This field specifies comma-separated database names to include in the backup.",
     },
     databaseSelection_exclusions: {
-      label: "Database: exclusions",
+      label: "Database selection: exclusions",
       description: "This field specifies comma-separated database names to exclude from the backup.",
     },
   },
@@ -70,11 +82,11 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
       [Field.toolkit_resolution]: existing?.toolkit.resolution ?? "automatic",
       [Field.toolkit_psql]: existing?.toolkit.resolution === "manual" ? existing.toolkit.psql : "",
       [Field.toolkit_pg_dump]: existing?.toolkit.resolution === "manual" ? existing.toolkit.pg_dump : "",
-      [Field.databaseSelection_strategy]: existing?.databaseSelection.strategy ?? "all",
+      [Field.databaseSelection_strategy]: existing?.databaseSelection.method ?? "all",
       [Field.databaseSelection_inclusions]:
-        existing?.databaseSelection.strategy === "include" ? existing.databaseSelection.inclusions.join(",") : "",
+        existing?.databaseSelection.method === "include" ? existing.databaseSelection.inclusions.join(",") : "",
       [Field.databaseSelection_exclusions]:
-        existing?.databaseSelection.strategy === "exclude" ? existing.databaseSelection.exclusions.join(",") : "",
+        existing?.databaseSelection.method === "exclude" ? existing.databaseSelection.exclusions.join(",") : "",
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -97,15 +109,15 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
         databaseSelection:
           form[Field.databaseSelection_strategy] === "all"
             ? {
-                strategy: "all",
+                method: "all",
               }
             : form[Field.databaseSelection_strategy] === "include"
               ? {
-                  strategy: "include",
+                  method: "include",
                   inclusions: form[Field.databaseSelection_inclusions].split(",").filter(Boolean),
                 }
               : {
-                  strategy: "exclude",
+                  method: "exclude",
                   exclusions: form[Field.databaseSelection_exclusions].split(",").filter(Boolean),
                 },
       });

@@ -308,7 +308,7 @@ export namespace Test {
           connectionReference: "MY_POSTGRES_URL",
           toolkit: { resolution: "automatic" },
           databaseSelection: {
-            strategy: "all",
+            method: "all",
           },
           ...common,
         };

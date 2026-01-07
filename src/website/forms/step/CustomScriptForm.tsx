@@ -15,8 +15,9 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       description: (
         <p>
           By default, artifacts "pass through" this step without transformation. Disable "passthrough" to receive incoming artifacts inside
-          a folder <FormElements.Code>$BRESPI_ARTIFACTS_IN</FormElements.Code>, in which case the provided bash script will be responsible
-          for placing (tranformed) artifacts inside the folder <FormElements.Code>$BRESPI_ARTIFACTS_OUT</FormElements.Code>.
+          a folder <FormElements.Code break>$BRESPI_ARTIFACTS_IN</FormElements.Code>, in which case the provided bash script will be
+          responsible for placing (tranformed) artifacts inside the folder{" "}
+          <FormElements.Code break>$BRESPI_ARTIFACTS_OUT</FormElements.Code>.
         </p>
       ),
     },

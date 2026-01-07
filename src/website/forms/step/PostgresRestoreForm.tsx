@@ -4,27 +4,48 @@ import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 const { summary, Field, Label, Description } = FormHelper.meta({
-  summary: "Used for restoring PostgreSQL databases from a backup artifact using pg_restore.",
+  summary: (
+    <>
+      Used for restoring a Postgres database from a backup artifact using <FormElements.Code>pg_restore</FormElements.Code>.
+    </>
+  ),
   fields: {
     connectionReference: {
       label: "Connection reference",
-      description: "This field specifies which environment variable contains the PostgreSQL connection string.",
+      description: (
+        <>
+          This field specifies which environment variable contains the Postgres connection string in the format{" "}
+          <FormElements.Code break>postgresql://username:password@hostname:5432</FormElements.Code>.
+        </>
+      ),
     },
     toolkit_resolution: {
       label: "Toolkit resolution",
-      description: "This field specifies whether to automatically detect or manually specify PostgreSQL tools.",
+      description: (
+        <>
+          This field specifies how to find Postgres executables (like <FormElements.Code>psql</FormElements.Code>).
+        </>
+      ),
     },
     toolkit_psql: {
-      label: "Toolkit: 'psql' path",
-      description: "This field specifies the path to the psql executable when using manual toolkit resolution.",
+      label: 'Toolkit: "psql" path',
+      description: (
+        <>
+          This field specifies where to find the <FormElements.Code>psql</FormElements.Code> executable.
+        </>
+      ),
     },
     toolkit_pg_restore: {
-      label: "Toolkit: 'pg_restore' path",
-      description: "This field specifies the path to the pg_restore executable when using manual toolkit resolution.",
+      label: 'Toolkit: "pg_restore" path',
+      description: (
+        <>
+          This field specifies where to find the <FormElements.Code>pg_restore</FormElements.Code> executable.
+        </>
+      ),
     },
     database: {
       label: "Database",
-      description: "This field specifies the target database name to restore into.",
+      description: "This field specifies the name of the target database to restore into.",
     },
   },
 });

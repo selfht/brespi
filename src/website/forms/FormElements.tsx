@@ -63,10 +63,10 @@ export namespace FormElements {
 
   type CodeProps = {
     children: string;
-    noBreak?: boolean;
+    break?: boolean;
   };
-  export function Code({ children, noBreak = false }: CodeProps) {
-    return <code className={clsx("text-c-dim whitespace-normal", { "break-all": !noBreak })}>{children}</code>;
+  export function Code({ children, break: breakAll = true }: CodeProps) {
+    return <code className={clsx("text-c-dim whitespace-normal", { "break-all": breakAll })}>{children}</code>;
   }
 
   type ButtonBarProps = {
@@ -105,6 +105,7 @@ export namespace FormElements {
     input:
       | { type: "text" } //
       | { type: "number" }
+      | { type: "yes" }
       | { type: "yesno" }
       | { type: "select"; options: string[] | Array<{ label: string; value: string }> };
   };
@@ -121,6 +122,12 @@ export namespace FormElements {
     const fieldPath = field as unknown as Path<FORM>;
     const labelRef = useRef<HTMLLabelElement>(null);
 
+    if (input.type === "yes") {
+      input = {
+        type: "select",
+        options: [{ label: "yes", value: "true" }],
+      };
+    }
     if (input.type === "yesno") {
       input = {
         type: "select",
