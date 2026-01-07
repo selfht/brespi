@@ -61,8 +61,11 @@ describe(FilesystemAdapter.name, async () => {
     { storageMethod: "normal" },
     { storageMethod: "managed" },
   ]);
-  it.each(collection.testCases)("merges (and overwrites) with an existing folder when writing artifacts: method=%s", (testCase) => {
-    const { storageMethod } = collection.get(testCase);
-    throw new Error(storageMethod);
-  });
+  it.each(collection.testCases)(
+    "merges (and partially overwrites) with an existing folder when writing artifacts: %s storage",
+    (testCase) => {
+      const { storageMethod } = collection.get(testCase);
+      throw new Error(storageMethod);
+    },
+  );
 });
