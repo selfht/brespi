@@ -2,35 +2,25 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
-import { ReactNode } from "react";
 
-// const { Field, Label, Description } = FormHelper.fields({
-//   folderPath: {
-//     label: "Folder path",
-//     description: "This field specifies the local folder path where artifacts will be written.",
-//   },
-//   managedStorage: {
-//     label: "Use managed storage?",
-//     description: "This field enables writing to a managed storage location.",
-//   },
-// });
-enum Field {
-  folderPath = "folderPath",
-  managedStorage = "managedStorage",
-}
-const Label: Record<Field, string> = {
-  [Field.folderPath]: "Folder path",
-  [Field.managedStorage]: "Use managed storage?",
-};
-const Description: Record<Field, ReactNode> = {
-  [Field.folderPath]: "This field specifies the local filesystem path where artifacts will be written.",
-  [Field.managedStorage]: "This field enables writing to a versioned managed storage location.",
-};
-
+const { summary, Field, Label, Description } = FormHelper.meta({
+  summary: "A step used for writing to the local filesystem.",
+  fields: {
+    folderPath: {
+      label: "Folder path",
+      description: "This field specifies the local folder path where artifacts will be written.",
+    },
+    managedStorage: {
+      label: "Use managed storage?",
+      description: "This field enables writing to a managed storage location.",
+    },
+  },
+});
 type Form = {
   [Field.folderPath]: string;
   [Field.managedStorage]: "true" | "false";
 };
+
 type Props = {
   id: string;
   existing?: Step.FilesystemWrite;
@@ -102,7 +92,7 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >
-        <p>A step used for writing to the local filesystem.</p>
+        {summary}
       </FormElements.Right>
     </FormElements.Container>
   );

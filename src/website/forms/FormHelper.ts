@@ -2,27 +2,35 @@ import { ProblemDetails } from "@/models/ProblemDetails";
 import { ReactNode } from "react";
 
 export namespace FormHelper {
-  export function fields<T extends Record<string, { label: string; description: ReactNode }>>(
-    summary: T,
-  ): { Field: Record<keyof T, keyof T>; Label: Record<keyof T, string>; Description: Record<keyof T, ReactNode> } {
-    const Field = {} as Record<keyof T, keyof T>;
+  type FieldsMetaOptions = Record<string, { label: string; description: ReactNode }>;
+  type FieldsMetaResult<T extends FieldsMetaOptions> = {
+    summary: ReactNode;
+    Field: { [K in keyof T]: K };
+    Label: Record<keyof T, string>;
+    Description: Record<keyof T, ReactNode>;
+  };
+  export function meta<T extends FieldsMetaOptions>(details: { summary: ReactNode; fields: T }): FieldsMetaResult<T> {
+    const Field = {} as { [K in keyof T]: K };
     const Label = {} as Record<keyof T, string>;
     const Description = {} as Record<keyof T, ReactNode>;
-    Object.entries(summary).forEach(([key, value]) => {
-      Field[key as keyof T] = key;
+    Object.entries(details.fields).forEach(([key, value]) => {
+      Field[key as keyof T] = key as any;
       Label[key as keyof T] = value.label;
       Description[key as keyof T] = value.description;
     });
-    return { Field, Label, Description };
+    return { summary: details.summary, Field, Label, Description };
   }
+
   export async function snoozeBeforeSubmit(): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
+
   export function formatError(error: unknown): string {
     return ProblemDetails.isInstance(error)
       ? `${error.problem}${error.details ? ` ${JSON.stringify(error.details, null, 2)}` : ""}`
       : (error as Error).message;
   }
+
   export function generateStepId(): string {
     const length = 12;
     const alphabet = "abcdefghijklmnopqrstuvwxyz";
