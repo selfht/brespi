@@ -4,6 +4,16 @@ import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 import { ReactNode } from "react";
 
+// const { Field, Label, Description } = FormHelper.fields({
+//   folderPath: {
+//     label: "Folder path",
+//     description: "This field specifies the local folder path where artifacts will be written.",
+//   },
+//   managedStorage: {
+//     label: "Use managed storage?",
+//     description: "This field enables writing to a managed storage location.",
+//   },
+// });
 enum Field {
   folderPath = "folderPath",
   managedStorage = "managedStorage",
@@ -73,7 +83,7 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
             register={register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
-            input={{ type: "select", options: ["true", "false"] }}
+            input={{ type: "yesno" }}
           />
         </fieldset>
         <FormElements.ButtonBar

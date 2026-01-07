@@ -28,11 +28,13 @@ const Label: Record<Field, string> = {
 };
 const Description: Record<Field, ReactNode> = {
   [Field.path]: "This field specifies the local filesystem path to read from.",
-  [Field.managedStorage]: "This field enables reading from a versioned managed storage location.",
-  [Field.managedStorage_target]: "This field specifies whether to read the latest version or a specific version.",
-  [Field.managedStorage_version]: "This field specifies which version to read when using specific version targeting.",
-  [Field.filterCriteria]: "This field enables filtering artifacts by name when reading from managed storage.",
-  [Field.filterCriteria_method]: "This field specifies the matching method to use for filtering.",
+  [Field.managedStorage]:
+    "This field enables reading an artifact collection from a managed storage folder. If enabled, the path above must point to such a folder.",
+  [Field.managedStorage_target]:
+    "This field specifies whether to retrieve the latest version of an artifact collection, or a specific version.",
+  [Field.managedStorage_version]: "This field specifies which specific version to retrieve.",
+  [Field.filterCriteria]: "This field enables filtering artifacts by name when retrieving from managed storage.",
+  [Field.filterCriteria_method]: "This field specifies which matching method to use for filtering.",
   [Field.filterCriteria_name]: "This field specifies the exact artifact name to match.",
   [Field.filterCriteria_nameGlob]: "This field specifies the glob pattern to match artifact names.",
   [Field.filterCriteria_nameRegex]: "This field specifies the regex pattern to match artifact names.",
@@ -127,7 +129,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
             register={register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
-            input={{ type: "select", options: ["true", "false"] }}
+            input={{ type: "yesno" }}
           />
           {managedStorage === "true" && (
             <>
@@ -155,7 +157,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
                 register={register}
                 activeField={activeField}
                 onActiveFieldChange={setActiveField}
-                input={{ type: "select", options: ["true", "false"] }}
+                input={{ type: "yesno" }}
               />
               {filterCriteria === "true" && (
                 <>

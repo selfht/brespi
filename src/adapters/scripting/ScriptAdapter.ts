@@ -11,7 +11,7 @@ export class ScriptAdapter extends AbstractAdapter {
     super(env);
   }
 
-  public async execute(artifacts: Artifact[], step: Step.ScriptExecution): Promise<AdapterResult> {
+  public async execute(artifacts: Artifact[], step: Step.CustomScript): Promise<AdapterResult> {
     if (step.passthrough) {
       await this.executeScript(step.path);
       return AdapterResult.create(artifacts);

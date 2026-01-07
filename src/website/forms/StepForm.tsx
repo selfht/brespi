@@ -48,7 +48,7 @@ export function StepForm({ type, existing, onSave, ...props }: Props): JSX.Eleme
     case Step.Type.filter:
       return <FilterForm existing={existing as Step.Filter} onSave={validateAndSave} {...props} />;
     case Step.Type.custom_script:
-      return <CustomScriptForm existing={existing as Step.ScriptExecution} onSave={validateAndSave} {...props} />;
+      return <CustomScriptForm existing={existing as Step.CustomScript} onSave={validateAndSave} {...props} />;
     case Step.Type.filesystem_write:
       return <FilesystemWriteForm existing={existing as Step.FilesystemWrite} onSave={validateAndSave} {...props} />;
     case Step.Type.filesystem_read:

@@ -9,7 +9,7 @@ export type Step =
   | Step.FolderFlatten
   | Step.FolderGroup
   | Step.Filter
-  | Step.ScriptExecution
+  | Step.CustomScript
   | Step.FilesystemWrite
   | Step.FilesystemRead
   | Step.S3Upload
@@ -124,7 +124,7 @@ export namespace Step {
     filterCriteria: FilterCriteria;
   };
 
-  export type ScriptExecution = Common & {
+  export type CustomScript = Common & {
     type: Type.custom_script;
     path: string;
     passthrough: boolean;
@@ -273,7 +273,7 @@ export namespace Step {
           type: z.literal(Type.custom_script),
           path: z.string(),
           passthrough: z.boolean(),
-        } satisfies SubSchema<Step.ScriptExecution>),
+        } satisfies SubSchema<Step.CustomScript>),
 
         z.object({
           ...subSchema.common,

@@ -56,4 +56,12 @@ describe(FilesystemAdapter.name, async () => {
     expect(storage).toHaveLength(3);
     expect(storage).toEqual(expect.arrayContaining(["Set", "List", "Group"]));
   });
+
+  it("refuses to write (normally) to a non-empty folder", () => {
+    throw new Error("TODO: think this through");
+  });
+
+  it("refuses to write (managed) to a non-compliant folder", () => {
+    throw new Error("TODO: think this through");
+  });
 });

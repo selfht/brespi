@@ -260,7 +260,7 @@ export namespace Test {
         return step as Extract<Step, { type: T }>;
       }
       case Step.Type.custom_script: {
-        const step: Step.ScriptExecution = {
+        const step: Step.CustomScript = {
           type: Step.Type.custom_script,
           path: "/scripts/test.sh",
           passthrough: false,

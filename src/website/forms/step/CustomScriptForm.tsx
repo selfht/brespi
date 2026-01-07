@@ -13,8 +13,16 @@ const Label: Record<Field, string> = {
   [Field.passthrough]: "Passthrough?",
 };
 const Description: Record<Field, ReactNode> = {
-  [Field.path]: "This field specifies the local filesystem path to the bash script to execute.",
-  [Field.passthrough]: "This field enables passing through the original artifacts unchanged after script execution.",
+  [Field.path]: "This field specifies the local filesystem path to the bash script.",
+  [Field.passthrough]: (
+    <>
+      <p>
+        By default, artifacts "pass through" this step without transformation. Disable "passthrough" to receive incoming artifacts inside a
+        folder <code className="text-c-dim">$BRESPI_ARTIFACTS_IN</code>, in which case the provided bash script will be responsible for
+        placing tranformed artifacts inside the folder <code className="text-c-dim">$BRESPI_ARTIFACTS_OUT</code>.
+      </p>
+    </>
+  ),
 };
 
 type Form = {
@@ -23,8 +31,8 @@ type Form = {
 };
 type Props = {
   id: string;
-  existing?: Step.ScriptExecution;
-  onSave: (step: Step.ScriptExecution) => Promise<any>;
+  existing?: Step.CustomScript;
+  onSave: (step: Step.CustomScript) => Promise<any>;
   onDelete: (id: string) => unknown;
   onCancel: () => unknown;
   className?: string;
@@ -33,7 +41,7 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.path]: existing?.path ?? "",
-      [Field.passthrough]: existing ? (existing.passthrough ? "true" : "false") : "false",
+      [Field.passthrough]: existing ? (existing.passthrough ? "true" : "false") : "true",
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -73,7 +81,7 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
             register={register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
-            input={{ type: "select", options: ["true", "false"] }}
+            input={{ type: "yesno" }}
           />
         </fieldset>
         <FormElements.ButtonBar

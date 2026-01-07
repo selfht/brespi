@@ -47,7 +47,7 @@ const Description: Record<Field, ReactNode> = {
   [Field.managedStorage_target]: "This field specifies whether to download the latest version or a specific version.",
   [Field.managedStorage_version]: "This field specifies which version to download when using specific version targeting.",
   [Field.filterCriteria]: "This field enables filtering artifacts by name when downloading from managed storage.",
-  [Field.filterCriteria_method]: "This field specifies the matching method to use for filtering.",
+  [Field.filterCriteria_method]: "This field specifies which matching method to use for filtering.",
   [Field.filterCriteria_name]: "This field specifies the exact artifact name to match.",
   [Field.filterCriteria_nameGlob]: "This field specifies the glob pattern to match artifact names.",
   [Field.filterCriteria_nameRegex]: "This field specifies the regex pattern to match artifact names.",
@@ -221,7 +221,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
             register={register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
-            input={{ type: "select", options: ["true", "false"] }}
+            input={{ type: "yesno" }}
           />
           {filterCriteria === "true" ? (
             <>

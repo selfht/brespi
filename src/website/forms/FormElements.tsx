@@ -97,7 +97,8 @@ export namespace FormElements {
     input:
       | { type: "text" } //
       | { type: "number" }
-      | { type: "select"; options: string[] };
+      | { type: "yesno" }
+      | { type: "select"; options: string[] | Array<{ label: string; value: string }> };
   };
   export function LabeledInput<FORM extends FieldValues, F extends keyof FORM>({
     field,
@@ -111,6 +112,16 @@ export namespace FormElements {
     const fieldStr = field.toString();
     const fieldPath = field as unknown as Path<FORM>;
     const labelRef = useRef<HTMLLabelElement>(null);
+
+    if (input.type === "yesno") {
+      input = {
+        type: "select",
+        options: [
+          { label: "yes", value: "true" },
+          { label: "no", value: "false" },
+        ],
+      };
+    }
 
     const activateField = () => {
       onActiveFieldChange(field);
@@ -183,11 +194,15 @@ export namespace FormElements {
             onFocus={activateField}
             {...register(fieldPath)}
           >
-            {input.options.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
+            {input.options.map((opt) => {
+              const label: string = typeof opt === "string" ? opt : opt.label;
+              const value: string = typeof opt === "string" ? opt : opt.value;
+              return (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              );
+            })}
           </select>
         )}
       </div>

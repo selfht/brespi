@@ -17,7 +17,7 @@ const Label: Record<Field, string> = {
   [Field.filterCriteria_nameRegex]: "Name regex",
 };
 const Description: Record<Field, ReactNode> = {
-  [Field.filterCriteria_method]: "This field specifies the matching method to use for filtering artifacts.",
+  [Field.filterCriteria_method]: "This field specifies which matching method to use for filtering.",
   [Field.filterCriteria_name]: "This field specifies the exact artifact name to match.",
   [Field.filterCriteria_nameGlob]: "This field specifies the glob pattern to match artifact names.",
   [Field.filterCriteria_nameRegex]: "This field specifies the regex pattern to match artifact names.",
