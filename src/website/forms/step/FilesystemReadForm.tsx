@@ -2,44 +2,49 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
-import { ReactNode } from "react";
 
-enum Field {
-  path = "path",
-  managedStorage = "managedStorage",
-  managedStorage_target = "managedStorage_target",
-  managedStorage_version = "managedStorage_version",
-  filterCriteria = "filterCriteria",
-  filterCriteria_method = "filterCriteria_method",
-  filterCriteria_name = "filterCriteria_name",
-  filterCriteria_nameGlob = "filterCriteria_nameGlob",
-  filterCriteria_nameRegex = "filterCriteria_nameRegex",
-}
-const Label: Record<Field, string> = {
-  [Field.path]: "Path",
-  [Field.managedStorage]: "Use managed storage?",
-  [Field.managedStorage_target]: "Managed storage: target",
-  [Field.managedStorage_version]: "Managed storage: version",
-  [Field.filterCriteria]: "Use filter?",
-  [Field.filterCriteria_method]: "Filter: method",
-  [Field.filterCriteria_name]: "Filter: name",
-  [Field.filterCriteria_nameGlob]: "Filter: name glob",
-  [Field.filterCriteria_nameRegex]: "Filter: name regex",
-};
-const Description: Record<Field, ReactNode> = {
-  [Field.path]: "This field specifies the local filesystem path to read from.",
-  [Field.managedStorage]:
-    "This field enables reading an artifact collection from a managed storage folder. If enabled, the path above must point to such a folder.",
-  [Field.managedStorage_target]:
-    "This field specifies whether to retrieve the latest version of an artifact collection, or a specific version.",
-  [Field.managedStorage_version]: "This field specifies which specific version to retrieve.",
-  [Field.filterCriteria]: "This field enables filtering artifacts by name when retrieving from managed storage.",
-  [Field.filterCriteria_method]: "This field specifies which matching method to use for filtering.",
-  [Field.filterCriteria_name]: "This field specifies the exact artifact name to match.",
-  [Field.filterCriteria_nameGlob]: "This field specifies the glob pattern to match artifact names.",
-  [Field.filterCriteria_nameRegex]: "This field specifies the regex pattern to match artifact names.",
-};
-
+const { summary, Field, Label, Description } = FormHelper.meta({
+  summary: "Used for reading from the local filesystem.",
+  fields: {
+    path: {
+      label: "Path",
+      description: "This field specifies the local filesystem path to read from.",
+    },
+    managedStorage: {
+      label: "Use managed storage?",
+      description:
+        "This field enables reading an artifact collection from a managed storage folder. If enabled, the path above must point to such a folder.",
+    },
+    managedStorage_target: {
+      label: "Managed storage: target",
+      description: "This field specifies whether to retrieve the latest version of an artifact collection, or a specific version.",
+    },
+    managedStorage_version: {
+      label: "Managed storage: version",
+      description: "This field specifies which specific version to retrieve.",
+    },
+    filterCriteria: {
+      label: "Use filter?",
+      description: "This field enables filtering artifacts by name when retrieving from managed storage.",
+    },
+    filterCriteria_method: {
+      label: "Filter: method",
+      description: "This field specifies which matching method to use for filtering.",
+    },
+    filterCriteria_name: {
+      label: "Filter: name",
+      description: "This field specifies the exact artifact name to match.",
+    },
+    filterCriteria_nameGlob: {
+      label: "Filter: name glob",
+      description: "This field specifies the glob pattern to match artifact names.",
+    },
+    filterCriteria_nameRegex: {
+      label: "Filter: name regex",
+      description: "This field specifies the regex pattern to match artifact names.",
+    },
+  },
+});
 type Form = {
   [Field.path]: string;
   [Field.managedStorage]: "true" | "false";
@@ -51,6 +56,7 @@ type Form = {
   [Field.filterCriteria_nameGlob]: string;
   [Field.filterCriteria_nameRegex]: string;
 };
+
 type Props = {
   id: string;
   existing?: Step.FilesystemRead;
@@ -220,7 +226,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >
-        <p>A step used for reading from the local filesystem.</p>
+        {summary}
       </FormElements.Right>
     </FormElements.Container>
   );

@@ -46,19 +46,27 @@ export namespace FormElements {
           <div className="flex flex-col items-start">
             <h1 className="mb-4 text-2xl font-extralight text-c-dim">{StepDescription.forType(stepType)}</h1>
             <div className="mb-2 text-lg">{children}</div>
-            {Object.entries(fieldDescriptions) ? (
+            {Object.entries(fieldDescriptions).length > 0 ? (
               fieldCurrentlyActive ? (
                 <p className="text-c-info">{fieldDescriptions[fieldCurrentlyActive]}</p>
               ) : (
-                <p className="text-c-dim italic">Select a field for more information.</p>
+                <p className="text-sm italic">Select a field on the left for more information.</p>
               )
             ) : (
-              <p className="text-c-dim italic">This step has no fields.</p>
+              <p className="text-sm italic">This step has no configurable fields.</p>
             )}
           </div>
         )}
       </div>
     );
+  }
+
+  type CodeProps = {
+    children: string;
+    noBreak?: boolean;
+  };
+  export function Code({ children, noBreak = false }: CodeProps) {
+    return <code className={clsx("text-c-dim whitespace-normal", { "break-all": !noBreak })}>{children}</code>;
   }
 
   type ButtonBarProps = {
@@ -131,7 +139,6 @@ export namespace FormElements {
         if (field === activeField) {
           const clickedLabelOrInput = event.target === labelRef.current || event.target === document.getElementById(fieldStr);
           if (!clickedLabelOrInput) {
-            console.log("Bye!");
             onActiveFieldChange(undefined);
           }
         }

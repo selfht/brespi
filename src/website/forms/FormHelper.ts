@@ -18,7 +18,12 @@ export namespace FormHelper {
       Label[key as keyof T] = value.label;
       Description[key as keyof T] = value.description;
     });
-    return { summary: details.summary, Field, Label, Description };
+    return {
+      summary: details.summary,
+      Field,
+      Label,
+      Description,
+    };
   }
 
   export async function snoozeBeforeSubmit(): Promise<void> {

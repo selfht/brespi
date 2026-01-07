@@ -2,33 +2,36 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
-import { ReactNode } from "react";
 
-enum Field {
-  connection_bucket = "connection_bucket",
-  connection_region = "connection_region",
-  connection_endpoint = "connection_endpoint",
-  connection_accessKeyReference = "connection_accessKeyReference",
-  connection_secretKeyReference = "connection_secretKeyReference",
-  baseFolder = "baseFolder",
-}
-const Label: Record<Field, string> = {
-  [Field.connection_bucket]: "Bucket",
-  [Field.connection_region]: "Region",
-  [Field.connection_endpoint]: "Endpoint",
-  [Field.connection_accessKeyReference]: "Access key reference",
-  [Field.connection_secretKeyReference]: "Secret key reference",
-  [Field.baseFolder]: "Base folder",
-};
-const Description: Record<Field, ReactNode> = {
-  [Field.connection_bucket]: "This field specifies the S3 bucket name to upload to.",
-  [Field.connection_region]: "This field specifies the AWS region for the S3 bucket.",
-  [Field.connection_endpoint]: "This field specifies the S3-compatible endpoint URL.",
-  [Field.connection_accessKeyReference]: "This field specifies which environment variable contains the S3 access key.",
-  [Field.connection_secretKeyReference]: "This field specifies which environment variable contains the S3 secret key.",
-  [Field.baseFolder]: "This field specifies the S3 path prefix where artifacts will be uploaded.",
-};
-
+const { summary, Field, Label, Description } = FormHelper.meta({
+  summary: "Used for uploading artifacts to S3-compatible storage.",
+  fields: {
+    connection_bucket: {
+      label: "Bucket",
+      description: "This field specifies the S3 bucket name to upload to.",
+    },
+    connection_region: {
+      label: "Region",
+      description: "This field specifies the AWS region for the S3 bucket.",
+    },
+    connection_endpoint: {
+      label: "Endpoint",
+      description: "This field specifies the S3-compatible endpoint URL.",
+    },
+    connection_accessKeyReference: {
+      label: "Access key reference",
+      description: "This field specifies which environment variable contains the S3 access key.",
+    },
+    connection_secretKeyReference: {
+      label: "Secret key reference",
+      description: "This field specifies which environment variable contains the S3 secret key.",
+    },
+    baseFolder: {
+      label: "Base folder",
+      description: "This field specifies the S3 path prefix where artifacts will be uploaded.",
+    },
+  },
+});
 type Form = {
   [Field.connection_bucket]: string;
   [Field.connection_region]: string;
@@ -37,6 +40,7 @@ type Form = {
   [Field.connection_secretKeyReference]: string;
   [Field.baseFolder]: string;
 };
+
 type Props = {
   id: string;
   existing?: Step.S3Upload;
@@ -150,7 +154,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >
-        <p>A step used for uploading artifacts to S3-compatible storage.</p>
+        {summary}
       </FormElements.Right>
     </FormElements.Container>
   );

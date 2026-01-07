@@ -2,25 +2,25 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
-import { ReactNode } from "react";
 
-enum Field {
-  algorithm_implementation = "algorithm_implementation",
-  algorithm_targzip_level = "algorithm_targzip_level",
-}
-const Label: Record<Field, string> = {
-  [Field.algorithm_implementation]: "Algorithm",
-  [Field.algorithm_targzip_level]: "Algorithm: compression level",
-};
-const Description: Record<Field, ReactNode> = {
-  [Field.algorithm_implementation]: "This field specifies which compression algorithm to use.",
-  [Field.algorithm_targzip_level]: "This field specifies the tar/gzip compression level.",
-};
-
+const { summary, Field, Label, Description } = FormHelper.meta({
+  summary: "Used for compressing artifacts.",
+  fields: {
+    algorithm_implementation: {
+      label: "Algorithm",
+      description: "This field specifies which compression algorithm to use.",
+    },
+    algorithm_targzip_level: {
+      label: "Algorithm: compression level",
+      description: "This field specifies the tar/gzip compression level.",
+    },
+  },
+});
 type Form = {
   [Field.algorithm_implementation]: "targzip";
   [Field.algorithm_targzip_level]: number;
 };
+
 type Props = {
   id: string;
   existing?: Step.Compression;
@@ -94,7 +94,7 @@ export function CompressionForm({ id, existing, onSave, onDelete, onCancel, clas
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >
-        <p>A step used for compressing artifacts.</p>
+        {summary}
       </FormElements.Right>
     </FormElements.Container>
   );

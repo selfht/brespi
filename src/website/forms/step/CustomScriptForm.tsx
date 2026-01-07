@@ -2,33 +2,31 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
-import { ReactNode } from "react";
 
-enum Field {
-  path = "path",
-  passthrough = "passthrough",
-}
-const Label: Record<Field, string> = {
-  [Field.path]: "Script path",
-  [Field.passthrough]: "Passthrough?",
-};
-const Description: Record<Field, ReactNode> = {
-  [Field.path]: "This field specifies the local filesystem path to the bash script.",
-  [Field.passthrough]: (
-    <>
-      <p>
-        By default, artifacts "pass through" this step without transformation. Disable "passthrough" to receive incoming artifacts inside a
-        folder <code className="text-c-dim">$BRESPI_ARTIFACTS_IN</code>, in which case the provided bash script will be responsible for
-        placing tranformed artifacts inside the folder <code className="text-c-dim">$BRESPI_ARTIFACTS_OUT</code>.
-      </p>
-    </>
-  ),
-};
-
+const { summary, Field, Label, Description } = FormHelper.meta({
+  summary: "Used for executing a custom bash script, with the possiblity of generating, transforming or otherwise processing artifacts.",
+  fields: {
+    path: {
+      label: "Script path",
+      description: "This field specifies the local filesystem path to the bash script.",
+    },
+    passthrough: {
+      label: "Passthrough?",
+      description: (
+        <p>
+          By default, artifacts "pass through" this step without transformation. Disable "passthrough" to receive incoming artifacts inside
+          a folder <FormElements.Code>$BRESPI_ARTIFACTS_IN</FormElements.Code>, in which case the provided bash script will be responsible
+          for placing (tranformed) artifacts inside the folder <FormElements.Code>$BRESPI_ARTIFACTS_OUT</FormElements.Code>.
+        </p>
+      ),
+    },
+  },
+});
 type Form = {
   [Field.path]: string;
   [Field.passthrough]: "true" | "false";
 };
+
 type Props = {
   id: string;
   existing?: Step.CustomScript;
@@ -100,7 +98,7 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >
-        <p>A step used for executing custom bash scripts, with the possiblity of generating, transform or processing artifacts.</p>
+        {summary}
       </FormElements.Right>
     </FormElements.Container>
   );

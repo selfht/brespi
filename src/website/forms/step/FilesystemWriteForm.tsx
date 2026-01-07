@@ -4,7 +4,7 @@ import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
 
 const { summary, Field, Label, Description } = FormHelper.meta({
-  summary: "A step used for writing to the local filesystem.",
+  summary: "Used for writing to the local filesystem.",
   fields: {
     folderPath: {
       label: "Folder path",
@@ -12,7 +12,8 @@ const { summary, Field, Label, Description } = FormHelper.meta({
     },
     managedStorage: {
       label: "Use managed storage?",
-      description: "This field enables writing to a managed storage location.",
+      description:
+        "This field enables writing to a managed storage folder. When provided with an empty folder path, managed storage will be initialized upon first execution.",
     },
   },
 });

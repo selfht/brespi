@@ -2,36 +2,49 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
-import { ReactNode } from "react";
 
-enum Field {
-  connectionReference = "connectionReference",
-  toolkit_resolution = "toolkit_resolution",
-  toolkit_psql = "toolkit_psql",
-  toolkit_pg_dump = "toolkit_pg_dump",
-  databaseSelection_strategy = "databaseSelection_strategy",
-  databaseSelection_inclusions = "databaseSelection_inclusions",
-  databaseSelection_exclusions = "databaseSelection_exclusions",
-}
-const Label: Record<Field, string> = {
-  [Field.connectionReference]: "Connection reference",
-  [Field.toolkit_resolution]: "Toolkit resolution",
-  [Field.toolkit_psql]: "Toolkit: 'psql' path",
-  [Field.toolkit_pg_dump]: "Toolkit: 'pg_dump' path",
-  [Field.databaseSelection_strategy]: "Database selection",
-  [Field.databaseSelection_inclusions]: "Database: inclusions",
-  [Field.databaseSelection_exclusions]: "Database: exclusions",
-};
-const Description: Record<Field, ReactNode> = {
-  [Field.connectionReference]: "This field specifies which environment variable contains the PostgreSQL connection string.",
-  [Field.toolkit_resolution]: "This field specifies whether to automatically detect or manually specify PostgreSQL tools.",
-  [Field.toolkit_psql]: "This field specifies the path to the psql executable when using manual toolkit resolution.",
-  [Field.toolkit_pg_dump]: "This field specifies the path to the pg_dump executable when using manual toolkit resolution.",
-  [Field.databaseSelection_strategy]: "This field specifies which databases to backup (all, include list, or exclude list).",
-  [Field.databaseSelection_inclusions]: "This field specifies comma-separated database names to include in the backup.",
-  [Field.databaseSelection_exclusions]: "This field specifies comma-separated database names to exclude from the backup.",
-};
-
+const { summary, Field, Label, Description } = FormHelper.meta({
+  summary: (
+    <p>
+      Used for creating PostgreSQL backups using <FormElements.Code noBreak>pg_dump</FormElements.Code>.
+    </p>
+  ),
+  fields: {
+    connectionReference: {
+      label: "Connection reference",
+      description: (
+        <p>
+          This field specifies which environment variable contains the PostgreSQL connection string in the form{" "}
+          <FormElements.Code>postgresql://username:password@hostname:5432</FormElements.Code>.
+        </p>
+      ),
+    },
+    toolkit_resolution: {
+      label: "Toolkit resolution",
+      description: "This field specifies whether to automatically detect or manually specify PostgreSQL tools.",
+    },
+    toolkit_psql: {
+      label: "Toolkit: 'psql' path",
+      description: "This field specifies the path to the psql executable when using manual toolkit resolution.",
+    },
+    toolkit_pg_dump: {
+      label: "Toolkit: 'pg_dump' path",
+      description: "This field specifies the path to the pg_dump executable when using manual toolkit resolution.",
+    },
+    databaseSelection_strategy: {
+      label: "Database selection",
+      description: "This field specifies which databases to backup (all, include list, or exclude list).",
+    },
+    databaseSelection_inclusions: {
+      label: "Database: inclusions",
+      description: "This field specifies comma-separated database names to include in the backup.",
+    },
+    databaseSelection_exclusions: {
+      label: "Database: exclusions",
+      description: "This field specifies comma-separated database names to exclude from the backup.",
+    },
+  },
+});
 type Form = {
   [Field.connectionReference]: string;
   [Field.toolkit_resolution]: "automatic" | "manual";
@@ -41,6 +54,7 @@ type Form = {
   [Field.databaseSelection_inclusions]: string;
   [Field.databaseSelection_exclusions]: string;
 };
+
 type Props = {
   id: string;
   existing?: Step.PostgresBackup;
@@ -83,15 +97,15 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
         databaseSelection:
           form[Field.databaseSelection_strategy] === "all"
             ? {
-                strategy: form[Field.databaseSelection_strategy],
+                strategy: "all",
               }
             : form[Field.databaseSelection_strategy] === "include"
               ? {
-                  strategy: form[Field.databaseSelection_strategy],
+                  strategy: "include",
                   inclusions: form[Field.databaseSelection_inclusions].split(",").filter(Boolean),
                 }
               : {
-                  strategy: form[Field.databaseSelection_strategy],
+                  strategy: "exclude",
                   exclusions: form[Field.databaseSelection_exclusions].split(",").filter(Boolean),
                 },
       });
@@ -190,7 +204,7 @@ export function PostgresBackupForm({ id, existing, onSave, onDelete, onCancel, c
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >
-        <p>A step used for creating PostgreSQL backups using pg_dump.</p>
+        {summary}
       </FormElements.Right>
     </FormElements.Container>
   );

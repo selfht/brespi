@@ -2,57 +2,68 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
-import { ReactNode } from "react";
 
-enum Field {
-  connection_bucket = "connection_bucket",
-  connection_region = "connection_region",
-  connection_endpoint = "connection_endpoint",
-  connection_accessKeyReference = "connection_accessKeyReference",
-  connection_secretKeyReference = "connection_secretKeyReference",
-  baseFolder = "baseFolder",
-  managedStorage = "managedStorage",
-  managedStorage_target = "managedStorage_target",
-  managedStorage_version = "managedStorage_version",
-  filterCriteria = "filterCriteria",
-  filterCriteria_method = "filterCriteria_method",
-  filterCriteria_name = "filterCriteria_name",
-  filterCriteria_nameGlob = "filterCriteria_nameGlob",
-  filterCriteria_nameRegex = "filterCriteria_nameRegex",
-}
-const Label: Record<Field, string> = {
-  [Field.connection_bucket]: "Bucket",
-  [Field.connection_region]: "Region",
-  [Field.connection_endpoint]: "Endpoint",
-  [Field.connection_accessKeyReference]: "Access key reference",
-  [Field.connection_secretKeyReference]: "Secret key reference",
-  [Field.baseFolder]: "Base folder",
-  [Field.managedStorage]: "Use managed storage?",
-  [Field.managedStorage_target]: "Managed storage: target",
-  [Field.managedStorage_version]: "Managed storage: version",
-  [Field.filterCriteria]: "Use filter?",
-  [Field.filterCriteria_method]: "Filter: method",
-  [Field.filterCriteria_name]: "Filter: name",
-  [Field.filterCriteria_nameGlob]: "Filter: name glob",
-  [Field.filterCriteria_nameRegex]: "Filter: name regex",
-};
-const Description: Record<Field, ReactNode> = {
-  [Field.connection_bucket]: "This field specifies the S3 bucket name to download from.",
-  [Field.connection_region]: "This field specifies the AWS region for the S3 bucket.",
-  [Field.connection_endpoint]: "This field specifies the S3-compatible endpoint URL.",
-  [Field.connection_accessKeyReference]: "This field specifies which environment variable contains the S3 access key.",
-  [Field.connection_secretKeyReference]: "This field specifies which environment variable contains the S3 secret key.",
-  [Field.baseFolder]: "This field specifies the S3 path prefix where artifacts are stored.",
-  [Field.managedStorage]: "This field enables downloading from a versioned managed storage location.",
-  [Field.managedStorage_target]: "This field specifies whether to download the latest version or a specific version.",
-  [Field.managedStorage_version]: "This field specifies which version to download when using specific version targeting.",
-  [Field.filterCriteria]: "This field enables filtering artifacts by name when downloading from managed storage.",
-  [Field.filterCriteria_method]: "This field specifies which matching method to use for filtering.",
-  [Field.filterCriteria_name]: "This field specifies the exact artifact name to match.",
-  [Field.filterCriteria_nameGlob]: "This field specifies the glob pattern to match artifact names.",
-  [Field.filterCriteria_nameRegex]: "This field specifies the regex pattern to match artifact names.",
-};
-
+const { summary, Field, Label, Description } = FormHelper.meta({
+  summary: "Used for downloading artifacts from S3-compatible storage.",
+  fields: {
+    connection_bucket: {
+      label: "Bucket",
+      description: "This field specifies the S3 bucket name to download from.",
+    },
+    connection_region: {
+      label: "Region",
+      description: "This field specifies the AWS region for the S3 bucket.",
+    },
+    connection_endpoint: {
+      label: "Endpoint",
+      description: "This field specifies the S3-compatible endpoint URL.",
+    },
+    connection_accessKeyReference: {
+      label: "Access key reference",
+      description: "This field specifies which environment variable contains the S3 access key.",
+    },
+    connection_secretKeyReference: {
+      label: "Secret key reference",
+      description: "This field specifies which environment variable contains the S3 secret key.",
+    },
+    baseFolder: {
+      label: "Base folder",
+      description: "This field specifies the S3 path prefix where artifacts are stored.",
+    },
+    managedStorage: {
+      label: "Use managed storage?",
+      description: "This field enables downloading from a managed storage location (mandatory).",
+    },
+    managedStorage_target: {
+      label: "Managed storage: target",
+      description: "This field specifies whether to retrieve the latest version of an artifact collection, or a specific version.",
+    },
+    managedStorage_version: {
+      label: "Managed storage: version",
+      description: "This field specifies which specific version to retrieve.",
+    },
+    filterCriteria: {
+      label: "Use filter?",
+      description: "This field enables filtering artifacts by name when retrieving from managed storage.",
+    },
+    filterCriteria_method: {
+      label: "Filter: method",
+      description: "This field specifies which matching method to use for filtering.",
+    },
+    filterCriteria_name: {
+      label: "Filter: name",
+      description: "This field specifies the exact artifact name to match.",
+    },
+    filterCriteria_nameGlob: {
+      label: "Filter: name glob",
+      description: "This field specifies the glob pattern to match artifact names.",
+    },
+    filterCriteria_nameRegex: {
+      label: "Filter: name regex",
+      description: "This field specifies the regex pattern to match artifact names.",
+    },
+  },
+});
 type Form = {
   [Field.connection_bucket]: string;
   [Field.connection_region]: string;
@@ -69,6 +80,7 @@ type Form = {
   [Field.filterCriteria_nameGlob]: string;
   [Field.filterCriteria_nameRegex]: string;
 };
+
 type Props = {
   id: string;
   existing?: Step.S3Download;
@@ -282,7 +294,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >
-        <p>A step used for downloading artifacts from S3-compatible storage.</p>
+        {summary}
       </FormElements.Right>
     </FormElements.Container>
   );

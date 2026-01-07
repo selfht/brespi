@@ -2,25 +2,25 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
-import { ReactNode } from "react";
 
-enum Field {
-  keyReference = "keyReference",
-  algorithm_implementation = "algorithm_implementation",
-}
-const Label: Record<Field, string> = {
-  [Field.keyReference]: "Key reference",
-  [Field.algorithm_implementation]: "Algorithm",
-};
-const Description: Record<Field, ReactNode> = {
-  [Field.keyReference]: "This field specifies which environment variable contains the encryption key.",
-  [Field.algorithm_implementation]: "This field specifies which encryption algorithm to use.",
-};
-
+const { summary, Field, Label, Description } = FormHelper.meta({
+  summary: "Used for encrypting file artifacts.",
+  fields: {
+    keyReference: {
+      label: "Key reference",
+      description: "This field specifies which environment variable contains the encryption key.",
+    },
+    algorithm_implementation: {
+      label: "Algorithm",
+      description: "This field specifies which encryption algorithm to use.",
+    },
+  },
+});
 type Form = {
   [Field.keyReference]: string;
   [Field.algorithm_implementation]: "aes256cbc";
 };
+
 type Props = {
   id: string;
   existing?: Step.Encryption;
@@ -94,7 +94,7 @@ export function EncryptionForm({ id, existing, onSave, onDelete, onCancel, class
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >
-        <p>A step used for encrypting file artifacts.</p>
+        {summary}
       </FormElements.Right>
     </FormElements.Container>
   );

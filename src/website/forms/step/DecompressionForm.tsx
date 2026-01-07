@@ -2,21 +2,20 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
-import { ReactNode } from "react";
 
-enum Field {
-  algorithm_implementation = "algorithm_implementation",
-}
-const Label: Record<Field, string> = {
-  [Field.algorithm_implementation]: "Algorithm",
-};
-const Description: Record<Field, ReactNode> = {
-  [Field.algorithm_implementation]: "This field specifies which decompression algorithm to use.",
-};
-
+const { summary, Field, Label, Description } = FormHelper.meta({
+  summary: "Used for decompressing file artifacts.",
+  fields: {
+    algorithm_implementation: {
+      label: "Algorithm",
+      description: "This field specifies which decompression algorithm to use.",
+    },
+  },
+});
 type Form = {
   [Field.algorithm_implementation]: "targzip";
 };
+
 type Props = {
   id: string;
   existing?: Step.Decompression;
@@ -80,7 +79,7 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >
-        <p>A step used for decompressing artifacts.</p>
+        {summary}
       </FormElements.Right>
     </FormElements.Container>
   );

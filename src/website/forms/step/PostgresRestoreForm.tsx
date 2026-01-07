@@ -2,30 +2,32 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
-import { ReactNode } from "react";
 
-enum Field {
-  connectionReference = "connectionReference",
-  toolkit_resolution = "toolkit_resolution",
-  toolkit_psql = "toolkit_psql",
-  toolkit_pg_restore = "toolkit_pg_restore",
-  database = "database",
-}
-const Label: Record<Field, string> = {
-  [Field.connectionReference]: "Connection reference",
-  [Field.toolkit_resolution]: "Toolkit resolution",
-  [Field.toolkit_psql]: "Toolkit: 'psql' path",
-  [Field.toolkit_pg_restore]: "Toolkit: 'pg_restore' path",
-  [Field.database]: "Database",
-};
-const Description: Record<Field, ReactNode> = {
-  [Field.connectionReference]: "This field specifies which environment variable contains the PostgreSQL connection string.",
-  [Field.toolkit_resolution]: "This field specifies whether to automatically detect or manually specify PostgreSQL tools.",
-  [Field.toolkit_psql]: "This field specifies the path to the psql executable when using manual toolkit resolution.",
-  [Field.toolkit_pg_restore]: "This field specifies the path to the pg_restore executable when using manual toolkit resolution.",
-  [Field.database]: "This field specifies the target database name to restore into.",
-};
-
+const { summary, Field, Label, Description } = FormHelper.meta({
+  summary: "Used for restoring PostgreSQL databases from a backup artifact using pg_restore.",
+  fields: {
+    connectionReference: {
+      label: "Connection reference",
+      description: "This field specifies which environment variable contains the PostgreSQL connection string.",
+    },
+    toolkit_resolution: {
+      label: "Toolkit resolution",
+      description: "This field specifies whether to automatically detect or manually specify PostgreSQL tools.",
+    },
+    toolkit_psql: {
+      label: "Toolkit: 'psql' path",
+      description: "This field specifies the path to the psql executable when using manual toolkit resolution.",
+    },
+    toolkit_pg_restore: {
+      label: "Toolkit: 'pg_restore' path",
+      description: "This field specifies the path to the pg_restore executable when using manual toolkit resolution.",
+    },
+    database: {
+      label: "Database",
+      description: "This field specifies the target database name to restore into.",
+    },
+  },
+});
 type Form = {
   [Field.connectionReference]: string;
   [Field.toolkit_resolution]: "automatic" | "manual";
@@ -33,6 +35,7 @@ type Form = {
   [Field.toolkit_pg_restore]: string;
   [Field.database]: string;
 };
+
 type Props = {
   id: string;
   existing?: Step.PostgresRestore;
@@ -144,7 +147,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >
-        <p>A step used for restoring PostgreSQL databases from a backup artifact using pg_restore.</p>
+        {summary}
       </FormElements.Right>
     </FormElements.Container>
   );

@@ -2,33 +2,35 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
-import { ReactNode } from "react";
 
-enum Field {
-  filterCriteria_method = "filterCriteria_method",
-  filterCriteria_name = "filterCriteria_name",
-  filterCriteria_nameGlob = "filterCriteria_nameGlob",
-  filterCriteria_nameRegex = "filterCriteria_nameRegex",
-}
-const Label: Record<Field, string> = {
-  [Field.filterCriteria_method]: "Method",
-  [Field.filterCriteria_name]: "Name",
-  [Field.filterCriteria_nameGlob]: "Name glob",
-  [Field.filterCriteria_nameRegex]: "Name regex",
-};
-const Description: Record<Field, ReactNode> = {
-  [Field.filterCriteria_method]: "This field specifies which matching method to use for filtering.",
-  [Field.filterCriteria_name]: "This field specifies the exact artifact name to match.",
-  [Field.filterCriteria_nameGlob]: "This field specifies the glob pattern to match artifact names.",
-  [Field.filterCriteria_nameRegex]: "This field specifies the regex pattern to match artifact names.",
-};
-
+const { summary, Field, Label, Description } = FormHelper.meta({
+  summary: "Used for filtering artifacts by name matching.",
+  fields: {
+    filterCriteria_method: {
+      label: "Method",
+      description: "This field specifies which matching method to use for filtering.",
+    },
+    filterCriteria_name: {
+      label: "Name",
+      description: "This field specifies the exact artifact name to match.",
+    },
+    filterCriteria_nameGlob: {
+      label: "Name glob",
+      description: "This field specifies the glob pattern to match artifact names.",
+    },
+    filterCriteria_nameRegex: {
+      label: "Name regex",
+      description: "This field specifies the regex pattern to match artifact names.",
+    },
+  },
+});
 type Form = {
   [Field.filterCriteria_method]: "exact" | "glob" | "regex";
   [Field.filterCriteria_name]: string;
   [Field.filterCriteria_nameGlob]: string;
   [Field.filterCriteria_nameRegex]: string;
 };
+
 type Props = {
   id: string;
   existing?: Step.Filter;
@@ -130,7 +132,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >
-        <p>A step used for filtering artifacts by name matching.</p>
+        {summary}
       </FormElements.Right>
     </FormElements.Container>
   );
