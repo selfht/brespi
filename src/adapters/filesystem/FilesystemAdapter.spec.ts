@@ -57,11 +57,12 @@ describe(FilesystemAdapter.name, async () => {
     expect(storage).toEqual(expect.arrayContaining(["Set", "List", "Group"]));
   });
 
-  it("refuses to write (normally) to a non-empty folder", () => {
-    throw new Error("TODO: think this through");
-  });
-
-  it("refuses to write (managed) to a non-compliant folder", () => {
-    throw new Error("TODO: think this through");
+  const collection = Test.createCollection<{ storageMethod: "normal" | "managed" }>("storageMethod", [
+    { storageMethod: "normal" },
+    { storageMethod: "managed" },
+  ]);
+  it.each(collection.testCases)("merges (and overwrites) with an existing folder when writing artifacts: method=%s", (testCase) => {
+    const { storageMethod } = collection.get(testCase);
+    throw new Error(storageMethod);
   });
 });
