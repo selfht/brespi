@@ -15,6 +15,17 @@ import { join } from "path";
 import { Generate } from "./Generate";
 
 export namespace Test {
+  const cleanupTasks: Record<string, () => unknown | Promise<unknown>> = {
+    temporary_artifacts: async () => {
+      const { X_BRESPI_TMP_ROOT } = await buildEnv();
+      await rm(X_BRESPI_TMP_ROOT, { recursive: true, force: true });
+      await mkdir(X_BRESPI_TMP_ROOT);
+    },
+  };
+  export async function cleanup() {
+    await Promise.all(Object.values(cleanupTasks).map((fn) => fn()));
+  }
+
   export type Mocked<T> = {
     [K in keyof T]: T[K] extends (...args: any[]) => any ? Mock<T[K]> : never;
   };
@@ -43,13 +54,11 @@ export namespace Test {
 
   export async function getScratchpad() {
     const scratchpad = join(await ensureValidCwd(), "opt", "scratchpad");
-    return {
-      scratchpad,
-      cleanScratchpad: () => rm(scratchpad, { force: true, recursive: true }),
-    };
+    cleanupTasks["scratchpad"] = () => rm(scratchpad, { force: true, recursive: true });
+    return { scratchpad };
   }
 
-  export async function env(overrides = {} as Partial<Env.Private>) {
+  export async function buildEnv(overrides = {} as Partial<Env.Private>): Promise<Env.Private> {
     return {
       ...Env.initialize({
         O_BRESPI_STAGE: "development",
@@ -59,10 +68,25 @@ export namespace Test {
     };
   }
 
+  export async function patchEnv(environment = {} as Record<string, string>) {
+    const originalEnvironment: Record<string, string | undefined> = {};
+    Object.keys(environment).forEach((key) => (originalEnvironment[key] = Bun.env[key]));
+
+    Object.entries(environment).forEach(([key, value]) => (Bun.env[key] = value));
+    cleanupTasks["env_reset"] = () =>
+      Object.entries(originalEnvironment).forEach(([key, value]) => {
+        if (value === undefined) {
+          delete Bun.env[key];
+        } else {
+          Bun.env[key] = value;
+        }
+      });
+  }
+
   export async function createArtifacts(...artifacts: Array<`${"f" | "d"}:${string}`>): Promise<Artifact[]> {
     const result: Artifact[] = [];
     for (const artifact of artifacts) {
-      const { destinationId, destinationPath } = Generate.tmpDestination(await env());
+      const { destinationId, destinationPath } = Generate.tmpDestination(await buildEnv());
       const name = artifact.slice(2);
       let type: Artifact["type"];
       if (artifact.startsWith("f:")) {
@@ -75,12 +99,6 @@ export namespace Test {
       result.push({ id: destinationId, type, name, path: destinationPath });
     }
     return result;
-  }
-
-  export async function cleanArtifacts() {
-    const { X_BRESPI_TMP_ROOT } = await env();
-    await rm(X_BRESPI_TMP_ROOT, { recursive: true, force: true });
-    await mkdir(X_BRESPI_TMP_ROOT);
   }
 
   async function ensureValidCwd(): Promise<string> {
@@ -130,7 +148,7 @@ export namespace Test {
       return mockObject;
     }
 
-    return class MockRegistry {
+    class MockRegistry {
       public static readonly configurationRepository = new ConfigurationRepository({ X_BRESPI_CONFIGURATION: ":memory:" } as Env.Private);
       public static readonly pipelineRepository = new PipelineRepository(this.configurationRepository);
       public static readonly executionRepository = new (class extends ExecutionRepository {
@@ -142,10 +160,10 @@ export namespace Test {
         }
       })();
 
-      public static readonly filterCapability = registerMockObject<FilterCapability>({
+      public static readonly filterCapabilityMock = registerMockObject<FilterCapability>({
         createPredicate: mock(),
       });
-      public static readonly managedStorageCapability = registerMockObject<ManagedStorageCapability>({
+      public static readonly managedStorageCapabilityMock = registerMockObject<ManagedStorageCapability>({
         prepareInsertion: mock(),
         prepareSelection: mock(),
       });
@@ -156,7 +174,14 @@ export namespace Test {
       public static resetAllMocks() {
         mockFns.forEach((mock) => mock.mockClear());
       }
+    }
+
+    cleanupTasks["mock_registry_mocks_reset"] = () => MockRegistry.resetAllMocks();
+    cleanupTasks["mock_registry_repositories_clear"] = () => {
+      MockRegistry.pipelineRepository.removeAll();
+      MockRegistry.executionRepository.removeAll();
     };
+    return MockRegistry;
   }
 
   export function createStep<T extends Step.Type>(

@@ -10,7 +10,7 @@ import { ExecutionService } from "./ExecutionService";
 describe(ExecutionService.name, async () => {
   const { executionRepository, pipelineRepository, adapterService, resetAllMocks } = await Test.initializeMockRegistry();
   const service = new ExecutionService(
-    await Test.env({
+    await Test.buildEnv({
       X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from({ seconds: 0 }),
     }),
     executionRepository,
@@ -19,9 +19,7 @@ describe(ExecutionService.name, async () => {
   );
 
   beforeEach(async () => {
-    resetAllMocks();
-    await pipelineRepository.removeAll();
-    await executionRepository.removeAll();
+    await Test.cleanup();
   });
 
   it("successfully executes a linear pipeline", async () => {

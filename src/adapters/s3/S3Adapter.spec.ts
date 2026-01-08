@@ -1,22 +1,22 @@
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
-import { S3Adapter } from "./S3Adapter";
-import { Env } from "bun";
 import { Test } from "@/helpers/Test.spec";
 import { Step } from "@/models/Step";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { S3Adapter } from "./S3Adapter";
 
 describe(S3Adapter.name, async () => {
-  const { resetAllMocks, managedStorageCapability, filterCapability } = await Test.initializeMockRegistry();
-  const adapter = new S3Adapter(await Test.env(), Test.impl(managedStorageCapability), Test.impl(filterCapability));
+  const { managedStorageCapabilityMock, filterCapabilityMock } = await Test.initializeMockRegistry();
+  const adapter = new S3Adapter(await Test.buildEnv(), Test.impl(managedStorageCapabilityMock), Test.impl(filterCapabilityMock));
 
-  beforeEach(() => {
-    resetAllMocks();
-    Bun.env.ACCESS_KEY = "ACCESS_KEY";
-    Bun.env.SECRET_KEY = "SECRET_KEY";
+  beforeEach(async () => {
+    await Test.cleanup();
+    await Test.patchEnv({
+      ACCESS_KEY: "kim",
+      SECRET_KEY: "possible",
+    });
   });
 
-  afterEach(() => {
-    delete Bun.env.ACCESS_KEY;
-    delete Bun.env.SECRET_KEY;
+  afterEach(async () => {
+    await Test.cleanup();
   });
 
   const connection: Step.S3Connection = {
@@ -40,14 +40,14 @@ describe(S3Adapter.name, async () => {
   it.each(collection.testCases)("correctly relativizes a base folder: %s", async (testCase) => {
     const { from, to } = collection.get(testCase);
     // given
-    managedStorageCapability.prepareSelection.mockImplementation(() => {
+    managedStorageCapabilityMock.prepareSelection.mockImplementation(() => {
       throw new Error("irrelevant error");
     });
     // when
     const action = adapter.download({ baseFolder: from, connection } as Step.S3Download);
     expect(action).rejects.toEqual(new Error("irrelevant error"));
     // then
-    expect(managedStorageCapability.prepareSelection).toHaveBeenCalledWith(
+    expect(managedStorageCapabilityMock.prepareSelection).toHaveBeenCalledWith(
       expect.objectContaining({
         baseFolder: to,
       }),

@@ -4,10 +4,10 @@ import { beforeEach, describe, expect, it } from "bun:test";
 import { CompressionAdapter } from "./CompressionAdapter";
 
 describe(CompressionAdapter.name, async () => {
-  const adapter = new CompressionAdapter(await Test.env());
+  const adapter = new CompressionAdapter(await Test.buildEnv());
 
   beforeEach(async () => {
-    await Test.cleanArtifacts();
+    await Test.cleanup();
   });
 
   it("should respect and retain the original artifact name when compressing/decompressing a folder", async () => {
