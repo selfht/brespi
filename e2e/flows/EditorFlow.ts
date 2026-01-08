@@ -282,11 +282,11 @@ export namespace EditorFlow {
       case "Postgres Backup": {
         if (step.connectionReference) await page.getByLabel("Connection reference").fill(step.connectionReference);
         if (step.databaseSelectionStrategy) {
-          await page.getByLabel("Database selection").selectOption(step.databaseSelectionStrategy);
+          await page.getByLabel("Database selection method").selectOption(step.databaseSelectionStrategy);
           if (step.databaseSelectionStrategy === "include" && step.databaseSelectionInclusions) {
-            await page.getByLabel("Database: inclusions").fill(step.databaseSelectionInclusions);
+            await page.getByLabel("Database selection: inclusions").fill(step.databaseSelectionInclusions);
           } else if (step.databaseSelectionStrategy === "exclude" && step.databaseSelectionExclusions) {
-            await page.getByLabel("Database: exclusions").fill(step.databaseSelectionExclusions);
+            await page.getByLabel("Database selection: exclusions").fill(step.databaseSelectionExclusions);
           }
         }
         return await findCurrentlyActiveStepId(page);
