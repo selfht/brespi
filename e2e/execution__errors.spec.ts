@@ -74,6 +74,7 @@ describe("execution | errors", () => {
           id: "C",
           type: "Custom Script",
           path: corruptingScript,
+          passthrough: "false",
         },
         {
           previousId: "C",
