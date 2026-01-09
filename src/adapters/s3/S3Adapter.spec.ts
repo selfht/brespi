@@ -44,7 +44,7 @@ describe(S3Adapter.name, async () => {
       throw new Error("irrelevant error");
     });
     // when
-    const action = adapter.download({ baseFolder: from, connection } as Step.S3Download);
+    const action = adapter.download({ basePrefix: from, connection } as Step.S3Download);
     expect(action).rejects.toEqual(new Error("irrelevant error"));
     // then
     expect(managedStorageCapabilityMock.prepareSelection).toHaveBeenCalledWith(

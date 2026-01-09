@@ -10,9 +10,10 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: "Bucket",
       description: "This field specifies the S3 bucket name to download from.",
     },
-    baseFolder: {
-      label: "Base folder",
-      description: "This field specifies the S3 path prefix where artifacts are retrieved, and must point to a valid managed storage root.",
+    basePrefix: {
+      label: "Base prefix",
+      description:
+        'This field specifies the base S3 path prefix where artifacts are retrieved, and must point to a valid "managed storage root".',
     },
     connection_region: {
       label: "Region",
@@ -66,7 +67,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
 });
 type Form = {
   [Field.connection_bucket]: string;
-  [Field.baseFolder]: string;
+  [Field.basePrefix]: string;
   [Field.connection_region]: string;
   [Field.connection_endpoint]: string;
   [Field.connection_accessKeyReference]: string;
@@ -93,7 +94,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.connection_bucket]: existing?.connection.bucket ?? "",
-      [Field.baseFolder]: existing?.baseFolder ?? "",
+      [Field.basePrefix]: existing?.basePrefix ?? "",
       [Field.connection_region]: existing?.connection.region ?? "",
       [Field.connection_endpoint]: existing?.connection.endpoint ?? "",
       [Field.connection_accessKeyReference]: existing?.connection.accessKeyReference ?? "",
@@ -123,7 +124,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           accessKeyReference: form[Field.connection_accessKeyReference],
           secretKeyReference: form[Field.connection_secretKeyReference],
         },
-        baseFolder: form[Field.baseFolder],
+        basePrefix: form[Field.basePrefix],
         managedStorage:
           form[Field.managedStorage_target] === "latest"
             ? { target: "latest" }
@@ -162,7 +163,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
             input={{ type: "text" }}
           />
           <FormElements.LabeledInput
-            field={Field.baseFolder}
+            field={Field.basePrefix}
             labels={Label}
             register={register}
             activeField={activeField}

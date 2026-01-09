@@ -105,7 +105,7 @@ export namespace StepDetails {
         const F = S3UploadForm.Field;
         return performLabeling<typeof F>(S3UploadForm.Label, {
           [F.connection_bucket]: step.connection.bucket,
-          [F.baseFolder]: step.baseFolder,
+          [F.basePrefix]: step.basePrefix,
           [F.connection_region]: step.connection.region,
           [F.connection_endpoint]: step.connection.endpoint,
           [F.connection_accessKeyReference]: step.connection.accessKeyReference,
@@ -117,7 +117,7 @@ export namespace StepDetails {
         const F = S3DownloadForm.Field;
         return performLabeling<typeof F>(S3DownloadForm.Label, {
           [F.connection_bucket]: step.connection.bucket,
-          [F.baseFolder]: step.baseFolder,
+          [F.basePrefix]: step.basePrefix,
           [F.connection_region]: step.connection.region,
           [F.connection_endpoint]: step.connection.endpoint,
           [F.connection_accessKeyReference]: step.connection.accessKeyReference,

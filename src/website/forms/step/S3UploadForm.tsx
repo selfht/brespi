@@ -10,10 +10,10 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: "Bucket",
       description: "This field specifies the S3 bucket name to upload to.",
     },
-    baseFolder: {
-      label: "Base folder",
+    basePrefix: {
+      label: "Base prefix",
       description:
-        'This field specifies the S3 path prefix where artifacts will be uploaded to managed storage. If no "managed storage root" is detected at the provided base folder, it will be initialized upon first execution.',
+        'This field specifies the base S3 path prefix where artifacts will be uploaded to managed storage. If no "managed storage root" is detected at the provided base prefix, it will be initialized upon first execution.',
     },
     connection_region: {
       label: "Region",
@@ -39,7 +39,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
 });
 type Form = {
   [Field.connection_bucket]: string;
-  [Field.baseFolder]: string;
+  [Field.basePrefix]: string;
   [Field.connection_region]: string;
   [Field.connection_endpoint]: string;
   [Field.connection_accessKeyReference]: string;
@@ -59,7 +59,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.connection_bucket]: existing?.connection.bucket ?? "",
-      [Field.baseFolder]: existing?.baseFolder ?? "",
+      [Field.basePrefix]: existing?.basePrefix ?? "",
       [Field.connection_region]: existing?.connection.region ?? "",
       [Field.connection_endpoint]: existing?.connection.endpoint ?? "",
       [Field.connection_accessKeyReference]: existing?.connection.accessKeyReference ?? "",
@@ -82,7 +82,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
           accessKeyReference: form[Field.connection_accessKeyReference],
           secretKeyReference: form[Field.connection_secretKeyReference],
         },
-        baseFolder: form[Field.baseFolder],
+        basePrefix: form[Field.basePrefix],
       });
     } catch (error) {
       setError("root", {
@@ -98,6 +98,14 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
         <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.connection_bucket}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "text" }}
+          />
+          <FormElements.LabeledInput
+            field={Field.basePrefix}
             labels={Label}
             register={register}
             activeField={activeField}
@@ -143,14 +151,6 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "yes" }}
-          />
-          <FormElements.LabeledInput
-            field={Field.baseFolder}
-            labels={Label}
-            register={register}
-            activeField={activeField}
-            onActiveFieldChange={setActiveField}
-            input={{ type: "text" }}
           />
         </fieldset>
         <FormElements.ButtonBar

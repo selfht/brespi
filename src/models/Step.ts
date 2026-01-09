@@ -133,13 +133,13 @@ export namespace Step {
   export type S3Upload = Common & {
     type: Type.s3_upload;
     connection: S3Connection;
-    baseFolder: string;
+    basePrefix: string;
   };
 
   export type S3Download = Common & {
     type: Type.s3_download;
     connection: S3Connection;
-    baseFolder: string;
+    basePrefix: string;
     managedStorage: ManagedStorage;
     filterCriteria: FilterCriteria | null;
   };
@@ -304,14 +304,14 @@ export namespace Step {
           ...subSchema.common,
           type: z.literal(Type.s3_upload),
           connection: subSchema.s3Connection,
-          baseFolder: z.string(),
+          basePrefix: z.string(),
         } satisfies SubSchema<Step.S3Upload>),
 
         z.object({
           ...subSchema.common,
           type: z.literal(Type.s3_download),
           connection: subSchema.s3Connection,
-          baseFolder: z.string(),
+          basePrefix: z.string(),
           managedStorage: subSchema.managedStorage,
           filterCriteria: subSchema.filterCriteria.nullable(),
         } satisfies SubSchema<Step.S3Download>),

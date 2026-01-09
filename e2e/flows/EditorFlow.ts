@@ -246,7 +246,7 @@ export namespace EditorFlow {
       }
       case "S3 Upload": {
         if (step.bucket) await page.getByLabel("Bucket").fill(step.bucket);
-        if (step.baseFolder) await page.getByLabel("Base folder").fill(step.baseFolder);
+        if (step.baseFolder) await page.getByLabel("Base prefix").fill(step.baseFolder);
         if (step.endpoint) await page.getByLabel("Endpoint").fill(step.endpoint);
         if (step.region) await page.getByLabel("Region").fill(step.region);
         if (step.accessKeyReference) await page.getByLabel("Access key reference").fill(step.accessKeyReference);
@@ -255,11 +255,11 @@ export namespace EditorFlow {
       }
       case "S3 Download": {
         if (step.bucket) await page.getByLabel("Bucket").fill(step.bucket);
+        if (step.baseFolder) await page.getByLabel("Base prefix").fill(step.baseFolder);
         if (step.endpoint) await page.getByLabel("Endpoint").fill(step.endpoint);
         if (step.region) await page.getByLabel("Region").fill(step.region);
         if (step.accessKeyReference) await page.getByLabel("Access key reference").fill(step.accessKeyReference);
         if (step.secretKeyReference) await page.getByLabel("Secret key reference").fill(step.secretKeyReference);
-        if (step.baseFolder) await page.getByLabel("Base folder").fill(step.baseFolder);
         if (step.managedStorageSelectionTarget) {
           await page.getByLabel("Managed storage: target").selectOption(step.managedStorageSelectionTarget);
           if (step.managedStorageSelectionTarget === "specific" && step.managedStorageSelectionVersion) {

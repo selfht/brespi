@@ -20,17 +20,17 @@ export class S3Adapter extends AbstractAdapter {
     super(env);
   }
 
-  public async upload(artifacts: Artifact[], { baseFolder, ...step }: Step.S3Upload, trail: StepWithRuntime[]): Promise<AdapterResult> {
+  public async upload(artifacts: Artifact[], { basePrefix, ...step }: Step.S3Upload, trail: StepWithRuntime[]): Promise<AdapterResult> {
     this.requireArtifactType("file", ...artifacts);
-    baseFolder = this.relativize(baseFolder);
+    basePrefix = this.relativize(basePrefix);
     const client = this.constructClient(step.connection);
     const { manifestModifier, listing, insertableArtifacts } = this.managedStorageCapability.prepareInsertion({
-      baseFolder,
+      baseFolder: basePrefix,
       artifacts,
       trail,
     });
     // Save manifest
-    await this.handleManifestExclusively(client, baseFolder, async (manifest, save) => {
+    await this.handleManifestExclusively(client, basePrefix, async (manifest, save) => {
       await save(manifestModifier({ manifest }));
     });
     // Save listing
@@ -42,17 +42,17 @@ export class S3Adapter extends AbstractAdapter {
     return AdapterResult.create();
   }
 
-  public async download({ baseFolder, ...step }: Step.S3Download): Promise<AdapterResult> {
-    baseFolder = this.relativize(baseFolder);
+  public async download({ basePrefix, ...step }: Step.S3Download): Promise<AdapterResult> {
+    basePrefix = this.relativize(basePrefix);
     const client = this.constructClient(step.connection);
     // Prepare selaction
     const { selectableArtifactsFn } = this.managedStorageCapability.prepareSelection({
-      baseFolder,
+      baseFolder: basePrefix,
       configuration: step.managedStorage,
       storageReaderFn: ({ absolutePath }) => client.file(absolutePath).text(),
     });
     // Provide manifest
-    let { selectableArtifacts, version } = await this.handleManifestExclusively(client, baseFolder, async (manifest) => {
+    let { selectableArtifacts, version } = await this.handleManifestExclusively(client, basePrefix, async (manifest) => {
       return await selectableArtifactsFn({ manifest });
     });
     // Optional: filter

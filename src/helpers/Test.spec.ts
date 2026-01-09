@@ -304,7 +304,7 @@ export namespace Test {
             accessKeyReference: "MY_S3_ACCESS_KEY",
             secretKeyReference: "MY_S3_SECRET_KEY",
           },
-          baseFolder: "/backups",
+          basePrefix: "/backups",
           ...common,
         };
         return step as Extract<Step, { type: T }>;
@@ -319,7 +319,7 @@ export namespace Test {
             accessKeyReference: "MY_S3_ACCESS_KEY",
             secretKeyReference: "MY_S3_SECRET_KEY",
           },
-          baseFolder: "/backups",
+          basePrefix: "/backups",
           managedStorage: {
             target: "latest",
           },
