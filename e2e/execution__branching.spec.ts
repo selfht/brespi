@@ -58,24 +58,16 @@ describe("execution | branching", () => {
         {
           // branch 3/4
           previousId: "B",
+          ...S3Boundary.connectionDefaults,
           type: "S3 Upload",
-          bucket: S3Boundary.BUCKET,
           baseFolder: outputDir.bucketX,
-          region: S3Boundary.REGION,
-          endpoint: S3Boundary.ENDPOINT,
-          accessKeyReference: "MY_S3_ACCESS_KEY",
-          secretKeyReference: "MY_S3_SECRET_KEY",
         },
         {
           // branch 4/4
           previousId: "B",
+          ...S3Boundary.connectionDefaults,
           type: "S3 Upload",
-          bucket: S3Boundary.BUCKET,
           baseFolder: outputDir.bucketY,
-          region: S3Boundary.REGION,
-          endpoint: S3Boundary.ENDPOINT,
-          accessKeyReference: "MY_S3_ACCESS_KEY",
-          secretKeyReference: "MY_S3_SECRET_KEY",
         },
       ],
     });

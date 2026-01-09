@@ -23,7 +23,7 @@ describe("execution | filtering", () => {
     await ResetBoundary.reset({ request });
   });
 
-  test("standalone filter step [method = exact]", async ({ page }) => {
+  test("standalone filter step ::: method exact", async ({ page }) => {
     await performFilterTest({
       page,
       createPipelineFn: createStandaloneFilterPipeline,
@@ -38,7 +38,7 @@ describe("execution | filtering", () => {
     });
   });
 
-  test("filesystem step w/ filter [method = glob]", async ({ page }) => {
+  test("filesystem step w/ filter ::: method glob", async ({ page }) => {
     await performFilterTest({
       page,
       createPipelineFn: createFilesystemReadFilterPipeline,
@@ -53,7 +53,7 @@ describe("execution | filtering", () => {
     });
   });
 
-  test("s3 step w/ filter [method = regex]", async ({ page }) => {
+  test("s3 step w/ filter ::: method regex", async ({ page }) => {
     await performFilterTest({
       page,
       createPipelineFn: createS3DownloadFilterPipeline,
@@ -183,23 +183,15 @@ describe("execution | filtering", () => {
         {
           previousId: "B",
           id: "C",
+          ...S3Boundary.connectionDefaults,
           type: "S3 Upload",
-          bucket: S3Boundary.BUCKET,
           baseFolder: "",
-          region: S3Boundary.REGION,
-          endpoint: S3Boundary.ENDPOINT,
-          accessKeyReference: "MY_S3_ACCESS_KEY",
-          secretKeyReference: "MY_S3_SECRET_KEY",
         },
         {
           previousId: "C",
           id: "D",
+          ...S3Boundary.connectionDefaults,
           type: "S3 Download",
-          bucket: S3Boundary.BUCKET,
-          region: S3Boundary.REGION,
-          endpoint: S3Boundary.ENDPOINT,
-          accessKeyReference: "MY_S3_ACCESS_KEY",
-          secretKeyReference: "MY_S3_SECRET_KEY",
           baseFolder: "",
           managedStorageSelectionTarget: "latest",
           filterCriteria: "true",

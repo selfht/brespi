@@ -113,7 +113,7 @@ export class ManagedStorageCapability {
       const json = JSON.parse(content);
       return Manifest.parse(json);
     } catch (e) {
-      throw ExecutionError.managed_storage_corrupted({ element: "manifest" });
+      throw ExecutionError.managed_storage_corrupted({ descriptor: "manifest" });
     }
   }
 
@@ -122,7 +122,7 @@ export class ManagedStorageCapability {
       const json = JSON.parse(content);
       return Listing.parse(json);
     } catch (e) {
-      throw ExecutionError.managed_storage_corrupted({ element: "listing" });
+      throw ExecutionError.managed_storage_corrupted({ descriptor: "listing" });
     }
   }
 }

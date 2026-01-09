@@ -16,7 +16,7 @@ export class ExecutionError {
   public static readonly fspath_type_invalid: Exception.Fn<{ path: string; type: string; requiredType: string }>;
   public static readonly fsdir_children_count_invalid: Exception.Fn<{ path: string; count: number; min?: number; max?: number }>;
   // managed storage
-  public static readonly managed_storage_corrupted: Exception.Fn<{ element: "manifest" | "listing" }>;
+  public static readonly managed_storage_corrupted: Exception.Fn<{ descriptor: "manifest" | "listing" }>;
   // compression/decompression
   public static readonly compression_failed: Exception.Fn<{ cause: string }>;
   public static readonly decompression_failed: Exception.Fn<{ cause: string }>;
