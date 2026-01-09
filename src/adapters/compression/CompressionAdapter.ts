@@ -13,16 +13,22 @@ export class CompressionAdapter extends AbstractAdapter {
     super(env);
   }
 
-  // TODO: use the compression level!
   public async compress(artifact: Artifact, step: Step.Compression): Promise<Artifact> {
     try {
       const inputPath = artifact.path;
       const { outputId, outputPath } = this.generateArtifactDestination();
       // Use tar with gzip for both files and directories
-      // For files: tar -czf output.tar.gz -C /parent/dir filename
-      // For directories: tar -czf output.tar.gz -C /parent/dir dirname
+      // Compression level is controlled via GZIP environment variable (works on both BSD and GNU tar)
+      // For files:
+      //    tar -czf output.tar.gz -C /parent/dir filename
+      // For directories:
+      //    tar -czf output.tar.gz -C /parent/dir dirname
       await this.runCommand({
         cmd: ["tar", "-czf", outputPath, "-C", dirname(inputPath), basename(inputPath)],
+        env: {
+          GZIP: `-${step.algorithm.level}`,
+          COPYFILE_DISABLE: "1", // Prevents macOS tar from creating ._* AppleDouble files
+        },
       });
       return {
         id: outputId,
@@ -61,7 +67,7 @@ export class CompressionAdapter extends AbstractAdapter {
     } catch (e) {
       throw this.mapError(e, ExecutionError.decompression_failed);
     } finally {
-      await rm(tempPath, { recursive: true, force: true });
+      // await rm(tempPath, { recursive: true, force: true });
     }
   }
 

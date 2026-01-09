@@ -15,9 +15,15 @@ describe(CompressionAdapter.name, async () => {
     const [original] = await Test.createArtifacts("d:Collection");
     expect(original.name).toEqual("Collection");
     // when
-    const compressed = await adapter.compress(original, {} as Step.Compression);
-    const decompressed = await adapter.decompress(compressed, {} as Step.Decompression);
+    const compresionStep = { algorithm: { implementation: "targzip", level: 9 } } as Step.Compression;
+    const compressed = await adapter.compress(original, compresionStep);
+    const decompressionStep = {} as Step.Decompression;
+    const decompressed = await adapter.decompress(compressed, decompressionStep);
     // then
     expect(decompressed.name).toEqual("Collection");
+  });
+  
+  it("should result in different file sizes for different compression levels", () => {
+    // TODO
   });
 });
