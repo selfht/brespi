@@ -6,6 +6,8 @@ import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { EditorFlow } from "./flows/EditorFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
+import { mkdir } from "fs/promises";
+import { Common } from "./common/Common";
 
 describe("execution | compress_and_encrypt", () => {
   const path = {
@@ -29,20 +31,7 @@ describe("execution | compress_and_encrypt", () => {
     await writeFile(path.originalFile, "Hello World, this is my original file!");
 
     // when (compress and encrypt)
-    await createCompressionAndEncryptionPipeline(page);
-    await ExecutionFlow.executePipeline(page);
-    // then (expect a scratch file to have been created, with different contents)
-    expect(await readFile(path.forwardProcessingFile)).not.toEqual(await readFile(path.originalFile));
-
-    // when (decrypt and decompress)
-    await createDecryptionAndDecompressionPipeline(page);
-    await ExecutionFlow.executePipeline(page);
-    // then (expect a scratch file to have been created, with the same contents)
-    expect(await readFile(path.reverseProcessingFile)).toEqual(await readFile(path.originalFile));
-  });
-
-  async function createCompressionAndEncryptionPipeline(page: Page) {
-    return await EditorFlow.createPipeline(page, {
+    await EditorFlow.createPipeline(page, {
       name: "Compress And Encrypt",
       steps: [
         {
@@ -68,10 +57,12 @@ describe("execution | compress_and_encrypt", () => {
         },
       ],
     });
-  }
+    await ExecutionFlow.executePipeline(page);
+    // then (expect a scratch file to have been created, with different contents)
+    expect(await readFile(path.forwardProcessingFile)).not.toEqual(await readFile(path.originalFile));
 
-  async function createDecryptionAndDecompressionPipeline(page: Page) {
-    return await EditorFlow.createPipeline(page, {
+    // when (decrypt and decompress)
+    await EditorFlow.createPipeline(page, {
       name: "Decrypt and Decompress",
       steps: [
         {
@@ -97,5 +88,85 @@ describe("execution | compress_and_encrypt", () => {
         },
       ],
     });
-  }
+    await ExecutionFlow.executePipeline(page);
+    // then (expect a scratch file to have been created, with the same contents)
+    expect(await readFile(path.reverseProcessingFile)).toEqual(await readFile(path.originalFile));
+  });
+
+  test("shows an error when trying to decompress a directory", async ({ page }) => {
+    // given
+    const dir = FilesystemBoundary.SCRATCH_PAD.join("folderboy");
+    await mkdir(dir);
+    // when
+    await EditorFlow.createPipeline(page, {
+      name: "Decompression Error",
+      steps: [
+        {
+          id: "A",
+          type: "Filesystem Read",
+          path: dir,
+        },
+        {
+          previousId: "A",
+          id: "B",
+          type: "Decompression",
+        },
+      ],
+    });
+    await ExecutionFlow.executePipeline(page, { expectedOutcome: "error" });
+    // then
+    const error = `ExecutionError::artifact_type_invalid {
+      "name": "folderboy",
+      "type": "directory",
+      "requiredType": "file"
+    }`;
+    await expect(page.getByText(error)).toBeVisible();
+  });
+
+  test("shows an error when trying to decrypt a corrupted file", async ({ page }) => {
+    // given
+    const file = FilesystemBoundary.SCRATCH_PAD.join("file.txt");
+    await Common.writeFile(file, "This is my file!");
+    const corruptingScript = FilesystemBoundary.SCRATCH_PAD.join("corrupting.sh");
+    await Common.writeExecutableFile(corruptingScript).withContents(`
+      #!/bin/bash
+      # Get the encrypted file (there's exactly 1 file)
+      file=$(ls $BRESPI_ARTIFACTS_IN/*)
+      # Remove first byte for corruption
+      tail -c +2 "$file" > "$BRESPI_ARTIFACTS_OUT/$(basename "$file")"
+    `);
+    // when
+    await EditorFlow.createPipeline(page, {
+      name: "Decryption Error",
+      steps: [
+        {
+          id: "A",
+          type: "Filesystem Read",
+          path: file,
+        },
+        {
+          previousId: "A",
+          id: "B",
+          type: "Encryption",
+          keyReference: "MY_ENCRYPTION_KEY",
+        },
+        {
+          previousId: "B",
+          id: "C",
+          type: "Custom Script",
+          path: corruptingScript,
+          passthrough: "false",
+        },
+        {
+          previousId: "C",
+          type: "Decryption",
+          keyReference: "MY_ENCRYPTION_KEY",
+        },
+      ],
+    });
+    await ExecutionFlow.executePipeline(page, { expectedOutcome: "error" });
+    // then
+    const error = "ExecutionError::decryption_failed";
+    await expect(page.getByText(error)).toBeVisible();
+  });
 });

@@ -59,6 +59,38 @@ describe("execution | custom_script", () => {
     expect(await Common.readFile(evidenceFileRelativeToScript)).toEqual("I was here!\n");
   });
 
+  test("shows an error when script execution fails", async ({ page }) => {
+    // given
+    const script = FilesystemBoundary.SCRATCH_PAD.join("script.sh");
+    await Common.writeExecutableFile(script).withContents(`
+      #!/bin/bash
+      echo "Thriving in STDOUT ..."
+      echo "... but suffering in STDERR" >&2
+      exit 1
+    `);
+    // when
+    await EditorFlow.createPipeline(page, {
+      name: "Encryption Error",
+      steps: [
+        {
+          id: "A",
+          type: "Custom Script",
+          path: script,
+        },
+      ],
+    });
+    await ExecutionFlow.executePipeline(page, { expectedOutcome: "error" });
+    // then
+    const error = `ExecutionError::nonzero_script_exit
+
+      Thriving in STDOUT ...
+      ... but suffering in STDERR
+
+      (exit 1)
+    `;
+    await expect(page.getByText(error)).toBeVisible();
+  });
+
   type Options = {
     scriptPath: string;
     passthrough?: boolean;

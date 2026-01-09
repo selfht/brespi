@@ -49,7 +49,7 @@ export class S3Adapter extends AbstractAdapter {
     const { selectableArtifactsFn } = this.managedStorageCapability.prepareSelection({
       baseFolder,
       configuration: step.managedStorage,
-      storageReaderFn: ({ absolutePath }) => client.file(absolutePath).json(),
+      storageReaderFn: ({ absolutePath }) => client.file(absolutePath).text(),
     });
     // Provide manifest
     let { selectableArtifacts, version } = await this.handleManifestExclusively(client, baseFolder, async (manifest) => {
@@ -104,7 +104,9 @@ export class S3Adapter extends AbstractAdapter {
     try {
       const manifestPath = join(baseFolder, Manifest.NAME);
       const manifestFile = client.file(manifestPath);
-      const manifestContent: Manifest = (await manifestFile.exists()) ? Manifest.parse(await manifestFile.json()) : Manifest.empty();
+      const manifestContent: Manifest = (await manifestFile.exists())
+        ? this.managedStorageCapability.parseManifest(await manifestFile.text())
+        : Manifest.empty();
       const saveFn = (newManifest: Manifest) => client.write(manifestPath, JSON.stringify(newManifest)).then(() => newManifest);
       return await fn(manifestContent, saveFn);
     } finally {

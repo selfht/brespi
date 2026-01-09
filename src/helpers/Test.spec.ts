@@ -166,6 +166,7 @@ export namespace Test {
       public static readonly managedStorageCapabilityMock = registerMockObject<ManagedStorageCapability>({
         prepareInsertion: mock(),
         prepareSelection: mock(),
+        parseManifest: mock(),
       });
       public static readonly adapterService = registerMockObject<AdapterService>({
         submit: mock(),

@@ -199,13 +199,13 @@ describe(ManagedStorageCapability.name, () => {
           },
         ],
       };
-      const artifactIndex: ArtifactIndex = {
+      const artifactIndex = JSON.stringify({
         object: "artifact_index",
         artifacts: [
           { path: "file1.txt", trail: [] },
           { path: "file2.txt", trail: [] },
         ],
-      };
+      });
       // when
       const { selectableArtifactsFn } = capability.prepareSelection({
         baseFolder: "base-folder",
@@ -236,10 +236,10 @@ describe(ManagedStorageCapability.name, () => {
           },
         ],
       };
-      const artifactIndex: ArtifactIndex = {
+      const artifactIndex = JSON.stringify({
         object: "artifact_index",
         artifacts: [{ path: "specific-file.txt", trail: [] }],
-      };
+      });
       // when
       const { selectableArtifactsFn } = capability.prepareSelection({
         configuration: { target: "specific", version: Timestamp.LAST_YEAR },
@@ -274,14 +274,14 @@ describe(ManagedStorageCapability.name, () => {
           },
         ],
       };
-      const artifactIndex: ArtifactIndex = {
+      const artifactIndex = JSON.stringify({
         object: "artifact_index",
         artifacts: [
           { path: "doc1.pdf", trail: [] },
           { path: "doc2.pdf", trail: [] },
           { path: "doc3.pdf", trail: [] },
         ],
-      };
+      });
       // when
       const { selectableArtifactsFn } = capability.prepareSelection({
         configuration: { target: "specific", version: `${Timestamp.VERY_LONG_AGO}-abc123` },
@@ -428,10 +428,10 @@ describe(ManagedStorageCapability.name, () => {
           },
         ],
       };
-      const artifactIndex: ArtifactIndex = {
+      const artifactIndex = JSON.stringify({
         object: "artifact_index",
         artifacts: [{ path: "test-file.txt", trail: [] }],
-      };
+      });
       // when
       const { selectableArtifactsFn } = capability.prepareSelection({
         configuration: { target: "latest" },

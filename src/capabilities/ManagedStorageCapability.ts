@@ -1,5 +1,6 @@
 import { ArtifactIndex } from "@/capabilities/managedstorage/ArtifactIndex";
 import { Manifest } from "@/capabilities/managedstorage/Manifest";
+import { ExecutionError } from "@/errors/ExecutionError";
 import { Generate } from "@/helpers/Generate";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
@@ -9,7 +10,7 @@ import { dirname, join } from "path";
 
 export class ManagedStorageCapability {
   public prepareInsertion({
-    baseFolder: baseDirectory,
+    baseFolder,
     artifacts,
     trail,
   }: ManagedStorageCapability.PrepareInsertionOptions): ManagedStorageCapability.PrepareInsertionResult {
@@ -51,27 +52,27 @@ export class ManagedStorageCapability {
     return {
       manifestModifier,
       artifactIndex: {
-        destinationPath: join(baseDirectory, artifactIndex.path),
+        destinationPath: join(baseFolder, artifactIndex.path),
         content: artifactIndex.content,
       },
       insertableArtifacts: artifacts.map<ManagedStorageCapability.InsertableArtifact>(({ name, path }) => ({
         sourcePath: path,
-        destinationPath: join(baseDirectory, artifactIndex.parentDir, name),
+        destinationPath: join(baseFolder, artifactIndex.parentDir, name),
       })),
     };
   }
 
   public prepareSelection({
-    configuration: selection,
-    storageReaderFn,
     baseFolder,
+    configuration,
+    storageReaderFn,
   }: ManagedStorageCapability.PrepareSelectionOptions): ManagedStorageCapability.PrepareSelectionResult {
     return {
       selectableArtifactsFn: async ({ manifest }) => {
-        const item = this.findMatchingItem(manifest, selection);
+        const item = this.findMatchingItem(manifest, configuration);
         const artifactIndexPath = join(baseFolder, item.artifactIndexPath);
         const artifactIndexParentDir = dirname(artifactIndexPath);
-        const index = ArtifactIndex.parse(await storageReaderFn({ absolutePath: artifactIndexPath }));
+        const index = this.parseArtifactIndex(await storageReaderFn({ absolutePath: artifactIndexPath }));
         const selectableArtifacts = index.artifacts.map<ManagedStorageCapability.SelectableArtifact>(({ path }) => ({
           name: path,
           path: join(artifactIndexParentDir, path),
@@ -106,6 +107,24 @@ export class ManagedStorageCapability {
       }
     }
   }
+
+  public parseManifest(content: string): Manifest {
+    try {
+      const json = JSON.parse(content);
+      return Manifest.parse(json);
+    } catch (e) {
+      throw ExecutionError.managed_storage_corrupted({ element: "manifest" });
+    }
+  }
+
+  private parseArtifactIndex(content: string): ArtifactIndex {
+    try {
+      const json = JSON.parse(content);
+      return ArtifactIndex.parse(json);
+    } catch (e) {
+      throw ExecutionError.managed_storage_corrupted({ element: "artifact_index" });
+    }
+  }
 }
 
 export namespace ManagedStorageCapability {
@@ -131,7 +150,7 @@ export namespace ManagedStorageCapability {
   export type PrepareSelectionOptions = {
     baseFolder: string;
     configuration: Step.ManagedStorage;
-    storageReaderFn: (arg: { absolutePath: string }) => Promise<any>;
+    storageReaderFn: (arg: { absolutePath: string }) => Promise<string>;
   };
   export type PrepareSelectionResult = {
     selectableArtifactsFn: (arg: { manifest: Manifest }) => Promise<{

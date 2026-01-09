@@ -326,7 +326,7 @@ export class ExecutionService {
       if (e.details) {
         const { exitCode, stdall } = e.details;
         if (exitCode && stdall) {
-          details += ` (${exitCode})\n\n${stdall}`;
+          details += `\n\n${stdall}\n(exit ${exitCode})`;
         } else if (e.details.cause) {
           details += `\n\n${e.details.cause}`;
         } else {

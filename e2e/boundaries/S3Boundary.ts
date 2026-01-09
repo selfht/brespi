@@ -1,4 +1,4 @@
-import { DeleteObjectCommand, ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 export namespace S3Boundary {
   export const ENDPOINT = "http://s3:4566";
@@ -27,6 +27,16 @@ export namespace S3Boundary {
       }
     }
     return keys;
+  }
+
+  export async function writeBucket(path: string, content: string): Promise<void> {
+    await client.send(
+      new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: path,
+        Body: content,
+      }),
+    );
   }
 
   export async function emptyBucket() {

@@ -58,7 +58,7 @@ export class FilesystemAdapter extends AbstractAdapter {
       const { selectableArtifactsFn } = this.managedStorageCapability.prepareSelection({
         baseFolder: step.path,
         configuration: step.managedStorage,
-        storageReaderFn: ({ absolutePath }) => Bun.file(absolutePath).json(),
+        storageReaderFn: ({ absolutePath }) => Bun.file(absolutePath).text(),
       });
       // Provide manifest
       let { selectableArtifacts, version } = await this.handleManifestExclusively(step.path, async (manifest) => {
@@ -129,7 +129,9 @@ export class FilesystemAdapter extends AbstractAdapter {
     try {
       const manifestPath = join(folder, Manifest.NAME);
       const manifestFile = Bun.file(manifestPath);
-      const manifestContent: Manifest = (await manifestFile.exists()) ? Manifest.parse(await manifestFile.json()) : Manifest.empty();
+      const manifestContent: Manifest = (await manifestFile.exists())
+        ? this.managedStorageCapability.parseManifest(await manifestFile.text())
+        : Manifest.empty();
       const saveFn = (newManifest: Manifest) => Bun.write(manifestPath, JSON.stringify(newManifest)).then(() => newManifest);
       return await fn(manifestContent, saveFn);
     } finally {
