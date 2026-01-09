@@ -13,7 +13,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
     managedStorage: {
       label: "Use managed storage?",
       description:
-        "This field enables reading an artifact collection from a managed storage folder. If enabled, the path above must point to such a folder.",
+        "This field enables reading an artifact collection from a managed storage folder. If enabled, the path above must point to a valid managed storage root.",
     },
     managedStorage_target: {
       label: "Managed storage: target",

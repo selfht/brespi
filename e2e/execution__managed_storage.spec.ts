@@ -24,11 +24,11 @@ describe("execution | managed_storage", () => {
         write: {
           type: "S3 Upload",
           bucket: S3Boundary.BUCKET,
+          baseFolder: namespace,
           region: S3Boundary.REGION,
           endpoint: S3Boundary.ENDPOINT,
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
-          baseFolder: namespace,
         },
         read: {
           type: "S3 Download",
@@ -45,7 +45,7 @@ describe("execution | managed_storage", () => {
   });
 
   test("s3 error flow : corrupt manifest during write", async ({ page }) => {
-    await performCorruptManifestWriteTest({
+    await performCorruptWriteTest({
       page,
       listStorageEntries: S3Boundary.listBucket,
       writeStorageEntry: ({ path, content }) => S3Boundary.writeBucket(path, content),
@@ -53,11 +53,69 @@ describe("execution | managed_storage", () => {
         write: {
           type: "S3 Upload",
           bucket: S3Boundary.BUCKET,
+          baseFolder: namespace,
+          region: S3Boundary.REGION,
+          endpoint: S3Boundary.ENDPOINT,
+          accessKeyReference: "MY_S3_ACCESS_KEY",
+          secretKeyReference: "MY_S3_SECRET_KEY",
+        },
+      },
+    });
+  });
+
+  test("s3 error flow : corrupt manifest during read", async ({ page }) => {
+    await performCorruptManifestReadTest({
+      page,
+      listStorageEntries: S3Boundary.listBucket,
+      writeStorageEntry: ({ path, content }) => S3Boundary.writeBucket(path, content),
+      pipelineStep: {
+        write: {
+          type: "S3 Upload",
+          bucket: S3Boundary.BUCKET,
+          baseFolder: namespace,
+          region: S3Boundary.REGION,
+          endpoint: S3Boundary.ENDPOINT,
+          accessKeyReference: "MY_S3_ACCESS_KEY",
+          secretKeyReference: "MY_S3_SECRET_KEY",
+        },
+        read: {
+          type: "S3 Download",
+          bucket: S3Boundary.BUCKET,
           region: S3Boundary.REGION,
           endpoint: S3Boundary.ENDPOINT,
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
           baseFolder: namespace,
+          managedStorageSelectionTarget: "latest",
+        },
+      },
+    });
+  });
+
+  test("s3 error flow : corrupt listing during read", async ({ page }) => {
+    await performCorruptListingReadTest({
+      page,
+      listStorageEntries: S3Boundary.listBucket,
+      writeStorageEntry: ({ path, content }) => S3Boundary.writeBucket(path, content),
+      pipelineStep: {
+        write: {
+          type: "S3 Upload",
+          baseFolder: namespace,
+          bucket: S3Boundary.BUCKET,
+          region: S3Boundary.REGION,
+          endpoint: S3Boundary.ENDPOINT,
+          accessKeyReference: "MY_S3_ACCESS_KEY",
+          secretKeyReference: "MY_S3_SECRET_KEY",
+        },
+        read: {
+          type: "S3 Download",
+          bucket: S3Boundary.BUCKET,
+          region: S3Boundary.REGION,
+          endpoint: S3Boundary.ENDPOINT,
+          accessKeyReference: "MY_S3_ACCESS_KEY",
+          secretKeyReference: "MY_S3_SECRET_KEY",
+          baseFolder: namespace,
+          managedStorageSelectionTarget: "latest",
         },
       },
     });
@@ -87,7 +145,7 @@ describe("execution | managed_storage", () => {
 
   test("filesystem error flow : corrupt manifest during write", async ({ page }) => {
     const storageFolder = FilesystemBoundary.SCRATCH_PAD.join("storage");
-    await performCorruptManifestWriteTest({
+    await performCorruptWriteTest({
       page,
       listStorageEntries: () => FilesystemBoundary.listFlattenedFolderEntries(storageFolder),
       writeStorageEntry: ({ path, content }) => Common.writeFile(join(storageFolder, path), content),
@@ -96,6 +154,50 @@ describe("execution | managed_storage", () => {
           type: "Filesystem Write",
           folder: join(storageFolder, namespace),
           managedStorage: "true",
+        },
+      },
+    });
+  });
+
+  test("filesystem error flow : corrupt manifest during read", async ({ page }) => {
+    const storageFolder = FilesystemBoundary.SCRATCH_PAD.join("storage", namespace);
+    await performCorruptManifestReadTest({
+      page,
+      listStorageEntries: () => FilesystemBoundary.listFlattenedFolderEntries(dirname(storageFolder)),
+      writeStorageEntry: ({ path, content }) => Common.writeFile(join(dirname(storageFolder), path), content),
+      pipelineStep: {
+        write: {
+          type: "Filesystem Write",
+          folder: storageFolder,
+          managedStorage: "true",
+        },
+        read: {
+          type: "Filesystem Read",
+          path: storageFolder,
+          managedStorage: "true",
+          managedStorageSelectionTarget: "latest",
+        },
+      },
+    });
+  });
+
+  test("filesystem error flow : corrupt listing during read", async ({ page }) => {
+    const storageFolder = FilesystemBoundary.SCRATCH_PAD.join("storage", namespace);
+    await performCorruptManifestReadTest({
+      page,
+      listStorageEntries: () => FilesystemBoundary.listFlattenedFolderEntries(dirname(storageFolder)),
+      writeStorageEntry: ({ path, content }) => Common.writeFile(join(dirname(storageFolder), path), content),
+      pipelineStep: {
+        write: {
+          type: "Filesystem Write",
+          folder: storageFolder,
+          managedStorage: "true",
+        },
+        read: {
+          type: "Filesystem Read",
+          path: storageFolder,
+          managedStorage: "true",
+          managedStorageSelectionTarget: "latest",
         },
       },
     });
@@ -131,7 +233,7 @@ describe("execution | managed_storage", () => {
       expect.arrayContaining([
         expect.stringMatching(new RegExp(`^${namespace}/__brespi_manifest__\.json$`)),
         expect.stringMatching(
-          new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/__brespi_artifact_index_${Common.Regex.RANDOM}__\.json$`),
+          new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/__brespi_listing_${Common.Regex.RANDOM}__\.json$`),
         ),
         expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Apple.txt`)),
         expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Banana.txt`)),
@@ -167,13 +269,13 @@ describe("execution | managed_storage", () => {
       expect.arrayContaining([
         expect.stringMatching(new RegExp(`^${namespace}/__brespi_manifest__\.json$`)),
         expect.stringMatching(
-          new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/__brespi_artifact_index_${Common.Regex.RANDOM}__\.json$`),
+          new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/__brespi_listing_${Common.Regex.RANDOM}__\.json$`),
         ),
         expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Apple.txt`)),
         expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Banana.txt`)),
         expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Coconut.txt`)),
         expect.stringMatching(
-          new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/__brespi_artifact_index_${Common.Regex.RANDOM}__\.json$`),
+          new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/__brespi_listing_${Common.Regex.RANDOM}__\.json$`),
         ),
         expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Daikon.txt`)),
         expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Eggplant.txt`)),
@@ -191,7 +293,7 @@ describe("execution | managed_storage", () => {
     }
   }
 
-  type CorruptManifestWriteOptions = {
+  type CorruptWriteOptions = {
     page: Page;
     listStorageEntries: () => Promise<string[]>;
     writeStorageEntry: (opts: { path: string; content: string }) => Promise<void>;
@@ -199,19 +301,14 @@ describe("execution | managed_storage", () => {
       write: EditorFlow.StepOptions;
     };
   };
-  async function performCorruptManifestWriteTest({
-    page,
-    listStorageEntries,
-    writeStorageEntry,
-    pipelineStep: pipelineStep,
-  }: CorruptManifestWriteOptions) {
+  async function performCorruptWriteTest({ page, listStorageEntries, writeStorageEntry, pipelineStep }: CorruptWriteOptions) {
     // given
     await writeStorageEntry({ path: join(namespace, "__brespi_manifest__.json"), content: "this doesn't look like json!" });
     expect(await listStorageEntries()).toEqual([join(namespace, "__brespi_manifest__.json")]);
 
     // when
     await createWritePipeline(page, {
-      inputDir: FilesystemBoundary.SCRATCH_PAD.join(),
+      inputDir: FilesystemBoundary.SCRATCH_PAD.join(), // irrelevant
       writeStep: pipelineStep.write,
     });
     await ExecutionFlow.executePipeline(page, { expectedOutcome: "error" });
@@ -219,6 +316,99 @@ describe("execution | managed_storage", () => {
     // then
     const error = `ExecutionError::managed_storage_corrupted {
       "element": "manifest"
+    }`;
+    await expect(page.getByText(error)).toBeVisible();
+  }
+
+  type CorruptManifestReadOptions = {
+    page: Page;
+    listStorageEntries: () => Promise<string[]>;
+    writeStorageEntry: (opts: { path: string; content: string }) => Promise<void>;
+    pipelineStep: {
+      write: EditorFlow.StepOptions;
+      read: EditorFlow.StepOptions;
+    };
+  };
+  async function performCorruptManifestReadTest({ page, listStorageEntries, writeStorageEntry, pipelineStep }: CorruptManifestReadOptions) {
+    // given
+    const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
+    for (const fruit of ["Apple", "Banana", "Coconut"]) {
+      const path = join(inputDir, `${fruit}.txt`);
+      await Common.writeFile(path, `My name is ${fruit}`);
+    }
+    await createWritePipeline(page, { inputDir, writeStep: pipelineStep.write });
+    await ExecutionFlow.executePipeline(page);
+    expect(await listStorageEntries()).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("Apple.txt"),
+        expect.stringContaining("Banana.txt"),
+        expect.stringContaining("Coconut.txt"),
+        `${namespace}/__brespi_manifest__.json`,
+      ]),
+    );
+
+    // when
+    await writeStorageEntry({
+      path: join(namespace, "__brespi_manifest__.json"),
+      content: JSON.stringify({ iam: "corrupted" }),
+    });
+    await createReadPipeline(page, {
+      readStep: pipelineStep.read,
+      outputDir: FilesystemBoundary.SCRATCH_PAD.join(), // irrelevant
+    });
+    await ExecutionFlow.executePipeline(page, { expectedOutcome: "error" });
+
+    // then
+    const error = `ExecutionError::managed_storage_corrupted {
+      "element": "manifest"
+    }`;
+    await expect(page.getByText(error)).toBeVisible();
+  }
+
+  type CorruptListingReadOptions = {
+    page: Page;
+    listStorageEntries: () => Promise<string[]>;
+    writeStorageEntry: (opts: { path: string; content: string }) => Promise<void>;
+    pipelineStep: {
+      write: EditorFlow.StepOptions;
+      read: EditorFlow.StepOptions;
+    };
+  };
+  async function performCorruptListingReadTest({ page, listStorageEntries, writeStorageEntry, pipelineStep }: CorruptListingReadOptions) {
+    // given
+    const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
+    for (const fruit of ["Apple", "Banana", "Coconut"]) {
+      const path = join(inputDir, `${fruit}.txt`);
+      await Common.writeFile(path, `My name is ${fruit}`);
+    }
+    await createWritePipeline(page, { inputDir, writeStep: pipelineStep.write });
+    await ExecutionFlow.executePipeline(page);
+    expect(await listStorageEntries()).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("Apple.txt"),
+        expect.stringContaining("Banana.txt"),
+        expect.stringContaining("Coconut.txt"),
+        expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/__brespi_listing_${Common.Regex.RANDOM}__.json$`)),
+      ]),
+    );
+    const [listingPath, ...forbiddenMatches] = (await listStorageEntries()).filter((p) => p.includes("__brespi_listing_"));
+    expect(listingPath).toBeDefined();
+    expect(forbiddenMatches).toHaveLength(0);
+
+    // when
+    await writeStorageEntry({
+      path: listingPath,
+      content: "i am also corrupted",
+    });
+    await createReadPipeline(page, {
+      readStep: pipelineStep.read,
+      outputDir: FilesystemBoundary.SCRATCH_PAD.join(), // irrelevant
+    });
+    await ExecutionFlow.executePipeline(page, { expectedOutcome: "error" });
+
+    // then
+    const error = `ExecutionError::managed_storage_corrupted {
+      "element": "listing"
     }`;
     await expect(page.getByText(error)).toBeVisible();
   }

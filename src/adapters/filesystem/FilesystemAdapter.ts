@@ -24,7 +24,7 @@ export class FilesystemAdapter extends AbstractAdapter {
     await mkdir(step.folderPath, { recursive: true });
     if (step.managedStorage) {
       this.requireArtifactType("file", ...artifacts);
-      const { manifestModifier, artifactIndex, insertableArtifacts } = this.managedStorageCapability.prepareInsertion({
+      const { manifestModifier, listing, insertableArtifacts } = this.managedStorageCapability.prepareInsertion({
         baseFolder: step.folderPath,
         artifacts,
         trail,
@@ -33,8 +33,8 @@ export class FilesystemAdapter extends AbstractAdapter {
       await this.handleManifestExclusively(step.folderPath, async (manifest, save) => {
         await save(manifestModifier({ manifest }));
       });
-      // Save index
-      await Bun.write(artifactIndex.destinationPath, JSON.stringify(artifactIndex.content));
+      // Save listing
+      await Bun.write(listing.destinationPath, JSON.stringify(listing.content));
       // Save artifacts
       for (const { sourcePath, destinationPath } of insertableArtifacts) {
         await Bun.write(destinationPath, Bun.file(sourcePath));

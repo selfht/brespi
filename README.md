@@ -18,7 +18,7 @@ Schedules
 * Implement cron-style scheduled pipeline executions
 
 Policies
-* Update the `ManagedStorageCapability` to track total sizes as well per `ArtifactIndex`
+* Update the `ManagedStorageCapability` to track total sizes as well per `Listing`
 * Offer automated cleanup policies for both `S3 Upload` and `Filesystem Write`: last N versions, max X gigabyte (strict/lenient mode)
 * Trigger these policies before/after every execution
 

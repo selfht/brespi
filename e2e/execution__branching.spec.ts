@@ -60,22 +60,22 @@ describe("execution | branching", () => {
           previousId: "B",
           type: "S3 Upload",
           bucket: S3Boundary.BUCKET,
+          baseFolder: outputDir.bucketX,
           region: S3Boundary.REGION,
           endpoint: S3Boundary.ENDPOINT,
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
-          baseFolder: outputDir.bucketX,
         },
         {
           // branch 4/4
           previousId: "B",
           type: "S3 Upload",
           bucket: S3Boundary.BUCKET,
+          baseFolder: outputDir.bucketY,
           region: S3Boundary.REGION,
           endpoint: S3Boundary.ENDPOINT,
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
-          baseFolder: outputDir.bucketY,
         },
       ],
     });
@@ -92,7 +92,7 @@ describe("execution | branching", () => {
         expect.arrayContaining([
           expect.stringMatching(new RegExp(`^${namespace}/__brespi_manifest__\.json$`)),
           expect.stringMatching(
-            new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/__brespi_artifact_index_${Common.Regex.RANDOM}__\.json$`),
+            new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/__brespi_listing_${Common.Regex.RANDOM}__\.json$`),
           ),
           expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Almond.txt`)),
           expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Baklava.txt`)),

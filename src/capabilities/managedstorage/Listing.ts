@@ -3,19 +3,19 @@ import z from "zod/v4";
 import { Artifact } from "../../models/Artifact";
 import { Generate } from "@/helpers/Generate";
 
-export type ArtifactIndex = {
-  object: "artifact_index";
+export type Listing = {
+  object: "listing";
   artifacts: Array<{
     path: string;
     trail: unknown[];
   }>;
 };
 
-export namespace ArtifactIndex {
+export namespace Listing {
   export const generateName = (artifacts: Array<Pick<Artifact, "name">>) => {
     const artifactNames = artifacts.map(({ name }) => name);
     const randomName = () => {
-      return `__brespi_artifact_index_${Generate.shortRandomString()}__.json`;
+      return `__brespi_listing_${Generate.shortRandomString()}__.json`;
     };
     while (true) {
       const name = randomName();
@@ -25,10 +25,10 @@ export namespace ArtifactIndex {
     }
   };
 
-  export const parse = ZodParser.forType<ArtifactIndex>()
+  export const parse = ZodParser.forType<Listing>()
     .ensureSchemaMatchesType(() =>
       z.object({
-        object: z.literal("artifact_index"),
+        object: z.literal("listing"),
         artifacts: z.array(
           z.object({
             path: z.string(),

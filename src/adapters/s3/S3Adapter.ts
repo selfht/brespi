@@ -24,7 +24,7 @@ export class S3Adapter extends AbstractAdapter {
     this.requireArtifactType("file", ...artifacts);
     baseFolder = this.relativize(baseFolder);
     const client = this.constructClient(step.connection);
-    const { manifestModifier, artifactIndex, insertableArtifacts } = this.managedStorageCapability.prepareInsertion({
+    const { manifestModifier, listing, insertableArtifacts } = this.managedStorageCapability.prepareInsertion({
       baseFolder,
       artifacts,
       trail,
@@ -33,8 +33,8 @@ export class S3Adapter extends AbstractAdapter {
     await this.handleManifestExclusively(client, baseFolder, async (manifest, save) => {
       await save(manifestModifier({ manifest }));
     });
-    // Save index
-    await client.write(artifactIndex.destinationPath, JSON.stringify(artifactIndex.content));
+    // Save listing
+    await client.write(listing.destinationPath, JSON.stringify(listing.content));
     // Save artifacts
     for (const { sourcePath, destinationPath } of insertableArtifacts) {
       await client.write(destinationPath, Bun.file(sourcePath));

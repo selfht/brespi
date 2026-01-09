@@ -185,11 +185,11 @@ describe("execution | filtering", () => {
           id: "C",
           type: "S3 Upload",
           bucket: S3Boundary.BUCKET,
+          baseFolder: "",
           region: S3Boundary.REGION,
           endpoint: S3Boundary.ENDPOINT,
           accessKeyReference: "MY_S3_ACCESS_KEY",
           secretKeyReference: "MY_S3_SECRET_KEY",
-          baseFolder: "",
         },
         {
           previousId: "C",

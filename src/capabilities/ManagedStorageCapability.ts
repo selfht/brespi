@@ -1,4 +1,4 @@
-import { ArtifactIndex } from "@/capabilities/managedstorage/ArtifactIndex";
+import { Listing } from "@/capabilities/managedstorage/Listing";
 import { Manifest } from "@/capabilities/managedstorage/Manifest";
 import { ExecutionError } from "@/errors/ExecutionError";
 import { Generate } from "@/helpers/Generate";
@@ -16,18 +16,18 @@ export class ManagedStorageCapability {
   }: ManagedStorageCapability.PrepareInsertionOptions): ManagedStorageCapability.PrepareInsertionResult {
     const timestamp = Temporal.Now.plainDateTimeISO();
     const itemDir = `${timestamp}-${Generate.shortRandomString()}`;
-    // 1. Create the artifact index
-    const artifactIndex = {
-      name: ArtifactIndex.generateName(artifacts),
+    // 1. Create the listing
+    const listing = {
+      name: Listing.generateName(artifacts),
       get path() {
         return join(itemDir, this.name);
       },
       get parentDir() {
         return dirname(this.path);
       },
-      get content(): ArtifactIndex {
+      get content(): Listing {
         return {
-          object: "artifact_index",
+          object: "listing",
           artifacts: artifacts.map((artifact) => ({
             path: artifact.name, // (sic) `artifact.name` is unique in each batch (and artifact.path` refers to the current path on the filesystem)
             trail,
@@ -43,7 +43,7 @@ export class ManagedStorageCapability {
           ...manifest.items,
           {
             isoTimestamp: timestamp.toString(),
-            artifactIndexPath: artifactIndex.path,
+            listingPath: listing.path,
           },
         ],
       };
@@ -51,13 +51,13 @@ export class ManagedStorageCapability {
     // 3. Return
     return {
       manifestModifier,
-      artifactIndex: {
-        destinationPath: join(baseFolder, artifactIndex.path),
-        content: artifactIndex.content,
+      listing: {
+        destinationPath: join(baseFolder, listing.path),
+        content: listing.content,
       },
       insertableArtifacts: artifacts.map<ManagedStorageCapability.InsertableArtifact>(({ name, path }) => ({
         sourcePath: path,
-        destinationPath: join(baseFolder, artifactIndex.parentDir, name),
+        destinationPath: join(baseFolder, listing.parentDir, name),
       })),
     };
   }
@@ -70,16 +70,16 @@ export class ManagedStorageCapability {
     return {
       selectableArtifactsFn: async ({ manifest }) => {
         const item = this.findMatchingItem(manifest, configuration);
-        const artifactIndexPath = join(baseFolder, item.artifactIndexPath);
-        const artifactIndexParentDir = dirname(artifactIndexPath);
-        const index = this.parseArtifactIndex(await storageReaderFn({ absolutePath: artifactIndexPath }));
-        const selectableArtifacts = index.artifacts.map<ManagedStorageCapability.SelectableArtifact>(({ path }) => ({
+        const listingPath = join(baseFolder, item.listingPath);
+        const listingParentDir = dirname(listingPath);
+        const listing = this.parseListing(await storageReaderFn({ absolutePath: listingPath }));
+        const selectableArtifacts = listing.artifacts.map<ManagedStorageCapability.SelectableArtifact>(({ path }) => ({
           name: path,
-          path: join(artifactIndexParentDir, path),
+          path: join(listingParentDir, path),
         }));
         return {
           selectableArtifacts,
-          version: dirname(item.artifactIndexPath),
+          version: dirname(item.listingPath),
         };
       },
     };
@@ -96,7 +96,7 @@ export class ManagedStorageCapability {
       }
       case "specific": {
         const version = conf.version;
-        const matchingItems = manifest.items.filter((u) => u.isoTimestamp === version || dirname(u.artifactIndexPath) === version);
+        const matchingItems = manifest.items.filter((u) => u.isoTimestamp === version || dirname(u.listingPath) === version);
         if (matchingItems.length === 0) {
           throw new Error("Specific item could not be found");
         }
@@ -117,12 +117,12 @@ export class ManagedStorageCapability {
     }
   }
 
-  private parseArtifactIndex(content: string): ArtifactIndex {
+  private parseListing(content: string): Listing {
     try {
       const json = JSON.parse(content);
-      return ArtifactIndex.parse(json);
+      return Listing.parse(json);
     } catch (e) {
-      throw ExecutionError.managed_storage_corrupted({ element: "artifact_index" });
+      throw ExecutionError.managed_storage_corrupted({ element: "listing" });
     }
   }
 }
@@ -139,7 +139,7 @@ export namespace ManagedStorageCapability {
   };
   export type PrepareInsertionResult = {
     manifestModifier: (arg: { manifest: Manifest }) => Manifest;
-    artifactIndex: { content: ArtifactIndex; destinationPath: string };
+    listing: { content: Listing; destinationPath: string };
     insertableArtifacts: InsertableArtifact[];
   };
 

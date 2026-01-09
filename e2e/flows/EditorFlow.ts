@@ -45,20 +45,20 @@ export namespace EditorFlow {
     | (StepCommon & {
         type: "S3 Upload";
         bucket?: string;
+        baseFolder?: string;
         endpoint?: string;
         region?: string;
         accessKeyReference?: string;
         secretKeyReference?: string;
-        baseFolder?: string;
       })
     | (StepCommon & {
         type: "S3 Download";
         bucket?: string;
+        baseFolder?: string;
         endpoint?: string;
         region?: string;
         accessKeyReference?: string;
         secretKeyReference?: string;
-        baseFolder?: string;
         managedStorageSelectionTarget?: "latest" | "specific";
         managedStorageSelectionVersion?: string;
         filterCriteria?: "true" | "false";
@@ -246,11 +246,11 @@ export namespace EditorFlow {
       }
       case "S3 Upload": {
         if (step.bucket) await page.getByLabel("Bucket").fill(step.bucket);
+        if (step.baseFolder) await page.getByLabel("Base folder").fill(step.baseFolder);
         if (step.endpoint) await page.getByLabel("Endpoint").fill(step.endpoint);
         if (step.region) await page.getByLabel("Region").fill(step.region);
         if (step.accessKeyReference) await page.getByLabel("Access key reference").fill(step.accessKeyReference);
         if (step.secretKeyReference) await page.getByLabel("Secret key reference").fill(step.secretKeyReference);
-        if (step.baseFolder) await page.getByLabel("Base folder").fill(step.baseFolder);
         return await findCurrentlyActiveStepId(page);
       }
       case "S3 Download": {

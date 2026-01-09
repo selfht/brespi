@@ -10,6 +10,10 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: "Bucket",
       description: "This field specifies the S3 bucket name to download from.",
     },
+    baseFolder: {
+      label: "Base folder",
+      description: "This field specifies the S3 path prefix where artifacts are retrieved, and must point to a valid managed storage root.",
+    },
     connection_region: {
       label: "Region",
       description: "This field specifies the region for the S3 bucket.",
@@ -29,10 +33,6 @@ const { summary, Field, Label, Description } = FormHelper.meta({
     managedStorage: {
       label: "Use managed storage?",
       description: "This field enables downloading from a managed storage location (mandatory).",
-    },
-    managedStorage_baseFolder: {
-      label: "Managed storage: base folder",
-      description: "This field specifies the S3 path prefix where artifacts are retrieved from managed storage.",
     },
     managedStorage_target: {
       label: "Managed storage: target",
@@ -66,12 +66,12 @@ const { summary, Field, Label, Description } = FormHelper.meta({
 });
 type Form = {
   [Field.connection_bucket]: string;
+  [Field.baseFolder]: string;
   [Field.connection_region]: string;
   [Field.connection_endpoint]: string;
   [Field.connection_accessKeyReference]: string;
   [Field.connection_secretKeyReference]: string;
   [Field.managedStorage]: "true";
-  [Field.managedStorage_baseFolder]: string;
   [Field.managedStorage_target]: "latest" | "specific";
   [Field.managedStorage_version]: string;
   [Field.filterCriteria]: "true" | "false";
@@ -93,12 +93,12 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.connection_bucket]: existing?.connection.bucket ?? "",
+      [Field.baseFolder]: existing?.baseFolder ?? "",
       [Field.connection_region]: existing?.connection.region ?? "",
       [Field.connection_endpoint]: existing?.connection.endpoint ?? "",
       [Field.connection_accessKeyReference]: existing?.connection.accessKeyReference ?? "",
       [Field.connection_secretKeyReference]: existing?.connection.secretKeyReference ?? "",
       [Field.managedStorage]: "true",
-      [Field.managedStorage_baseFolder]: existing?.baseFolder ?? "",
       [Field.managedStorage_target]: existing?.managedStorage.target ?? "latest",
       [Field.managedStorage_version]: existing?.managedStorage.target === "specific" ? existing.managedStorage.version : "",
       [Field.filterCriteria]: existing ? (existing.filterCriteria ? "true" : "false") : "false",
@@ -123,7 +123,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           accessKeyReference: form[Field.connection_accessKeyReference],
           secretKeyReference: form[Field.connection_secretKeyReference],
         },
-        baseFolder: form[Field.managedStorage_baseFolder],
+        baseFolder: form[Field.baseFolder],
         managedStorage:
           form[Field.managedStorage_target] === "latest"
             ? { target: "latest" }
@@ -155,6 +155,14 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
         <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.connection_bucket}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{ type: "text" }}
+          />
+          <FormElements.LabeledInput
+            field={Field.baseFolder}
             labels={Label}
             register={register}
             activeField={activeField}
@@ -200,14 +208,6 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "yes" }}
-          />
-          <FormElements.LabeledInput
-            field={Field.managedStorage_baseFolder}
-            labels={Label}
-            register={register}
-            activeField={activeField}
-            onActiveFieldChange={setActiveField}
-            input={{ type: "text" }}
           />
           <FormElements.LabeledInput
             field={Field.managedStorage_target}

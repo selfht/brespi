@@ -105,24 +105,24 @@ export namespace StepDetails {
         const F = S3UploadForm.Field;
         return performLabeling<typeof F>(S3UploadForm.Label, {
           [F.connection_bucket]: step.connection.bucket,
+          [F.baseFolder]: step.baseFolder,
           [F.connection_region]: step.connection.region,
           [F.connection_endpoint]: step.connection.endpoint,
           [F.connection_accessKeyReference]: step.connection.accessKeyReference,
           [F.connection_secretKeyReference]: step.connection.secretKeyReference,
           [F.managedStorage]: true,
-          [F.managedStorage_baseFolder]: step.baseFolder,
         });
       }
       case Step.Type.s3_download: {
         const F = S3DownloadForm.Field;
         return performLabeling<typeof F>(S3DownloadForm.Label, {
           [F.connection_bucket]: step.connection.bucket,
+          [F.baseFolder]: step.baseFolder,
           [F.connection_region]: step.connection.region,
           [F.connection_endpoint]: step.connection.endpoint,
           [F.connection_accessKeyReference]: step.connection.accessKeyReference,
           [F.connection_secretKeyReference]: step.connection.secretKeyReference,
           [F.managedStorage]: true,
-          [F.managedStorage_baseFolder]: step.baseFolder,
           [F.managedStorage_target]: step.managedStorage.target,
           [F.managedStorage_version]: step.managedStorage.target === "specific" ? step.managedStorage.version : undefined,
           filterCriteria: Boolean(step.filterCriteria),

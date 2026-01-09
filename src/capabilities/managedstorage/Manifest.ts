@@ -12,7 +12,7 @@ export namespace Manifest {
 
   export type Item = {
     isoTimestamp: string;
-    artifactIndexPath: string;
+    listingPath: string;
   };
   export namespace Item {
     /**
@@ -44,7 +44,7 @@ export namespace Manifest {
                 return false;
               }
             }, "invalid ISO timestamp"),
-            artifactIndexPath: z.string(),
+            listingPath: z.string(),
           }),
         ),
       }),

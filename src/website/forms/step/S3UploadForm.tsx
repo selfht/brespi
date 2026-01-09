@@ -10,6 +10,11 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: "Bucket",
       description: "This field specifies the S3 bucket name to upload to.",
     },
+    baseFolder: {
+      label: "Base folder",
+      description:
+        'This field specifies the S3 path prefix where artifacts will be uploaded to managed storage. If no "managed storage root" is detected at the provided base folder, it will be initialized upon first execution.',
+    },
     connection_region: {
       label: "Region",
       description: "This field specifies the region for the S3 bucket.",
@@ -30,21 +35,16 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: "Use managed storage?",
       description: "This field enables uploading to a managed storage location (mandatory).",
     },
-    managedStorage_baseFolder: {
-      label: "Managed storage: base folder",
-      description:
-        'This field specifies the S3 path prefix where artifacts will be uploaded to managed storage. If no "managed storage" root is detected at the provided base folder, it will be initialized upon first execution.',
-    },
   },
 });
 type Form = {
   [Field.connection_bucket]: string;
+  [Field.baseFolder]: string;
   [Field.connection_region]: string;
   [Field.connection_endpoint]: string;
   [Field.connection_accessKeyReference]: string;
   [Field.connection_secretKeyReference]: string;
   [Field.managedStorage]: "true";
-  [Field.managedStorage_baseFolder]: string;
 };
 
 type Props = {
@@ -59,12 +59,12 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.connection_bucket]: existing?.connection.bucket ?? "",
+      [Field.baseFolder]: existing?.baseFolder ?? "",
       [Field.connection_region]: existing?.connection.region ?? "",
       [Field.connection_endpoint]: existing?.connection.endpoint ?? "",
       [Field.connection_accessKeyReference]: existing?.connection.accessKeyReference ?? "",
       [Field.connection_secretKeyReference]: existing?.connection.secretKeyReference ?? "",
       [Field.managedStorage]: "true",
-      [Field.managedStorage_baseFolder]: existing?.baseFolder ?? "",
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -82,7 +82,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
           accessKeyReference: form[Field.connection_accessKeyReference],
           secretKeyReference: form[Field.connection_secretKeyReference],
         },
-        baseFolder: form[Field.managedStorage_baseFolder],
+        baseFolder: form[Field.baseFolder],
       });
     } catch (error) {
       setError("root", {
@@ -145,7 +145,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
             input={{ type: "yes" }}
           />
           <FormElements.LabeledInput
-            field={Field.managedStorage_baseFolder}
+            field={Field.baseFolder}
             labels={Label}
             register={register}
             activeField={activeField}

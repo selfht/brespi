@@ -3,7 +3,7 @@ import { Temporal } from "@js-temporal/polyfill";
 import { ManagedStorageCapability } from "./ManagedStorageCapability";
 import { Test } from "@/helpers/Test.spec";
 import { Manifest } from "./managedstorage/Manifest";
-import { ArtifactIndex } from "./managedstorage/ArtifactIndex";
+import { Listing } from "./managedstorage/Listing";
 
 describe(ManagedStorageCapability.name, () => {
   const Regex = {
@@ -17,7 +17,7 @@ describe(ManagedStorageCapability.name, () => {
   const capability = new ManagedStorageCapability();
 
   describe(capability.prepareInsertion.name, () => {
-    it("correctly generates the to-be-upserted manifest/index/artifacts", () => {
+    it("correctly generates the to-be-upserted manifest/listing/artifacts", () => {
       // given
       const options: ManagedStorageCapability.PrepareInsertionOptions = {
         baseFolder: "hello-123-base",
@@ -30,26 +30,26 @@ describe(ManagedStorageCapability.name, () => {
       };
 
       // when
-      const { manifestModifier, artifactIndex, insertableArtifacts } = capability.prepareInsertion(options);
+      const { manifestModifier, listing, insertableArtifacts } = capability.prepareInsertion(options);
       const manifest = manifestModifier({ manifest: Manifest.empty() });
 
       // then (validate the manifest)
       expect(manifest.items).toHaveLength(1);
       expect(manifest.items[0].isoTimestamp).toMatch(new RegExp(`^${Regex.TIMESTAMP}$`));
-      expect(manifest.items[0].artifactIndexPath).toMatch(
-        // the link between `Manifest --> Index` is always relative
-        new RegExp(`^${Regex.TIMESTAMP_FOLDER}/__brespi_artifact_index_${Regex.RANDOM_ID}__.json$`),
+      expect(manifest.items[0].listingPath).toMatch(
+        // the link between `manifest --> listing` is always relative
+        new RegExp(`^${Regex.TIMESTAMP_FOLDER}/__brespi_listing_${Regex.RANDOM_ID}__.json$`),
       );
 
-      // then (validate the index)
-      expect(artifactIndex.destinationPath).toEqual(`hello-123-base/${manifest.items[0].artifactIndexPath}`);
-      expect(artifactIndex.content.artifacts).toHaveLength(3);
-      expect(artifactIndex.content.artifacts).toEqual(
+      // then (validate the listing)
+      expect(listing.destinationPath).toEqual(`hello-123-base/${manifest.items[0].listingPath}`);
+      expect(listing.content.artifacts).toHaveLength(3);
+      expect(listing.content.artifacts).toEqual(
         expect.arrayContaining([
           // the link between `Index --> Artifact` is always relative
-          expect.objectContaining({ path: "Apple.txt" } satisfies Partial<ArtifactIndex["artifacts"][number]>),
-          expect.objectContaining({ path: "Banana.txt" } satisfies Partial<ArtifactIndex["artifacts"][number]>),
-          expect.objectContaining({ path: "Coconut.txt" } satisfies Partial<ArtifactIndex["artifacts"][number]>),
+          expect.objectContaining({ path: "Apple.txt" } satisfies Partial<Listing["artifacts"][number]>),
+          expect.objectContaining({ path: "Banana.txt" } satisfies Partial<Listing["artifacts"][number]>),
+          expect.objectContaining({ path: "Coconut.txt" } satisfies Partial<Listing["artifacts"][number]>),
         ]),
       );
 
@@ -73,7 +73,7 @@ describe(ManagedStorageCapability.name, () => {
       );
     });
 
-    it("appends a new artifact index to an existing manifest", () => {
+    it("appends a new listing to an existing manifest", () => {
       for (let existingManifestSize = 0; existingManifestSize < 10; existingManifestSize++) {
         const range = Array.from({ length: existingManifestSize }, (_, i) => i);
         // given
@@ -81,7 +81,7 @@ describe(ManagedStorageCapability.name, () => {
           object: "manifest",
           items: range.map((index) => ({
             isoTimestamp: Temporal.Now.plainDateTimeISO().toString(),
-            artifactIndexPath: `blabla-${index}`,
+            listingPath: `blabla-${index}`,
           })),
         };
         // when
@@ -93,13 +93,11 @@ describe(ManagedStorageCapability.name, () => {
           expect.arrayContaining([
             ...range.map((index) =>
               expect.objectContaining({
-                artifactIndexPath: `blabla-${index}`,
+                listingPath: `blabla-${index}`,
               } satisfies Partial<Manifest.Item>),
             ),
             expect.objectContaining({
-              artifactIndexPath: expect.stringMatching(
-                new RegExp(`^${Regex.TIMESTAMP_FOLDER}/__brespi_artifact_index_${Regex.RANDOM_ID}__.json$`),
-              ),
+              listingPath: expect.stringMatching(new RegExp(`^${Regex.TIMESTAMP_FOLDER}/__brespi_listing_${Regex.RANDOM_ID}__.json$`)),
             } satisfies Partial<Manifest.Item>),
           ]),
         );
@@ -152,9 +150,9 @@ describe(ManagedStorageCapability.name, () => {
         trail: [],
       };
       // when
-      const { artifactIndex, insertableArtifacts } = capability.prepareInsertion(options);
+      const { listing, insertableArtifacts } = capability.prepareInsertion(options);
       // then
-      expect(artifactIndex.destinationPath).toMatch(expectation.itemPathMatcher);
+      expect(listing.destinationPath).toMatch(expectation.itemPathMatcher);
       expect(insertableArtifacts).toHaveLength(1);
       expect(insertableArtifacts[0].destinationPath).toMatch(expectation.itemPathMatcher);
     });
@@ -187,20 +185,20 @@ describe(ManagedStorageCapability.name, () => {
         items: [
           {
             isoTimestamp: Timestamp.LAST_YEAR,
-            artifactIndexPath: `${Timestamp.LAST_YEAR}-abc123/__brespi_artifact_index__.json`,
+            listingPath: `${Timestamp.LAST_YEAR}-abc123/__brespi_listing__.json`,
           },
           {
             isoTimestamp: Timestamp.PRESENT,
-            artifactIndexPath: `${Timestamp.PRESENT}-def456/__brespi_artifact_index__.json`,
+            listingPath: `${Timestamp.PRESENT}-def456/__brespi_listing__.json`,
           },
           {
             isoTimestamp: Timestamp.VERY_LONG_AGO,
-            artifactIndexPath: `${Timestamp.VERY_LONG_AGO}-ghi789/__brespi_artifact_index__.json`,
+            listingPath: `${Timestamp.VERY_LONG_AGO}-ghi789/__brespi_listing__.json`,
           },
         ],
       };
-      const artifactIndex = JSON.stringify({
-        object: "artifact_index",
+      const listing = JSON.stringify({
+        object: "listing",
         artifacts: [
           { path: "file1.txt", trail: [] },
           { path: "file2.txt", trail: [] },
@@ -210,7 +208,7 @@ describe(ManagedStorageCapability.name, () => {
       const { selectableArtifactsFn } = capability.prepareSelection({
         baseFolder: "base-folder",
         configuration: { target: "latest" },
-        storageReaderFn: () => Promise.resolve(artifactIndex),
+        storageReaderFn: () => Promise.resolve(listing),
       });
       const { selectableArtifacts } = await selectableArtifactsFn({ manifest });
       // then
@@ -228,22 +226,22 @@ describe(ManagedStorageCapability.name, () => {
         items: [
           {
             isoTimestamp: Timestamp.LAST_YEAR,
-            artifactIndexPath: `${Timestamp.LAST_YEAR}-abc123/__brespi_artifact_index__.json`,
+            listingPath: `${Timestamp.LAST_YEAR}-abc123/__brespi_listing__.json`,
           },
           {
             isoTimestamp: Timestamp.PRESENT,
-            artifactIndexPath: `${Timestamp.PRESENT}-def456/__brespi_artifact_index__.json`,
+            listingPath: `${Timestamp.PRESENT}-def456/__brespi_listing__.json`,
           },
         ],
       };
-      const artifactIndex = JSON.stringify({
-        object: "artifact_index",
+      const listing = JSON.stringify({
+        object: "listing",
         artifacts: [{ path: "specific-file.txt", trail: [] }],
       });
       // when
       const { selectableArtifactsFn } = capability.prepareSelection({
         configuration: { target: "specific", version: Timestamp.LAST_YEAR },
-        storageReaderFn: () => Promise.resolve(artifactIndex),
+        storageReaderFn: () => Promise.resolve(listing),
         baseFolder: "my-base",
       });
       const { selectableArtifacts } = await selectableArtifactsFn({ manifest });
@@ -262,20 +260,20 @@ describe(ManagedStorageCapability.name, () => {
         items: [
           {
             isoTimestamp: Timestamp.VERY_LONG_AGO,
-            artifactIndexPath: `${Timestamp.VERY_LONG_AGO}-abc123/__brespi_artifact_index__.json`,
+            listingPath: `${Timestamp.VERY_LONG_AGO}-abc123/__brespi_listing__.json`,
           },
           {
             isoTimestamp: Timestamp.LAST_YEAR,
-            artifactIndexPath: `${Timestamp.LAST_YEAR}-def456/__brespi_artifact_index__.json`,
+            listingPath: `${Timestamp.LAST_YEAR}-def456/__brespi_listing__.json`,
           },
           {
             isoTimestamp: Timestamp.PRESENT,
-            artifactIndexPath: `${Timestamp.PRESENT}-ghi789/__brespi_artifact_index__.json`,
+            listingPath: `${Timestamp.PRESENT}-ghi789/__brespi_listing__.json`,
           },
         ],
       };
-      const artifactIndex = JSON.stringify({
-        object: "artifact_index",
+      const listing = JSON.stringify({
+        object: "listing",
         artifacts: [
           { path: "doc1.pdf", trail: [] },
           { path: "doc2.pdf", trail: [] },
@@ -285,7 +283,7 @@ describe(ManagedStorageCapability.name, () => {
       // when
       const { selectableArtifactsFn } = capability.prepareSelection({
         configuration: { target: "specific", version: `${Timestamp.VERY_LONG_AGO}-abc123` },
-        storageReaderFn: () => Promise.resolve(artifactIndex),
+        storageReaderFn: () => Promise.resolve(listing),
         baseFolder: "/storage",
       });
       const { selectableArtifacts } = await selectableArtifactsFn({ manifest });
@@ -318,7 +316,7 @@ describe(ManagedStorageCapability.name, () => {
         items: [
           {
             isoTimestamp: Timestamp.LAST_YEAR,
-            artifactIndexPath: "path1/__brespi_artifact_index__.json",
+            listingPath: "path1/__brespi_listing__.json",
           },
         ],
       };
@@ -339,11 +337,11 @@ describe(ManagedStorageCapability.name, () => {
         items: [
           {
             isoTimestamp: Timestamp.LAST_YEAR,
-            artifactIndexPath: "path1/__brespi_artifact_index__.json",
+            listingPath: "path1/__brespi_listing__.json",
           },
           {
             isoTimestamp: Timestamp.LAST_YEAR,
-            artifactIndexPath: "path2/__brespi_artifact_index__.json",
+            listingPath: "path2/__brespi_listing__.json",
           },
         ],
       };
@@ -360,7 +358,7 @@ describe(ManagedStorageCapability.name, () => {
     const collection = Test.createCollection<{
       baseFolder: string;
       manifest: {
-        singleArtifactIndexPath: string;
+        singleListingPath: string;
       };
       expectation: {
         artifactPathPrefix: string;
@@ -369,7 +367,7 @@ describe(ManagedStorageCapability.name, () => {
       {
         baseFolder: "",
         manifest: {
-          singleArtifactIndexPath: `${Timestamp.PRESENT}-abc/__brespi_artifact_index__.json`,
+          singleListingPath: `${Timestamp.PRESENT}-abc/__brespi_listing__.json`,
         },
         expectation: {
           artifactPathPrefix: `${Timestamp.PRESENT}-abc`,
@@ -378,7 +376,7 @@ describe(ManagedStorageCapability.name, () => {
       {
         baseFolder: "backups",
         manifest: {
-          singleArtifactIndexPath: `${Timestamp.PRESENT}-abc/__brespi_artifact_index__.json`,
+          singleListingPath: `${Timestamp.PRESENT}-abc/__brespi_listing__.json`,
         },
         expectation: {
           artifactPathPrefix: `backups/${Timestamp.PRESENT}-abc`,
@@ -387,7 +385,7 @@ describe(ManagedStorageCapability.name, () => {
       {
         baseFolder: "/backups",
         manifest: {
-          singleArtifactIndexPath: `${Timestamp.PRESENT}-abc/__brespi_artifact_index__.json`,
+          singleListingPath: `${Timestamp.PRESENT}-abc/__brespi_listing__.json`,
         },
         expectation: {
           artifactPathPrefix: `/backups/${Timestamp.PRESENT}-abc`,
@@ -396,7 +394,7 @@ describe(ManagedStorageCapability.name, () => {
       {
         baseFolder: "backups/postgres",
         manifest: {
-          singleArtifactIndexPath: `${Timestamp.PRESENT}-abc/__brespi_artifact_index__.json`,
+          singleListingPath: `${Timestamp.PRESENT}-abc/__brespi_listing__.json`,
         },
         expectation: {
           artifactPathPrefix: `backups/postgres/${Timestamp.PRESENT}-abc`,
@@ -405,7 +403,7 @@ describe(ManagedStorageCapability.name, () => {
       {
         baseFolder: "/backups/postgres",
         manifest: {
-          singleArtifactIndexPath: `${Timestamp.PRESENT}-abc/__brespi_artifact_index__.json`,
+          singleListingPath: `${Timestamp.PRESENT}-abc/__brespi_listing__.json`,
         },
         expectation: {
           artifactPathPrefix: `/backups/postgres/${Timestamp.PRESENT}-abc`,
@@ -415,7 +413,7 @@ describe(ManagedStorageCapability.name, () => {
     it.each(collection.testCases)("relativizes selected artifacts to base folder: %s", async (testCase) => {
       const {
         baseFolder,
-        manifest: { singleArtifactIndexPath },
+        manifest: { singleListingPath },
         expectation,
       } = collection.get(testCase);
       // given
@@ -424,18 +422,18 @@ describe(ManagedStorageCapability.name, () => {
         items: [
           {
             isoTimestamp: Timestamp.PRESENT,
-            artifactIndexPath: singleArtifactIndexPath,
+            listingPath: singleListingPath,
           },
         ],
       };
-      const artifactIndex = JSON.stringify({
-        object: "artifact_index",
+      const listing = JSON.stringify({
+        object: "listing",
         artifacts: [{ path: "test-file.txt", trail: [] }],
       });
       // when
       const { selectableArtifactsFn } = capability.prepareSelection({
         configuration: { target: "latest" },
-        storageReaderFn: () => Promise.resolve(artifactIndex),
+        storageReaderFn: () => Promise.resolve(listing),
         baseFolder,
       });
       const { selectableArtifacts } = await selectableArtifactsFn({ manifest });

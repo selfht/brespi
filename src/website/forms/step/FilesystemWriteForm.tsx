@@ -13,7 +13,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
     managedStorage: {
       label: "Use managed storage?",
       description:
-        'This field enables writing to a managed storage folder. If no "managed storage" root is detected at the provided folder path, it will be initialized upon first execution.',
+        'This field enables writing to a managed storage folder. If no "managed storage root" is detected at the provided folder path, it will be initialized upon first execution.',
     },
   },
 });
