@@ -10,9 +10,8 @@
     "install-browsers": "playwright install chromium webkit firefox",
     "tc": "bunx tsc --noEmit",
     "dev": "bun --env-file=.env.development --hot src/index.ts",
-    "test:unit": "bun test",
-    "test:e2e": "playwright test --ui",
-    "test:e2e:headless": "playwright test",
+    "e2e": "playwright test --ui",
+    "e2e:headless": "playwright test",
     "start": "bun --env-file=.env.production src/index.ts",
     "build": "bun run build.ts"
   },
