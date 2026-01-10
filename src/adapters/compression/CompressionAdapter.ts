@@ -13,22 +13,37 @@ export class CompressionAdapter extends AbstractAdapter {
     super(env);
   }
 
+  /**
+   * Compresses a file or directory into a .tar.gz archive with configurable compression level.
+   *
+   * Commands to reproduce:
+   *   # Create uncompressed tar
+   *   COPYFILE_DISABLE=1 tar -cf archive.tar -C /path/to/parent (filename|dirname)
+   *
+   *   # Compress with explicit level (1-9)
+   *   gzip -9 -c archive.tar > archive.tar.gz
+   *
+   *   # Clean up intermediate file
+   *   rm archive.tar
+   */
   public async compress(artifact: Artifact, step: Step.Compression): Promise<Artifact> {
+    const inputPath = artifact.path;
+    const { outputId, outputPath } = this.generateArtifactDestination();
+    const intermediatePath = `${outputPath}.tar`;
     try {
-      const inputPath = artifact.path;
-      const { outputId, outputPath } = this.generateArtifactDestination();
-      // Use tar with gzip for both files and directories
-      // Compression level is controlled via GZIP environment variable (works on both BSD and GNU tar)
-      // For files:
-      //    tar -czf output.tar.gz -C /parent/dir filename
-      // For directories:
-      //    tar -czf output.tar.gz -C /parent/dir dirname
+      const env = {
+        ...Bun.env,
+        COPYFILE_DISABLE: "1", // Prevents macOS tar from creating ._* AppleDouble files
+      };
+      // Create intermediate (uncompressed) tar
       await this.runCommand({
-        cmd: ["tar", "-czf", outputPath, "-C", dirname(inputPath), basename(inputPath)],
-        env: {
-          GZIP: `-${step.algorithm.level}`,
-          COPYFILE_DISABLE: "1", // Prevents macOS tar from creating ._* AppleDouble files
-        },
+        cmd: ["tar", "-cf", intermediatePath, "-C", dirname(inputPath), basename(inputPath)],
+        env,
+      });
+      // Compress with explicit level (output to stdout, redirect to file via shell)
+      await this.runCommand({
+        cmd: ["sh", "-c", `gzip -${step.algorithm.level} -c "${intermediatePath}" > "${outputPath}"`],
+        env,
       });
       return {
         id: outputId,
@@ -38,16 +53,27 @@ export class CompressionAdapter extends AbstractAdapter {
       };
     } catch (e) {
       throw this.mapError(e, ExecutionError.compression_failed);
+    } finally {
+      await rm(intermediatePath, { recursive: true, force: true });
     }
   }
 
+  /**
+   * Decompresses a .tar.gz archive back to its original file or directory.
+   * The archive must contain exactly one top-level item (otherwise, we didn't create it)
+   *
+   * Commands to reproduce:
+   *   # Extract to temp directory
+   *   tar -xzf archive.tar.gz -C /temp/dir
+   *
+   *   # Move the single extracted item to final destination
+   *   mv /temp/dir/extracted-item /final/destination
+   */
   public async decompress(artifact: Artifact, step: Step.Decompression): Promise<Artifact> {
     this.requireArtifactType("file", artifact);
     const inputPath = artifact.path;
     const tempPath = await this.createTmpDestination();
     try {
-      // Use tar to extract (works for both single files and directories)
-      // Will place the resulting "item" (file or folder) as the only child inside the temp dir
       await this.runCommand({
         cmd: ["tar", "-xzf", inputPath, "-C", tempPath],
       });
@@ -67,7 +93,7 @@ export class CompressionAdapter extends AbstractAdapter {
     } catch (e) {
       throw this.mapError(e, ExecutionError.decompression_failed);
     } finally {
-      // await rm(tempPath, { recursive: true, force: true });
+      await rm(tempPath, { recursive: true, force: true });
     }
   }
 
