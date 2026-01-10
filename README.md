@@ -28,7 +28,7 @@ QA
 * Create a "regression suite" consisting of a healthy mix of possible data configurations, to try and detect accidental backwards-incompatible data changes
 
 Technical
-* Implement more unit tests for adapters in the style of `FilesystemAdapter.spec.ts` which can be reasonably expected to execute on basic unix hosts (`CompressionAdapter`, `EncryptionAdapter`, `ScriptAdapter`)
+* ✅ ~Implement more unit tests for adapters in the style of `FilesystemAdapter.spec.ts` which can be reasonably expected to execute on basic unix hosts (`CompressionAdapter`, `EncryptionAdapter`, `ScriptAdapter`)~
 * ✅ ~Use consistent casing in all form labels and E2E fixtures~
 * Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
 * Firefox: test canvas and `foreignObject`

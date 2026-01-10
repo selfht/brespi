@@ -35,13 +35,13 @@ export class ScriptAdapter extends AbstractAdapter {
     }
   }
 
-  private async executeScript(scriptPath: string, env: Record<string, string> = {}): Promise<void> {
+  private async executeScript(scriptPath: string, executionEnv: Record<string, string> = {}): Promise<void> {
     await this.runCommand({
       cmd: ["bash", "-c", `./${basename(scriptPath)}`],
       cwd: dirname(scriptPath),
       env: {
-        ...process.env,
-        ...env,
+        ...Bun.env,
+        ...executionEnv,
       },
     });
   }

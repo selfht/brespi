@@ -83,18 +83,21 @@ export namespace Test {
       });
   }
 
-  export async function createArtifacts(...artifacts: Array<`${"f" | "d"}:${string}`>): Promise<Artifact[]> {
+  export async function createArtifacts(...artifacts: Array<`${"f" | "d"}:${string}`>): Promise<Artifact[]>;
+  export async function createArtifacts(...artifacts: Array<{ name: `${"f" | "d"}:${string}`; content: string }>): Promise<Artifact[]>;
+  export async function createArtifacts(
+    ...artifacts: Array<`${"f" | "d"}:${string}` | { name: `${"f" | "d"}:${string}`; content: string }>
+  ): Promise<Artifact[]> {
     const result: Artifact[] = [];
     for (const artifact of artifacts) {
       const { destinationId, destinationPath } = Generate.tmpDestination(await buildEnv());
-      const name = artifact.slice(2);
-      let type: Artifact["type"];
-      if (artifact.startsWith("f:")) {
-        type = "file";
-        await Bun.write(destinationPath, `Content for ${name}`);
+      const name = typeof artifact === "string" ? artifact.slice(2) : artifact.name.slice(2);
+      const type = (typeof artifact === "string" ? artifact : artifact.name).startsWith("f:") ? "file" : ("directory" as const);
+      const content = typeof artifact === "string" ? `Content for ${artifact}` : artifact.content;
+      if (type === "file") {
+        await Bun.write(destinationPath, content);
       } else {
-        type = "directory";
-        await Bun.write(join(destinationPath, "index"), `Index file for ${name}`);
+        await Bun.write(join(destinationPath, "index"), content);
       }
       result.push({ id: destinationId, type, name, path: destinationPath });
     }

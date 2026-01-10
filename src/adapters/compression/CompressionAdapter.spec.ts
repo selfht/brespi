@@ -16,8 +16,8 @@ describe(CompressionAdapter.name, async () => {
     const [original] = await Test.createArtifacts("d:Collection");
     expect(original.name).toEqual("Collection");
     // when
-    const compressed = await adapter.compress(original, step().compression(9));
-    const decompressed = await adapter.decompress(compressed, step().decompression());
+    const compressed = await adapter.compress(original, fixture.compression(9));
+    const decompressed = await adapter.decompress(compressed, fixture.decompression());
     // then
     expect(decompressed.name).toEqual("Collection");
   });
@@ -27,27 +27,25 @@ describe(CompressionAdapter.name, async () => {
     const [file] = await Test.createArtifacts("f:data");
     await Bun.write(file.path, generateCompressibleText());
     // when
-    const level1 = await adapter.compress(file, step().compression(1)).then(readSize);
-    const level9 = await adapter.compress(file, step().compression(9)).then(readSize);
+    const level1 = await adapter.compress(file, fixture.compression(1)).then(readSize);
+    const level9 = await adapter.compress(file, fixture.compression(9)).then(readSize);
     // then
     expect(level1).toBeGreaterThan(level9);
   });
 
-  function step() {
-    return {
-      compression(level: number): Step.Compression {
-        return {
-          algorithm: {
-            implementation: "targzip",
-            level,
-          },
-        } as Step.Compression;
-      },
-      decompression(): Step.Decompression {
-        return {} as Step.Decompression;
-      },
-    };
-  }
+  const fixture = {
+    compression(level: number): Step.Compression {
+      return {
+        algorithm: {
+          implementation: "targzip",
+          level,
+        },
+      } as Step.Compression;
+    },
+    decompression(): Step.Decompression {
+      return {} as Step.Decompression;
+    },
+  };
 
   async function readSize({ path }: Artifact): Promise<number> {
     const file = Bun.file(path);

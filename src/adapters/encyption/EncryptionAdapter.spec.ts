@@ -23,8 +23,8 @@ describe(EncryptionAdapter.name, async () => {
     // given
     const [original] = await Test.createArtifacts("f:plaintext");
     // when
-    const cipherText = await adapter.encrypt(original, StepConfig.encryption);
-    const plainText = await adapter.decrypt(cipherText, StepConfig.decryption);
+    const cipherText = await adapter.encrypt(original, fixture.encryption());
+    const plainText = await adapter.decrypt(cipherText, fixture.decryption());
     // then
     expect(await bytes(original)).toEqual(await bytes(plainText));
     expect(await bytes(original)).not.toEqual(await bytes(cipherText));
@@ -36,8 +36,8 @@ describe(EncryptionAdapter.name, async () => {
     // when
     const action =
       operation === "encrypt" //
-        ? () => adapter.encrypt(directory, StepConfig.encryption)
-        : () => adapter.decrypt(directory, StepConfig.decryption);
+        ? () => adapter.encrypt(directory, fixture.encryption())
+        : () => adapter.decrypt(directory, fixture.decryption());
     // then
     expect(action()).rejects.toEqual(
       expect.objectContaining({
@@ -49,12 +49,12 @@ describe(EncryptionAdapter.name, async () => {
   it("fails to decrypt when the key is different", async () => {
     // given
     const [file] = await Test.createArtifacts("f:helloworld");
-    const encrypted = await adapter.encrypt(file, StepConfig.encryption);
+    const encrypted = await adapter.encrypt(file, fixture.encryption());
     // when
     await Test.patchEnv({
       [keyRef]: Bun.randomUUIDv7(), // randomly generated decryption key
     });
-    const action = () => adapter.decrypt(encrypted, StepConfig.decryption);
+    const action = () => adapter.decrypt(encrypted, fixture.decryption());
     // then
     expect(action()).rejects.toEqual(
       expect.objectContaining({
@@ -63,19 +63,23 @@ describe(EncryptionAdapter.name, async () => {
     );
   });
 
-  const StepConfig = {
-    encryption: {
-      keyReference: "UNIT_TEST_KEY",
-      algorithm: {
-        implementation: "aes256cbc",
-      },
-    } as Step.Encryption,
-    decryption: {
-      keyReference: "UNIT_TEST_KEY",
-      algorithm: {
-        implementation: "aes256cbc",
-      },
-    } as Step.Decryption,
+  const fixture = {
+    encryption() {
+      return {
+        keyReference: "UNIT_TEST_KEY",
+        algorithm: {
+          implementation: "aes256cbc",
+        },
+      } as Step.Encryption;
+    },
+    decryption() {
+      return {
+        keyReference: "UNIT_TEST_KEY",
+        algorithm: {
+          implementation: "aes256cbc",
+        },
+      } as Step.Decryption;
+    },
   };
 
   function bytes({ path }: Artifact) {
