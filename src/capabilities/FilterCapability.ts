@@ -26,7 +26,7 @@ export class FilterCapability {
   }
 
   private globToRegex(pattern: string): RegExp {
-    let regexPattern = pattern
+    const regexPattern = pattern
       .replace(/[.+^${}()|[\]\\]/g, "\\$&")
       .replace(/\*/g, ".*")
       .replace(/\?/g, ".");
