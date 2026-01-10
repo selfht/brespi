@@ -1,9 +1,10 @@
-import { describe, expect, it } from "bun:test";
-import { Temporal } from "@js-temporal/polyfill";
-import { ManagedStorageCapability } from "./ManagedStorageCapability";
 import { Test } from "@/helpers/Test.spec";
-import { Manifest } from "./managedstorage/Manifest";
+import { Temporal } from "@js-temporal/polyfill";
+import { describe, expect, it } from "bun:test";
+import { join } from "path";
 import { Listing } from "./managedstorage/Listing";
+import { Manifest } from "./managedstorage/Manifest";
+import { ManagedStorageCapability } from "./ManagedStorageCapability";
 
 describe(ManagedStorageCapability.name, () => {
   const Regex = {
@@ -16,24 +17,27 @@ describe(ManagedStorageCapability.name, () => {
 
   const capability = new ManagedStorageCapability();
 
-  describe(capability.prepareInsertion.name, () => {
-    it("correctly generates the to-be-upserted manifest/listing/artifacts", () => {
+  describe(capability.insert.name, () => {
+    it("correctly generates the to-be-upserted manifest/listing/artifacts", async () => {
       // given
-      const options: ManagedStorageCapability.PrepareInsertionOptions = {
-        baseFolder: "hello-123-base",
+      const { filesystem, ...readWriteFns } = createReadWriteFns();
+      const options: ManagedStorageCapability.InsertOptions = {
+        key: [],
+        base: "hello-123-base",
         artifacts: [
           { name: "Apple.txt", path: "/tmp-x/123" },
           { name: "Banana.txt", path: "/tmp-x/456" },
           { name: "Coconut.txt", path: "/tmp-x/789" },
         ],
         trail: [],
+        ...readWriteFns,
       };
 
       // when
-      const { manifestModifier, listing, insertableArtifacts } = capability.prepareInsertion(options);
-      const manifest = manifestModifier({ manifest: Manifest.empty() });
+      const { insertableArtifacts } = await capability.insert(options);
 
       // then (validate the manifest)
+      const manifest = Manifest.parse(JSON.parse(filesystem["hello-123-base/__brespi_manifest__.json"]));
       expect(manifest.items).toHaveLength(1);
       expect(manifest.items[0].isoTimestamp).toMatch(new RegExp(`^${Regex.TIMESTAMP}$`));
       expect(manifest.items[0].listingPath).toMatch(
@@ -42,9 +46,9 @@ describe(ManagedStorageCapability.name, () => {
       );
 
       // then (validate the listing)
-      expect(listing.destinationPath).toEqual(`hello-123-base/${manifest.items[0].listingPath}`);
-      expect(listing.content.artifacts).toHaveLength(3);
-      expect(listing.content.artifacts).toEqual(
+      const listing = Listing.parse(JSON.parse(filesystem[`hello-123-base/${manifest.items[0].listingPath}`]));
+      expect(listing.artifacts).toHaveLength(3);
+      expect(listing.artifacts).toEqual(
         expect.arrayContaining([
           // the link between `Index --> Artifact` is always relative
           expect.objectContaining({ path: "Apple.txt" } satisfies Partial<Listing["artifacts"][number]>),
@@ -56,26 +60,30 @@ describe(ManagedStorageCapability.name, () => {
       // then (validate the artifacts)
       expect(insertableArtifacts).toHaveLength(3);
       expect(insertableArtifacts).toEqual(
-        expect.arrayContaining<ManagedStorageCapability.InsertableArtifact>([
+        expect.arrayContaining([
           {
-            sourcePath: "/tmp-x/123",
+            name: "Apple.txt",
+            path: "/tmp-x/123",
             destinationPath: expect.stringMatching(new RegExp(`^hello-123-base/${Regex.TIMESTAMP_FOLDER}/Apple.txt$`)),
           },
           {
-            sourcePath: "/tmp-x/456",
+            name: "Banana.txt",
+            path: "/tmp-x/456",
             destinationPath: expect.stringMatching(new RegExp(`^hello-123-base/${Regex.TIMESTAMP_FOLDER}/Banana.txt$`)),
           },
           {
-            sourcePath: "/tmp-x/789",
+            name: "Coconut.txt",
+            path: "/tmp-x/789",
             destinationPath: expect.stringMatching(new RegExp(`^hello-123-base/${Regex.TIMESTAMP_FOLDER}/Coconut.txt$`)),
           },
         ]),
       );
     });
 
-    it("appends a new listing to an existing manifest", () => {
+    it("appends a new listing to an existing manifest", async () => {
       for (let existingManifestSize = 0; existingManifestSize < 10; existingManifestSize++) {
         const range = Array.from({ length: existingManifestSize }, (_, i) => i);
+        const { filesystem, ...readWriteFns } = createReadWriteFns();
         // given
         const existingManifest: Manifest = {
           object: "manifest",
@@ -84,10 +92,11 @@ describe(ManagedStorageCapability.name, () => {
             listingPath: `blabla-${index}`,
           })),
         };
+        filesystem["__brespi_manifest__.json"] = JSON.stringify(existingManifest);
         // when
-        const { manifestModifier } = capability.prepareInsertion({ artifacts: [], baseFolder: "", trail: [] });
-        const updatedManifest = manifestModifier({ manifest: existingManifest });
+        await capability.insert({ key: [], artifacts: [], trail: [], base: "", ...readWriteFns });
         // then
+        const updatedManifest = Manifest.parse(JSON.parse(filesystem["__brespi_manifest__.json"]));
         expect(updatedManifest.items).toHaveLength(existingManifestSize + 1);
         expect(updatedManifest.items).toEqual(
           expect.arrayContaining([
@@ -105,60 +114,62 @@ describe(ManagedStorageCapability.name, () => {
     });
 
     const collection = Test.createCollection<{
-      baseFolder: string;
+      base: string;
       expectation: {
-        itemPathMatcher: RegExp;
+        destinationPathMatcher: RegExp;
       };
-    }>("baseFolder", [
+    }>("base", [
       {
-        baseFolder: "",
+        base: "",
         expectation: {
-          itemPathMatcher: new RegExp(`^${Regex.TIMESTAMP_FOLDER}/.+`),
+          destinationPathMatcher: new RegExp(`^${Regex.TIMESTAMP_FOLDER}/.+`),
         },
       },
       {
-        baseFolder: "backups",
+        base: "backups",
         expectation: {
-          itemPathMatcher: new RegExp(`^backups/${Regex.TIMESTAMP_FOLDER}/.+`),
+          destinationPathMatcher: new RegExp(`^backups/${Regex.TIMESTAMP_FOLDER}/.+`),
         },
       },
       {
-        baseFolder: "/backups",
+        base: "/backups",
         expectation: {
-          itemPathMatcher: new RegExp(`^/backups/${Regex.TIMESTAMP_FOLDER}/.+`),
+          destinationPathMatcher: new RegExp(`^/backups/${Regex.TIMESTAMP_FOLDER}/.+`),
         },
       },
       {
-        baseFolder: "backups/postgres",
+        base: "backups/postgres",
         expectation: {
-          itemPathMatcher: new RegExp(`^backups/postgres/${Regex.TIMESTAMP_FOLDER}/.+`),
+          destinationPathMatcher: new RegExp(`^backups/postgres/${Regex.TIMESTAMP_FOLDER}/.+`),
         },
       },
       {
-        baseFolder: "/backups/postgres",
+        base: "/backups/postgres",
         expectation: {
-          itemPathMatcher: new RegExp(`^/backups/postgres/${Regex.TIMESTAMP_FOLDER}/.+`),
+          destinationPathMatcher: new RegExp(`^/backups/postgres/${Regex.TIMESTAMP_FOLDER}/.+`),
         },
       },
     ]);
-    it.each(collection.testCases)("relativizes generated files to base folder: %s", (testCase) => {
-      const { baseFolder, expectation } = collection.get(testCase);
+    it.each(collection.testCases)("relativizes generated files to base: %s", async (testCase) => {
+      const { base, expectation } = collection.get(testCase);
       // given
-      const options: ManagedStorageCapability.PrepareInsertionOptions = {
-        baseFolder,
+      const { filesystem, ...readWriteFns } = createReadWriteFns();
+      const options: ManagedStorageCapability.InsertOptions = {
+        key: [],
         artifacts: [{ name: "Apple", path: "irrelevant" }],
         trail: [],
+        base,
+        ...readWriteFns,
       };
       // when
-      const { listing, insertableArtifacts } = capability.prepareInsertion(options);
+      const { insertableArtifacts } = await capability.insert(options);
       // then
-      expect(listing.destinationPath).toMatch(expectation.itemPathMatcher);
       expect(insertableArtifacts).toHaveLength(1);
-      expect(insertableArtifacts[0].destinationPath).toMatch(expectation.itemPathMatcher);
+      expect(insertableArtifacts[0].destinationPath).toMatch(expectation.destinationPathMatcher);
     });
   });
 
-  describe(capability.prepareSelection.name, () => {
+  describe(capability.select.name, () => {
     const Timestamp = {
       _now_: Temporal.Now.plainDateTimeISO(),
       get VERY_LONG_AGO() {
@@ -180,267 +191,344 @@ describe(ManagedStorageCapability.name, () => {
 
     it("selects the latest item from the manifest", async () => {
       // given
-      const manifest: Manifest = {
-        object: "manifest",
-        items: [
-          {
-            isoTimestamp: Timestamp.LAST_YEAR,
-            listingPath: `${Timestamp.LAST_YEAR}-abc123/__brespi_listing__.json`,
-          },
-          {
-            isoTimestamp: Timestamp.PRESENT,
-            listingPath: `${Timestamp.PRESENT}-def456/__brespi_listing__.json`,
-          },
-          {
-            isoTimestamp: Timestamp.VERY_LONG_AGO,
-            listingPath: `${Timestamp.VERY_LONG_AGO}-ghi789/__brespi_listing__.json`,
-          },
-        ],
-      };
-      const listing = JSON.stringify({
-        object: "listing",
-        artifacts: [
-          { path: "file1.txt", trail: [] },
-          { path: "file2.txt", trail: [] },
-        ],
+      const { filesystem, ...readWriteFns } = createReadWriteFns();
+      persistInFilesystem({
+        filesystem,
+        listingArtifacts: ["file1.txt", "file2.txt"],
+        manifest: {
+          object: "manifest",
+          items: [
+            {
+              isoTimestamp: Timestamp.LAST_YEAR,
+              listingPath: `${Timestamp.LAST_YEAR}-abc123/__brespi_listing__.json`,
+            },
+            {
+              isoTimestamp: Timestamp.PRESENT,
+              listingPath: `${Timestamp.PRESENT}-def456/__brespi_listing__.json`,
+            },
+            {
+              isoTimestamp: Timestamp.VERY_LONG_AGO,
+              listingPath: `${Timestamp.VERY_LONG_AGO}-ghi789/__brespi_listing__.json`,
+            },
+          ],
+        },
       });
       // when
-      const { selectableArtifactsFn } = capability.prepareSelection({
-        baseFolder: "base-folder",
-        configuration: { target: "latest" },
-        storageReaderFn: () => Promise.resolve(listing),
+      const { resolvedVersion, selectableArtifacts } = await capability.select({
+        key: [],
+        base: "",
+        configuration: {
+          target: "latest",
+        },
+        ...readWriteFns,
       });
-      const { selectableArtifacts } = await selectableArtifactsFn({ manifest });
       // then
+      expect(resolvedVersion).toEqual(`${Timestamp.PRESENT}-def456`);
       expect(selectableArtifacts).toHaveLength(2);
-      expect(selectableArtifacts).toEqual([
-        { name: "file1.txt", path: `base-folder/${Timestamp.PRESENT}-def456/file1.txt` },
-        { name: "file2.txt", path: `base-folder/${Timestamp.PRESENT}-def456/file2.txt` },
-      ]);
+      expect(selectableArtifacts).toEqual(
+        expect.arrayContaining([
+          { name: "file1.txt", path: `${Timestamp.PRESENT}-def456/file1.txt` },
+          { name: "file2.txt", path: `${Timestamp.PRESENT}-def456/file2.txt` },
+        ]),
+      );
     });
 
     it("selects a specific item by 'isoTimestamp'", async () => {
       // given
-      const manifest: Manifest = {
-        object: "manifest",
-        items: [
-          {
-            isoTimestamp: Timestamp.LAST_YEAR,
-            listingPath: `${Timestamp.LAST_YEAR}-abc123/__brespi_listing__.json`,
-          },
-          {
-            isoTimestamp: Timestamp.PRESENT,
-            listingPath: `${Timestamp.PRESENT}-def456/__brespi_listing__.json`,
-          },
-        ],
-      };
-      const listing = JSON.stringify({
-        object: "listing",
-        artifacts: [{ path: "specific-file.txt", trail: [] }],
+      const { filesystem, ...readWriteFns } = createReadWriteFns();
+      persistInFilesystem({
+        base: "bbbase",
+        filesystem,
+        listingArtifacts: ["specific-file.txt"],
+        manifest: {
+          object: "manifest",
+          items: [
+            {
+              isoTimestamp: Timestamp.LAST_YEAR,
+              listingPath: `${Timestamp.LAST_YEAR}-abc123/__brespi_listing__.json`,
+            },
+            {
+              isoTimestamp: Timestamp.PRESENT,
+              listingPath: `${Timestamp.PRESENT}-def456/__brespi_listing__.json`,
+            },
+          ],
+        },
       });
       // when
-      const { selectableArtifactsFn } = capability.prepareSelection({
-        configuration: { target: "specific", version: Timestamp.LAST_YEAR },
-        storageReaderFn: () => Promise.resolve(listing),
-        baseFolder: "my-base",
+      const { resolvedVersion, selectableArtifacts } = await capability.select({
+        key: [],
+        base: "bbbase",
+        configuration: {
+          target: "specific",
+          version: Timestamp.LAST_YEAR,
+        },
+        ...readWriteFns,
       });
-      const { selectableArtifacts } = await selectableArtifactsFn({ manifest });
       // then
+      expect(resolvedVersion).toEqual(`${Timestamp.LAST_YEAR}-abc123`);
       expect(selectableArtifacts).toHaveLength(1);
-      expect(selectableArtifacts[0]).toEqual({
-        name: "specific-file.txt",
-        path: `my-base/${Timestamp.LAST_YEAR}-abc123/specific-file.txt`,
-      });
+      expect(selectableArtifacts).toEqual([
+        {
+          name: "specific-file.txt",
+          path: `bbbase/${Timestamp.LAST_YEAR}-abc123/specific-file.txt`,
+        },
+      ]);
     });
 
     it("selects a specific item by 'dirname'", async () => {
       // given
-      const manifest: Manifest = {
-        object: "manifest",
-        items: [
-          {
-            isoTimestamp: Timestamp.VERY_LONG_AGO,
-            listingPath: `${Timestamp.VERY_LONG_AGO}-abc123/__brespi_listing__.json`,
-          },
-          {
-            isoTimestamp: Timestamp.LAST_YEAR,
-            listingPath: `${Timestamp.LAST_YEAR}-def456/__brespi_listing__.json`,
-          },
-          {
-            isoTimestamp: Timestamp.PRESENT,
-            listingPath: `${Timestamp.PRESENT}-ghi789/__brespi_listing__.json`,
-          },
-        ],
-      };
-      const listing = JSON.stringify({
-        object: "listing",
-        artifacts: [
-          { path: "doc1.pdf", trail: [] },
-          { path: "doc2.pdf", trail: [] },
-          { path: "doc3.pdf", trail: [] },
-        ],
+      const { filesystem, ...readWriteFns } = createReadWriteFns();
+      persistInFilesystem({
+        base: "storage",
+        filesystem,
+        listingArtifacts: ["doc1.pdf", "doc2.pdf", "doc3.pdf"],
+        manifest: {
+          object: "manifest",
+          items: [
+            {
+              isoTimestamp: Timestamp.VERY_LONG_AGO,
+              listingPath: `${Timestamp.VERY_LONG_AGO}-abc123/__brespi_listing__.json`,
+            },
+            {
+              isoTimestamp: Timestamp.LAST_YEAR,
+              listingPath: `${Timestamp.LAST_YEAR}-def456/__brespi_listing__.json`,
+            },
+            {
+              isoTimestamp: Timestamp.PRESENT,
+              listingPath: `${Timestamp.PRESENT}-ghi789/__brespi_listing__.json`,
+            },
+          ],
+        },
       });
       // when
-      const { selectableArtifactsFn } = capability.prepareSelection({
-        configuration: { target: "specific", version: `${Timestamp.VERY_LONG_AGO}-abc123` },
-        storageReaderFn: () => Promise.resolve(listing),
-        baseFolder: "/storage",
+      const { resolvedVersion, selectableArtifacts } = await capability.select({
+        key: [],
+        base: "storage",
+        configuration: {
+          target: "specific",
+          version: `${Timestamp.VERY_LONG_AGO}-abc123`,
+        },
+        ...readWriteFns,
       });
-      const { selectableArtifacts } = await selectableArtifactsFn({ manifest });
       // then
+      expect(resolvedVersion).toEqual(`${Timestamp.VERY_LONG_AGO}-abc123`);
       expect(selectableArtifacts).toHaveLength(3);
       expect(selectableArtifacts).toEqual([
-        { name: "doc1.pdf", path: `/storage/${Timestamp.VERY_LONG_AGO}-abc123/doc1.pdf` },
-        { name: "doc2.pdf", path: `/storage/${Timestamp.VERY_LONG_AGO}-abc123/doc2.pdf` },
-        { name: "doc3.pdf", path: `/storage/${Timestamp.VERY_LONG_AGO}-abc123/doc3.pdf` },
+        { name: "doc1.pdf", path: `storage/${Timestamp.VERY_LONG_AGO}-abc123/doc1.pdf` },
+        { name: "doc2.pdf", path: `storage/${Timestamp.VERY_LONG_AGO}-abc123/doc2.pdf` },
+        { name: "doc3.pdf", path: `storage/${Timestamp.VERY_LONG_AGO}-abc123/doc3.pdf` },
       ]);
     });
 
-    it("throws an error when selecting latest from an empty manifest", async () => {
+    it("throws an error when selecting the latest from an empty manifest", async () => {
       // given
-      const manifest: Manifest = Manifest.empty();
-      // when
-      const { selectableArtifactsFn } = capability.prepareSelection({
-        configuration: { target: "latest" },
-        storageReaderFn: () => Promise.reject("Should not be called"),
-        baseFolder: "base",
+      const { filesystem, ...readWriteFns } = createReadWriteFns();
+      persistInFilesystem({
+        filesystem,
+        listingArtifacts: [],
+        manifest: Manifest.empty(),
       });
+      // when
+      const action = () =>
+        capability.select({
+          key: [],
+          base: "",
+          configuration: {
+            target: "latest",
+          },
+          ...readWriteFns,
+        });
       // then
-      expect(selectableArtifactsFn({ manifest })).rejects.toThrow("Latest item could not be found");
+      expect(action()).rejects.toThrow("Latest item could not be found");
     });
 
-    it("throws an error when specific item cannot be found", async () => {
+    it("throws an error when a specific version cannot be found", async () => {
       // given
-      const manifest: Manifest = {
-        object: "manifest",
-        items: [
-          {
-            isoTimestamp: Timestamp.LAST_YEAR,
-            listingPath: "path1/__brespi_listing__.json",
-          },
-        ],
-      };
-      // when
-      const { selectableArtifactsFn } = capability.prepareSelection({
-        configuration: { target: "specific", version: Timestamp.VERY_FAR_AWAY },
-        storageReaderFn: () => Promise.reject("Should not be called"),
-        baseFolder: "base",
+      const { filesystem, ...readWriteFns } = createReadWriteFns();
+      persistInFilesystem({
+        filesystem,
+        listingArtifacts: ["Apple.txt"],
+        manifest: {
+          object: "manifest",
+          items: [
+            {
+              isoTimestamp: Timestamp.LAST_YEAR,
+              listingPath: "path1/__brespi_listing__.json",
+            },
+          ],
+        },
       });
+      // when
+      const action = () =>
+        capability.select({
+          key: [],
+          base: "",
+          configuration: {
+            target: "specific",
+            version: Timestamp.VERY_FAR_AWAY,
+          },
+          ...readWriteFns,
+        });
       // then
-      expect(selectableArtifactsFn({ manifest })).rejects.toThrow("Specific item could not be found");
+      expect(action()).rejects.toThrow("Specific item could not be found");
     });
 
     it("throws an error when multiple items match the specific version", async () => {
-      // given - create items with duplicate timestamps (edge case)
-      const manifest: Manifest = {
-        object: "manifest",
-        items: [
-          {
-            isoTimestamp: Timestamp.LAST_YEAR,
-            listingPath: "path1/__brespi_listing__.json",
-          },
-          {
-            isoTimestamp: Timestamp.LAST_YEAR,
-            listingPath: "path2/__brespi_listing__.json",
-          },
-        ],
-      };
-      // when
-      const { selectableArtifactsFn } = capability.prepareSelection({
-        configuration: { target: "specific", version: Timestamp.LAST_YEAR },
-        storageReaderFn: () => Promise.reject("Should not be called"),
-        baseFolder: "base",
+      // given
+      const { filesystem, ...readWriteFns } = createReadWriteFns();
+      persistInFilesystem({
+        filesystem,
+        listingArtifacts: ["Apple.txt"],
+        manifest: {
+          object: "manifest",
+          items: [
+            {
+              isoTimestamp: Timestamp.LAST_YEAR,
+              listingPath: "path1/__brespi_listing__.json",
+            },
+            {
+              isoTimestamp: Timestamp.LAST_YEAR,
+              listingPath: "path2/__brespi_listing__.json",
+            },
+          ],
+        },
       });
+      // when
+      const action = () =>
+        capability.select({
+          key: [],
+          base: "",
+          configuration: {
+            target: "specific",
+            version: Timestamp.LAST_YEAR,
+          },
+          ...readWriteFns,
+        });
       // then
-      expect(selectableArtifactsFn({ manifest })).rejects.toThrow("Specific item could not be identified uniquely; matches=2");
+      expect(action()).rejects.toThrow("Specific item could not be identified uniquely; matches=2");
     });
 
     const collection = Test.createCollection<{
-      baseFolder: string;
+      base: string;
       manifest: {
         singleListingPath: string;
       };
       expectation: {
-        artifactPathPrefix: string;
+        listingPathPrefix: string;
       };
-    }>("baseFolder", [
+    }>("base", [
       {
-        baseFolder: "",
+        base: "",
         manifest: {
           singleListingPath: `${Timestamp.PRESENT}-abc/__brespi_listing__.json`,
         },
         expectation: {
-          artifactPathPrefix: `${Timestamp.PRESENT}-abc`,
+          listingPathPrefix: `${Timestamp.PRESENT}-abc`,
         },
       },
       {
-        baseFolder: "backups",
+        base: "backups",
         manifest: {
           singleListingPath: `${Timestamp.PRESENT}-abc/__brespi_listing__.json`,
         },
         expectation: {
-          artifactPathPrefix: `backups/${Timestamp.PRESENT}-abc`,
+          listingPathPrefix: `backups/${Timestamp.PRESENT}-abc`,
         },
       },
       {
-        baseFolder: "/backups",
+        base: "/backups",
         manifest: {
           singleListingPath: `${Timestamp.PRESENT}-abc/__brespi_listing__.json`,
         },
         expectation: {
-          artifactPathPrefix: `/backups/${Timestamp.PRESENT}-abc`,
+          listingPathPrefix: `/backups/${Timestamp.PRESENT}-abc`,
         },
       },
       {
-        baseFolder: "backups/postgres",
+        base: "backups/postgres",
         manifest: {
           singleListingPath: `${Timestamp.PRESENT}-abc/__brespi_listing__.json`,
         },
         expectation: {
-          artifactPathPrefix: `backups/postgres/${Timestamp.PRESENT}-abc`,
+          listingPathPrefix: `backups/postgres/${Timestamp.PRESENT}-abc`,
         },
       },
       {
-        baseFolder: "/backups/postgres",
+        base: "/backups/postgres",
         manifest: {
           singleListingPath: `${Timestamp.PRESENT}-abc/__brespi_listing__.json`,
         },
         expectation: {
-          artifactPathPrefix: `/backups/postgres/${Timestamp.PRESENT}-abc`,
+          listingPathPrefix: `/backups/postgres/${Timestamp.PRESENT}-abc`,
         },
       },
     ]);
-    it.each(collection.testCases)("relativizes selected artifacts to base folder: %s", async (testCase) => {
+    it.each(collection.testCases)("relativizes selected artifacts to base prefix: %s", async (testCase) => {
       const {
-        baseFolder,
+        base,
         manifest: { singleListingPath },
         expectation,
       } = collection.get(testCase);
       // given
-      const manifest: Manifest = {
-        object: "manifest",
-        items: [
-          {
-            isoTimestamp: Timestamp.PRESENT,
-            listingPath: singleListingPath,
-          },
-        ],
-      };
-      const listing = JSON.stringify({
-        object: "listing",
-        artifacts: [{ path: "test-file.txt", trail: [] }],
+      const { filesystem, ...readWriteFns } = createReadWriteFns();
+      persistInFilesystem({
+        base,
+        filesystem,
+        listingArtifacts: ["test-file.txt"],
+        manifest: {
+          object: "manifest",
+          items: [
+            {
+              isoTimestamp: Timestamp.PRESENT,
+              listingPath: singleListingPath,
+            },
+          ],
+        },
       });
       // when
-      const { selectableArtifactsFn } = capability.prepareSelection({
+      const { selectableArtifacts } = await capability.select({
+        key: [],
+        base,
         configuration: { target: "latest" },
-        storageReaderFn: () => Promise.resolve(listing),
-        baseFolder,
+        ...readWriteFns,
       });
-      const { selectableArtifacts } = await selectableArtifactsFn({ manifest });
       // then
       expect(selectableArtifacts).toHaveLength(1);
-      expect(selectableArtifacts[0].path).toEqual(`${expectation.artifactPathPrefix}/test-file.txt`);
+      expect(selectableArtifacts[0].path).toEqual(`${expectation.listingPathPrefix}/test-file.txt`);
       expect(selectableArtifacts[0].name).toEqual("test-file.txt");
     });
   });
+
+  function createReadWriteFns(): ManagedStorageCapability.ReadWriteFns & { filesystem: Record<string, string> } {
+    const filesystem: Record<string, string> = {};
+    return {
+      filesystem,
+      async readFn(path) {
+        return filesystem[path];
+      },
+      async writeFn({ path, content }) {
+        filesystem[path] = content;
+      },
+    };
+  }
+
+  type PersistInFilesystemOptions = {
+    base?: string;
+    filesystem: Record<string, string>;
+    listingArtifacts: string[];
+    manifest: Manifest;
+  };
+  function persistInFilesystem({ base = "", filesystem, listingArtifacts, manifest }: PersistInFilesystemOptions) {
+    filesystem[join(base, "__brespi_manifest__.json")] = JSON.stringify(manifest);
+    manifest.items.forEach(({ listingPath }) => {
+      const emptyListing: Listing = {
+        object: "listing",
+        artifacts: listingArtifacts.map((path) => ({
+          path,
+          trail: [],
+        })),
+      };
+      filesystem[join(base, listingPath)] = JSON.stringify(emptyListing);
+    });
+  }
 });

@@ -1,13 +1,11 @@
 import { FilterCapability } from "@/capabilities/FilterCapability";
-import { Manifest } from "@/capabilities/managedstorage/Manifest";
 import { ManagedStorageCapability } from "@/capabilities/ManagedStorageCapability";
 import { Env } from "@/Env";
-import { Mutex } from "@/helpers/Mutex";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { StepWithRuntime } from "@/models/StepWithRuntime";
 import { S3Client } from "bun";
-import { isAbsolute, join, relative } from "path";
+import { isAbsolute, relative } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 import { AdapterResult } from "../AdapterResult";
 
@@ -24,20 +22,15 @@ export class S3Adapter extends AbstractAdapter {
     this.requireArtifactType("file", ...artifacts);
     basePrefix = this.relativize(basePrefix);
     const client = this.constructClient(step.connection);
-    const { manifestModifier, listing, insertableArtifacts } = this.managedStorageCapability.prepareInsertion({
-      baseFolder: basePrefix,
+    const { insertableArtifacts } = await this.managedStorageCapability.insert({
+      key: [S3Adapter.name, basePrefix],
       artifacts,
       trail,
+      base: basePrefix,
+      ...this.createReadWriteFns(client),
     });
-    // Save manifest
-    await this.handleManifestExclusively(client, basePrefix, async (manifest, save) => {
-      await save(manifestModifier({ manifest }));
-    });
-    // Save listing
-    await client.write(listing.destinationPath, JSON.stringify(listing.content));
-    // Save artifacts
-    for (const { sourcePath, destinationPath } of insertableArtifacts) {
-      await client.write(destinationPath, Bun.file(sourcePath));
+    for (const { path, destinationPath } of insertableArtifacts) {
+      await client.write(destinationPath, Bun.file(path));
     }
     return AdapterResult.create();
   }
@@ -45,15 +38,12 @@ export class S3Adapter extends AbstractAdapter {
   public async download({ basePrefix, ...step }: Step.S3Download): Promise<AdapterResult> {
     basePrefix = this.relativize(basePrefix);
     const client = this.constructClient(step.connection);
-    // Prepare selaction
-    const { selectableArtifactsFn } = this.managedStorageCapability.prepareSelection({
-      baseFolder: basePrefix,
+    // Find artifacts
+    let { resolvedVersion, selectableArtifacts } = await this.managedStorageCapability.select({
+      key: [S3Adapter.name, basePrefix],
+      base: basePrefix,
       configuration: step.managedStorage,
-      storageReaderFn: ({ absolutePath }) => client.file(absolutePath).text(),
-    });
-    // Provide manifest
-    let { selectableArtifacts, version } = await this.handleManifestExclusively(client, basePrefix, async (manifest) => {
-      return await selectableArtifactsFn({ manifest });
+      ...this.createReadWriteFns(client),
     });
     // Optional: filter
     if (step.filterCriteria) {
@@ -72,7 +62,7 @@ export class S3Adapter extends AbstractAdapter {
         name,
       });
     }
-    return AdapterResult.create(artifacts, { version });
+    return AdapterResult.create(artifacts, { version: resolvedVersion });
   }
 
   /**
@@ -95,22 +85,16 @@ export class S3Adapter extends AbstractAdapter {
     });
   }
 
-  private async handleManifestExclusively<T>(
-    client: S3Client,
-    baseFolder: string,
-    fn: (mani: Manifest, saveFn: (mf: Manifest) => Promise<Manifest>) => T | Promise<T>,
-  ): Promise<Awaited<T>> {
-    const { release } = await Mutex.acquireFromRegistry({ key: [S3Adapter.name, baseFolder] });
-    try {
-      const manifestPath = join(baseFolder, Manifest.NAME);
-      const manifestFile = client.file(manifestPath);
-      const manifestContent: Manifest = (await manifestFile.exists())
-        ? this.managedStorageCapability.parseManifest(await manifestFile.text())
-        : Manifest.empty();
-      const saveFn = (newManifest: Manifest) => client.write(manifestPath, JSON.stringify(newManifest)).then(() => newManifest);
-      return await fn(manifestContent, saveFn);
-    } finally {
-      release();
-    }
+  private createReadWriteFns(client: S3Client): ManagedStorageCapability.ReadWriteFns {
+    return {
+      async writeFn(item: { path: string; content: string }) {
+        await client.write(item.path, item.content);
+      },
+      async readFn(path: string) {
+        const file = client.file(path);
+        const exists = await file.exists();
+        return exists ? await file.text() : undefined;
+      },
+    };
   }
 }

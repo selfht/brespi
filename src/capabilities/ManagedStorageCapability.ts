@@ -2,6 +2,7 @@ import { Listing } from "@/capabilities/managedstorage/Listing";
 import { Manifest } from "@/capabilities/managedstorage/Manifest";
 import { ExecutionError } from "@/errors/ExecutionError";
 import { Generate } from "@/helpers/Generate";
+import { Mutex } from "@/helpers/Mutex";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { StepWithRuntime } from "@/models/StepWithRuntime";
@@ -9,21 +10,21 @@ import { Temporal } from "@js-temporal/polyfill";
 import { dirname, join } from "path";
 
 export class ManagedStorageCapability {
-  public prepareInsertion({
-    baseFolder,
+  public async insert({
+    key,
     artifacts,
     trail,
-  }: ManagedStorageCapability.PrepareInsertionOptions): ManagedStorageCapability.PrepareInsertionResult {
+    base,
+    readFn,
+    writeFn,
+  }: ManagedStorageCapability.InsertOptions): Promise<ManagedStorageCapability.InsertResult> {
     const timestamp = Temporal.Now.plainDateTimeISO();
-    const itemDir = `${timestamp}-${Generate.shortRandomString()}`;
-    // 1. Create the listing
+    // 1. Prepare the listing
     const listing = {
       name: Listing.generateName(artifacts),
-      get path() {
-        return join(itemDir, this.name);
-      },
-      get parentDir() {
-        return dirname(this.path);
+      relativeParentPath: `${timestamp}-${Generate.shortRandomString()}`,
+      get relativePath() {
+        return join(this.relativeParentPath, this.name);
       },
       get content(): Listing {
         return {
@@ -35,53 +36,72 @@ export class ManagedStorageCapability {
         };
       },
     };
-    // 2. Create the manifest modifier
-    const manifestModifier: ManagedStorageCapability.PrepareInsertionResult["manifestModifier"] = ({ manifest }) => {
-      return {
-        ...manifest,
+    // 2. Update the manifest (exclusively)
+    const { release } = await Mutex.acquireFromRegistry({ key });
+    try {
+      const mfPath = join(base, Manifest.NAME);
+      const mfFile = await readFn(mfPath);
+      const existingMf: Manifest = mfFile === undefined ? Manifest.empty() : this.parseManifest(mfFile);
+      const updatedMf: Manifest = {
+        ...existingMf,
         items: [
-          ...manifest.items,
+          ...existingMf.items,
           {
             isoTimestamp: timestamp.toString(),
-            listingPath: listing.path,
+            listingPath: listing.relativePath,
           },
         ],
       };
-    };
-    // 3. Return
+      await writeFn({
+        path: mfPath,
+        content: JSON.stringify(updatedMf),
+      });
+    } finally {
+      release();
+    }
+    // 3. Write the listing
+    await writeFn({
+      path: join(base, listing.relativePath),
+      content: JSON.stringify(listing.content),
+    });
+    // 4. Return the insertable artifacts
     return {
-      manifestModifier,
-      listing: {
-        destinationPath: join(baseFolder, listing.path),
-        content: listing.content,
-      },
-      insertableArtifacts: artifacts.map<ManagedStorageCapability.InsertableArtifact>(({ name, path }) => ({
-        sourcePath: path,
-        destinationPath: join(baseFolder, listing.parentDir, name),
+      insertableArtifacts: artifacts.map(({ name, path }) => ({
+        name,
+        path,
+        destinationPath: join(base, listing.relativeParentPath, name),
       })),
     };
   }
 
-  public prepareSelection({
-    baseFolder,
+  public async select({
+    key,
+    base,
+    readFn,
     configuration,
-    storageReaderFn,
-  }: ManagedStorageCapability.PrepareSelectionOptions): ManagedStorageCapability.PrepareSelectionResult {
+  }: ManagedStorageCapability.SelectOptions): Promise<ManagedStorageCapability.SelectResult> {
+    // 1. Read the manifest
+    let manifest: Manifest;
+    const { release } = await Mutex.acquireFromRegistry({ key });
+    try {
+      const mfPath = join(base, Manifest.NAME);
+      const mfFile = await readFn(mfPath);
+      manifest = this.parseManifest(mfFile!);
+    } finally {
+      release();
+    }
+    // 2. Find a matching listing, based on the configuration
+    const mfItem = this.findMatchingItem(manifest, configuration);
+    const listingPath = join(base, mfItem.listingPath);
+    const listingFile = await readFn(listingPath);
+    const listing = this.parseListing(listingFile!);
+    // 3. Return the selectable artifacts
     return {
-      selectableArtifactsFn: async ({ manifest }) => {
-        const item = this.findMatchingItem(manifest, configuration);
-        const listingPath = join(baseFolder, item.listingPath);
-        const listingParentDir = dirname(listingPath);
-        const listing = this.parseListing(await storageReaderFn({ absolutePath: listingPath }));
-        const selectableArtifacts = listing.artifacts.map<ManagedStorageCapability.SelectableArtifact>(({ path }) => ({
-          name: path,
-          path: join(listingParentDir, path),
-        }));
-        return {
-          selectableArtifacts,
-          version: dirname(item.listingPath),
-        };
-      },
+      resolvedVersion: dirname(mfItem.listingPath),
+      selectableArtifacts: listing.artifacts.map(({ path }) => ({
+        name: path,
+        path: join(dirname(listingPath), path),
+      })),
     };
   }
 
@@ -108,7 +128,7 @@ export class ManagedStorageCapability {
     }
   }
 
-  public parseManifest(content: string): Manifest {
+  private parseManifest(content: string): Manifest {
     try {
       const json = JSON.parse(content);
       return Manifest.parse(json);
@@ -128,34 +148,28 @@ export class ManagedStorageCapability {
 }
 
 export namespace ManagedStorageCapability {
-  export type InsertableArtifact = {
-    sourcePath: string;
-    destinationPath: string;
-  };
-  export type PrepareInsertionOptions = {
-    baseFolder: string;
-    artifacts: Array<Pick<Artifact, "name" | "path">>;
-    trail: StepWithRuntime[];
-  };
-  export type PrepareInsertionResult = {
-    manifestModifier: (arg: { manifest: Manifest }) => Manifest;
-    listing: { content: Listing; destinationPath: string };
-    insertableArtifacts: InsertableArtifact[];
+  export type ReadWriteFns = {
+    readFn: (path: string) => Promise<string | undefined>;
+    writeFn: (file: { path: string; content: string }) => Promise<void>;
   };
 
-  export type SelectableArtifact = {
-    name: string;
-    path: string;
+  export type InsertOptions = ReadWriteFns & {
+    key: string[];
+    artifacts: Array<Pick<Artifact, "name" | "path">>;
+    trail: StepWithRuntime[];
+    base: string;
   };
-  export type PrepareSelectionOptions = {
-    baseFolder: string;
+  export type InsertResult = {
+    insertableArtifacts: Array<{ name: string; path: string; destinationPath: string }>;
+  };
+
+  export type SelectOptions = Pick<ReadWriteFns, "readFn"> & {
+    key: string[];
+    base: string;
     configuration: Step.ManagedStorage;
-    storageReaderFn: (arg: { absolutePath: string }) => Promise<string>;
   };
-  export type PrepareSelectionResult = {
-    selectableArtifactsFn: (arg: { manifest: Manifest }) => Promise<{
-      selectableArtifacts: SelectableArtifact[];
-      version: string;
-    }>;
+  export type SelectResult = {
+    resolvedVersion: string;
+    selectableArtifacts: Array<{ name: string; path: string }>;
   };
 }

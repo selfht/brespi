@@ -1,8 +1,6 @@
 import { FilterCapability } from "@/capabilities/FilterCapability";
-import { Manifest } from "@/capabilities/managedstorage/Manifest";
 import { ManagedStorageCapability } from "@/capabilities/ManagedStorageCapability";
 import { Env } from "@/Env";
-import { Mutex } from "@/helpers/Mutex";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { StepWithRuntime } from "@/models/StepWithRuntime";
@@ -24,20 +22,15 @@ export class FilesystemAdapter extends AbstractAdapter {
     await mkdir(step.folderPath, { recursive: true });
     if (step.managedStorage) {
       this.requireArtifactType("file", ...artifacts);
-      const { manifestModifier, listing, insertableArtifacts } = this.managedStorageCapability.prepareInsertion({
-        baseFolder: step.folderPath,
+      const { insertableArtifacts } = await this.managedStorageCapability.insert({
+        key: [FilesystemAdapter.name, step.folderPath],
         artifacts,
         trail,
+        base: step.folderPath,
+        ...this.createReadWriteFns(),
       });
-      // Save manifest
-      await this.handleManifestExclusively(step.folderPath, async (manifest, save) => {
-        await save(manifestModifier({ manifest }));
-      });
-      // Save listing
-      await Bun.write(listing.destinationPath, JSON.stringify(listing.content));
-      // Save artifacts
-      for (const { sourcePath, destinationPath } of insertableArtifacts) {
-        await Bun.write(destinationPath, Bun.file(sourcePath));
+      for (const { path, destinationPath } of insertableArtifacts) {
+        await Bun.write(destinationPath, Bun.file(path));
       }
     } else {
       for (const artifact of artifacts) {
@@ -54,15 +47,12 @@ export class FilesystemAdapter extends AbstractAdapter {
 
   public async read(step: Step.FilesystemRead): Promise<AdapterResult> {
     if (step.managedStorage) {
-      // Prepare selaction
-      const { selectableArtifactsFn } = this.managedStorageCapability.prepareSelection({
-        baseFolder: step.path,
+      // Find artifacts
+      let { resolvedVersion, selectableArtifacts } = await this.managedStorageCapability.select({
+        key: [FilesystemAdapter.name, step.path],
+        base: step.path,
         configuration: step.managedStorage,
-        storageReaderFn: ({ absolutePath }) => Bun.file(absolutePath).text(),
-      });
-      // Provide manifest
-      let { selectableArtifacts, version } = await this.handleManifestExclusively(step.path, async (manifest) => {
-        return await selectableArtifactsFn({ manifest });
+        ...this.createReadWriteFns(),
       });
       // Optional: filter
       if (step.filterCriteria) {
@@ -81,7 +71,7 @@ export class FilesystemAdapter extends AbstractAdapter {
           name,
         });
       }
-      return AdapterResult.create(artifacts, { version });
+      return AdapterResult.create(artifacts, { version: resolvedVersion });
     } else {
       const { outputId, outputPath } = this.generateArtifactDestination();
       const stats = await this.requireFilesystemExistence(step.path);
@@ -121,22 +111,17 @@ export class FilesystemAdapter extends AbstractAdapter {
     });
   }
 
-  private async handleManifestExclusively<T>(
-    folder: string,
-    fn: (mani: Manifest, saveFn: (mf: Manifest) => Promise<Manifest>) => T | Promise<T>,
-  ): Promise<Awaited<T>> {
-    const { release } = await Mutex.acquireFromRegistry({ key: [FilesystemAdapter.name, folder] });
-    try {
-      const manifestPath = join(folder, Manifest.NAME);
-      const manifestFile = Bun.file(manifestPath);
-      const manifestContent: Manifest = (await manifestFile.exists())
-        ? this.managedStorageCapability.parseManifest(await manifestFile.text())
-        : Manifest.empty();
-      const saveFn = (newManifest: Manifest) => Bun.write(manifestPath, JSON.stringify(newManifest)).then(() => newManifest);
-      return await fn(manifestContent, saveFn);
-    } finally {
-      release();
-    }
+  private createReadWriteFns(): ManagedStorageCapability.ReadWriteFns {
+    return {
+      async writeFn(item: { path: string; content: string }) {
+        await Bun.write(item.path, item.content);
+      },
+      async readFn(path: string) {
+        const file = Bun.file(path);
+        const exists = await file.exists();
+        return exists ? await file.text() : undefined;
+      },
+    };
   }
 
   private async readDirectoryRecursively(dirPath: string): Promise<Artifact[]> {

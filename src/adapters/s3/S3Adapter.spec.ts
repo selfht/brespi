@@ -37,19 +37,19 @@ describe(S3Adapter.name, async () => {
     { from: "/my/backups", to: "my/backups" },
     { from: "my/backups", to: "my/backups" },
   ]);
-  it.each(collection.testCases)("correctly relativizes a base folder: %s", async (testCase) => {
+  it.each(collection.testCases)("correctly relativizes a base prefix: %s", async (testCase) => {
     const { from, to } = collection.get(testCase);
     // given
-    managedStorageCapabilityMock.prepareSelection.mockImplementation(() => {
+    managedStorageCapabilityMock.select.mockImplementation(() => {
       throw new Error("irrelevant error");
     });
     // when
-    const action = adapter.download({ basePrefix: from, connection } as Step.S3Download);
-    expect(action).rejects.toEqual(new Error("irrelevant error"));
+    const action = () => adapter.download({ basePrefix: from, connection } as Step.S3Download);
+    expect(action()).rejects.toEqual(new Error("irrelevant error"));
     // then
-    expect(managedStorageCapabilityMock.prepareSelection).toHaveBeenCalledWith(
+    expect(managedStorageCapabilityMock.select).toHaveBeenCalledWith(
       expect.objectContaining({
-        baseFolder: to,
+        base: to,
       }),
     );
   });
