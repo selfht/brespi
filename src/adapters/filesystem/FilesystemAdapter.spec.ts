@@ -28,6 +28,7 @@ describe(FilesystemAdapter.name, async () => {
       object: "step",
       folderPath,
       managedStorage: false,
+      retention: null,
     };
     await adapter.write(artifacts, step, []);
     // then
@@ -48,6 +49,7 @@ describe(FilesystemAdapter.name, async () => {
       object: "step",
       folderPath,
       managedStorage: false,
+      retention: null,
     };
     await adapter.write(artifacts, step, []);
     // then
@@ -76,6 +78,7 @@ describe(FilesystemAdapter.name, async () => {
       object: "step",
       folderPath: destinationDir,
       managedStorage: false,
+      retention: null,
     };
     await adapter.write(artifacts, step, []);
 
@@ -110,6 +113,7 @@ describe(FilesystemAdapter.name, async () => {
       object: "step",
       folderPath: destinationDir,
       managedStorage: true,
+      retention: null,
     };
     await adapter.write(artifacts, step, []);
 

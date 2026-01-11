@@ -8,40 +8,40 @@ const { summary, Field, Label, Description } = FormHelper.meta({
   fields: {
     path: {
       label: "Path",
-      description: "This field specifies the local filesystem path to read from.",
+      description: "Specifies the local filesystem path to read from.",
     },
     managedStorage: {
       label: "Use managed storage?",
       description:
-        'This field enables reading an artifact collection from a managed storage folder. If enabled, the path above must point to a valid "managed storage root".',
+        'Enables reading an artifact collection from a managed storage folder. If enabled, the path above must point to a valid "managed storage root".',
     },
     managedStorage_target: {
       label: "Managed storage: target",
-      description: "This field specifies whether to retrieve the latest version of an artifact collection, or a specific version.",
+      description: "Specifies whether to retrieve the latest version of an artifact collection, or a specific version.",
     },
     managedStorage_version: {
       label: "Managed storage: version",
-      description: "This field specifies which specific version to retrieve.",
+      description: "Determines which specific version to retrieve.",
     },
     filterCriteria: {
       label: "Use filter?",
-      description: "This field enables filtering artifacts by name when retrieving from managed storage.",
+      description: "Enables filtering artifacts by name when retrieving from managed storage.",
     },
     filterCriteria_method: {
       label: "Filter: method",
-      description: "This field specifies which matching method to use for filtering.",
+      description: "Specifies which matching method to use for filtering.",
     },
     filterCriteria_name: {
       label: "Filter: name",
-      description: "This field specifies the exact artifact name to match.",
+      description: "Specifies the exact artifact name to match.",
     },
     filterCriteria_nameGlob: {
       label: "Filter: name glob",
-      description: "This field specifies the glob pattern to match artifact names.",
+      description: "Specifies the glob pattern to match artifact names.",
     },
     filterCriteria_nameRegex: {
       label: "Filter: name regex",
-      description: "This field specifies the regex pattern to match artifact names.",
+      description: "Specifies the regex pattern to match artifact names.",
     },
   },
 });

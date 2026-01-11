@@ -8,11 +8,11 @@ const { summary, Field, Label, Description } = FormHelper.meta({
   fields: {
     keyReference: {
       label: "Key reference",
-      description: "This field specifies which environment variable contains the decryption key.",
+      description: "Specifies which environment variable contains the decryption key.",
     },
     algorithm_implementation: {
       label: "Algorithm",
-      description: "This field specifies which decryption algorithm to use.",
+      description: "Specifies which decryption algorithm to use.",
     },
   },
 });

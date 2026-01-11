@@ -8,7 +8,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
   fields: {
     path: {
       label: "Script path",
-      description: "This field specifies the local filesystem path to the bash script.",
+      description: "Specifies the local filesystem path to the bash script.",
     },
     passthrough: {
       label: "Passthrough?",

@@ -215,6 +215,7 @@ export namespace Test {
           type: Step.Type.filesystem_write,
           folderPath: "/app/opt/files",
           managedStorage: false,
+          retention: null,
           ...common,
         };
         return step as Extract<Step, { type: T }>;
@@ -307,6 +308,7 @@ export namespace Test {
             secretKeyReference: "MY_S3_SECRET_KEY",
           },
           basePrefix: "/backups",
+          retention: null,
           ...common,
         };
         return step as Extract<Step, { type: T }>;

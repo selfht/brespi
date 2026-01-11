@@ -14,7 +14,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: "Connection reference",
       description: (
         <>
-          This field specifies which environment variable contains the Postgres connection string in the format{" "}
+          Specifies which environment variable contains the Postgres connection string in the format{" "}
           <FormElements.Code break>postgresql://username:password@hostname:5432</FormElements.Code>.
         </>
       ),
@@ -23,7 +23,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: "Toolkit resolution",
       description: (
         <>
-          This field specifies how to find Postgres executables (like <FormElements.Code>psql</FormElements.Code>).
+          Specifies how to find Postgres executables (like <FormElements.Code>psql</FormElements.Code>).
         </>
       ),
     },
@@ -31,7 +31,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: 'Toolkit: "psql" path',
       description: (
         <>
-          This field specifies where to find the <FormElements.Code>psql</FormElements.Code> executable.
+          Specifies where to find the <FormElements.Code>psql</FormElements.Code> executable.
         </>
       ),
     },
@@ -39,21 +39,21 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: 'Toolkit: "pg_dump" path',
       description: (
         <>
-          This field specifies where to find the <FormElements.Code>pg_dump</FormElements.Code> executable.
+          Specifies where to find the <FormElements.Code>pg_dump</FormElements.Code> executable.
         </>
       ),
     },
     databaseSelection_strategy: {
       label: "Database selection method",
-      description: "This field specifies whether to backup all databases, or only a selection.",
+      description: "Specifies whether to backup all databases, or only a selection.",
     },
     databaseSelection_inclusions: {
       label: "Database selection: inclusions",
-      description: "This field specifies comma-separated database names to include in the backup.",
+      description: "Specifies (comma-separated) database names to include in the backup.",
     },
     databaseSelection_exclusions: {
       label: "Database selection: exclusions",
-      description: "This field specifies comma-separated database names to exclude from the backup.",
+      description: "Specifies (comma-separated) database names to exclude from the backup.",
     },
   },
 });

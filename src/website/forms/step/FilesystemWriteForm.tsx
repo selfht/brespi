@@ -8,18 +8,28 @@ const { summary, Field, Label, Description } = FormHelper.meta({
   fields: {
     folderPath: {
       label: "Folder path",
-      description: "This field specifies the local folder path where artifacts will be written.",
+      description: "Specifies the local folder path where artifacts will be written.",
     },
     managedStorage: {
       label: "Use managed storage?",
       description:
-        'This field enables writing to a managed storage folder. If no "managed storage root" is detected at the provided folder path, it will be initialized upon first execution.',
+        'Enables writing to a managed storage folder. If no "managed storage root" is detected at the provided folder path, it will be initialized upon first execution.',
+    },
+    retentionPolicy: {
+      label: "Retention policy",
+      description: "Specifies the automated cleanup retention policy for stored artifacts.",
+    },
+    retentionMaxVersions: {
+      label: "Retention: max versions",
+      description: "Specifies how many versions can be stored, before automatic cleanup kicks in.",
     },
   },
 });
 type Form = {
   [Field.folderPath]: string;
   [Field.managedStorage]: "true" | "false";
+  [Field.retentionPolicy]: "none" | "last_n_versions";
+  [Field.retentionMaxVersions]: number;
 };
 
 type Props = {
@@ -31,10 +41,12 @@ type Props = {
   className?: string;
 };
 export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
+  const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.folderPath]: existing?.folderPath ?? "",
       [Field.managedStorage]: existing ? (existing.managedStorage ? "true" : "false") : "false",
+      [Field.retentionPolicy]: existing ? (existing.retention ? existing.retention.policy : "none") : "none",
+      [Field.retentionMaxVersions]: existing ? (existing.retention ? existing.retention.maxVersions : 10) : 10,
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -47,6 +59,10 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
         type: Step.Type.filesystem_write,
         folderPath: form[Field.folderPath],
         managedStorage: form[Field.managedStorage] === "true",
+        retention:
+          form[Field.retentionPolicy] === "last_n_versions"
+            ? { policy: "last_n_versions", maxVersions: form[Field.retentionMaxVersions] }
+            : null,
       });
     } catch (error) {
       setError("root", {
@@ -55,6 +71,8 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
     }
   };
 
+  const managedStorage = watch(Field.managedStorage);
+  const retentionPolicy = watch(Field.retentionPolicy);
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
@@ -76,6 +94,31 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
             onActiveFieldChange={setActiveField}
             input={{ type: "yesno" }}
           />
+          {managedStorage === "true" && (
+            <>
+              <FormElements.LabeledInput
+                field={Field.retentionPolicy}
+                labels={Label}
+                register={register}
+                activeField={activeField}
+                onActiveFieldChange={setActiveField}
+                input={{
+                  type: "select",
+                  options: ["none", "last_n_versions"] satisfies Array<Form["retentionPolicy"]>,
+                }}
+              />
+              {retentionPolicy === "last_n_versions" && (
+                <FormElements.LabeledInput
+                  field={Field.retentionMaxVersions}
+                  labels={Label}
+                  register={register}
+                  activeField={activeField}
+                  onActiveFieldChange={setActiveField}
+                  input={{ type: "number" }}
+                />
+              )}
+            </>
+          )}
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

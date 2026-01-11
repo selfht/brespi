@@ -8,32 +8,40 @@ const { summary, Field, Label, Description } = FormHelper.meta({
   fields: {
     connection_bucket: {
       label: "Bucket",
-      description: "This field specifies the S3 bucket name to upload to.",
+      description: "Specifies the S3 bucket name to upload to.",
     },
     basePrefix: {
       label: "Base prefix",
       description:
-        'This field specifies the base S3 path prefix where artifacts will be uploaded to managed storage. If no "managed storage root" is detected at the provided base prefix, it will be initialized upon first execution.',
+        'Specifies the base S3 path prefix where artifacts will be uploaded to managed storage. If no "managed storage root" is detected at the provided base prefix, it will be initialized upon first execution.',
     },
     connection_region: {
       label: "Region",
-      description: "This field specifies the region for the S3 bucket.",
+      description: "Specifies the region for the S3 bucket.",
     },
     connection_endpoint: {
       label: "Endpoint",
-      description: "This field specifies the S3 endpoint URL.",
+      description: "Specifies the S3 endpoint URL.",
     },
     connection_accessKeyReference: {
       label: "Access key reference",
-      description: "This field specifies which environment variable contains the S3 access key.",
+      description: "Specifies which environment variable contains the S3 access key.",
     },
     connection_secretKeyReference: {
       label: "Secret key reference",
-      description: "This field specifies which environment variable contains the S3 secret key.",
+      description: "Specifies which environment variable contains the S3 secret key.",
     },
     managedStorage: {
       label: "Use managed storage?",
-      description: "This field enables uploading to a managed storage location (mandatory).",
+      description: "Enables uploading to a managed storage location (mandatory).",
+    },
+    retentionPolicy: {
+      label: "Retention policy",
+      description: "Specifies the automated cleanup retention policy for stored artifacts.",
+    },
+    retentionMaxVersions: {
+      label: "Retention: max versions",
+      description: "Specifies how many versions can be stored, before automatic cleanup activates.",
     },
   },
 });
@@ -45,6 +53,8 @@ type Form = {
   [Field.connection_accessKeyReference]: string;
   [Field.connection_secretKeyReference]: string;
   [Field.managedStorage]: "true";
+  [Field.retentionPolicy]: "none" | "last_n_versions";
+  [Field.retentionMaxVersions]: number;
 };
 
 type Props = {
@@ -56,7 +66,7 @@ type Props = {
   className?: string;
 };
 export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
+  const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.connection_bucket]: existing?.connection.bucket ?? "",
       [Field.basePrefix]: existing?.basePrefix ?? "",
@@ -65,6 +75,8 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
       [Field.connection_accessKeyReference]: existing?.connection.accessKeyReference ?? "",
       [Field.connection_secretKeyReference]: existing?.connection.secretKeyReference ?? "",
       [Field.managedStorage]: "true",
+      [Field.retentionPolicy]: existing ? (existing.retention ? existing.retention.policy : "none") : "none",
+      [Field.retentionMaxVersions]: existing ? (existing.retention ? existing.retention.maxVersions : 10) : 10,
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -83,6 +95,10 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
           secretKeyReference: form[Field.connection_secretKeyReference],
         },
         basePrefix: form[Field.basePrefix],
+        retention:
+          form[Field.retentionPolicy] === "last_n_versions"
+            ? { policy: "last_n_versions", maxVersions: form[Field.retentionMaxVersions] }
+            : null,
       });
     } catch (error) {
       setError("root", {
@@ -91,6 +107,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
     }
   };
 
+  const retentionPolicy = watch(Field.retentionPolicy);
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
@@ -152,6 +169,27 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
             onActiveFieldChange={setActiveField}
             input={{ type: "yes" }}
           />
+          <FormElements.LabeledInput
+            field={Field.retentionPolicy}
+            labels={Label}
+            register={register}
+            activeField={activeField}
+            onActiveFieldChange={setActiveField}
+            input={{
+              type: "select",
+              options: ["none", "last_n_versions"] satisfies Array<Form["retentionPolicy"]>,
+            }}
+          />
+          {retentionPolicy === "last_n_versions" && (
+            <FormElements.LabeledInput
+              field={Field.retentionMaxVersions}
+              labels={Label}
+              register={register}
+              activeField={activeField}
+              onActiveFieldChange={setActiveField}
+              input={{ type: "number" }}
+            />
+          )}
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

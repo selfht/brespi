@@ -85,6 +85,8 @@ export namespace StepDetails {
         return performLabeling<typeof F>(FilesystemWriteForm.Label, {
           [F.folderPath]: step.folderPath,
           [F.managedStorage]: step.managedStorage,
+          [F.retentionPolicy]: step.retention ? step.retention.policy : "none",
+          [F.retentionMaxVersions]: step.retention?.policy === "last_n_versions" ? step.retention.maxVersions : undefined,
         });
       }
       case Step.Type.filesystem_read: {
@@ -111,6 +113,8 @@ export namespace StepDetails {
           [F.connection_accessKeyReference]: step.connection.accessKeyReference,
           [F.connection_secretKeyReference]: step.connection.secretKeyReference,
           [F.managedStorage]: true,
+          [F.retentionPolicy]: step.retention ? step.retention.policy : "none",
+          [F.retentionMaxVersions]: step.retention?.policy === "last_n_versions" ? step.retention.maxVersions : undefined,
         });
       }
       case Step.Type.s3_download: {

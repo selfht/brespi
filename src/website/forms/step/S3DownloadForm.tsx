@@ -8,60 +8,59 @@ const { summary, Field, Label, Description } = FormHelper.meta({
   fields: {
     connection_bucket: {
       label: "Bucket",
-      description: "This field specifies the S3 bucket name to download from.",
+      description: "Specifies the S3 bucket name to download from.",
     },
     basePrefix: {
       label: "Base prefix",
-      description:
-        'This field specifies the base S3 path prefix where artifacts are retrieved, and must point to a valid "managed storage root".',
+      description: 'Specifies the base S3 path prefix where artifacts are retrieved, and must point to a valid "managed storage root".',
     },
     connection_region: {
       label: "Region",
-      description: "This field specifies the region for the S3 bucket.",
+      description: "Specifies the region for the S3 bucket.",
     },
     connection_endpoint: {
       label: "Endpoint",
-      description: "This field specifies the S3 endpoint URL.",
+      description: "Specifies the S3 endpoint URL.",
     },
     connection_accessKeyReference: {
       label: "Access key reference",
-      description: "This field specifies which environment variable contains the S3 access key.",
+      description: "Specifies which environment variable contains the S3 access key.",
     },
     connection_secretKeyReference: {
       label: "Secret key reference",
-      description: "This field specifies which environment variable contains the S3 secret key.",
+      description: "Specifies which environment variable contains the S3 secret key.",
     },
     managedStorage: {
       label: "Use managed storage?",
-      description: "This field enables downloading from a managed storage location (mandatory).",
+      description: "Enables downloading from a managed storage location (mandatory).",
     },
     managedStorage_target: {
       label: "Managed storage: target",
-      description: "This field specifies whether to retrieve the latest version of an artifact collection, or a specific version.",
+      description: "Specifies whether to retrieve the latest version of an artifact collection, or a specific version.",
     },
     managedStorage_version: {
       label: "Managed storage: version",
-      description: "This field specifies which specific version to retrieve.",
+      description: "Determines which specific version to retrieve.",
     },
     filterCriteria: {
       label: "Use filter?",
-      description: "This field enables filtering artifacts by name when retrieving from managed storage.",
+      description: "Enables filtering artifacts by name when retrieving from managed storage.",
     },
     filterCriteria_method: {
       label: "Filter: method",
-      description: "This field specifies which matching method to use for filtering.",
+      description: "Specifies which matching method to use for filtering.",
     },
     filterCriteria_name: {
       label: "Filter: name",
-      description: "This field specifies the exact artifact name to match.",
+      description: "Specifies the exact artifact name to match.",
     },
     filterCriteria_nameGlob: {
       label: "Filter: name glob",
-      description: "This field specifies the glob pattern to match artifact names.",
+      description: "Specifies the glob pattern to match artifact names.",
     },
     filterCriteria_nameRegex: {
       label: "Filter: name regex",
-      description: "This field specifies the regex pattern to match artifact names.",
+      description: "Specifies the regex pattern to match artifact names.",
     },
   },
 });

@@ -14,7 +14,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: "Connection reference",
       description: (
         <>
-          This field specifies which environment variable contains the Postgres connection string in the format{" "}
+          Specifies which environment variable contains the Postgres connection string in the format{" "}
           <FormElements.Code break>postgresql://username:password@hostname:5432</FormElements.Code>.
         </>
       ),
@@ -23,7 +23,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: "Toolkit resolution",
       description: (
         <>
-          This field specifies how to find Postgres executables (like <FormElements.Code>psql</FormElements.Code>).
+          Specifies how to find Postgres executables (like <FormElements.Code>psql</FormElements.Code>).
         </>
       ),
     },
@@ -31,7 +31,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: 'Toolkit: "psql" path',
       description: (
         <>
-          This field specifies where to find the <FormElements.Code>psql</FormElements.Code> executable.
+          Specifies where to find the <FormElements.Code>psql</FormElements.Code> executable.
         </>
       ),
     },
@@ -39,13 +39,13 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: 'Toolkit: "pg_restore" path',
       description: (
         <>
-          This field specifies where to find the <FormElements.Code>pg_restore</FormElements.Code> executable.
+          Specifies where to find the <FormElements.Code>pg_restore</FormElements.Code> executable.
         </>
       ),
     },
     database: {
       label: "Database",
-      description: "This field specifies the name of the target database to restore into.",
+      description: "Specifies the name of the target database to restore into.",
     },
   },
 });

@@ -54,6 +54,11 @@ export namespace Step {
     | { target: "latest" } //
     | { target: "specific"; version: string };
 
+  export type Retention = {
+    policy: "last_n_versions";
+    maxVersions: number;
+  };
+
   export type FilterCriteria =
     | { method: "exact"; name: string } //
     | { method: "glob"; nameGlob: string }
@@ -65,19 +70,6 @@ export namespace Step {
     endpoint: string;
     accessKeyReference: string;
     secretKeyReference: string;
-  };
-
-  export type FilesystemWrite = Common & {
-    type: Type.filesystem_write;
-    folderPath: string;
-    managedStorage: boolean;
-  };
-
-  export type FilesystemRead = Common & {
-    type: Type.filesystem_read;
-    path: string;
-    managedStorage: ManagedStorage | null;
-    filterCriteria: FilterCriteria | null;
   };
 
   export type Compression = Common & {
@@ -130,10 +122,25 @@ export namespace Step {
     passthrough: boolean;
   };
 
+  export type FilesystemWrite = Common & {
+    type: Type.filesystem_write;
+    folderPath: string;
+    managedStorage: boolean;
+    retention: Retention | null;
+  };
+
+  export type FilesystemRead = Common & {
+    type: Type.filesystem_read;
+    path: string;
+    managedStorage: ManagedStorage | null;
+    filterCriteria: FilterCriteria | null;
+  };
+
   export type S3Upload = Common & {
     type: Type.s3_upload;
     connection: S3Connection;
     basePrefix: string;
+    retention: Retention | null;
   };
 
   export type S3Download = Common & {
@@ -195,18 +202,19 @@ export namespace Step {
           previousId: z.string().nullable(),
           object: z.literal("step"),
         },
-
         managedStorage: z.union([
           z.object({ target: z.literal("latest") }), //
           z.object({ target: z.literal("specific"), version: z.string() }),
         ]),
-
+        retention: z.object({
+          policy: z.literal("last_n_versions"),
+          maxVersions: z.number(),
+        } satisfies SubSchema<Retention>),
         filterCriteria: z.union([
           z.object({ method: z.literal("exact"), name: z.string() }),
           z.object({ method: z.literal("glob"), nameGlob: z.string() }),
           z.object({ method: z.literal("regex"), nameRegex: z.string() }),
         ]),
-
         s3Connection: z.object({
           bucket: z.string(),
           region: z.string().nullable(),
@@ -275,12 +283,23 @@ export namespace Step {
           passthrough: z.boolean(),
         } satisfies SubSchema<Step.CustomScript>),
 
-        z.object({
-          ...subSchema.common,
-          type: z.literal(Type.filesystem_write),
-          folderPath: z.string(),
-          managedStorage: z.boolean(),
-        } satisfies SubSchema<Step.FilesystemWrite>),
+        z
+          .object({
+            ...subSchema.common,
+            type: z.literal(Type.filesystem_write),
+            folderPath: z.string(),
+            managedStorage: z.boolean(),
+            retention: subSchema.retention.nullable(),
+          } satisfies SubSchema<Step.FilesystemWrite>)
+          .refine(
+            ({ managedStorage, retention }) => {
+              const invalidCombination = !managedStorage && !!retention;
+              return !invalidCombination;
+            },
+            {
+              error: "Cannot use `retention` without `managedStorage`",
+            },
+          ),
 
         z
           .object({
@@ -305,6 +324,7 @@ export namespace Step {
           type: z.literal(Type.s3_upload),
           connection: subSchema.s3Connection,
           basePrefix: z.string(),
+          retention: subSchema.retention.nullable(),
         } satisfies SubSchema<Step.S3Upload>),
 
         z.object({

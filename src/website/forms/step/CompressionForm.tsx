@@ -8,11 +8,11 @@ const { summary, Field, Label, Description } = FormHelper.meta({
   fields: {
     algorithm_implementation: {
       label: "Algorithm",
-      description: "This field specifies which compression algorithm to use.",
+      description: "Specifies which compression algorithm to use.",
     },
     algorithm_targzip_level: {
       label: "Algorithm: compression level",
-      description: "This field specifies the tar/gzip compression level.",
+      description: "Specifies the tar/gzip compression level.",
     },
   },
 });

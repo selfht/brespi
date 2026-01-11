@@ -8,19 +8,19 @@ const { summary, Field, Label, Description } = FormHelper.meta({
   fields: {
     filterCriteria_method: {
       label: "Method",
-      description: "This field specifies which matching method to use for filtering.",
+      description: "Specifies which matching method to use for filtering.",
     },
     filterCriteria_name: {
       label: "Name",
-      description: "This field specifies the exact artifact name to match.",
+      description: "Specifies the exact artifact name to match.",
     },
     filterCriteria_nameGlob: {
       label: "Name glob",
-      description: "This field specifies the glob pattern to match artifact names.",
+      description: "Specifies the glob pattern to match artifact names.",
     },
     filterCriteria_nameRegex: {
       label: "Name regex",
-      description: "This field specifies the regex pattern to match artifact names.",
+      description: "Specifies the regex pattern to match artifact names.",
     },
   },
 });

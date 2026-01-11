@@ -8,7 +8,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
   fields: {
     algorithm_implementation: {
       label: "Algorithm",
-      description: "This field specifies which decompression algorithm to use.",
+      description: "Specifies which decompression algorithm to use.",
     },
   },
 });
