@@ -1,4 +1,4 @@
-import { Test } from "@/helpers/Test.spec";
+import { Test } from "@/testing/Test.spec";
 import { Step } from "@/models/Step";
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { S3Adapter } from "./S3Adapter";

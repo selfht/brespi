@@ -1,4 +1,4 @@
-import { Test } from "@/helpers/Test.spec";
+import { Test } from "@/testing/Test.spec";
 import { Execution } from "@/models/Execution";
 import { Outcome } from "@/models/Outcome";
 import { Pipeline } from "@/models/Pipeline";

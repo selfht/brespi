@@ -2,7 +2,7 @@ import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { describe, expect, it } from "bun:test";
 import { FilterCapability } from "./FilterCapability";
-import { Test } from "@/helpers/Test.spec";
+import { Test } from "@/testing/Test.spec";
 
 describe(FilterCapability.name, () => {
   const capability = new FilterCapability();

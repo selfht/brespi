@@ -12,7 +12,7 @@ import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { mock, Mock } from "bun:test";
 import { mkdir, rm } from "fs/promises";
 import { join } from "path";
-import { Generate } from "./Generate";
+import { Generate } from "../helpers/Generate";
 
 export namespace Test {
   const cleanupTasks: Record<string, () => unknown | Promise<unknown>> = {
