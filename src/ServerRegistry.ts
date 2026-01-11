@@ -35,15 +35,15 @@ export class ServerRegistry {
     const managedStorageCapability = (this.registry[ManagedStorageCapability.name] = new ManagedStorageCapability());
 
     // Adapters
+    const compressionAdapter = (this.registry[CompressionAdapter.name] = new CompressionAdapter(env));
+    const encryptionAdapter = (this.registry[EncryptionAdapter.name] = new EncryptionAdapter(env));
+    const filterAdapter = (this.registry[FilterAdapter.name] = new FilterAdapter(env, filterCapability));
+    const scriptAdapter = (this.registry[ScriptAdapter.name] = new ScriptAdapter(env));
     const fileSystemAdapter = (this.registry[FilesystemAdapter.name] = new FilesystemAdapter(
       env,
       managedStorageCapability,
       filterCapability,
     ));
-    const compressionAdapter = (this.registry[CompressionAdapter.name] = new CompressionAdapter(env));
-    const encryptionAdapter = (this.registry[EncryptionAdapter.name] = new EncryptionAdapter(env));
-    const filterAdapter = (this.registry[FilterAdapter.name] = new FilterAdapter(env, filterCapability));
-    const scriptAdapter = (this.registry[ScriptAdapter.name] = new ScriptAdapter(env));
     const s3Adapter = (this.registry[S3Adapter.name] = new S3Adapter(env, managedStorageCapability, filterCapability));
     const postgresAdapter = (this.registry[PostgresAdapter.name] = new PostgresAdapter(env));
     const adapterService = (this.registry[AdapterService.name] = new AdapterService(

@@ -22,7 +22,7 @@ describe(ManagedStorageCapability.name, () => {
       // given
       const { filesystem, ...readWriteFns } = createReadWriteFns();
       const options: ManagedStorageCapability.InsertOptions = {
-        key: [],
+        mutexKey: [],
         base: "hello-123-base",
         artifacts: [
           { name: "Apple.txt", path: "/tmp-x/123" },
@@ -94,7 +94,7 @@ describe(ManagedStorageCapability.name, () => {
         };
         filesystem["__brespi_manifest__.json"] = JSON.stringify(existingManifest);
         // when
-        await capability.insert({ key: [], artifacts: [], trail: [], base: "", ...readWriteFns });
+        await capability.insert({ mutexKey: [], artifacts: [], trail: [], base: "", ...readWriteFns });
         // then
         const updatedManifest = Manifest.parse(JSON.parse(filesystem["__brespi_manifest__.json"]));
         expect(updatedManifest.items).toHaveLength(existingManifestSize + 1);
@@ -155,7 +155,7 @@ describe(ManagedStorageCapability.name, () => {
       // given
       const { filesystem, ...readWriteFns } = createReadWriteFns();
       const options: ManagedStorageCapability.InsertOptions = {
-        key: [],
+        mutexKey: [],
         artifacts: [{ name: "Apple", path: "irrelevant" }],
         trail: [],
         base,
@@ -215,7 +215,7 @@ describe(ManagedStorageCapability.name, () => {
       });
       // when
       const { resolvedVersion, selectableArtifacts } = await capability.select({
-        key: [],
+        mutexKey: [],
         base: "",
         configuration: {
           target: "latest",
@@ -256,7 +256,7 @@ describe(ManagedStorageCapability.name, () => {
       });
       // when
       const { resolvedVersion, selectableArtifacts } = await capability.select({
-        key: [],
+        mutexKey: [],
         base: "bbbase",
         configuration: {
           target: "specific",
@@ -302,7 +302,7 @@ describe(ManagedStorageCapability.name, () => {
       });
       // when
       const { resolvedVersion, selectableArtifacts } = await capability.select({
-        key: [],
+        mutexKey: [],
         base: "storage",
         configuration: {
           target: "specific",
@@ -331,7 +331,7 @@ describe(ManagedStorageCapability.name, () => {
       // when
       const action = () =>
         capability.select({
-          key: [],
+          mutexKey: [],
           base: "",
           configuration: {
             target: "latest",
@@ -361,7 +361,7 @@ describe(ManagedStorageCapability.name, () => {
       // when
       const action = () =>
         capability.select({
-          key: [],
+          mutexKey: [],
           base: "",
           configuration: {
             target: "specific",
@@ -396,7 +396,7 @@ describe(ManagedStorageCapability.name, () => {
       // when
       const action = () =>
         capability.select({
-          key: [],
+          mutexKey: [],
           base: "",
           configuration: {
             target: "specific",
@@ -487,7 +487,7 @@ describe(ManagedStorageCapability.name, () => {
       });
       // when
       const { selectableArtifacts } = await capability.select({
-        key: [],
+        mutexKey: [],
         base,
         configuration: { target: "latest" },
         ...readWriteFns,

@@ -20,17 +20,32 @@ export class S3Adapter extends AbstractAdapter {
 
   public async upload(artifacts: Artifact[], { basePrefix, ...step }: Step.S3Upload, trail: StepWithRuntime[]): Promise<AdapterResult> {
     this.requireArtifactType("file", ...artifacts);
-    basePrefix = this.relativize(basePrefix);
+    const base = this.relativize(basePrefix);
     const client = this.constructClient(step.connection);
+    const mutexKey = this.mutexKey(base);
+    const readWriteFns = this.createReadWriteFns(client);
+
     const { insertableArtifacts } = await this.managedStorageCapability.insert({
-      key: [S3Adapter.name, basePrefix],
+      mutexKey,
       artifacts,
       trail,
-      base: basePrefix,
-      ...this.createReadWriteFns(client),
+      base,
+      ...readWriteFns,
     });
     for (const { path, destinationPath } of insertableArtifacts) {
       await client.write(destinationPath, Bun.file(path));
+    }
+
+    if (step.retention) {
+      const { removableItems } = await this.managedStorageCapability.clean({
+        mutexKey,
+        base,
+        configuration: step.retention,
+        ...readWriteFns,
+      });
+      for (const item of removableItems) {
+        // TODO
+      }
     }
     return AdapterResult.create();
   }
@@ -40,7 +55,7 @@ export class S3Adapter extends AbstractAdapter {
     const client = this.constructClient(step.connection);
     // Find artifacts
     let { resolvedVersion, selectableArtifacts } = await this.managedStorageCapability.select({
-      key: [S3Adapter.name, basePrefix],
+      mutexKey: this.mutexKey(basePrefix),
       base: basePrefix,
       configuration: step.managedStorage,
       ...this.createReadWriteFns(client),
@@ -71,6 +86,10 @@ export class S3Adapter extends AbstractAdapter {
    */
   private relativize(baseFolder: string): string {
     return isAbsolute(baseFolder) ? relative("/", baseFolder) : baseFolder;
+  }
+
+  private mutexKey(basePrefix: string) {
+    return [S3Adapter.name, basePrefix];
   }
 
   private constructClient(connection: Step.S3Connection): S3Client {

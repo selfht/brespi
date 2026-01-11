@@ -4,7 +4,7 @@ import { Env } from "@/Env";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { StepWithRuntime } from "@/models/StepWithRuntime";
-import { copyFile, cp, mkdir, readdir, rename } from "fs/promises";
+import { copyFile, cp, mkdir, readdir, rename, rm } from "fs/promises";
 import { basename, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 import { AdapterResult } from "../AdapterResult";
@@ -22,15 +22,31 @@ export class FilesystemAdapter extends AbstractAdapter {
     await mkdir(step.folderPath, { recursive: true });
     if (step.managedStorage) {
       this.requireArtifactType("file", ...artifacts);
+      const base = step.folderPath;
+      const mutexKey = this.mutexKey(base);
+      const readWriteFns = this.createReadWriteFns();
+
       const { insertableArtifacts } = await this.managedStorageCapability.insert({
-        key: [FilesystemAdapter.name, step.folderPath],
+        mutexKey,
         artifacts,
         trail,
-        base: step.folderPath,
-        ...this.createReadWriteFns(),
+        base,
+        ...readWriteFns,
       });
       for (const { path, destinationPath } of insertableArtifacts) {
         await Bun.write(destinationPath, Bun.file(path));
+      }
+
+      if (step.retention) {
+        const { removableItems } = await this.managedStorageCapability.clean({
+          mutexKey,
+          base,
+          configuration: step.retention,
+          ...readWriteFns,
+        });
+        for (const item of removableItems) {
+          await rm(join(base, item.listingPath), { recursive: true, force: true });
+        }
       }
     } else {
       for (const artifact of artifacts) {
@@ -49,7 +65,7 @@ export class FilesystemAdapter extends AbstractAdapter {
     if (step.managedStorage) {
       // Find artifacts
       let { resolvedVersion, selectableArtifacts } = await this.managedStorageCapability.select({
-        key: [FilesystemAdapter.name, step.path],
+        mutexKey: this.mutexKey(step.path),
         base: step.path,
         configuration: step.managedStorage,
         ...this.createReadWriteFns(),
@@ -109,6 +125,10 @@ export class FilesystemAdapter extends AbstractAdapter {
       name: `group(${artifacts.length})`,
       path: outputPath,
     });
+  }
+
+  private mutexKey(baseFolder: string) {
+    return [FilesystemAdapter.name, baseFolder];
   }
 
   private createReadWriteFns(): ManagedStorageCapability.ReadWriteFns {

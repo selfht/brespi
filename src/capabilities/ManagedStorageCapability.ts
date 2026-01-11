@@ -11,7 +11,7 @@ import { dirname, join } from "path";
 
 export class ManagedStorageCapability {
   public async insert({
-    key,
+    mutexKey,
     artifacts,
     trail,
     base,
@@ -37,7 +37,7 @@ export class ManagedStorageCapability {
       },
     };
     // 2. Update the manifest (exclusively)
-    const { release } = await Mutex.acquireFromRegistry({ key });
+    const { release } = await Mutex.acquireFromRegistry({ key: mutexKey });
     try {
       const mfPath = join(base, Manifest.NAME);
       const mfFile = await readFn(mfPath);
@@ -75,14 +75,14 @@ export class ManagedStorageCapability {
   }
 
   public async select({
-    key,
+    mutexKey,
     base,
     readFn,
     configuration,
   }: ManagedStorageCapability.SelectOptions): Promise<ManagedStorageCapability.SelectResult> {
     // 1. Read the manifest
     let manifest: Manifest;
-    const { release } = await Mutex.acquireFromRegistry({ key });
+    const { release } = await Mutex.acquireFromRegistry({ key: mutexKey });
     try {
       const mfPath = join(base, Manifest.NAME);
       const mfFile = await readFn(mfPath);
@@ -103,6 +103,41 @@ export class ManagedStorageCapability {
         path: join(dirname(listingPath), path),
       })),
     };
+  }
+
+  public async clean({
+    mutexKey,
+    base,
+    configuration,
+    readFn,
+    writeFn,
+  }: ManagedStorageCapability.CleanOptions): Promise<ManagedStorageCapability.CleanResult> {
+    // 1. Read the manifest
+    let removableItems: Manifest.Item[];
+    const { release } = await Mutex.acquireFromRegistry({ key: mutexKey });
+    try {
+      const mfPath = join(base, Manifest.NAME);
+      const mfFile = await readFn(mfPath);
+      const existingMf = this.parseManifest(mfFile!);
+      // 2. Determine the removable items
+      removableItems = existingMf.items.toSorted(Manifest.Item.sort).filter((_, index) => {
+        return index >= configuration.maxVersions;
+      });
+      const removableItemIds = removableItems.map(({ listingPath: id }) => id);
+      // 3. Update the manifest
+      const updatedMf: Manifest = {
+        ...existingMf,
+        items: existingMf.items.filter(({ listingPath: id }) => !removableItemIds.includes(id)),
+      };
+      await writeFn({
+        path: mfPath,
+        content: JSON.stringify(updatedMf),
+      });
+    } finally {
+      release();
+    }
+    // 3. Return the removable items
+    return { removableItems };
   }
 
   private findMatchingItem(manifest: Manifest, conf: Step.ManagedStorage): Manifest.Item {
@@ -154,7 +189,7 @@ export namespace ManagedStorageCapability {
   };
 
   export type InsertOptions = ReadWriteFns & {
-    key: string[];
+    mutexKey: string[];
     artifacts: Array<Pick<Artifact, "name" | "path">>;
     trail: StepWithRuntime[];
     base: string;
@@ -164,12 +199,21 @@ export namespace ManagedStorageCapability {
   };
 
   export type SelectOptions = Pick<ReadWriteFns, "readFn"> & {
-    key: string[];
+    mutexKey: string[];
     base: string;
     configuration: Step.ManagedStorage;
   };
   export type SelectResult = {
     resolvedVersion: string;
     selectableArtifacts: Array<{ name: string; path: string }>;
+  };
+
+  export type CleanOptions = ReadWriteFns & {
+    mutexKey: string[];
+    base: string;
+    configuration: Step.Retention;
+  };
+  export type CleanResult = {
+    removableItems: Manifest.Item[];
   };
 }
