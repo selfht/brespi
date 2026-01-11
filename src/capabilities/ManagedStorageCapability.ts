@@ -145,7 +145,7 @@ export class ManagedStorageCapability {
       case "latest": {
         const sortedItems = manifest.items.toSorted(Manifest.Item.sort);
         if (sortedItems.length === 0) {
-          throw new Error("Latest item could not be found");
+          throw ExecutionError.managed_storage_manifest_empty();
         }
         return sortedItems[0];
       }
@@ -153,10 +153,13 @@ export class ManagedStorageCapability {
         const version = conf.version;
         const matchingItems = manifest.items.filter((u) => u.isoTimestamp === version || dirname(u.listingPath) === version);
         if (matchingItems.length === 0) {
-          throw new Error("Specific item could not be found");
+          throw ExecutionError.managed_storage_version_not_found({ version });
         }
         if (matchingItems.length > 1) {
-          throw new Error(`Specific item could not be identified uniquely; matches=${matchingItems.length}`);
+          throw ExecutionError.managed_storage_version_not_uniquely_identified({
+            version,
+            matches: matchingItems.map(({ listingPath }) => dirname(listingPath)),
+          });
         }
         return matchingItems[0];
       }

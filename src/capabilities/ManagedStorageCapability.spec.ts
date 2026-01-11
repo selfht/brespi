@@ -339,7 +339,11 @@ describe(ManagedStorageCapability.name, () => {
           ...readWriteFns,
         });
       // then
-      expect(action()).rejects.toThrow("Latest item could not be found");
+      expect(action()).rejects.toThrow(
+        expect.objectContaining({
+          problem: "ExecutionError::managed_storage_manifest_empty",
+        }),
+      );
     });
 
     it("throws an error when a specific version cannot be found", async () => {
@@ -370,7 +374,11 @@ describe(ManagedStorageCapability.name, () => {
           ...readWriteFns,
         });
       // then
-      expect(action()).rejects.toThrow("Specific item could not be found");
+      expect(action()).rejects.toThrow(
+        expect.objectContaining({
+          problem: "ExecutionError::managed_storage_version_not_found",
+        }),
+      );
     });
 
     it("throws an error when multiple items match the specific version", async () => {
@@ -405,7 +413,11 @@ describe(ManagedStorageCapability.name, () => {
           ...readWriteFns,
         });
       // then
-      expect(action()).rejects.toThrow("Specific item could not be identified uniquely; matches=2");
+      expect(action()).rejects.toThrow(
+        expect.objectContaining({
+          problem: "ExecutionError::managed_storage_version_not_uniquely_identified",
+        }),
+      );
     });
 
     const collection = Test.createCollection<{

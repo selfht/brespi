@@ -5,9 +5,10 @@ import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { StepWithRuntime } from "@/models/StepWithRuntime";
 import { S3Client } from "bun";
-import { isAbsolute, relative } from "path";
+import { isAbsolute, join, relative } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 import { AdapterResult } from "../AdapterResult";
+import { ExtendedBunS3Client } from "./ExtendedBunS3Client";
 
 export class S3Adapter extends AbstractAdapter {
   public constructor(
@@ -43,8 +44,10 @@ export class S3Adapter extends AbstractAdapter {
         configuration: step.retention,
         ...readWriteFns,
       });
-      for (const item of removableItems) {
-        // TODO
+      const removableKeyPrefixes = removableItems.map(({ listingPath }) => join(base, listingPath));
+      for (const removableKeyPrefix of removableKeyPrefixes) {
+        const keys = await client.listAllKeys({ prefix: removableKeyPrefix });
+        await client.deleteAll({ keys });
       }
     }
     return AdapterResult.create();
@@ -92,10 +95,10 @@ export class S3Adapter extends AbstractAdapter {
     return [S3Adapter.name, basePrefix];
   }
 
-  private constructClient(connection: Step.S3Connection): S3Client {
+  private constructClient(connection: Step.S3Connection): ExtendedBunS3Client {
     const accessKeyId = this.readEnvironmentVariable(connection.accessKeyReference);
     const secretAccessKey = this.readEnvironmentVariable(connection.secretKeyReference);
-    return new S3Client({
+    return new ExtendedBunS3Client({
       bucket: connection.bucket,
       endpoint: connection.endpoint,
       region: connection.region ?? undefined,
