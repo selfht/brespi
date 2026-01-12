@@ -19,7 +19,7 @@ export class ManagedStorageCapability {
   }: ManagedStorageCapability.InsertOptions): Promise<ManagedStorageCapability.InsertResult> {
     // 1. Prepare the listing
     const createListingDetails = (timestamp: Temporal.PlainDateTime) => ({
-      name: Listing.generateName(artifacts),
+      name: Listing.generateAvailableName(artifacts),
       relativeParentPath: timestamp.toString(),
       get relativePath() {
         return join(this.relativeParentPath, this.name);

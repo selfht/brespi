@@ -12,7 +12,7 @@ export type Listing = {
 };
 
 export namespace Listing {
-  export const generateName = (artifacts: Array<Pick<Artifact, "name">>) => {
+  export const generateAvailableName = (artifacts: Array<Pick<Artifact, "name">>) => {
     const artifactNames = artifacts.map(({ name }) => name);
     const randomName = () => {
       return `__brespi_listing_${Generate.shortRandomString()}__.json`;
