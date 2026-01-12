@@ -1,5 +1,5 @@
-import { FilterCapability } from "@/capabilities/FilterCapability";
-import { ManagedStorageCapability } from "@/capabilities/ManagedStorageCapability";
+import { FilterCapability } from "@/capabilities/filter/FilterCapability";
+import { ManagedStorageCapability } from "@/capabilities/managedstorage/ManagedStorageCapability";
 import { Env } from "@/Env";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";

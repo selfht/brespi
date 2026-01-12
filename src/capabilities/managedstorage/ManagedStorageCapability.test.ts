@@ -2,8 +2,8 @@ import { Test } from "@/testing/Test.test";
 import { Temporal } from "@js-temporal/polyfill";
 import { describe, expect, it } from "bun:test";
 import { join } from "path";
-import { Listing } from "./managedstorage/Listing";
-import { Manifest } from "./managedstorage/Manifest";
+import { Listing } from "./Listing";
+import { Manifest } from "./Manifest";
 import { ManagedStorageCapability } from "./ManagedStorageCapability";
 
 describe(ManagedStorageCapability.name, () => {

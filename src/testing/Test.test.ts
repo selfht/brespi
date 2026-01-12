@@ -1,6 +1,6 @@
 import { AdapterService } from "@/adapters/AdapterService";
-import { FilterCapability } from "@/capabilities/FilterCapability";
-import { ManagedStorageCapability } from "@/capabilities/ManagedStorageCapability";
+import { FilterCapability } from "@/capabilities/filter/FilterCapability";
+import { ManagedStorageCapability } from "@/capabilities/managedstorage/ManagedStorageCapability";
 import { $execution } from "@/drizzle/schema";
 import { initializeSqlite } from "@/drizzle/sqlite";
 import { Env } from "@/Env";

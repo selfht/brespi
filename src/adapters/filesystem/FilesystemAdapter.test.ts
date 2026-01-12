@@ -1,5 +1,5 @@
-import { FilterCapability } from "@/capabilities/FilterCapability";
-import { ManagedStorageCapability } from "@/capabilities/ManagedStorageCapability";
+import { FilterCapability } from "@/capabilities/filter/FilterCapability";
+import { ManagedStorageCapability } from "@/capabilities/managedstorage/ManagedStorageCapability";
 import { Generate } from "@/helpers/Generate";
 import { Test } from "@/testing/Test.test";
 import { Step } from "@/models/Step";

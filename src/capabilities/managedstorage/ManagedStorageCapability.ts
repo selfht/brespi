@@ -1,5 +1,5 @@
-import { Listing } from "@/capabilities/managedstorage/Listing";
-import { Manifest } from "@/capabilities/managedstorage/Manifest";
+import { Listing } from "./Listing";
+import { Manifest } from "./Manifest";
 import { ExecutionError } from "@/errors/ExecutionError";
 import { Mutex } from "@/helpers/Mutex";
 import { Artifact } from "@/models/Artifact";

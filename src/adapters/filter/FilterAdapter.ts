@@ -1,5 +1,5 @@
 import { Env } from "@/Env";
-import { FilterCapability } from "@/capabilities/FilterCapability";
+import { FilterCapability } from "@/capabilities/filter/FilterCapability";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { AbstractAdapter } from "../AbstractAdapter";
