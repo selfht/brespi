@@ -19,8 +19,8 @@ Schedules
 
 Policies
 * Update the `ManagedStorageCapability` to track total sizes as well per `Listing`
-* Offer automated cleanup policies for both `S3 Upload` and `Filesystem Write`: last N versions, max X gigabyte (strict/lenient mode)
-* Trigger these policies before/after every execution
+* ✅ ~Offer automated cleanup policies for both `S3 Upload` and `Filesystem Write`: last N versions, max X gigabyte (strict/lenient mode)~
+* ✅ ~Trigger these policies before/after every execution~
 
 QA
 * Configure Playwright to use a `Dockerfile.e2e` which runs the app in "production" mode (unless port 3000 is already listening)
@@ -30,6 +30,7 @@ QA
 Technical
 * ✅ ~Implement more unit tests for adapters in the style of `FilesystemAdapter.spec.ts` which can be reasonably expected to execute on basic unix hosts (`CompressionAdapter`, `EncryptionAdapter`, `ScriptAdapter`)~
 * ✅ ~Use consistent casing in all form labels and E2E fixtures~
+* Accept an (optional) environment variable with comma separated basic auth users
 * Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
 * Firefox: test canvas and `foreignObject`
 * Webkit: attempt to migrate away from [`foreignObject`](https://bugs.webkit.org/show_bug.cgi?id=23113)
@@ -43,7 +44,6 @@ Distribution
 * Create a shell script for building docker images with the appropriate toolset (only requirements: git + bash + docker)
 * ✅ ~Setup strategy for dealing with different Postgres/MySQL versions and corresponding dump/restore tools~
 * Write a README.md, CONTRIBUTING.md and LICENSE.md
-* Accept an (optional) environment variable with comma separated basic auth users
 
 Marketing
 * Create an accompanying landing page, with how it works, how to use, and how to configure (no exhaustive documentation)

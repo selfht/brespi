@@ -18,9 +18,9 @@ export class ManagedStorageCapability {
     writeFn,
   }: ManagedStorageCapability.InsertOptions): Promise<ManagedStorageCapability.InsertResult> {
     // 1. Prepare the listing
-    const createListingDetails = (timestamp: Temporal.PlainDateTime) => ({
+    const createListingDetails = (version: string) => ({
       name: Listing.generateAvailableName(artifacts),
-      relativeParentPath: timestamp.toString(),
+      relativeParentPath: version,
       get relativePath() {
         return join(this.relativeParentPath, this.name);
       },
@@ -42,14 +42,14 @@ export class ManagedStorageCapability {
       const mfFile = await readFn(mfPath);
       const existingMf: Manifest = mfFile === undefined ? Manifest.empty() : this.parseManifest(mfFile);
 
-      const timestamp = await this.waitForAvailableTimestamp(existingMf);
-      listingDetails = createListingDetails(timestamp);
+      const version = await this.waitForAvailableTimestamp(existingMf);
+      listingDetails = createListingDetails(version);
 
       const updatedMf: Manifest = {
         ...existingMf,
         items: [
           {
-            version: timestamp.toString(),
+            version,
             listingPath: listingDetails.relativePath,
           },
           ...existingMf.items,
@@ -143,12 +143,13 @@ export class ManagedStorageCapability {
     return { removableItems };
   }
 
-  private async waitForAvailableTimestamp(manifest: Manifest): Promise<Temporal.PlainDateTime> {
+  private async waitForAvailableTimestamp(manifest: Manifest): Promise<string> {
     const taken = manifest.items.map(({ version: isoTimestamp }) => isoTimestamp);
     while (true) {
       const candidate = Temporal.Now.plainDateTimeISO();
-      if (!taken.includes(candidate.toString())) {
-        return candidate;
+      const timestamp = candidate.toString({ fractionalSecondDigits: 3 });
+      if (!taken.includes(timestamp)) {
+        return timestamp;
       }
       await Bun.sleep(1);
     }
