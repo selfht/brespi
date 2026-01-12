@@ -112,6 +112,26 @@ describe(ManagedStorageCapability.name, () => {
       }
     });
 
+    it("generates version timestamps with the same length", async () => {
+      // given
+      const { filesystem, ...readWriteFns } = createReadWriteFns();
+      // when
+      for (let i = 0; i < 300; i++) {
+        const options: ManagedStorageCapability.InsertOptions = {
+          mutexKey: ["abc"],
+          base: "",
+          artifacts: [],
+          trail: [],
+          ...readWriteFns,
+        };
+        await capability.insert(options);
+      }
+      const manifest = Manifest.parse(JSON.parse(filesystem["__brespi_manifest__.json"]));
+      const versionsLengths = manifest.items.map(({ version }) => version.length);
+      // then
+      expect(new Set(versionsLengths)).toHaveLength(1);
+    });
+
     const collection = Test.createCollection<{
       base: string;
       expectation: {
@@ -431,46 +451,46 @@ describe(ManagedStorageCapability.name, () => {
       {
         base: "",
         manifest: {
-          singleListingPath: `${Timestamp.PRESENT}-abc/__brespi_listing__.json`,
+          singleListingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
         },
         expectation: {
-          listingPathPrefix: `${Timestamp.PRESENT}-abc`,
+          listingPathPrefix: `${Timestamp.PRESENT}`,
         },
       },
       {
         base: "backups",
         manifest: {
-          singleListingPath: `${Timestamp.PRESENT}-abc/__brespi_listing__.json`,
+          singleListingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
         },
         expectation: {
-          listingPathPrefix: `backups/${Timestamp.PRESENT}-abc`,
+          listingPathPrefix: `backups/${Timestamp.PRESENT}`,
         },
       },
       {
         base: "/backups",
         manifest: {
-          singleListingPath: `${Timestamp.PRESENT}-abc/__brespi_listing__.json`,
+          singleListingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
         },
         expectation: {
-          listingPathPrefix: `/backups/${Timestamp.PRESENT}-abc`,
+          listingPathPrefix: `/backups/${Timestamp.PRESENT}`,
         },
       },
       {
         base: "backups/postgres",
         manifest: {
-          singleListingPath: `${Timestamp.PRESENT}-abc/__brespi_listing__.json`,
+          singleListingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
         },
         expectation: {
-          listingPathPrefix: `backups/postgres/${Timestamp.PRESENT}-abc`,
+          listingPathPrefix: `backups/postgres/${Timestamp.PRESENT}`,
         },
       },
       {
         base: "/backups/postgres",
         manifest: {
-          singleListingPath: `${Timestamp.PRESENT}-abc/__brespi_listing__.json`,
+          singleListingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
         },
         expectation: {
-          listingPathPrefix: `/backups/postgres/${Timestamp.PRESENT}-abc`,
+          listingPathPrefix: `/backups/postgres/${Timestamp.PRESENT}`,
         },
       },
     ]);

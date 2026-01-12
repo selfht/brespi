@@ -44,7 +44,7 @@ export class S3Adapter extends AbstractAdapter {
         configuration: step.retention,
         ...readWriteFns,
       });
-      const removableKeyPrefixes = removableItems.map(({ listingPath }) => join(base, listingPath));
+      const removableKeyPrefixes = removableItems.map(({ version }) => join(base, version));
       for (const removableKeyPrefix of removableKeyPrefixes) {
         const keys = await client.listAllKeys({ prefix: removableKeyPrefix });
         await client.deleteAll({ keys });

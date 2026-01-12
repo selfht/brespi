@@ -44,8 +44,8 @@ export class FilesystemAdapter extends AbstractAdapter {
           configuration: step.retention,
           ...readWriteFns,
         });
-        for (const item of removableItems) {
-          await rm(join(base, item.listingPath), { recursive: true, force: true });
+        for (const { version } of removableItems) {
+          await rm(join(base, version), { recursive: true, force: true });
         }
       }
     } else {

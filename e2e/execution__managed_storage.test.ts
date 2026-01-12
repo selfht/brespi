@@ -14,8 +14,9 @@ type AdapterConfig = {
   listStorageEntries: () => Promise<string[]>;
   writeStorageEntry: (path: string, content: string) => Promise<unknown>;
   pipelineStep: {
-    write: EditorFlow.StepOptions;
     read: EditorFlow.StepOptions;
+    write: EditorFlow.StepOptions;
+    writeWithRetentionFn: (retentionMaxVersions: number) => EditorFlow.StepOptions;
   };
   beforeHappyFlow?: () => Promise<void>;
 };
@@ -42,17 +43,24 @@ describe("execution | managed_storage", () => {
       listStorageEntries: () => FilesystemBoundary.listFlattenedFolderEntries(dirname(storageFolder)),
       writeStorageEntry: (path, content) => Common.writeFile(join(dirname(storageFolder), path), content),
       pipelineStep: {
-        write: {
-          type: "Filesystem Write",
-          folder: storageFolder,
-          managedStorage: "true",
-        },
         read: {
           type: "Filesystem Read",
           path: storageFolder,
           managedStorage: "true",
           managedStorageSelectionTarget: "latest",
         },
+        write: {
+          type: "Filesystem Write",
+          folder: storageFolder,
+          managedStorage: "true",
+        },
+        writeWithRetentionFn: (retentionMaxVersions) => ({
+          type: "Filesystem Write",
+          folder: storageFolder,
+          managedStorage: "true",
+          retention: "last_n_versions",
+          retentionMaxVersions,
+        }),
       },
       beforeHappyFlow: async () => {
         await mkdir(storageFolder, { recursive: true });
@@ -65,17 +73,24 @@ describe("execution | managed_storage", () => {
     listStorageEntries: S3Boundary.listBucket,
     writeStorageEntry: S3Boundary.writeBucket,
     pipelineStep: {
-      write: {
-        ...S3Boundary.connectionDefaults,
-        type: "S3 Upload",
-        baseFolder: Constant.namespace,
-      },
       read: {
         ...S3Boundary.connectionDefaults,
         type: "S3 Download",
         baseFolder: Constant.namespace,
         managedStorageSelectionTarget: "latest",
       },
+      write: {
+        ...S3Boundary.connectionDefaults,
+        type: "S3 Upload",
+        baseFolder: Constant.namespace,
+      },
+      writeWithRetentionFn: (retentionMaxVersions) => ({
+        ...S3Boundary.connectionDefaults,
+        type: "S3 Upload",
+        baseFolder: Constant.namespace,
+        retention: "last_n_versions",
+        retentionMaxVersions,
+      }),
     },
   });
 
@@ -88,6 +103,16 @@ describe("execution | managed_storage", () => {
         page,
         listStorageEntries: adapter.listStorageEntries,
         pipelineStep: adapter.pipelineStep,
+      });
+    });
+
+    test(`${adapter.name} ::: retention`, async ({ page }) => {
+      await performRetentionTest({
+        page,
+        listStorageEntries: adapter.listStorageEntries,
+        pipelineStep: {
+          write: adapter.pipelineStep.writeWithRetentionFn,
+        },
       });
     });
 
@@ -133,7 +158,7 @@ describe("execution | managed_storage", () => {
     const outputDir = FilesystemBoundary.SCRATCH_PAD.join("output");
     expect(await listStorageEntries()).toHaveLength(0);
     const fruits = ["Apple.txt", "Banana.txt", "Coconut.txt"];
-    await writeTestFiles(inputDir, fruits, (name) => `My name is ${name}`);
+    await writeTestFiles(inputDir, fruits);
 
     // when (write to managed storage; first time)
     const writePipelineId = await createWritePipeline(page, { inputDir, writeStep: pipelineStep.write });
@@ -156,7 +181,7 @@ describe("execution | managed_storage", () => {
     await Common.emptyDirectory(inputDir);
     await Common.emptyDirectory(outputDir);
     const vegetables = ["Daikon.txt", "Eggplant.txt"];
-    await writeTestFiles(inputDir, vegetables, (name) => `I am a warrior named ${name}`);
+    await writeTestFiles(inputDir, vegetables);
     // then (new artifacts are stored as well)
     await ExecutionFlow.executePipeline(page, { id: writePipelineId });
     await verifyStorage({
@@ -170,6 +195,48 @@ describe("execution | managed_storage", () => {
     // then (the latest artifacts are retrieved)
     const secondRetrieval = await verifyIdenticalFolderContent({ inputDir, outputDir });
     expect(secondRetrieval.toSorted()).toEqual(vegetables.toSorted());
+  }
+
+  type PerformRetentionTest = {
+    page: Page;
+    listStorageEntries: () => Promise<string[]>;
+    pipelineStep: {
+      write: (retentionMaxVersions: number) => EditorFlow.StepOptions;
+    };
+  };
+  async function performRetentionTest({ page, listStorageEntries, pipelineStep }: PerformRetentionTest) {
+    const retentionMaxVersions = 3;
+    const numberOfVersionsToTryAndStore = 8;
+
+    const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
+    const range = (start: number, endInclusive: number) => {
+      const result: number[] = [];
+      for (let num = start; num <= endInclusive; num++) {
+        result.push(num);
+      }
+      return result;
+    };
+
+    // given
+    await createWritePipeline(page, { inputDir, writeStep: pipelineStep.write(retentionMaxVersions) });
+
+    // when (prepare files to upload)
+    for (let iteration = 1; iteration <= numberOfVersionsToTryAndStore; iteration++) {
+      await Common.emptyDirectory(inputDir);
+      const furniture = (i: number) => [`Armchair-${iteration}.txt`, `Bench-${iteration}.txt`, `Cabinet-${iteration}.txt`];
+      await writeTestFiles(inputDir, furniture(iteration));
+      // when (run the pipeline)
+      await ExecutionFlow.executePipeline(page);
+      await page.getByRole("button", { name: "Close execution view" }).click();
+
+      // then
+      const expectedIterationsCorrespondingToVersion = range(Math.max(1, iteration - retentionMaxVersions + 1), iteration);
+      await verifyStorage({
+        entries: await listStorageEntries(),
+        expectedFilenames: expectedIterationsCorrespondingToVersion.flatMap((iteration) => furniture(iteration)),
+        expectedListingCount: expectedIterationsCorrespondingToVersion.length,
+      });
+    }
   }
 
   type PerformErrorFlowTest = {
@@ -222,9 +289,9 @@ describe("execution | managed_storage", () => {
     await expect(options.page.getByText(Constant.listingCorruptionError)).toBeVisible();
   }
 
-  async function writeTestFiles(dir: string, files: string[], contentFn: (name: string) => string) {
+  async function writeTestFiles(dir: string, files: string[]) {
     for (const file of files) {
-      await Common.writeFile(join(dir, file), contentFn(file));
+      await Common.writeFile(join(dir, file), `Content for ${file}`);
     }
   }
 

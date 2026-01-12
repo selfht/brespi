@@ -29,6 +29,8 @@ export namespace EditorFlow {
         type: "Filesystem Write";
         folder?: string;
         managedStorage?: "true" | "false";
+        retention?: "none" | "last_n_versions";
+        retentionMaxVersions?: number;
       })
     | (StepCommon & {
         type: "Filesystem Read";
@@ -50,6 +52,8 @@ export namespace EditorFlow {
         region?: string;
         accessKeyReference?: string;
         secretKeyReference?: string;
+        retention?: "none" | "last_n_versions";
+        retentionMaxVersions?: number;
       })
     | (StepCommon & {
         type: "S3 Download";
@@ -220,6 +224,8 @@ export namespace EditorFlow {
       case "Filesystem Write": {
         if (step.folder) await page.getByLabel("Folder").fill(step.folder);
         if (step.managedStorage) await page.getByLabel("Use managed storage?").selectOption(step.managedStorage);
+        if (step.retention) await page.getByLabel("Retention policy").selectOption(step.retention);
+        if (step.retentionMaxVersions) await page.getByLabel("Retention: max versions").fill(String(step.retentionMaxVersions));
         return await findCurrentlyActiveStepId(page);
       }
       case "Filesystem Read": {
@@ -251,6 +257,8 @@ export namespace EditorFlow {
         if (step.region) await page.getByLabel("Region").fill(step.region);
         if (step.accessKeyReference) await page.getByLabel("Access key reference").fill(step.accessKeyReference);
         if (step.secretKeyReference) await page.getByLabel("Secret key reference").fill(step.secretKeyReference);
+        if (step.retention) await page.getByLabel("Retention policy").selectOption(step.retention);
+        if (step.retentionMaxVersions) await page.getByLabel("Retention: max versions").fill(String(step.retentionMaxVersions));
         return await findCurrentlyActiveStepId(page);
       }
       case "S3 Download": {

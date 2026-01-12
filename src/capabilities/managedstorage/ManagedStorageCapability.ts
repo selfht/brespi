@@ -1,12 +1,12 @@
-import { Listing } from "./Listing";
-import { Manifest } from "./Manifest";
 import { ExecutionError } from "@/errors/ExecutionError";
 import { Mutex } from "@/helpers/Mutex";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { StepWithRuntime } from "@/models/StepWithRuntime";
 import { Temporal } from "@js-temporal/polyfill";
-import { dirname, join } from "path";
+import { join } from "path";
+import { Listing } from "./Listing";
+import { Manifest } from "./Manifest";
 
 export class ManagedStorageCapability {
   public async insert({
@@ -100,10 +100,10 @@ export class ManagedStorageCapability {
     const listing = this.parseListing(listingFile!);
     // 3. Return the selectable artifacts
     return {
-      resolvedVersion: dirname(mfItem.listingPath),
+      resolvedVersion: mfItem.version,
       selectableArtifacts: listing.artifacts.map(({ path }) => ({
         name: path,
-        path: join(dirname(listingPath), path),
+        path: join(base, mfItem.version, path),
       })),
     };
   }
