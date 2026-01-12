@@ -48,11 +48,11 @@ export class ManagedStorageCapability {
       const updatedMf: Manifest = {
         ...existingMf,
         items: [
-          ...existingMf.items,
           {
             version: timestamp.toString(),
             listingPath: listingDetails.relativePath,
           },
+          ...existingMf.items,
         ],
       };
       await writeFn({

@@ -77,7 +77,7 @@ describe(ManagedStorageCapability.name, () => {
       );
     });
 
-    it("appends a new listing to an existing manifest", async () => {
+    it("prepends a new listing to an existing manifest", async () => {
       for (let existingManifestSize = 0; existingManifestSize < 10; existingManifestSize++) {
         const range = Array.from({ length: existingManifestSize }, (_, i) => i);
         const { filesystem, ...readWriteFns } = createReadWriteFns();
@@ -95,6 +95,11 @@ describe(ManagedStorageCapability.name, () => {
         // then
         const updatedManifest = Manifest.parse(JSON.parse(filesystem["__brespi_manifest__.json"]));
         expect(updatedManifest.items).toHaveLength(existingManifestSize + 1);
+        expect(updatedManifest.items[0]).toEqual(
+          expect.objectContaining({
+            listingPath: expect.stringMatching(new RegExp(`^${Regex.TIMESTAMP}/__brespi_listing_${Regex.RANDOM_ID}__.json$`)),
+          } satisfies Partial<Manifest.Item>),
+        );
         expect(updatedManifest.items).toEqual(
           expect.arrayContaining([
             ...range.map((index) =>
@@ -102,9 +107,6 @@ describe(ManagedStorageCapability.name, () => {
                 listingPath: `blabla-${index}`,
               } satisfies Partial<Manifest.Item>),
             ),
-            expect.objectContaining({
-              listingPath: expect.stringMatching(new RegExp(`^${Regex.TIMESTAMP}/__brespi_listing_${Regex.RANDOM_ID}__.json$`)),
-            } satisfies Partial<Manifest.Item>),
           ]),
         );
       }
