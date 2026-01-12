@@ -1,7 +1,6 @@
 import { Listing } from "@/capabilities/managedstorage/Listing";
 import { Manifest } from "@/capabilities/managedstorage/Manifest";
 import { ExecutionError } from "@/errors/ExecutionError";
-import { Generate } from "@/helpers/Generate";
 import { Mutex } from "@/helpers/Mutex";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
@@ -19,7 +18,7 @@ export class ManagedStorageCapability {
     writeFn,
   }: ManagedStorageCapability.InsertOptions): Promise<ManagedStorageCapability.InsertResult> {
     // 1. Prepare the listing
-    const createListing = (timestamp: Temporal.PlainDateTime) => ({
+    const createListingDetails = (timestamp: Temporal.PlainDateTime) => ({
       name: Listing.generateName(artifacts),
       relativeParentPath: timestamp.toString(),
       get relativePath() {
@@ -36,7 +35,7 @@ export class ManagedStorageCapability {
       },
     });
     // 2. Update the manifest (exclusively)
-    let listing: ReturnType<typeof createListing>;
+    let listingDetails: ReturnType<typeof createListingDetails>;
     const { release } = await Mutex.acquireFromRegistry({ key: mutexKey });
     try {
       const mfPath = join(base, Manifest.NAME);
@@ -44,7 +43,7 @@ export class ManagedStorageCapability {
       const existingMf: Manifest = mfFile === undefined ? Manifest.empty() : this.parseManifest(mfFile);
 
       const timestamp = await this.waitForAvailableTimestamp(existingMf);
-      listing = createListing(timestamp);
+      listingDetails = createListingDetails(timestamp);
 
       const updatedMf: Manifest = {
         ...existingMf,
@@ -52,7 +51,7 @@ export class ManagedStorageCapability {
           ...existingMf.items,
           {
             version: timestamp.toString(),
-            listingPath: listing.relativePath,
+            listingPath: listingDetails.relativePath,
           },
         ],
       };
@@ -65,15 +64,15 @@ export class ManagedStorageCapability {
     }
     // 3. Write the listing
     await writeFn({
-      path: join(base, listing.relativePath),
-      content: JSON.stringify(listing.content),
+      path: join(base, listingDetails.relativePath),
+      content: JSON.stringify(listingDetails.content),
     });
     // 4. Return the insertable artifacts
     return {
       insertableArtifacts: artifacts.map(({ name, path }) => ({
         name,
         path,
-        destinationPath: join(base, listing.relativeParentPath, name),
+        destinationPath: join(base, listingDetails.relativeParentPath, name),
       })),
     };
   }
@@ -166,15 +165,12 @@ export class ManagedStorageCapability {
       }
       case "specific": {
         const version = conf.version;
-        const matchingItems = manifest.items.filter((u) => u.version === version || dirname(u.listingPath) === version);
+        const matchingItems = manifest.items.filter((u) => u.version === version);
         if (matchingItems.length === 0) {
           throw ExecutionError.managed_storage_version_not_found({ version });
         }
         if (matchingItems.length > 1) {
-          throw ExecutionError.managed_storage_version_not_uniquely_identified({
-            version,
-            matches: matchingItems.map(({ listingPath }) => dirname(listingPath)),
-          });
+          throw ExecutionError.managed_storage_version_not_uniquely_identified({ version });
         }
         return matchingItems[0];
       }

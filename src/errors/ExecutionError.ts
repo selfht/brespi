@@ -19,7 +19,7 @@ export class ExecutionError {
   public static readonly managed_storage_corrupted: Exception.Fn<{ descriptor: "manifest" | "listing" }>;
   public static readonly managed_storage_manifest_empty: Exception.Fn;
   public static readonly managed_storage_version_not_found: Exception.Fn<{ version: string }>;
-  public static readonly managed_storage_version_not_uniquely_identified: Exception.Fn<{ version: string; matches: string[] }>;
+  public static readonly managed_storage_version_not_uniquely_identified: Exception.Fn<{ version: string }>;
   // compression/decompression
   public static readonly compression_failed: Exception.Fn<{ cause: string }>;
   public static readonly decompression_failed: Exception.Fn<{ cause: string }>;
