@@ -119,7 +119,7 @@ describe("execution | managed_storage", () => {
     });
   }
 
-  type HappyFlowOptions = {
+  type PerformHappyFlowTest = {
     page: Page;
     listStorageEntries: () => Promise<string[]>;
     pipelineStep: {
@@ -127,36 +127,52 @@ describe("execution | managed_storage", () => {
       read: EditorFlow.StepOptions;
     };
   };
-
-  async function performHappyFlowTest({ page, listStorageEntries, pipelineStep }: HappyFlowOptions) {
+  async function performHappyFlowTest({ page, listStorageEntries, pipelineStep }: PerformHappyFlowTest) {
+    // given
     const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
     const outputDir = FilesystemBoundary.SCRATCH_PAD.join("output");
     expect(await listStorageEntries()).toHaveLength(0);
-
-    const fruits = ["Apple", "Banana", "Coconut"];
+    const fruits = ["Apple.txt", "Banana.txt", "Coconut.txt"];
     await writeTestFiles(inputDir, fruits, (name) => `My name is ${name}`);
 
+    // when (write to managed storage; first time)
     const writePipelineId = await createWritePipeline(page, { inputDir, writeStep: pipelineStep.write });
     await ExecutionFlow.executePipeline(page);
-    await verifyStorageHasFiles(await listStorageEntries(), fruits, 1);
+    // then (artifacts are stored)
+    await verifyStorage({
+      entries: await listStorageEntries(),
+      expectedFilenames: fruits,
+      expectedListingCount: 1,
+    });
 
+    // when (retrieving these artifacts)
     const readPipelineId = await createReadPipeline(page, { readStep: pipelineStep.read, outputDir });
     await ExecutionFlow.executePipeline(page);
-    await verifyRetrievedFilesMatch(inputDir, outputDir, fruits);
+    // then (we get the exact same files back)
+    const firstRetrieval = await verifyIdenticalFolderContent({ inputDir, outputDir });
+    expect(firstRetrieval.toSorted()).toEqual(fruits.toSorted());
 
+    // when (write to managed storage; second time)
     await Common.emptyDirectory(inputDir);
     await Common.emptyDirectory(outputDir);
-    const vegetables = ["Daikon", "Eggplant"];
+    const vegetables = ["Daikon.txt", "Eggplant.txt"];
     await writeTestFiles(inputDir, vegetables, (name) => `I am a warrior named ${name}`);
-
+    // then (new artifacts are stored as well)
     await ExecutionFlow.executePipeline(page, { id: writePipelineId });
-    await verifyStorageHasFiles(await listStorageEntries(), [...fruits, ...vegetables], 2);
+    await verifyStorage({
+      entries: await listStorageEntries(),
+      expectedFilenames: [...fruits, ...vegetables],
+      expectedListingCount: 2,
+    });
 
+    // when (retrieving the latest version)
     await ExecutionFlow.executePipeline(page, { id: readPipelineId });
-    await verifyRetrievedFilesMatch(inputDir, outputDir, vegetables);
+    // then (the latest artifacts are retrieved)
+    const secondRetrieval = await verifyIdenticalFolderContent({ inputDir, outputDir });
+    expect(secondRetrieval.toSorted()).toEqual(vegetables.toSorted());
   }
 
-  type ErrorFlowOptions = {
+  type PerformErrorFlowTest = {
     page: Page;
     listStorageEntries: () => Promise<string[]>;
     writeStorageEntry: (path: string, content: string) => Promise<unknown>;
@@ -166,7 +182,7 @@ describe("execution | managed_storage", () => {
     };
   };
 
-  async function performCorruptWriteTest(options: ErrorFlowOptions) {
+  async function performCorruptWriteTest(options: PerformErrorFlowTest) {
     await options.writeStorageEntry(join(Constant.namespace, "__brespi_manifest__.json"), "this doesn't look like json!");
     expect(await options.listStorageEntries()).toEqual([join(Constant.namespace, "__brespi_manifest__.json")]);
 
@@ -178,7 +194,7 @@ describe("execution | managed_storage", () => {
     await expect(options.page.getByText(Constant.manifestCorruptionError)).toBeVisible();
   }
 
-  async function performCorruptManifestReadTest(options: ErrorFlowOptions) {
+  async function performCorruptManifestReadTest(options: PerformErrorFlowTest) {
     await setupStorageWithFiles(options);
 
     await options.writeStorageEntry(join(Constant.namespace, "__brespi_manifest__.json"), JSON.stringify({ iam: "corrupted" }));
@@ -190,7 +206,7 @@ describe("execution | managed_storage", () => {
     await expect(options.page.getByText(Constant.manifestCorruptionError)).toBeVisible();
   }
 
-  async function performCorruptListingReadTest(options: ErrorFlowOptions) {
+  async function performCorruptListingReadTest(options: PerformErrorFlowTest) {
     await setupStorageWithFiles(options);
 
     const entries = await options.listStorageEntries();
@@ -208,59 +224,85 @@ describe("execution | managed_storage", () => {
 
   async function writeTestFiles(dir: string, files: string[], contentFn: (name: string) => string) {
     for (const file of files) {
-      await Common.writeFile(join(dir, `${file}.txt`), contentFn(file));
+      await Common.writeFile(join(dir, file), contentFn(file));
     }
   }
 
-  async function verifyStorageHasFiles(entries: string[], fileNames: string[], expectedListingCount: number) {
-    const manifestPattern = `^${Constant.namespace}/__brespi_manifest__\\.json$`;
-    const listingPattern = `^${Constant.namespace}/${Common.Regex.TIMESTAMP}/__brespi_listing_${Common.Regex.RANDOM}__\\.json$`;
-    const filePatterns = fileNames.map((f) => `^${Constant.namespace}/${Common.Regex.TIMESTAMP}/${f}.txt`);
-
-    expect(entries).toHaveLength(1 + expectedListingCount + fileNames.length);
-    expect(entries).toEqual(
-      expect.arrayContaining([
-        expect.stringMatching(new RegExp(manifestPattern)),
-        ...Array(expectedListingCount)
-          .fill(null)
-          .map(() => expect.stringMatching(new RegExp(listingPattern))),
-        ...filePatterns.map((p) => expect.stringMatching(new RegExp(p))),
-      ]),
-    );
+  type VerifyStorage = {
+    entries: string[];
+    expectedFilenames: string[];
+    expectedListingCount: number;
+  };
+  async function verifyStorage({ entries, expectedFilenames, expectedListingCount }: VerifyStorage) {
+    const expectation = {
+      manifest: {
+        count: 1,
+        pattern: `^${Constant.namespace}/__brespi_manifest__\\.json$`,
+      },
+      listings: {
+        count: expectedListingCount,
+        pattern: `^${Constant.namespace}/${Common.Regex.TIMESTAMP}/__brespi_listing_${Common.Regex.RANDOM}__\\.json$`,
+      },
+      artifacts: {
+        count: expectedFilenames.length,
+        pattern: (filename: string) => `^${Constant.namespace}/${Common.Regex.TIMESTAMP}/${filename}`,
+      },
+    };
+    expect(entries).toHaveLength(expectation.manifest.count + expectation.listings.count + expectation.artifacts.count);
+    Object.entries(expectation).forEach(([_, { count, pattern }]) => {
+      if (typeof pattern === "string") {
+        const matches = entries.filter((entry) => entry.match(new RegExp(pattern)));
+        expect(matches).toHaveLength(count);
+      } else {
+        let matchCount = 0;
+        expectedFilenames.forEach((f) => {
+          const matches = entries.filter((entry) => entry.match(new RegExp(pattern(f))));
+          expect(matches).toHaveLength(1);
+          matchCount++;
+        });
+        expect(matchCount).toEqual(count);
+      }
+    });
   }
 
-  async function verifyRetrievedFilesMatch(inputDir: string, outputDir: string, fileNames: string[]) {
-    expect(await readdir(outputDir)).toHaveLength(fileNames.length);
-    for (const file of fileNames) {
-      const retrieved = await readFile(join(outputDir, `${file}.txt`));
-      const original = await readFile(join(inputDir, `${file}.txt`));
-      expect(retrieved).toEqual(original);
+  type VerifyIdenticalFolderContent = {
+    inputDir: string;
+    outputDir: string;
+  };
+  async function verifyIdenticalFolderContent({ inputDir, outputDir }: VerifyIdenticalFolderContent): Promise<string[]> {
+    const outputEntries = await readdir(outputDir);
+    const inputEntries = await readdir(inputDir);
+    expect(outputEntries.toSorted()).toEqual(inputEntries.toSorted());
+    for (const entry of outputEntries) {
+      const outputFile = await readFile(join(outputDir, entry));
+      const inputFile = await readFile(join(inputDir, entry));
+      expect(outputFile).toEqual(inputFile);
     }
+    return outputEntries;
   }
 
-  async function setupStorageWithFiles({ page, listStorageEntries, pipelineStep }: ErrorFlowOptions) {
+  async function setupStorageWithFiles({ page, listStorageEntries, pipelineStep }: PerformErrorFlowTest) {
     const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
-    const testFiles = ["Apple", "Banana", "Coconut"];
+    const testFiles = ["Apple.txt", "Banana.txt", "Coconut.txt"];
 
-    for (const fruit of testFiles) {
-      await Common.writeFile(join(inputDir, `${fruit}.txt`), `My name is ${fruit}`);
+    for (const testFile of testFiles) {
+      await Common.writeFile(join(inputDir, testFile), `My name is ${testFile}`);
     }
 
     await createWritePipeline(page, { inputDir, writeStep: pipelineStep.write });
     await ExecutionFlow.executePipeline(page);
 
     const entries = await listStorageEntries();
-    expect(entries).toEqual(expect.arrayContaining(testFiles.map((f) => expect.stringContaining(`${f}.txt`))));
+    expect(entries).toEqual(expect.arrayContaining(testFiles.map((f) => expect.stringContaining(f))));
 
     return { inputDir, testFiles };
   }
 
-  type WritePipelineOptions = {
+  type CreateWritePipeline = {
     inputDir: string;
     writeStep: EditorFlow.StepOptions;
   };
-
-  async function createWritePipeline(page: Page, { inputDir, writeStep }: WritePipelineOptions) {
+  async function createWritePipeline(page: Page, { inputDir, writeStep }: CreateWritePipeline) {
     return await EditorFlow.createPipeline(page, {
       name: "Storage Write",
       steps: [
@@ -282,12 +324,11 @@ describe("execution | managed_storage", () => {
     });
   }
 
-  type ReadPipelineOptions = {
+  type CreateReadPipeline = {
     readStep: EditorFlow.StepOptions;
     outputDir: string;
   };
-
-  async function createReadPipeline(page: Page, { readStep, outputDir }: ReadPipelineOptions) {
+  async function createReadPipeline(page: Page, { readStep, outputDir }: CreateReadPipeline) {
     return await EditorFlow.createPipeline(page, {
       name: "Storage Read",
       steps: [
