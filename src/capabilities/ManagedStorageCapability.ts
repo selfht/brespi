@@ -18,11 +18,10 @@ export class ManagedStorageCapability {
     readFn,
     writeFn,
   }: ManagedStorageCapability.InsertOptions): Promise<ManagedStorageCapability.InsertResult> {
-    const timestamp = Temporal.Now.plainDateTimeISO();
     // 1. Prepare the listing
-    const listing = {
+    const createListing = (timestamp: Temporal.PlainDateTime) => ({
       name: Listing.generateName(artifacts),
-      relativeParentPath: `${timestamp}-${Generate.shortRandomString()}`,
+      relativeParentPath: timestamp.toString(),
       get relativePath() {
         return join(this.relativeParentPath, this.name);
       },
@@ -35,19 +34,24 @@ export class ManagedStorageCapability {
           })),
         };
       },
-    };
+    });
     // 2. Update the manifest (exclusively)
+    let listing: ReturnType<typeof createListing>;
     const { release } = await Mutex.acquireFromRegistry({ key: mutexKey });
     try {
       const mfPath = join(base, Manifest.NAME);
       const mfFile = await readFn(mfPath);
       const existingMf: Manifest = mfFile === undefined ? Manifest.empty() : this.parseManifest(mfFile);
+
+      const timestamp = await this.waitForAvailableTimestamp(existingMf);
+      listing = createListing(timestamp);
+
       const updatedMf: Manifest = {
         ...existingMf,
         items: [
           ...existingMf.items,
           {
-            isoTimestamp: timestamp.toString(),
+            version: timestamp.toString(),
             listingPath: listing.relativePath,
           },
         ],
@@ -140,6 +144,17 @@ export class ManagedStorageCapability {
     return { removableItems };
   }
 
+  private async waitForAvailableTimestamp(manifest: Manifest): Promise<Temporal.PlainDateTime> {
+    const taken = manifest.items.map(({ version: isoTimestamp }) => isoTimestamp);
+    while (true) {
+      const candidate = Temporal.Now.plainDateTimeISO();
+      if (!taken.includes(candidate.toString())) {
+        return candidate;
+      }
+      await Bun.sleep(1);
+    }
+  }
+
   private findMatchingItem(manifest: Manifest, conf: Step.ManagedStorage): Manifest.Item {
     switch (conf.target) {
       case "latest": {
@@ -151,7 +166,7 @@ export class ManagedStorageCapability {
       }
       case "specific": {
         const version = conf.version;
-        const matchingItems = manifest.items.filter((u) => u.isoTimestamp === version || dirname(u.listingPath) === version);
+        const matchingItems = manifest.items.filter((u) => u.version === version || dirname(u.listingPath) === version);
         if (matchingItems.length === 0) {
           throw ExecutionError.managed_storage_version_not_found({ version });
         }

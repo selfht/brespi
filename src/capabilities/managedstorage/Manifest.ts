@@ -11,14 +11,14 @@ export namespace Manifest {
   export const NAME = "__brespi_manifest__.json";
 
   export type Item = {
-    isoTimestamp: string;
+    version: string;
     listingPath: string;
   };
   export namespace Item {
     /**
      * Sort from most to least recent (new to old)
      */
-    export function sort({ isoTimestamp: t1 }: Item, { isoTimestamp: t2 }: Item) {
+    export function sort({ version: t1 }: Item, { version: t2 }: Item) {
       return -Temporal.PlainDateTime.compare(Temporal.PlainDateTime.from(t1), Temporal.PlainDateTime.from(t2));
     }
   }
@@ -36,7 +36,7 @@ export namespace Manifest {
         object: z.literal("manifest"),
         items: z.array(
           z.object({
-            isoTimestamp: z.string().refine((x) => {
+            version: z.string().refine((x) => {
               try {
                 Temporal.PlainDateTime.from(x);
                 return true;

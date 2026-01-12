@@ -9,15 +9,15 @@ describe("Manifest", () => {
       const uploads: Manifest.Item[] = [
         {
           listingPath: "now",
-          isoTimestamp: Temporal.Now.plainDateTimeISO().toString(),
+          version: Temporal.Now.plainDateTimeISO().toString(),
         },
         {
           listingPath: "past",
-          isoTimestamp: Temporal.Now.plainDateTimeISO().subtract({ days: 100 }).toString(),
+          version: Temporal.Now.plainDateTimeISO().subtract({ days: 100 }).toString(),
         },
         {
           listingPath: "future",
-          isoTimestamp: Temporal.Now.plainDateTimeISO().add({ days: 100 }).toString(),
+          version: Temporal.Now.plainDateTimeISO().add({ days: 100 }).toString(),
         },
       ];
       // when

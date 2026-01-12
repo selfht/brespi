@@ -1,7 +1,7 @@
 import { S3Client as BunS3Client } from "bun";
 import { S3Client as AWSS3Client, DeleteObjectsCommand } from "@aws-sdk/client-s3";
 
-export class ExtendedBunS3Client extends BunS3Client {
+export class BrespiS3Client extends BunS3Client {
   private readonly awsClient: AWSS3Client;
 
   public constructor(private readonly options: Bun.S3Options) {

@@ -8,7 +8,7 @@ import { S3Client } from "bun";
 import { isAbsolute, join, relative } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 import { AdapterResult } from "../AdapterResult";
-import { ExtendedBunS3Client } from "./ExtendedBunS3Client";
+import { BrespiS3Client } from "./BrespiS3Client";
 
 export class S3Adapter extends AbstractAdapter {
   public constructor(
@@ -95,10 +95,10 @@ export class S3Adapter extends AbstractAdapter {
     return [S3Adapter.name, basePrefix];
   }
 
-  private constructClient(connection: Step.S3Connection): ExtendedBunS3Client {
+  private constructClient(connection: Step.S3Connection) {
     const accessKeyId = this.readEnvironmentVariable(connection.accessKeyReference);
     const secretAccessKey = this.readEnvironmentVariable(connection.secretKeyReference);
-    return new ExtendedBunS3Client({
+    return new BrespiS3Client({
       bucket: connection.bucket,
       endpoint: connection.endpoint,
       region: connection.region ?? undefined,

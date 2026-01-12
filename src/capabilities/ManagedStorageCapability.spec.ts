@@ -10,9 +10,6 @@ describe(ManagedStorageCapability.name, () => {
   const Regex = {
     RANDOM_ID: /\w+/.source,
     TIMESTAMP: /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+/.source,
-    get TIMESTAMP_FOLDER() {
-      return new RegExp(`${this.TIMESTAMP}-${this.RANDOM_ID}`).source;
-    },
   };
 
   const capability = new ManagedStorageCapability();
@@ -39,10 +36,10 @@ describe(ManagedStorageCapability.name, () => {
       // then (validate the manifest)
       const manifest = Manifest.parse(JSON.parse(filesystem["hello-123-base/__brespi_manifest__.json"]));
       expect(manifest.items).toHaveLength(1);
-      expect(manifest.items[0].isoTimestamp).toMatch(new RegExp(`^${Regex.TIMESTAMP}$`));
+      expect(manifest.items[0].version).toMatch(new RegExp(`^${Regex.TIMESTAMP}$`));
       expect(manifest.items[0].listingPath).toMatch(
         // the link between `manifest --> listing` is always relative
-        new RegExp(`^${Regex.TIMESTAMP_FOLDER}/__brespi_listing_${Regex.RANDOM_ID}__.json$`),
+        new RegExp(`^${Regex.TIMESTAMP}/__brespi_listing_${Regex.RANDOM_ID}__.json$`),
       );
 
       // then (validate the listing)
@@ -64,17 +61,17 @@ describe(ManagedStorageCapability.name, () => {
           {
             name: "Apple.txt",
             path: "/tmp-x/123",
-            destinationPath: expect.stringMatching(new RegExp(`^hello-123-base/${Regex.TIMESTAMP_FOLDER}/Apple.txt$`)),
+            destinationPath: expect.stringMatching(new RegExp(`^hello-123-base/${Regex.TIMESTAMP}/Apple.txt$`)),
           },
           {
             name: "Banana.txt",
             path: "/tmp-x/456",
-            destinationPath: expect.stringMatching(new RegExp(`^hello-123-base/${Regex.TIMESTAMP_FOLDER}/Banana.txt$`)),
+            destinationPath: expect.stringMatching(new RegExp(`^hello-123-base/${Regex.TIMESTAMP}/Banana.txt$`)),
           },
           {
             name: "Coconut.txt",
             path: "/tmp-x/789",
-            destinationPath: expect.stringMatching(new RegExp(`^hello-123-base/${Regex.TIMESTAMP_FOLDER}/Coconut.txt$`)),
+            destinationPath: expect.stringMatching(new RegExp(`^hello-123-base/${Regex.TIMESTAMP}/Coconut.txt$`)),
           },
         ]),
       );
@@ -88,7 +85,7 @@ describe(ManagedStorageCapability.name, () => {
         const existingManifest: Manifest = {
           object: "manifest",
           items: range.map((index) => ({
-            isoTimestamp: Temporal.Now.plainDateTimeISO().toString(),
+            version: Temporal.Now.plainDateTimeISO().toString(),
             listingPath: `blabla-${index}`,
           })),
         };
@@ -106,7 +103,7 @@ describe(ManagedStorageCapability.name, () => {
               } satisfies Partial<Manifest.Item>),
             ),
             expect.objectContaining({
-              listingPath: expect.stringMatching(new RegExp(`^${Regex.TIMESTAMP_FOLDER}/__brespi_listing_${Regex.RANDOM_ID}__.json$`)),
+              listingPath: expect.stringMatching(new RegExp(`^${Regex.TIMESTAMP}/__brespi_listing_${Regex.RANDOM_ID}__.json$`)),
             } satisfies Partial<Manifest.Item>),
           ]),
         );
@@ -122,31 +119,31 @@ describe(ManagedStorageCapability.name, () => {
       {
         base: "",
         expectation: {
-          destinationPathMatcher: new RegExp(`^${Regex.TIMESTAMP_FOLDER}/.+`),
+          destinationPathMatcher: new RegExp(`^${Regex.TIMESTAMP}/.+`),
         },
       },
       {
         base: "backups",
         expectation: {
-          destinationPathMatcher: new RegExp(`^backups/${Regex.TIMESTAMP_FOLDER}/.+`),
+          destinationPathMatcher: new RegExp(`^backups/${Regex.TIMESTAMP}/.+`),
         },
       },
       {
         base: "/backups",
         expectation: {
-          destinationPathMatcher: new RegExp(`^/backups/${Regex.TIMESTAMP_FOLDER}/.+`),
+          destinationPathMatcher: new RegExp(`^/backups/${Regex.TIMESTAMP}/.+`),
         },
       },
       {
         base: "backups/postgres",
         expectation: {
-          destinationPathMatcher: new RegExp(`^backups/postgres/${Regex.TIMESTAMP_FOLDER}/.+`),
+          destinationPathMatcher: new RegExp(`^backups/postgres/${Regex.TIMESTAMP}/.+`),
         },
       },
       {
         base: "/backups/postgres",
         expectation: {
-          destinationPathMatcher: new RegExp(`^/backups/postgres/${Regex.TIMESTAMP_FOLDER}/.+`),
+          destinationPathMatcher: new RegExp(`^/backups/postgres/${Regex.TIMESTAMP}/.+`),
         },
       },
     ]);
@@ -199,16 +196,16 @@ describe(ManagedStorageCapability.name, () => {
           object: "manifest",
           items: [
             {
-              isoTimestamp: Timestamp.LAST_YEAR,
-              listingPath: `${Timestamp.LAST_YEAR}-abc123/__brespi_listing__.json`,
+              version: Timestamp.LAST_YEAR,
+              listingPath: `${Timestamp.LAST_YEAR}/__brespi_listing__.json`,
             },
             {
-              isoTimestamp: Timestamp.PRESENT,
-              listingPath: `${Timestamp.PRESENT}-def456/__brespi_listing__.json`,
+              version: Timestamp.PRESENT,
+              listingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
             },
             {
-              isoTimestamp: Timestamp.VERY_LONG_AGO,
-              listingPath: `${Timestamp.VERY_LONG_AGO}-ghi789/__brespi_listing__.json`,
+              version: Timestamp.VERY_LONG_AGO,
+              listingPath: `${Timestamp.VERY_LONG_AGO}/__brespi_listing__.json`,
             },
           ],
         },
@@ -223,12 +220,12 @@ describe(ManagedStorageCapability.name, () => {
         ...readWriteFns,
       });
       // then
-      expect(resolvedVersion).toEqual(`${Timestamp.PRESENT}-def456`);
+      expect(resolvedVersion).toEqual(`${Timestamp.PRESENT}`);
       expect(selectableArtifacts).toHaveLength(2);
       expect(selectableArtifacts).toEqual(
         expect.arrayContaining([
-          { name: "file1.txt", path: `${Timestamp.PRESENT}-def456/file1.txt` },
-          { name: "file2.txt", path: `${Timestamp.PRESENT}-def456/file2.txt` },
+          { name: "file1.txt", path: `${Timestamp.PRESENT}/file1.txt` },
+          { name: "file2.txt", path: `${Timestamp.PRESENT}/file2.txt` },
         ]),
       );
     });
@@ -244,12 +241,12 @@ describe(ManagedStorageCapability.name, () => {
           object: "manifest",
           items: [
             {
-              isoTimestamp: Timestamp.LAST_YEAR,
-              listingPath: `${Timestamp.LAST_YEAR}-abc123/__brespi_listing__.json`,
+              version: Timestamp.LAST_YEAR,
+              listingPath: `${Timestamp.LAST_YEAR}/__brespi_listing__.json`,
             },
             {
-              isoTimestamp: Timestamp.PRESENT,
-              listingPath: `${Timestamp.PRESENT}-def456/__brespi_listing__.json`,
+              version: Timestamp.PRESENT,
+              listingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
             },
           ],
         },
@@ -265,12 +262,12 @@ describe(ManagedStorageCapability.name, () => {
         ...readWriteFns,
       });
       // then
-      expect(resolvedVersion).toEqual(`${Timestamp.LAST_YEAR}-abc123`);
+      expect(resolvedVersion).toEqual(`${Timestamp.LAST_YEAR}`);
       expect(selectableArtifacts).toHaveLength(1);
       expect(selectableArtifacts).toEqual([
         {
           name: "specific-file.txt",
-          path: `bbbase/${Timestamp.LAST_YEAR}-abc123/specific-file.txt`,
+          path: `bbbase/${Timestamp.LAST_YEAR}/specific-file.txt`,
         },
       ]);
     });
@@ -286,16 +283,16 @@ describe(ManagedStorageCapability.name, () => {
           object: "manifest",
           items: [
             {
-              isoTimestamp: Timestamp.VERY_LONG_AGO,
-              listingPath: `${Timestamp.VERY_LONG_AGO}-abc123/__brespi_listing__.json`,
+              version: Timestamp.VERY_LONG_AGO,
+              listingPath: `${Timestamp.VERY_LONG_AGO}/__brespi_listing__.json`,
             },
             {
-              isoTimestamp: Timestamp.LAST_YEAR,
-              listingPath: `${Timestamp.LAST_YEAR}-def456/__brespi_listing__.json`,
+              version: Timestamp.LAST_YEAR,
+              listingPath: `${Timestamp.LAST_YEAR}/__brespi_listing__.json`,
             },
             {
-              isoTimestamp: Timestamp.PRESENT,
-              listingPath: `${Timestamp.PRESENT}-ghi789/__brespi_listing__.json`,
+              version: Timestamp.PRESENT,
+              listingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
             },
           ],
         },
@@ -306,17 +303,17 @@ describe(ManagedStorageCapability.name, () => {
         base: "storage",
         configuration: {
           target: "specific",
-          version: `${Timestamp.VERY_LONG_AGO}-abc123`,
+          version: `${Timestamp.VERY_LONG_AGO}`,
         },
         ...readWriteFns,
       });
       // then
-      expect(resolvedVersion).toEqual(`${Timestamp.VERY_LONG_AGO}-abc123`);
+      expect(resolvedVersion).toEqual(`${Timestamp.VERY_LONG_AGO}`);
       expect(selectableArtifacts).toHaveLength(3);
       expect(selectableArtifacts).toEqual([
-        { name: "doc1.pdf", path: `storage/${Timestamp.VERY_LONG_AGO}-abc123/doc1.pdf` },
-        { name: "doc2.pdf", path: `storage/${Timestamp.VERY_LONG_AGO}-abc123/doc2.pdf` },
-        { name: "doc3.pdf", path: `storage/${Timestamp.VERY_LONG_AGO}-abc123/doc3.pdf` },
+        { name: "doc1.pdf", path: `storage/${Timestamp.VERY_LONG_AGO}/doc1.pdf` },
+        { name: "doc2.pdf", path: `storage/${Timestamp.VERY_LONG_AGO}/doc2.pdf` },
+        { name: "doc3.pdf", path: `storage/${Timestamp.VERY_LONG_AGO}/doc3.pdf` },
       ]);
     });
 
@@ -356,7 +353,7 @@ describe(ManagedStorageCapability.name, () => {
           object: "manifest",
           items: [
             {
-              isoTimestamp: Timestamp.LAST_YEAR,
+              version: Timestamp.LAST_YEAR,
               listingPath: "path1/__brespi_listing__.json",
             },
           ],
@@ -391,11 +388,11 @@ describe(ManagedStorageCapability.name, () => {
           object: "manifest",
           items: [
             {
-              isoTimestamp: Timestamp.LAST_YEAR,
+              version: Timestamp.LAST_YEAR,
               listingPath: "path1/__brespi_listing__.json",
             },
             {
-              isoTimestamp: Timestamp.LAST_YEAR,
+              version: Timestamp.LAST_YEAR,
               listingPath: "path2/__brespi_listing__.json",
             },
           ],
@@ -491,7 +488,7 @@ describe(ManagedStorageCapability.name, () => {
           object: "manifest",
           items: [
             {
-              isoTimestamp: Timestamp.PRESENT,
+              version: Timestamp.PRESENT,
               listingPath: singleListingPath,
             },
           ],
