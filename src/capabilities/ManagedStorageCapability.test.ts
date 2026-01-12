@@ -1,4 +1,4 @@
-import { Test } from "@/testing/Test.spec";
+import { Test } from "@/testing/Test.test";
 import { Temporal } from "@js-temporal/polyfill";
 import { describe, expect, it } from "bun:test";
 import { join } from "path";

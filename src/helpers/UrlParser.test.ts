@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { UrlParser } from "./UrlParser";
-import { Test } from "@/testing/Test.spec";
+import { Test } from "@/testing/Test.test";
 
 describe(UrlParser.name, () => {
   describe(UrlParser.postgres.name, () => {

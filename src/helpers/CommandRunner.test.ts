@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { CommandRunner } from "./CommandRunner";
-import { Test } from "@/testing/Test.spec";
+import { Test } from "@/testing/Test.test";
 
 describe(CommandRunner.name, () => {
   const successCollection = Test.createCollection<{

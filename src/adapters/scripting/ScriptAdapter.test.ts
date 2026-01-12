@@ -1,4 +1,4 @@
-import { Test } from "@/testing/Test.spec";
+import { Test } from "@/testing/Test.test";
 import { beforeEach, describe, it, expect } from "bun:test";
 import { ScriptAdapter } from "./ScriptAdapter";
 import { Step } from "@/models/Step";

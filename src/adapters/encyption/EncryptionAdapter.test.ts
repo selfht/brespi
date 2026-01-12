@@ -1,4 +1,4 @@
-import { Test } from "@/testing/Test.spec";
+import { Test } from "@/testing/Test.test";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";

@@ -1,7 +1,7 @@
 import { FilterCapability } from "@/capabilities/FilterCapability";
 import { ManagedStorageCapability } from "@/capabilities/ManagedStorageCapability";
 import { Generate } from "@/helpers/Generate";
-import { Test } from "@/testing/Test.spec";
+import { Test } from "@/testing/Test.test";
 import { Step } from "@/models/Step";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { readdir } from "fs/promises";
