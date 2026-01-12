@@ -214,8 +214,8 @@ describe("execution | managed_storage", () => {
 
   async function verifyStorageHasFiles(entries: string[], fileNames: string[], expectedListingCount: number) {
     const manifestPattern = `^${Constant.namespace}/__brespi_manifest__\\.json$`;
-    const listingPattern = `^${Constant.namespace}/${Common.Regex.TIMESTAMP_FOLDER}/__brespi_listing_${Common.Regex.RANDOM}__\\.json$`;
-    const filePatterns = fileNames.map((f) => `^${Constant.namespace}/${Common.Regex.TIMESTAMP_FOLDER}/${f}.txt`);
+    const listingPattern = `^${Constant.namespace}/${Common.Regex.TIMESTAMP}/__brespi_listing_${Common.Regex.RANDOM}__\\.json$`;
+    const filePatterns = fileNames.map((f) => `^${Constant.namespace}/${Common.Regex.TIMESTAMP}/${f}.txt`);
 
     expect(entries).toHaveLength(1 + expectedListingCount + fileNames.length);
     expect(entries).toEqual(

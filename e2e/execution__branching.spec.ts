@@ -83,12 +83,10 @@ describe("execution | branching", () => {
       expect(entries).toEqual(
         expect.arrayContaining([
           expect.stringMatching(new RegExp(`^${namespace}/__brespi_manifest__\.json$`)),
-          expect.stringMatching(
-            new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/__brespi_listing_${Common.Regex.RANDOM}__\.json$`),
-          ),
-          expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Almond.txt`)),
-          expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Baklava.txt`)),
-          expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP_FOLDER}/Croissant.txt`)),
+          expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP}/__brespi_listing_${Common.Regex.RANDOM}__\.json$`)),
+          expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP}/Almond.txt`)),
+          expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP}/Baklava.txt`)),
+          expect.stringMatching(new RegExp(`^${namespace}/${Common.Regex.TIMESTAMP}/Croissant.txt`)),
         ]),
       );
     }
