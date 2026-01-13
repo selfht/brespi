@@ -37,6 +37,7 @@ export namespace Exception {
     : (details: T) => Exception;
 
   export function isInstance(e: any): e is Exception {
-    return "namespace" in e && e.namespace === Exception.NAMESPACE;
+    const marker = "namespace" satisfies keyof InstanceType<typeof Exception>;
+    return marker in e && e[marker] === Exception.NAMESPACE;
   }
 }
