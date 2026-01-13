@@ -31,6 +31,7 @@ QA
 Technical
 * ✅ ~Implement more unit tests for adapters in the style of `FilesystemAdapter.spec.ts` which can be reasonably expected to execute on basic unix hosts (`CompressionAdapter`, `EncryptionAdapter`, `ScriptAdapter`)~
 * ✅ ~Use consistent casing in all form labels and E2E fixtures~
+* Update `Decompression` and `Decryption` so they don't require any options
 * Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
 * Firefox: test canvas and `foreignObject`
 * Webkit: attempt to migrate away from [`foreignObject`](https://bugs.webkit.org/show_bug.cgi?id=23113)

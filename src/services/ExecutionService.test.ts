@@ -1,14 +1,14 @@
-import { Test } from "@/testing/Test.test";
 import { Execution } from "@/models/Execution";
 import { Outcome } from "@/models/Outcome";
 import { Pipeline } from "@/models/Pipeline";
 import { Step } from "@/models/Step";
+import { Test } from "@/testing/Test.test";
 import { Temporal } from "@js-temporal/polyfill";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { ExecutionService } from "./ExecutionService";
 
 describe(ExecutionService.name, async () => {
-  const { executionRepository, pipelineRepository, adapterService, resetAllMocks } = await Test.initializeMockRegistry();
+  const { executionRepository, pipelineRepository, adapterService } = await Test.initializeMockRegistry();
   const service = new ExecutionService(
     await Test.buildEnv({
       X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from({ seconds: 0 }),
@@ -122,7 +122,35 @@ describe(ExecutionService.name, async () => {
     });
   });
 
-  function linearPipeline(steps: Step.Type[]): Pipeline {
+  it("refuses to execute, if the pipeline is already executing", async () => {
+    // given
+    await pipelineRepository.create(
+      linearPipeline([], {
+        id: "123",
+      }),
+    );
+    await executionRepository.create({
+      id: "X",
+      object: "execution",
+      pipelineId: "123",
+      startedAt: Temporal.Now.plainDateTimeISO(),
+      actions: [],
+      result: null,
+    });
+    // when
+    const action = () => service.create({ pipelineId: "123" });
+    // then
+    expect(action()).rejects.toEqual(
+      expect.objectContaining({
+        problem: "ExecutionError::already_executing",
+        details: expect.objectContaining({
+          id: "X",
+        }),
+      }),
+    );
+  });
+
+  function linearPipeline(steps: Step.Type[], overrides: Partial<Pipeline> = {}): Pipeline {
     return {
       id: "-",
       object: "pipeline",
@@ -133,6 +161,7 @@ describe(ExecutionService.name, async () => {
           previousId: index > 0 ? `${index - 1}` : null,
         }),
       ),
+      ...overrides,
     };
   }
 });

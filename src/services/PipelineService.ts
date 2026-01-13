@@ -29,7 +29,7 @@ export class PipelineService {
     return await this.enhance(pipeline);
   }
 
-  public async create(unknown: z.infer<typeof PipelineService.Upsert>): Promise<PipelineView> {
+  public async create(unknown: z.output<typeof PipelineService.Upsert>): Promise<PipelineView> {
     const pipeline = this.validate({
       id: Bun.randomUUIDv7(),
       ...PipelineService.Upsert.parse(unknown),
@@ -40,7 +40,7 @@ export class PipelineService {
     return await this.enhance(pipeline);
   }
 
-  public async update(id: string, unknown: z.infer<typeof PipelineService.Upsert>): Promise<PipelineView> {
+  public async update(id: string, unknown: z.output<typeof PipelineService.Upsert>): Promise<PipelineView> {
     const pipeline = this.validate({
       id,
       ...PipelineService.Upsert.parse(unknown),

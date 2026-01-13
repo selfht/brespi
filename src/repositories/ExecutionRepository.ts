@@ -2,7 +2,7 @@ import { Sqlite } from "@/drizzle/sqlite";
 import { $action } from "@/drizzle/tables/$action";
 import { $execution } from "@/drizzle/tables/$execution";
 import { Execution } from "@/models/Execution";
-import { eq } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, SQL } from "drizzle-orm";
 import { ExecutionConverter } from "./converters/ExecutionConverter";
 
 export class ExecutionRepository {
@@ -17,9 +17,13 @@ export class ExecutionRepository {
     return executions.map(ExecutionConverter.convert);
   }
 
-  public async query(q: { pipelineId: string }): Promise<Execution[]> {
+  public async query(q: { pipelineId: string; completed?: boolean }): Promise<Execution[]> {
+    let where: SQL | undefined = eq($execution.pipelineId, q.pipelineId);
+    if (q.completed !== undefined) {
+      where = and(where, q.completed ? isNotNull($execution.resultCompletedAt) : isNull($execution.resultCompletedAt));
+    }
     const executions = await this.sqlite.query.$execution.findMany({
-      where: eq($execution.pipelineId, q.pipelineId),
+      where,
       with: {
         actions: true,
       },

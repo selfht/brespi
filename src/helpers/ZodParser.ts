@@ -15,7 +15,7 @@ type ParserFactory<T, U> =
 export namespace ZodParser {
   export function forType<T>() {
     return {
-      ensureSchemaMatchesType<U extends z.ZodType<T>>(schemaFn: () => U): ParserFactory<T, z.infer<U>> {
+      ensureSchemaMatchesType<U extends z.ZodType<T>>(schemaFn: () => U): ParserFactory<T, z.output<U>> {
         const schema = schemaFn();
         function parseFn(json: unknown): T {
           try {

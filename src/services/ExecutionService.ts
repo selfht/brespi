@@ -63,11 +63,16 @@ export class ExecutionService {
     return execution;
   }
 
-  public async create(unknown: z.infer<typeof ExecutionService.Create>): Promise<Execution> {
-    const { pipelineId } = ExecutionService.Create.parse(unknown);
+  public async create(unknown: z.output<typeof ExecutionService.Create>): Promise<Execution> {
+    const { pipelineId, waitForCompletion } = ExecutionService.Create.parse(unknown);
     const pipeline = await this.pipelineRepository.findById(pipelineId);
     if (!pipeline) {
       throw PipelineError.not_found();
+    }
+
+    const [existingExecution] = await this.executionRepository.query({ pipelineId, completed: false });
+    if (existingExecution) {
+      throw ExecutionError.already_executing({ id: existingExecution.id });
     }
 
     const id = Bun.randomUUIDv7();
@@ -91,11 +96,16 @@ export class ExecutionService {
     if (!(await this.executionRepository.create(execution))) {
       throw ExecutionError.already_exists();
     }
-    this.execute(execution.id, pipeline); // no await, to turn it into a background task
-    return execution;
+
+    if (waitForCompletion) {
+      return await this.execute(execution.id, pipeline);
+    } else {
+      this.execute(execution.id, pipeline);
+      return execution;
+    }
   }
 
-  private async execute(executionId: string, pipeline: Pipeline): Promise<void> {
+  private async execute(executionId: string, pipeline: Pipeline): Promise<Execution> {
     // Build a map to find children of each step
     const childrenMap = new Map<string | null, Step[]>();
     for (const step of pipeline.steps) {
@@ -133,6 +143,7 @@ export class ExecutionService {
     };
     await this.executionRepository.update(execution);
     this.notifySockets(execution);
+    return execution;
   }
 
   private async executeTreeRecursively({
@@ -344,6 +355,7 @@ export namespace ExecutionService {
   export const Create = z
     .object({
       pipelineId: z.string(),
+      waitForCompletion: z.boolean().optional(),
     })
     .catch((e) => {
       throw ServerError.invalid_request_body(ZodProblem.issuesSummary(e));

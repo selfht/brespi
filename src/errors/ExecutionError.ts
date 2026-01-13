@@ -1,9 +1,10 @@
 import { Exception } from "./exception/Exception";
 
 export class ExecutionError {
-  // crud
+  // general
   public static readonly not_found: Exception.Fn;
   public static readonly already_exists: Exception.Fn;
+  public static readonly already_executing: Exception.Fn<{ id: string }>;
   // adapters
   public static readonly unknown: Exception.Fn;
   public static readonly nonzero_script_exit: Exception.Fn<{ exitCode: number; stdall: string }>;

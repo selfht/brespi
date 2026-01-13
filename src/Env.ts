@@ -38,7 +38,7 @@ export namespace Env {
 
   export type Public = Readonly<{
     [K in keyof Private as K extends `${PublicPrefix}${string}` ? K : never]: Private[K] extends z.ZodTypeAny
-      ? z.infer<Private[K]>
+      ? z.output<Private[K]>
       : Private[K];
   }>;
   export type PublicPrefix = "O_BRESPI_";
