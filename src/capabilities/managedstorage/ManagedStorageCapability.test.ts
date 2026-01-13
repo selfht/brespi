@@ -1,6 +1,6 @@
 import { Test } from "@/testing/Test.test";
 import { Temporal } from "@js-temporal/polyfill";
-import { describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, spyOn } from "bun:test";
 import { join } from "path";
 import { Listing } from "./Listing";
 import { Manifest } from "./Manifest";
@@ -13,6 +13,14 @@ describe(ManagedStorageCapability.name, () => {
   };
 
   const capability = new ManagedStorageCapability();
+
+  beforeEach(async () => {
+    await Test.cleanup();
+  });
+
+  afterEach(async () => {
+    await Test.cleanup();
+  });
 
   describe(capability.insert.name, () => {
     it("correctly generates the to-be-upserted manifest/listing/artifacts", async () => {
@@ -112,27 +120,40 @@ describe(ManagedStorageCapability.name, () => {
       }
     });
 
-    it("generates version timestamps with the same length", async () => {
+    const truncateCollection = Test.createCollection<{
+      timestamp: string;
+      expectedVersion: string;
+    }>("timestamp", [
+      { timestamp: "2018-01-13T15:19:36.469576466", expectedVersion: "2018-01-13T15:19:36.469" },
+      { timestamp: "2019-02-13T15:25:17.673917671", expectedVersion: "2019-02-13T15:25:17.673" },
+      { timestamp: "2020-03-13T15:25:49.66294966", expectedVersion: "2020-03-13T15:25:49.662" },
+      { timestamp: "2021-04-13T15:26:36.915996913", expectedVersion: "2021-04-13T15:26:36.915" },
+      { timestamp: "2022-05-13T15:26:00.481960477", expectedVersion: "2022-05-13T15:26:00.481" },
+      { timestamp: "2023-06-13T15:26:06.490966487", expectedVersion: "2023-06-13T15:26:06.490" },
+      { timestamp: "2024-07-13T15:26:11.887971885", expectedVersion: "2024-07-13T15:26:11.887" },
+      { timestamp: "2025-08-13T15:26:17.5", expectedVersion: "2025-08-13T15:26:17.500" },
+      { timestamp: "2026-09-13T15:26:22.113982111", expectedVersion: "2026-09-13T15:26:22.113" },
+    ]);
+    it.each(truncateCollection.testCases)("truncates generated timestamp into version with millisecond precision: %s", async (testCase) => {
+      const { timestamp, expectedVersion } = truncateCollection.get(testCase);
       // given
+      spyOn(Temporal.Now, "plainDateTimeISO").mockReturnValue(Temporal.PlainDateTime.from(timestamp));
       const { filesystem, ...readWriteFns } = createReadWriteFns();
       // when
-      for (let i = 0; i < 300; i++) {
-        const options: ManagedStorageCapability.InsertOptions = {
-          mutexKey: ["abc"],
-          base: "",
-          artifacts: [],
-          trail: [],
-          ...readWriteFns,
-        };
-        await capability.insert(options);
-      }
-      const manifest = Manifest.parse(JSON.parse(filesystem["__brespi_manifest__.json"]));
-      const versionsLengths = manifest.items.map(({ version }) => version.length);
+      await capability.insert({
+        mutexKey: [],
+        base: "",
+        artifacts: [],
+        trail: [],
+        ...readWriteFns,
+      });
       // then
-      expect(new Set(versionsLengths)).toHaveLength(1);
+      const manifest = Manifest.parse(JSON.parse(filesystem["__brespi_manifest__.json"]));
+      const [version] = manifest.items.map(({ version }) => version);
+      expect(version).toEqual(expectedVersion);
     });
 
-    const collection = Test.createCollection<{
+    const relativizeCollection = Test.createCollection<{
       base: string;
       expectation: {
         destinationPathMatcher: RegExp;
@@ -169,8 +190,8 @@ describe(ManagedStorageCapability.name, () => {
         },
       },
     ]);
-    it.each(collection.testCases)("relativizes generated files to base: %s", async (testCase) => {
-      const { base, expectation } = collection.get(testCase);
+    it.each(relativizeCollection.testCases)("relativizes generated files to base: %s", async (testCase) => {
+      const { base, expectation } = relativizeCollection.get(testCase);
       // given
       const { filesystem, ...readWriteFns } = createReadWriteFns();
       const options: ManagedStorageCapability.InsertOptions = {

@@ -9,13 +9,17 @@ import { Step } from "@/models/Step";
 import { ConfigurationRepository } from "@/repositories/ConfigurationRepository";
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
-import { mock, Mock } from "bun:test";
+import { jest, mock, Mock } from "bun:test";
 import { mkdir, rm } from "fs/promises";
 import { join } from "path";
 import { Generate } from "../helpers/Generate";
 
 export namespace Test {
   const cleanupTasks: Record<string, () => unknown | Promise<unknown>> = {
+    mocks_restore: () => {
+      mock.restore();
+      jest.restoreAllMocks();
+    },
     temporary_artifacts: async () => {
       const { X_BRESPI_TMP_ROOT } = await buildEnv();
       await rm(X_BRESPI_TMP_ROOT, { recursive: true, force: true });
