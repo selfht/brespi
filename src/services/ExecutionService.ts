@@ -67,7 +67,7 @@ export class ExecutionService {
     const { pipelineId, waitForCompletion } = ExecutionService.Create.parse(unknown);
     const pipeline = await this.pipelineRepository.findById(pipelineId);
     if (!pipeline) {
-      throw PipelineError.not_found();
+      throw PipelineError.not_found({ id: pipelineId });
     }
 
     const [existingExecution] = await this.executionRepository.query({ pipelineId, completed: false });

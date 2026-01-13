@@ -1,5 +1,6 @@
 import { Pipeline } from "@/models/Pipeline";
 import { ConfigurationRepository } from "./ConfigurationRepository";
+import { PipelineError } from "@/errors/PipelineError";
 
 export class PipelineRepository {
   public constructor(private readonly configuration: ConfigurationRepository) {}
@@ -12,14 +13,10 @@ export class PipelineRepository {
     return this.configuration.read(({ pipelines }) => pipelines.find((p) => p.id === id));
   }
 
-  public async create(pipeline: Pipeline): Promise<Pipeline | undefined> {
+  public async create(pipeline: Pipeline): Promise<Pipeline> {
     const { result } = await this.configuration.write((configuration) => {
-      const existing = configuration.pipelines.find((p) => p.id === pipeline.id);
-      if (existing) {
-        return {
-          result: existing,
-          configuration,
-        };
+      if (configuration.pipelines.some((p) => p.id === pipeline.id)) {
+        throw PipelineError.already_exists({ id: pipeline.id });
       }
       return {
         result: pipeline,
@@ -32,14 +29,10 @@ export class PipelineRepository {
     return result;
   }
 
-  public async update(pipeline: Pipeline): Promise<Pipeline | undefined> {
+  public async update(pipeline: Pipeline): Promise<Pipeline> {
     const { result } = await this.configuration.write((configuration) => {
-      const existing = configuration.pipelines.find((p) => p.id === pipeline.id);
-      if (!existing) {
-        return {
-          result: undefined,
-          configuration,
-        };
+      if (!configuration.pipelines.some((p) => p.id === pipeline.id)) {
+        throw PipelineError.not_found({ id: pipeline.id });
       }
       return {
         result: pipeline,
@@ -57,14 +50,11 @@ export class PipelineRepository {
     return result;
   }
 
-  public async remove(id: string): Promise<Pipeline | undefined> {
+  public async remove(id: string): Promise<Pipeline> {
     const { result } = await this.configuration.write((configuration) => {
       const existing = configuration.pipelines.find((p) => p.id === id);
       if (!existing) {
-        return {
-          result: undefined,
-          configuration,
-        };
+        throw PipelineError.not_found({ id });
       }
       return {
         result: existing,

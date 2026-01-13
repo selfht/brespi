@@ -35,6 +35,7 @@ Technical
 * Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
 * Firefox: test canvas and `foreignObject`
 * Webkit: attempt to migrate away from [`foreignObject`](https://bugs.webkit.org/show_bug.cgi?id=23113)
+* Handle TODO comments
 
 Polish
 * Icons for each different step

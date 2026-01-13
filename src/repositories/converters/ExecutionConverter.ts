@@ -11,10 +11,10 @@ export namespace ExecutionConverter {
     actions: $Action[];
   };
 
-  export function convert(action: Execution): $Execution;
-  export function convert(action: $Execution): Execution;
-  export function convert(action: Execution | $Execution): Execution | $Execution {
-    return "object" in action ? toDatabase(action) : fromDatabase(action);
+  export function convert(execution: Execution): $Execution;
+  export function convert(execution: $Execution): Execution;
+  export function convert(execution: Execution | $Execution): Execution | $Execution {
+    return "object" in execution ? toDatabase(execution) : fromDatabase(execution);
   }
 
   function toDatabase(model: Execution): $Execution {

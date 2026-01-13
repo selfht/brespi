@@ -14,10 +14,7 @@ export function configuration() {
 
   const configurationClient = useRegistry(ConfigurationClient);
   const query = useYesQuery<CoreConfiguration, ProblemDetails>({
-    queryFn: () =>
-      configurationClient.get().then((configuration) => ({
-        pipelines: configuration.pipelines,
-      })),
+    queryFn: () => configurationClient.get().then(CoreConfiguration.parse),
   });
 
   return (

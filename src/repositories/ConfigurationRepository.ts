@@ -34,24 +34,28 @@ export class ConfigurationRepository {
     this.synchronizationChangeListeners.push(listener);
   }
 
-  public async read<T = void>(fn: (configuration: Configuration) => T | Promise<T>): Promise<T> {
+  public async read<T = void>(): Promise<Configuration>;
+  public async read<T = void>(fn: (configuration: Configuration) => T | Promise<T>): Promise<T>;
+  public async read<T = void>(fn?: (configuration: Configuration) => T | Promise<T>): Promise<T> {
     const { release } = await this.mutex.acquire();
     try {
       const configuration = await this.getCurrentValueOrInitialize();
-      return await fn(configuration);
+      if (fn) {
+        return await fn(configuration);
+      }
+      return configuration as T;
     } finally {
       release();
     }
   }
 
+  // TODO: rollback in `finally` if there's an error? make this method atomic?
   public async write<T extends { configuration: CoreConfiguration }>(fn: (configuration: Configuration) => T | Promise<T>): Promise<T> {
     const { release } = await this.mutex.acquire();
     try {
       const input = await this.getCurrentValueOrInitialize();
       const output = await fn(input);
-      this.memoryObject = {
-        pipelines: output.configuration.pipelines,
-      };
+      this.memoryObject = CoreConfiguration.parse(output.configuration);
 
       const oldMemoryObjectMatchesDiskFile = this.memoryObjectMatchesDiskFile;
       this.memoryObjectMatchesDiskFile = await this.compareMemoryObjectWithDiskFile(this.memoryObject);

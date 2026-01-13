@@ -24,7 +24,7 @@ export class PipelineService {
   public async find(id: string): Promise<PipelineView> {
     const pipeline = await this.pipelineRepository.findById(id);
     if (!pipeline) {
-      throw PipelineError.not_found();
+      throw PipelineError.not_found({ id });
     }
     return await this.enhance(pipeline);
   }
@@ -34,9 +34,7 @@ export class PipelineService {
       id: Bun.randomUUIDv7(),
       ...PipelineService.Upsert.parse(unknown),
     });
-    if (!(await this.pipelineRepository.create(pipeline))) {
-      throw PipelineError.already_exists();
-    }
+    await this.pipelineRepository.create(pipeline);
     return await this.enhance(pipeline);
   }
 
@@ -45,17 +43,18 @@ export class PipelineService {
       id,
       ...PipelineService.Upsert.parse(unknown),
     });
-    if (!(await this.pipelineRepository.update(pipeline))) {
-      throw PipelineError.not_found();
-    }
+    await this.pipelineRepository.update(pipeline);
     return await this.enhance(pipeline);
   }
 
   public async remove(id: string): Promise<PipelineView> {
+    // TODO
+    // TODO
+    // Foreign key relation with schedules?
+    // Needs to go via ScheduleService, because cronjobs must be deactivated ...
+    // TODO
+    // TODO
     const pipeline = await this.pipelineRepository.remove(id);
-    if (!pipeline) {
-      throw PipelineError.not_found();
-    }
     return await this.enhance(pipeline);
   }
 

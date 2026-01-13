@@ -4,6 +4,7 @@ import { Env } from "./Env";
 import { Server } from "./Server";
 import { ServerRegistry } from "./ServerRegistry";
 import { CleanupService } from "./services/CleanupService";
+import { ScheduleService } from "./services/ScheduleService";
 
 /**
  * Initialize the env configuration
@@ -30,9 +31,10 @@ const sqlite = await initializeSqlite(env);
 const registry = await ServerRegistry.bootstrap(env, sqlite);
 
 /**
- * Periodically clean up
+ * Schedules
  */
-registry.get(CleanupService).periodicallyKeepThingsClean();
+registry.get(CleanupService).periodicallyClean();
+registry.get(ScheduleService).initializeSchedules();
 
 /**
  * Listen for incoming requests

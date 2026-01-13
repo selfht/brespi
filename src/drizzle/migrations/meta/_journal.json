@@ -15,6 +15,13 @@
       "when": 1767276598769,
       "tag": "0001_create_action_table",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1768323893589,
+      "tag": "0002_create_inactive_schedule_table",
+      "breakpoints": true
     }
   ]
 }

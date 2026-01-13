@@ -6,12 +6,12 @@ import { join } from "path";
 export class CleanupService {
   public constructor(private readonly env: Env.Private) {}
 
-  public async periodicallyKeepThingsClean() {
-    setInterval(() => this.keepThingsClean(), 60_000);
-    this.keepThingsClean();
+  public async periodicallyClean() {
+    setInterval(() => this.clean(), 60_000);
+    this.clean();
   }
 
-  private keepThingsClean() {
+  private clean() {
     this.cleanTmpFolder();
   }
 

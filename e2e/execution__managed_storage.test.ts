@@ -230,11 +230,12 @@ describe("execution | managed_storage", () => {
       await page.getByRole("button", { name: "Close execution view" }).click();
 
       // then
-      const expectedIterationsCorrespondingToVersion = range(Math.max(1, iteration - retentionMaxVersions + 1), iteration);
+      const expectedVersionIterations = range(Math.max(1, iteration - retentionMaxVersions + 1), iteration);
+      // variable above: [1] -> [1,2] -> [1,2,3] -> [2,3,4] -> [3,4,5]
       await verifyStorage({
         entries: await listStorageEntries(),
-        expectedFilenames: expectedIterationsCorrespondingToVersion.flatMap((iteration) => furniture(iteration)),
-        expectedListingCount: expectedIterationsCorrespondingToVersion.length,
+        expectedFilenames: expectedVersionIterations.flatMap((iteration) => furniture(iteration)),
+        expectedListingCount: expectedVersionIterations.length,
       });
     }
   }

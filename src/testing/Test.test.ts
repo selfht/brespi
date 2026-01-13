@@ -1,7 +1,7 @@
 import { AdapterService } from "@/adapters/AdapterService";
 import { FilterCapability } from "@/capabilities/filter/FilterCapability";
 import { ManagedStorageCapability } from "@/capabilities/managedstorage/ManagedStorageCapability";
-import { $execution } from "@/drizzle/schema";
+import { $execution, $inactiveSchedule } from "@/drizzle/schema";
 import { initializeSqlite } from "@/drizzle/sqlite";
 import { Env } from "@/Env";
 import { Artifact } from "@/models/Artifact";
@@ -13,6 +13,8 @@ import { jest, mock, Mock } from "bun:test";
 import { mkdir, rm } from "fs/promises";
 import { join } from "path";
 import { Generate } from "../helpers/Generate";
+import { ExecutionService } from "@/services/ExecutionService";
+import { ScheduleRepository } from "@/repositories/ScheduleRepository";
 
 export namespace Test {
   const cleanupTasks: Record<string, () => unknown | Promise<unknown>> = {
@@ -166,6 +168,14 @@ export namespace Test {
           await sqlite.delete($execution);
         }
       })();
+      public static readonly scheduleRepository = new (class extends ScheduleRepository {
+        public constructor() {
+          super(MockRegistry.configurationRepository, sqlite);
+        }
+        public async removeAll(): Promise<void> {
+          await sqlite.delete($inactiveSchedule);
+        }
+      })();
 
       public static readonly filterCapabilityMock = registerMockObject<FilterCapability>({
         createPredicate: mock(),
@@ -174,6 +184,13 @@ export namespace Test {
         insert: mock(),
         select: mock(),
         clean: mock(),
+      });
+      public static readonly executionService = registerMockObject<ExecutionService>({
+        registerSocket: mock(),
+        unregisterSocket: mock(),
+        create: mock(),
+        find: mock(),
+        query: mock(),
       });
       public static readonly adapterService = registerMockObject<AdapterService>({
         submit: mock(),

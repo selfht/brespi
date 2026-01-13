@@ -21,6 +21,8 @@ import { ExecutionService } from "./services/ExecutionService";
 import { PipelineService } from "./services/PipelineService";
 import { RestrictedService } from "./services/RestrictedService";
 import { StepService } from "./services/StepService";
+import { ScheduleRepository } from "./repositories/ScheduleRepository";
+import { ScheduleService } from "./services/ScheduleService";
 
 export class ServerRegistry {
   public static async bootstrap(env: Env.Private, sqlite: Sqlite): Promise<ServerRegistry> {
@@ -60,9 +62,11 @@ export class ServerRegistry {
     const configurationRepository = (this.registry[ConfigurationRepository.name] = new ConfigurationRepository(env));
     const pipelineRepository = (this.registry[PipelineRepository.name] = new PipelineRepository(configurationRepository));
     const executionRepository = (this.registry[ExecutionRepository.name] = new ExecutionRepository(sqlite));
+    const scheduleRepository = (this.registry[ScheduleRepository.name] = new ScheduleRepository(configurationRepository, sqlite));
 
     // Services
     const stepService = (this.registry[StepService.name] = new StepService());
+    const configurationService = (this.registry[ConfigurationService.name] = new ConfigurationService(configurationRepository));
     const pipelineService = (this.registry[PipelineService.name] = new PipelineService(
       pipelineRepository,
       executionRepository,
@@ -74,8 +78,8 @@ export class ServerRegistry {
       pipelineRepository,
       adapterService,
     ));
-    const configurationService = (this.registry[ConfigurationService.name] = new ConfigurationService(configurationRepository));
     const restrictedService = (this.registry[RestrictedService.name] = new RestrictedService(pipelineRepository));
+    this.registry[ScheduleService.name] = new ScheduleService(scheduleRepository, executionService);
     this.registry[CleanupService.name] = new CleanupService(env);
 
     // Server
