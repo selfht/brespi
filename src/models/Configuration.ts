@@ -8,16 +8,6 @@ export type Configuration = Configuration.Core & {
 };
 
 export namespace Configuration {
-  export const parse = ZodParser.forType<Configuration>()
-    .ensureSchemaMatchesType(() => {
-      return Core.parse.SCHEMA.and(
-        z.object({
-          synchronized: z.boolean(),
-        }),
-      );
-    })
-    .ensureTypeMatchesSchema();
-
   export type Core = {
     pipelines: Pipeline[];
     schedules: Schedule.Core[];
@@ -38,4 +28,14 @@ export namespace Configuration {
       })
       .ensureTypeMatchesSchema();
   }
+
+  export const parse = ZodParser.forType<Configuration>()
+    .ensureSchemaMatchesType(() => {
+      return Core.parse.SCHEMA.and(
+        z.object({
+          synchronized: z.boolean(),
+        }),
+      );
+    })
+    .ensureTypeMatchesSchema();
 }

@@ -6,16 +6,6 @@ export type Schedule = Schedule.Core & {
 };
 
 export namespace Schedule {
-  export const parse = ZodParser.forType<Schedule>()
-    .ensureSchemaMatchesType(() =>
-      Core.parse.SCHEMA.and(
-        z.object({
-          active: z.boolean(),
-        }),
-      ),
-    )
-    .ensureTypeMatchesSchema();
-
   export type Core = {
     id: string;
     object: "schedule";
@@ -34,6 +24,16 @@ export namespace Schedule {
       )
       .ensureTypeMatchesSchema();
   }
+
+  export const parse = ZodParser.forType<Schedule>()
+    .ensureSchemaMatchesType(() =>
+      Core.parse.SCHEMA.and(
+        z.object({
+          active: z.boolean(),
+        }),
+      ),
+    )
+    .ensureTypeMatchesSchema();
 
   export type Metadata = {
     id: string;

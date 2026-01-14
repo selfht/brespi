@@ -1,3 +1,4 @@
+import { ScheduleError } from "@/errors/ScheduleError";
 import { ServerError } from "@/errors/ServerError";
 import { ZodProblem } from "@/helpers/ZodIssues";
 import { Schedule } from "@/models/Schedule";
@@ -5,8 +6,6 @@ import { ScheduleRepository } from "@/repositories/ScheduleRepository";
 import { Cron } from "croner";
 import z from "zod/v4";
 import { ExecutionService } from "./ExecutionService";
-import { ca } from "zod/v4/locales";
-import { ScheduleError } from "@/errors/ScheduleError";
 
 export class ScheduleService {
   private readonly activeCronJobs = new Map<string, Cron>();
@@ -45,7 +44,7 @@ export class ScheduleService {
         result.active = active;
       }
       if (cron !== undefined) {
-        result.cron = this.ensureValidCronExpression(cron); // TODO: validate!
+        result.cron = this.ensureValidCronExpression(cron);
       }
       return schedule;
     });
@@ -62,8 +61,7 @@ export class ScheduleService {
 
   private ensureValidCronExpression(expression: string): string {
     try {
-      const cron = new Cron(expression);
-      cron.stop();
+      new Cron(expression).stop();
       return expression;
     } catch (e) {
       throw ScheduleError.invalid_cron_expression();
