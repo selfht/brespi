@@ -1,4 +1,4 @@
-import { BetterOmit } from "@/types/BetterOmit";
+import { OmitBetter } from "@/types/OmitBetter";
 import { dia } from "@joint/core";
 import { ReactElement, RefObject, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Block } from "./Block";
@@ -351,7 +351,7 @@ export namespace Canvas {
     reset: (blocks: Block[]) => Promise<void>;
     format: () => void;
     // crud
-    insert: (block: BetterOmit<Block, "incomingId">) => void;
+    insert: (block: OmitBetter<Block, "incomingId">) => void;
     update: (id: string, changes: Pick<Block, "theme" | "label" | "details">) => void;
     remove: (id: string) => void;
     // selection

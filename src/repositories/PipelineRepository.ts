@@ -1,6 +1,6 @@
+import { PipelineError } from "@/errors/PipelineError";
 import { Pipeline } from "@/models/Pipeline";
 import { ConfigurationRepository } from "./ConfigurationRepository";
-import { PipelineError } from "@/errors/PipelineError";
 
 export class PipelineRepository {
   public constructor(private readonly configuration: ConfigurationRepository) {}
@@ -50,7 +50,7 @@ export class PipelineRepository {
     return result;
   }
 
-  public async remove(id: string): Promise<Pipeline> {
+  public async delete(id: string): Promise<Pipeline> {
     const { result } = await this.configuration.write((configuration) => {
       const existing = configuration.pipelines.find((p) => p.id === id);
       if (!existing) {
@@ -67,7 +67,7 @@ export class PipelineRepository {
     return result;
   }
 
-  public async removeAll(): Promise<void> {
+  public async deleteAll(): Promise<void> {
     await this.configuration.write((configuration) => ({
       configuration: {
         ...configuration,

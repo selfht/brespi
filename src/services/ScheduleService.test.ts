@@ -1,10 +1,10 @@
+import { Test } from "@/testing/Test.test";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { ScheduleService } from "./ScheduleService";
-import { Test } from "@/testing/Test.test";
 
 describe(ScheduleService.name, async () => {
-  const { scheduleRepository, executionService } = await Test.initializeMockRegistry();
-  const service = new ScheduleService(scheduleRepository, Test.impl(executionService));
+  const { eventBus, scheduleRepository, executionService } = await Test.initializeMockRegistry();
+  const service = new ScheduleService(Test.impl(eventBus), scheduleRepository, Test.impl(executionService));
 
   beforeEach(async () => {
     await Test.cleanup();

@@ -5,7 +5,7 @@ import { Step } from "@/models/Step";
 import { Icon } from "../Icon";
 import { StepDescription } from "@/website/details/StepDescription";
 import { Action } from "@/models/Action";
-import { BetterOmit } from "@/types/BetterOmit";
+import { OmitBetter } from "@/types/OmitBetter";
 
 type Props = {
   execution: Execution;
@@ -55,7 +55,7 @@ namespace Internal {
     const indexCounterPerStepType = new Map<string, number>();
     return actions
       .filter((action) => action.result?.outcome === Outcome.error)
-      .map<BetterOmit<FailedAction, "stepTypeTotal">>(({ stepType, result }) => {
+      .map<OmitBetter<FailedAction, "stepTypeTotal">>(({ stepType, result }) => {
         const stepTypeIndex = indexCounterPerStepType.get(stepType) || 0;
         indexCounterPerStepType.set(stepType, stepTypeIndex + 1);
         return {

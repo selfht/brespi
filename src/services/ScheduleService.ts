@@ -1,5 +1,6 @@
 import { ScheduleError } from "@/errors/ScheduleError";
 import { ServerError } from "@/errors/ServerError";
+import { EventBus } from "@/events/EventBus";
 import { ZodProblem } from "@/helpers/ZodIssues";
 import { Schedule } from "@/models/Schedule";
 import { ScheduleRepository } from "@/repositories/ScheduleRepository";
@@ -11,9 +12,14 @@ export class ScheduleService {
   private readonly activeCronJobs = new Map<string, Cron>();
 
   public constructor(
+    private readonly eventBus: EventBus,
     private readonly repository: ScheduleRepository,
     private readonly executionService: ExecutionService,
-  ) {}
+  ) {
+    eventBus.subscribe("pipeline_deleted", ({ data: { pipeline } }) => {
+      this.deleteForPipeline(pipeline.id).catch(console.error);
+    });
+  }
 
   public async initializeSchedules() {
     const schedules = await this.repository.list();
@@ -30,6 +36,10 @@ export class ScheduleService {
       cron: this.ensureValidCronExpression(cron),
     });
     this.start(result);
+    this.eventBus.publish({
+      type: "schedule_created",
+      data: { schedule: result },
+    });
     return result;
   }
 
@@ -50,13 +60,28 @@ export class ScheduleService {
     });
     this.stop(id);
     this.start(result);
+    this.eventBus.publish({
+      type: "schedule_updated",
+      data: { schedule: result },
+    });
     return result;
   }
 
   public async delete(id: string): Promise<Schedule> {
     const result = await this.repository.remove(id);
     this.stop(id);
+    this.eventBus.publish({
+      type: "schedule_deleted",
+      data: { schedule: result },
+    });
     return result;
+  }
+
+  private async deleteForPipeline(pipelineId: string) {
+    const schedules = await this.repository.query({ pipelineId });
+    for (const { id } of schedules) {
+      await this.delete(id);
+    }
   }
 
   private ensureValidCronExpression(expression: string): string {
@@ -70,8 +95,8 @@ export class ScheduleService {
 
   private start(schedule: Schedule) {
     if (schedule.active) {
-      const cron = new Cron(schedule.cron, () => {
-        this.executionService.create({ pipelineId: schedule.pipelineId });
+      const cron = new Cron(schedule.cron, async () => {
+        await this.executionService.create({ pipelineId: schedule.pipelineId }).catch(console.error);
       });
       this.activeCronJobs.set(schedule.id, cron);
     }

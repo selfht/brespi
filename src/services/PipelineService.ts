@@ -1,5 +1,6 @@
 import { PipelineError } from "@/errors/PipelineError";
 import { ServerError } from "@/errors/ServerError";
+import { EventBus } from "@/events/EventBus";
 import { ZodProblem } from "@/helpers/ZodIssues";
 import { Pipeline } from "@/models/Pipeline";
 import { Step } from "@/models/Step";
@@ -11,6 +12,7 @@ import { StepService } from "./StepService";
 
 export class PipelineService {
   public constructor(
+    private readonly eventBus: EventBus,
     private readonly pipelineRepository: PipelineRepository,
     private readonly executionRepository: ExecutionRepository,
     private readonly stepService: StepService,
@@ -35,6 +37,10 @@ export class PipelineService {
       ...PipelineService.Upsert.parse(unknown),
     });
     await this.pipelineRepository.create(pipeline);
+    this.eventBus.publish({
+      type: "pipeline_created",
+      data: { pipeline },
+    });
     return await this.enhance(pipeline);
   }
 
@@ -44,17 +50,19 @@ export class PipelineService {
       ...PipelineService.Upsert.parse(unknown),
     });
     await this.pipelineRepository.update(pipeline);
+    this.eventBus.publish({
+      type: "pipeline_updated",
+      data: { pipeline },
+    });
     return await this.enhance(pipeline);
   }
 
-  public async remove(id: string): Promise<PipelineView> {
-    // TODO
-    // TODO
-    // Foreign key relation with schedules?
-    // Needs to go via ScheduleService, because cronjobs must be deactivated ...
-    // TODO
-    // TODO
-    const pipeline = await this.pipelineRepository.remove(id);
+  public async delete(id: string): Promise<PipelineView> {
+    const pipeline = await this.pipelineRepository.delete(id);
+    this.eventBus.publish({
+      type: "pipeline_deleted",
+      data: { pipeline },
+    });
     return await this.enhance(pipeline);
   }
 

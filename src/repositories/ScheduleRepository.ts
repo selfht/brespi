@@ -17,6 +17,11 @@ export class ScheduleRepository {
     return await this.joinMetadata(schedules);
   }
 
+  public async query(q: { pipelineId: string }): Promise<Schedule[]> {
+    const { schedules } = await this.configuration.read();
+    return await this.joinMetadata(schedules.filter((s) => s.pipelineId === q.pipelineId));
+  }
+
   public async create(schedule: Schedule): Promise<Schedule> {
     const { result } = await this.configuration.write((configuration) => {
       if (configuration.schedules.some((s) => s.id === schedule.id)) {

@@ -15,6 +15,7 @@ import { join } from "path";
 import { Generate } from "../helpers/Generate";
 import { ExecutionService } from "@/services/ExecutionService";
 import { ScheduleRepository } from "@/repositories/ScheduleRepository";
+import { EventBus } from "@/events/EventBus";
 
 export namespace Test {
   const cleanupTasks: Record<string, () => unknown | Promise<unknown>> = {
@@ -158,6 +159,12 @@ export namespace Test {
     }
 
     class MockRegistry {
+      public static readonly eventBus = registerMockObject<EventBus>({
+        publish: mock(),
+        subscribe: mock(),
+        unsubscribe: mock(),
+      });
+
       public static readonly configurationRepository = new ConfigurationRepository({ X_BRESPI_CONFIGURATION: ":memory:" } as Env.Private);
       public static readonly pipelineRepository = new PipelineRepository(this.configurationRepository);
       public static readonly executionRepository = new (class extends ExecutionRepository {
@@ -203,7 +210,7 @@ export namespace Test {
 
     cleanupTasks["mock_registry_mocks_reset"] = () => MockRegistry.resetAllMocks();
     cleanupTasks["mock_registry_repositories_clear"] = () => {
-      MockRegistry.pipelineRepository.removeAll();
+      MockRegistry.pipelineRepository.deleteAll();
       MockRegistry.executionRepository.removeAll();
       MockRegistry.scheduleRepository.removeAll();
     };

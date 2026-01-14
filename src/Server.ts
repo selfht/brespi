@@ -4,15 +4,15 @@ import { ServerError } from "@/errors/ServerError";
 import index from "@/website/index.html";
 import { ErrorLike } from "bun";
 import { Generate } from "./helpers/Generate";
+import { Configuration } from "./models/Configuration";
 import { Execution } from "./models/Execution";
-import { Socket } from "./socket/Socket";
+import { ConfigurationService } from "./services/ConfigurationService";
 import { ExecutionService } from "./services/ExecutionService";
 import { PipelineService } from "./services/PipelineService";
-import { StepService } from "./services/StepService";
-import { PipelineView } from "./views/PipelineView";
 import { RestrictedService } from "./services/RestrictedService";
-import { ConfigurationService } from "./services/ConfigurationService";
-import { Configuration } from "./models/Configuration";
+import { StepService } from "./services/StepService";
+import { Socket } from "./socket/Socket";
+import { PipelineView } from "./views/PipelineView";
 
 export class Server {
   private static readonly SOCKET_ENDPOINT = "/socket";
@@ -119,7 +119,7 @@ export class Server {
             return Response.json(pipeline);
           },
           DELETE: async (request) => {
-            const pipeline: PipelineView = await this.pipelineService.remove(request.params.id);
+            const pipeline: PipelineView = await this.pipelineService.delete(request.params.id);
             return Response.json(pipeline);
           },
         },
@@ -147,12 +147,12 @@ export class Server {
         },
 
         /**
-         * Restricted endpoints (for playwright)
+         * Restricted endpoints (for Playwright)
          */
-        "/api/restricted/delete-all-pipelines": {
+        "/api/restricted/delete-everything": {
           POST: async () => {
             if (this.env.O_BRESPI_STAGE === "development") {
-              await this.restrictedService.deleteAllPipelines();
+              await this.restrictedService.deleteEverything();
               return new Response();
             }
             return Response.json(ServerError.route_not_found().json());

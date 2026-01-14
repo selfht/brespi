@@ -23,6 +23,7 @@ import { RestrictedService } from "./services/RestrictedService";
 import { StepService } from "./services/StepService";
 import { ScheduleRepository } from "./repositories/ScheduleRepository";
 import { ScheduleService } from "./services/ScheduleService";
+import { EventBus } from "./events/EventBus";
 
 export class ServerRegistry {
   public static async bootstrap(env: Env.Private, sqlite: Sqlite): Promise<ServerRegistry> {
@@ -33,22 +34,18 @@ export class ServerRegistry {
 
   private constructor(env: Env.Private, sqlite: Sqlite) {
     // Capabilities
-    const filterCapability = (this.registry[FilterCapability.name] = new FilterCapability());
-    const managedStorageCapability = (this.registry[ManagedStorageCapability.name] = new ManagedStorageCapability());
+    const filterCapability = this.register(FilterCapability, []);
+    const managedStorageCapability = this.register(ManagedStorageCapability, []);
 
     // Adapters
-    const compressionAdapter = (this.registry[CompressionAdapter.name] = new CompressionAdapter(env));
-    const encryptionAdapter = (this.registry[EncryptionAdapter.name] = new EncryptionAdapter(env));
-    const filterAdapter = (this.registry[FilterAdapter.name] = new FilterAdapter(env, filterCapability));
-    const scriptAdapter = (this.registry[ScriptAdapter.name] = new ScriptAdapter(env));
-    const fileSystemAdapter = (this.registry[FilesystemAdapter.name] = new FilesystemAdapter(
-      env,
-      managedStorageCapability,
-      filterCapability,
-    ));
-    const s3Adapter = (this.registry[S3Adapter.name] = new S3Adapter(env, managedStorageCapability, filterCapability));
-    const postgresAdapter = (this.registry[PostgresAdapter.name] = new PostgresAdapter(env));
-    const adapterService = (this.registry[AdapterService.name] = new AdapterService(
+    const compressionAdapter = this.register(CompressionAdapter, [env]);
+    const encryptionAdapter = this.register(EncryptionAdapter, [env]);
+    const filterAdapter = this.register(FilterAdapter, [env, filterCapability]);
+    const scriptAdapter = this.register(ScriptAdapter, [env]);
+    const fileSystemAdapter = this.register(FilesystemAdapter, [env, managedStorageCapability, filterCapability]);
+    const s3Adapter = this.register(S3Adapter, [env, managedStorageCapability, filterCapability]);
+    const postgresAdapter = this.register(PostgresAdapter, [env]);
+    const adapterService = this.register(AdapterService, [
       fileSystemAdapter,
       compressionAdapter,
       encryptionAdapter,
@@ -56,34 +53,28 @@ export class ServerRegistry {
       scriptAdapter,
       s3Adapter,
       postgresAdapter,
-    ));
+    ]);
+
+    // Events bus
+    const eventBus = this.register(EventBus, []);
 
     // Repositories
-    const configurationRepository = (this.registry[ConfigurationRepository.name] = new ConfigurationRepository(env));
-    const pipelineRepository = (this.registry[PipelineRepository.name] = new PipelineRepository(configurationRepository));
-    const executionRepository = (this.registry[ExecutionRepository.name] = new ExecutionRepository(sqlite));
-    const scheduleRepository = (this.registry[ScheduleRepository.name] = new ScheduleRepository(configurationRepository, sqlite));
+    const configurationRepository = this.register(ConfigurationRepository, [env]);
+    const pipelineRepository = this.register(PipelineRepository, [configurationRepository]);
+    const executionRepository = this.register(ExecutionRepository, [sqlite]);
+    const scheduleRepository = this.register(ScheduleRepository, [configurationRepository, sqlite]);
 
     // Services
-    const stepService = (this.registry[StepService.name] = new StepService());
-    const configurationService = (this.registry[ConfigurationService.name] = new ConfigurationService(configurationRepository));
-    const pipelineService = (this.registry[PipelineService.name] = new PipelineService(
-      pipelineRepository,
-      executionRepository,
-      stepService,
-    ));
-    const executionService = (this.registry[ExecutionService.name] = new ExecutionService(
-      env,
-      executionRepository,
-      pipelineRepository,
-      adapterService,
-    ));
-    const restrictedService = (this.registry[RestrictedService.name] = new RestrictedService(pipelineRepository));
-    this.registry[ScheduleService.name] = new ScheduleService(scheduleRepository, executionService);
-    this.registry[CleanupService.name] = new CleanupService(env);
+    const stepService = this.register(StepService, []);
+    const configurationService = this.register(ConfigurationService, [configurationRepository]);
+    const pipelineService = this.register(PipelineService, [eventBus, pipelineRepository, executionRepository, stepService]);
+    const executionService = this.register(ExecutionService, [env, executionRepository, pipelineRepository, adapterService]);
+    const restrictedService = this.register(RestrictedService, [sqlite, configurationRepository]);
+    this.register(ScheduleService, [eventBus, scheduleRepository, executionService]);
+    this.register(CleanupService, [env]);
 
     // Server
-    this.registry[Server.name] = new Server(env, stepService, pipelineService, executionService, restrictedService, configurationService);
+    this.register(Server, [env, stepService, pipelineService, executionService, restrictedService, configurationService]);
   }
 
   public get<T>(klass: Class<T>): T {
@@ -92,5 +83,11 @@ export class ServerRegistry {
       throw new Error(`No registration for ${klass.name}`);
     }
     return result;
+  }
+
+  private register<C extends Class>(Klass: C, parameters: ConstructorParameters<C>): InstanceType<C> {
+    const instance: InstanceType<C> = new Klass(...parameters);
+    this.registry[Klass.name] = instance;
+    return instance;
   }
 }
