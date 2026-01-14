@@ -1,7 +1,7 @@
 import { ZodParser } from "@/helpers/ZodParser";
 import z from "zod/v4";
-import { Configuration } from "../Configuration";
-import { Execution } from "../Execution";
+import { Configuration } from "@/models/Configuration";
+import { Execution } from "@/models/Execution";
 
 export type ServerMessage =
   | ServerMessage.ExecutionUpdate //

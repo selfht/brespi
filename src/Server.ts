@@ -5,7 +5,7 @@ import index from "@/website/index.html";
 import { ErrorLike } from "bun";
 import { Generate } from "./helpers/Generate";
 import { Execution } from "./models/Execution";
-import { Socket } from "./models/socket/Socket";
+import { Socket } from "./socket/Socket";
 import { ExecutionService } from "./services/ExecutionService";
 import { PipelineService } from "./services/PipelineService";
 import { StepService } from "./services/StepService";

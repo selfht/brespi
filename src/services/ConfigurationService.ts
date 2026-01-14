@@ -1,6 +1,6 @@
 import { Configuration } from "@/models/Configuration";
-import { ServerMessage } from "@/models/socket/ServerMessage";
-import { Socket } from "@/models/socket/Socket";
+import { ServerMessage } from "@/socket/ServerMessage";
+import { Socket } from "@/socket/Socket";
 import { ConfigurationRepository } from "@/repositories/ConfigurationRepository";
 
 export class ConfigurationService {

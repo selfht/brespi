@@ -1,5 +1,5 @@
 import { Generate } from "@/helpers/Generate";
-import { ServerMessage } from "@/models/socket/ServerMessage";
+import { ServerMessage } from "@/socket/ServerMessage";
 
 type Subscription = {
   id: string;

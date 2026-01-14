@@ -4,7 +4,7 @@ import { Execution } from "@/models/Execution";
 import { Outcome } from "@/models/Outcome";
 import { Pipeline } from "@/models/Pipeline";
 import { ProblemDetails } from "@/models/ProblemDetails";
-import { ServerMessage } from "@/models/socket/ServerMessage";
+import { ServerMessage } from "@/socket/ServerMessage";
 import { Step } from "@/models/Step";
 import { PipelineView } from "@/views/PipelineView";
 import { Temporal } from "@js-temporal/polyfill";

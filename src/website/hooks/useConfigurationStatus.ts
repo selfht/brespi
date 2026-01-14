@@ -1,4 +1,4 @@
-import { ServerMessage } from "@/models/socket/ServerMessage";
+import { ServerMessage } from "@/socket/ServerMessage";
 import { useEffect, useState } from "react";
 import { ConfigurationClient } from "../clients/ConfigurationClient";
 import { SocketClient } from "../clients/SocketClient";
