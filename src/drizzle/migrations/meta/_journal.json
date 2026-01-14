@@ -20,7 +20,7 @@
       "idx": 2,
       "version": "6",
       "when": 1768323893589,
-      "tag": "0002_create_inactive_schedule_table",
+      "tag": "0002_create_schedule_metadata_table",
       "breakpoints": true
     }
   ]

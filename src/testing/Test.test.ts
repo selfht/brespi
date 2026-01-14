@@ -1,7 +1,7 @@
 import { AdapterService } from "@/adapters/AdapterService";
 import { FilterCapability } from "@/capabilities/filter/FilterCapability";
 import { ManagedStorageCapability } from "@/capabilities/managedstorage/ManagedStorageCapability";
-import { $execution, $inactiveSchedule } from "@/drizzle/schema";
+import { $execution, $scheduleMetadata } from "@/drizzle/schema";
 import { initializeSqlite } from "@/drizzle/sqlite";
 import { Env } from "@/Env";
 import { Artifact } from "@/models/Artifact";
@@ -173,7 +173,7 @@ export namespace Test {
           super(MockRegistry.configurationRepository, sqlite);
         }
         public async removeAll(): Promise<void> {
-          await sqlite.delete($inactiveSchedule);
+          await sqlite.delete($scheduleMetadata);
         }
       })();
 
@@ -205,6 +205,7 @@ export namespace Test {
     cleanupTasks["mock_registry_repositories_clear"] = () => {
       MockRegistry.pipelineRepository.removeAll();
       MockRegistry.executionRepository.removeAll();
+      MockRegistry.scheduleRepository.removeAll();
     };
     return MockRegistry;
   }

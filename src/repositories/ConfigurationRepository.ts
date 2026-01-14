@@ -1,7 +1,6 @@
 import { Env } from "@/Env";
 import { Mutex } from "@/helpers/Mutex";
 import { Configuration } from "@/models/Configuration";
-import { CoreConfiguration } from "@/models/CoreConfiguration";
 
 type SynchronizationChangeListener = (conf: Configuration) => unknown;
 
@@ -12,7 +11,7 @@ export class ConfigurationRepository {
     | { mode: "in_memory" } //
     | { mode: "on_disk"; diskFile: Bun.BunFile };
 
-  private memoryObject?: CoreConfiguration;
+  private memoryObject?: Configuration.Core;
   private memoryObjectMatchesDiskFile: boolean = true; // by definition, this will initially be true
 
   private readonly synchronizationChangeListeners: SynchronizationChangeListener[] = [];
@@ -50,12 +49,12 @@ export class ConfigurationRepository {
   }
 
   // TODO: rollback in `finally` if there's an error? make this method atomic?
-  public async write<T extends { configuration: CoreConfiguration }>(fn: (configuration: Configuration) => T | Promise<T>): Promise<T> {
+  public async write<T extends { configuration: Configuration.Core }>(fn: (configuration: Configuration) => T | Promise<T>): Promise<T> {
     const { release } = await this.mutex.acquire();
     try {
       const input = await this.getCurrentValueOrInitialize();
       const output = await fn(input);
-      this.memoryObject = CoreConfiguration.parse(output.configuration);
+      this.memoryObject = Configuration.Core.parse(output.configuration);
 
       const oldMemoryObjectMatchesDiskFile = this.memoryObjectMatchesDiskFile;
       this.memoryObjectMatchesDiskFile = await this.compareMemoryObjectWithDiskFile(this.memoryObject);
@@ -77,7 +76,7 @@ export class ConfigurationRepository {
   private async getCurrentValueOrInitialize(): Promise<Configuration> {
     if (!this.memoryObject) {
       if (this.storage.mode === "in_memory") {
-        this.memoryObject = CoreConfiguration.empty();
+        this.memoryObject = Configuration.Core.empty();
       } else {
         this.memoryObject = await this.readDiskConfiguration(this.storage);
       }
@@ -88,7 +87,7 @@ export class ConfigurationRepository {
     };
   }
 
-  private async compareMemoryObjectWithDiskFile(inMemory: CoreConfiguration): Promise<boolean> {
+  private async compareMemoryObjectWithDiskFile(inMemory: Configuration.Core): Promise<boolean> {
     if (this.storage.mode === "on_disk") {
       const onDiskValue = await this.readDiskConfiguration(this.storage);
       return Bun.deepEquals(inMemory, onDiskValue);
@@ -102,8 +101,8 @@ export class ConfigurationRepository {
   private async readDiskConfiguration({ diskFile }: Extract<typeof this.storage, { mode: "on_disk" }>) {
     if (await diskFile.exists()) {
       const json = await diskFile.json();
-      return CoreConfiguration.parse(json);
+      return Configuration.Core.parse(json);
     }
-    return CoreConfiguration.empty();
+    return Configuration.Core.empty();
   }
 }

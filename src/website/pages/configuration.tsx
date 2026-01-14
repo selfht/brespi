@@ -1,4 +1,4 @@
-import { CoreConfiguration } from "@/models/CoreConfiguration";
+import { Configuration } from "@/models/Configuration";
 import { ProblemDetails } from "@/models/ProblemDetails";
 import { ConfigurationClient } from "../clients/ConfigurationClient";
 import { ErrorDump } from "../comps/ErrorDump";
@@ -13,8 +13,8 @@ export function configuration() {
   useDocumentTitle("Configuration | Brespi");
 
   const configurationClient = useRegistry(ConfigurationClient);
-  const query = useYesQuery<CoreConfiguration, ProblemDetails>({
-    queryFn: () => configurationClient.get().then(CoreConfiguration.parse),
+  const query = useYesQuery<Configuration.Core, ProblemDetails>({
+    queryFn: () => configurationClient.get("core"),
   });
 
   return (

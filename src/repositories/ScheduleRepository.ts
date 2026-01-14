@@ -1,9 +1,10 @@
-import { Schedule } from "@/models/Schedule";
-import { ConfigurationRepository } from "./ConfigurationRepository";
-import { ScheduleError } from "@/errors/ScheduleError";
+import { $scheduleMetadata } from "@/drizzle/schema";
 import { Sqlite } from "@/drizzle/sqlite";
-import { $inactiveSchedule } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
+import { ScheduleError } from "@/errors/ScheduleError";
+import { Schedule } from "@/models/Schedule";
+import { eq, inArray } from "drizzle-orm";
+import { ConfigurationRepository } from "./ConfigurationRepository";
+import { ScheduleMetadataConverter } from "./converters/ScheduleMetadataConverter";
 
 export class ScheduleRepository {
   public constructor(
@@ -13,11 +14,7 @@ export class ScheduleRepository {
 
   public async list(): Promise<Schedule[]> {
     const { schedules } = await this.configuration.read();
-    const inactiveSchedules = await this.listInactive();
-    return schedules.map((s) => ({
-      ...s,
-      active: !inactiveSchedules.includes(s.id),
-    }));
+    return await this.joinMetadata(schedules);
   }
 
   public async create(schedule: Schedule): Promise<Schedule> {
@@ -33,9 +30,11 @@ export class ScheduleRepository {
         },
       };
     });
-    if (!schedule.active) {
-      await this.markInactive(schedule.id);
-    }
+    await this.createMetadata({
+      id: result.id,
+      object: "schedule.metadata",
+      active: result.active,
+    });
     return result;
   }
 
@@ -48,16 +47,13 @@ export class ScheduleRepository {
       if (!existingCore) {
         throw ScheduleError.not_found({ id: id });
       }
-      const existing: Schedule = {
-        ...existingCore,
-        active: await this.isActive(existingCore.id),
-      };
+      const existing = await this.joinMetadata(existingCore);
       const updated: Schedule = typeof scheduleOrId === "string" ? await fn!(existing) : scheduleOrId;
-      if (updated.active) {
-        await this.markActive(id);
-      } else {
-        await this.markInactive(id);
-      }
+      await this.updateMetadata({
+        id: updated.id,
+        object: "schedule.metadata",
+        active: updated.active,
+      });
       return {
         result: updated,
         configuration: {
@@ -80,10 +76,7 @@ export class ScheduleRepository {
       if (!existingCore) {
         throw ScheduleError.not_found({ id });
       }
-      const existing: Schedule = {
-        ...existingCore,
-        active: await this.isActive(existingCore.id),
-      };
+      const existing = await this.joinMetadata(existingCore);
       return {
         result: existing,
         configuration: {
@@ -92,27 +85,47 @@ export class ScheduleRepository {
         },
       };
     });
-    await this.markActive(id);
+    await this.deleteMetadata(id);
     return result;
   }
 
-  private async listInactive(): Promise<string[]> {
-    return await this.sqlite.query.$inactiveSchedule.findMany().then((rows) => rows.map(({ id }) => id));
+  private async joinMetadata(schedule: Schedule.Core): Promise<Schedule>;
+  private async joinMetadata(schedules: Schedule.Core[]): Promise<Schedule[]>;
+  private async joinMetadata(singleOrPlural: Schedule.Core | Schedule.Core[]): Promise<Schedule | Schedule[]> {
+    const coreSchedules: Schedule.Core[] = Array.isArray(singleOrPlural) ? singleOrPlural : [singleOrPlural];
+    const metadatas = await this.sqlite.query.$scheduleMetadata
+      .findMany({
+        where: inArray(
+          $scheduleMetadata.id,
+          coreSchedules.map(({ id }) => id),
+        ),
+      })
+      .then((data) => data.map(ScheduleMetadataConverter.convert));
+    const schedules = coreSchedules.map<Schedule>((s) => {
+      const meta = metadatas.find((m) => m.id === s.id);
+      if (!meta) {
+        throw new Error(`Missing schedule metadata; id=${s.id}`);
+      }
+      return {
+        ...s,
+        active: meta.active,
+      };
+    });
+    return schedules;
   }
 
-  private async isActive(id: string): Promise<boolean> {
-    return !Boolean(
-      await this.sqlite.query.$inactiveSchedule.findFirst({
-        where: eq($inactiveSchedule.id, id),
-      }),
-    );
+  private async createMetadata(metadata: Schedule.Metadata): Promise<void> {
+    await this.sqlite.insert($scheduleMetadata).values(ScheduleMetadataConverter.convert(metadata));
   }
 
-  private async markActive(id: string): Promise<void> {
-    await this.sqlite.delete($inactiveSchedule).where(eq($inactiveSchedule.id, id));
+  private async updateMetadata(metadata: Schedule.Metadata): Promise<void> {
+    await this.sqlite
+      .update($scheduleMetadata)
+      .set(ScheduleMetadataConverter.convert(metadata))
+      .where(eq($scheduleMetadata.id, metadata.id));
   }
 
-  private async markInactive(id: string): Promise<void> {
-    await this.sqlite.insert($inactiveSchedule).values({ id });
+  private async deleteMetadata(id: string): Promise<void> {
+    await this.sqlite.delete($scheduleMetadata).where(eq($scheduleMetadata.id, id));
   }
 }
