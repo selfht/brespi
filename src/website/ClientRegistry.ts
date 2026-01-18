@@ -8,6 +8,7 @@ import { PipelineClient } from "./clients/PipelineClient";
 import { SocketClient } from "./clients/SocketClient";
 import { StepClient } from "./clients/StepClient.ts";
 import { ConfigurationClient } from "./clients/ConfigurationClient";
+import { ScheduleClient } from "./clients/ScheduleClient";
 
 export class ClientRegistry {
   /**
@@ -35,6 +36,7 @@ export class ClientRegistry {
     this.registry[StepClient.name] = new StepClient(yesttp);
     this.registry[PipelineClient.name] = new PipelineClient(yesttp);
     this.registry[PipelineClient.name] = new PipelineClient(yesttp);
+    this.registry[ScheduleClient.name] = new ScheduleClient(yesttp);
     this.registry[ExecutionClient.name] = new ExecutionClient(yesttp);
     this.registry[ConfigurationClient.name] = new ConfigurationClient(yesttp);
   }

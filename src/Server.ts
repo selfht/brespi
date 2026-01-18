@@ -13,6 +13,8 @@ import { RestrictedService } from "./services/RestrictedService";
 import { StepService } from "./services/StepService";
 import { Socket } from "./socket/Socket";
 import { PipelineView } from "./views/PipelineView";
+import { ScheduleService } from "./services/ScheduleService";
+import { Schedule } from "./models/Schedule";
 
 export class Server {
   private static readonly SOCKET_ENDPOINT = "/socket";
@@ -22,6 +24,7 @@ export class Server {
     private readonly stepService: StepService,
     private readonly pipelineService: PipelineService,
     private readonly executionService: ExecutionService,
+    private readonly scheduleService: ScheduleService,
     private readonly restrictedService: RestrictedService,
     private readonly configurationService: ConfigurationService,
   ) {}
@@ -143,6 +146,30 @@ export class Server {
           GET: async (request) => {
             const execution: Execution = await this.executionService.find(request.params.id);
             return Response.json(execution);
+          },
+        },
+
+        /**
+         * Schedules
+         */
+        "/api/schedules": {
+          GET: async () => {
+            const schedules: Schedule[] = await this.scheduleService.list();
+            return Response.json(schedules);
+          },
+          POST: async (request) => {
+            const schedule: Schedule = await this.scheduleService.create(await request.json());
+            return Response.json(schedule);
+          },
+        },
+        "/api/schedules/:id": {
+          PUT: async (request) => {
+            const schedule: Schedule = await this.scheduleService.update(request.params.id, await request.json());
+            return Response.json(schedule);
+          },
+          DELETE: async (request) => {
+            const schedule: Schedule = await this.scheduleService.delete(request.params.id);
+            return Response.json(schedule);
           },
         },
 

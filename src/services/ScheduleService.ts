@@ -26,6 +26,10 @@ export class ScheduleService {
     schedules.forEach((schedule) => this.start(schedule));
   }
 
+  public async list(): Promise<Schedule[]> {
+    return await this.repository.list();
+  }
+
   public async create(unknown: z.output<typeof ScheduleService.Create>): Promise<Schedule> {
     const { pipelineId, active, cron } = ScheduleService.Create.parse(unknown);
     const result = await this.repository.create({

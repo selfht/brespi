@@ -23,7 +23,6 @@ export function pipelines() {
   const query = useYesQuery<Internal.PipelineVisualization[], ProblemDetails>({
     queryFn: () =>
       pipelineClient.query().then<Internal.PipelineVisualization[]>((pipelines) => [
-        ...pipelines.map(Internal.convertToVisualization),
         {
           link: "/pipelines/new",
           title: "New Pipeline ...",
@@ -31,6 +30,7 @@ export function pipelines() {
           squareIcon: "new",
           currentlyExecutingId: null,
         },
+        ...pipelines.map(Internal.convertToVisualization),
       ]),
   });
 
@@ -60,6 +60,7 @@ export function pipelines() {
               key={link}
               to={link}
               className={clsx("flex items-center gap-6 hover:bg-c-dim/20 p-6", {
+                "border-t border-c-dim/20": index > 0,
                 "rounded-t-2xl": index === 0,
                 "rounded-b-2xl": index + 1 === length,
               })}
