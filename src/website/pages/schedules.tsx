@@ -1,13 +1,12 @@
 import { Schedule } from "@/models/Schedule";
 import { PipelineView } from "@/views/PipelineView";
-import { Temporal } from "@js-temporal/polyfill";
 import clsx from "clsx";
-import { Cron } from "croner";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { PipelineClient } from "../clients/PipelineClient";
 import { ScheduleClient } from "../clients/ScheduleClient";
 import { Button } from "../comps/Button";
+import { CronEvaluations } from "../comps/CronEvaluations";
 import { ErrorDump } from "../comps/ErrorDump";
 import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
@@ -15,7 +14,6 @@ import { Spinner } from "../comps/Spinner";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRegistry } from "../hooks/useRegistry";
 import { useYesQuery } from "../hooks/useYesQuery";
-import { Prettify } from "@/helpers/Prettify";
 
 const mockData: Array<Schedule & { pipelineName: string; nextCronEvaluation: string }> = [
   {
@@ -52,23 +50,6 @@ export function schedules() {
       })),
   });
 
-  useEffect(() => {
-    // recalculate the `next evaluation` for each cron
-    const token = setInterval(() => {
-      const data = query.getData();
-      if (data?.schedules.length) {
-        query.setData({
-          ...data,
-          schedules: data.schedules.map((schedule) => ({
-            ...schedule,
-            nextCronEvaluation: Internal.calculateNextCronEvaluation(schedule.cron),
-          })),
-        });
-      }
-    }, 1000);
-    return () => clearInterval(token);
-  }, []);
-
   const className = clsx(
     "grid grid-cols-[88px_minmax(220px,3fr)_minmax(180px,1.5fr)_minmax(100px,2fr)_80px]",
     "items-center p-6",
@@ -87,6 +68,7 @@ export function schedules() {
           </div>
         ) : (
           <>
+            <CronEvaluations expression="* * * * * *" />
             {/* Header */}
             <div className={clsx(className, "border-none rounded-t-2xl bg-[rgb(20,20,20)] text-lg")}>
               <div>Active</div>
@@ -119,7 +101,7 @@ export function schedules() {
             )}
             {/* Data */}
             {query.data.schedules.map((schedule, index, { length }) => {
-              const { id, pipelineId, pipelineName, cron, nextCronEvaluations, active } = schedule;
+              const { id, pipelineId, pipelineName, cron, active } = schedule;
               if (editing && typeof editing !== "string" && editing.id === schedule.id) {
                 return (
                   <ScheduleEditor
@@ -141,13 +123,10 @@ export function schedules() {
                     <div className="truncate text-c-dim">{pipelineId}</div>
                   </div>
                   <div className="font-mono truncate">{cron}</div>
-                  <div className={clsx("truncate", !active && "text-c-dim line-through decoration-c-error")}>
-                    {nextCronEvaluations.map((nextCronEvaluation, index) => (
-                      <div key={nextCronEvaluation.toString()} style={{ opacity: 1 - index * 0.1 }}>
-                        {Prettify.timestamp(nextCronEvaluation)}
-                      </div>
-                    ))}
-                  </div>
+                  <CronEvaluations
+                    expression={cron}
+                    className={clsx("truncate", !active && "text-c-dim line-through decoration-c-error")}
+                  />
                   <div className="flex justify-end">
                     <Button
                       onClick={() => setEditing(schedule)}
@@ -170,7 +149,6 @@ export function schedules() {
 export namespace Internal {
   export type ScheduleVisualization = Schedule & {
     pipelineName: string;
-    nextCronEvaluations: Temporal.PlainDateTime[];
   };
   export function convertToVisualization(schedule: Schedule, pipelines: PipelineView[]): ScheduleVisualization {
     const pipeline = pipelines.find((p) => p.id === schedule.pipelineId);
@@ -180,25 +158,7 @@ export namespace Internal {
     return {
       ...schedule,
       pipelineName: pipeline.name,
-      nextCronEvaluations: calculateNextCronEvaluation(schedule.cron),
     };
-  }
-  export function tryCalculateNextCronEvaluation(cronExpression: string): Temporal.PlainDateTime[] | undefined {
-    try {
-      return calculateNextCronEvaluation(cronExpression);
-    } catch (e) {
-      return undefined; // invalid cron
-    }
-  }
-  export function calculateNextCronEvaluation(cronExpression: string): Temporal.PlainDateTime[] {
-    const cron = new Cron(cronExpression.trim());
-    try {
-      const now = Temporal.Now.plainDateTimeISO();
-      const nowMillis = Date.now();
-      return cron.nextRuns(3).map((date) => now.add({ milliseconds: date.getTime() - nowMillis }));
-    } finally {
-      cron.stop();
-    }
   }
 }
 
@@ -233,8 +193,6 @@ function ScheduleEditor({ className, existing, onClose }: Props) {
   };
 
   const cron = watch(Field.cron);
-  const nextCronEvaluations = Internal.tryCalculateNextCronEvaluation(cron);
-
   return (
     <fieldset disabled={formState.isSubmitting} className={clsx(className, "border-t border-b border-c-info bg-black")}>
       <select
@@ -256,13 +214,7 @@ function ScheduleEditor({ className, existing, onClose }: Props) {
         className="font-mono p-2 -ml-3 mr-10 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
         {...register(Field.cron)}
       />
-      <div className="flex flex-col items-start gap-1">
-        {nextCronEvaluations?.map((nextCronEvaluation, index) => (
-          <div key={nextCronEvaluation.toString()} style={{ opacity: 1 - index * 0.2 }}>
-            {Prettify.timestamp(nextCronEvaluation)}
-          </div>
-        ))}
-      </div>
+      <CronEvaluations expression={cron} />
       <div className="flex flex-col items-end gap-1">
         <Button className="border-none font-normal text-c-success hover:text-white" onClick={handleSubmit(save)}>
           Save
