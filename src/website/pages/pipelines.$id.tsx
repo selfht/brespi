@@ -78,7 +78,9 @@ export function pipelines_$id() {
   );
 
   useDocumentTitle(
-    pipelineQuery.data ? `${pipelineQuery.data === "new" ? "New" : pipelineQuery.data.name} | Pipelines | Brespi` : "Pipelines | Brespi",
+    pipelineQuery.data
+      ? `${pipelineQuery.data === "new" ? "New" : pipelineQuery.data.name} | Pipelines | Brespi` //
+      : "Pipelines | Brespi",
   );
 
   /**
@@ -164,7 +166,7 @@ export function pipelines_$id() {
          */
         socketClient.pauseAndBuffer(socketSubscriptionRef.current!);
         const lastExecution = await executionClient.create({ pipelineId: id! });
-        executionsQuery.setData([...(executionsQuery.getData() || []), lastExecution].sort(Execution.sort));
+        executionsQuery.setData([lastExecution, ...(executionsQuery.getData() || [])]);
         selectExecution(lastExecution.id);
       } finally {
         socketClient.continueAndDrain(socketSubscriptionRef.current!);
@@ -180,15 +182,20 @@ export function pipelines_$id() {
       callback({ execution: newExecution }) {
         const executions = executionsQuery.getData() || [];
         const oldExecution = executions.find(({ id }) => id === selectedExecutionIdRef.current);
-        // Update the local overview
-        executionsQuery.setData(
-          executions.map((e) => {
-            if (e.id === newExecution.id) {
-              return newExecution;
-            }
-            return e;
-          }),
-        );
+        // Update the local overview (create or prepend, if new)
+        const alreadyExistsInOverview = executions.some((e) => e.id === newExecution.id);
+        if (alreadyExistsInOverview) {
+          executionsQuery.setData(
+            executions.map((e) => {
+              if (e.id === newExecution.id) {
+                return newExecution;
+              }
+              return e;
+            }),
+          );
+        } else {
+          executionsQuery.setData([newExecution, ...executions]);
+        }
         // Update the canvas
         if (oldExecution && selectedExecutionIdRef.current === newExecution.id) {
           const { differingActions } = Internal.extractDifferingActions({ oldExecution, newExecution });

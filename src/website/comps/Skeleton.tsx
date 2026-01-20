@@ -24,7 +24,6 @@ export namespace Skeleton {
     const navigationLinks = [
       { title: "Pipelines", link: "/pipelines", rounding: "left" },
       { title: "Schedules", link: "/schedules", rounding: undefined },
-      { title: "Policies", link: "/policies", rounding: undefined },
       { title: "Configuration", link: "/configuration", rounding: "right" },
     ] as const;
 
@@ -45,7 +44,10 @@ export namespace Skeleton {
               <span className="relative text-lg">
                 {title}
                 {title === "Configuration" && !synchronized && (
-                  <div data-testid="conf-out-of-sync" className="absolute rounded-full size-2 bg-c-error -right-2 -top-1" />
+                  <div
+                    data-testid="conf-out-of-sync"
+                    className="absolute rounded-full size-4 border-2 border-c-dark bg-c-error -right-3 -top-1"
+                  />
                 )}
               </span>
             </Link>

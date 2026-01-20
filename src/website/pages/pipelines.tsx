@@ -1,12 +1,14 @@
 import { Prettify } from "@/helpers/Prettify";
 import { Outcome } from "@/models/Outcome";
 import { ProblemDetails } from "@/models/ProblemDetails";
+import { ServerMessage } from "@/socket/ServerMessage";
 import { PipelineView } from "@/views/PipelineView";
 import { Temporal } from "@js-temporal/polyfill";
 import clsx from "clsx";
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { PipelineClient } from "../clients/PipelineClient";
+import { SocketClient } from "../clients/SocketClient";
 import { ErrorDump } from "../comps/ErrorDump";
 import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
@@ -19,6 +21,7 @@ import { useYesQuery } from "../hooks/useYesQuery";
 export function pipelines() {
   useDocumentTitle("Pipelines | Brespi");
   const pipelineClient = useRegistry(PipelineClient);
+  const socketClient = useRegistry(SocketClient);
 
   const query = useYesQuery<Internal.PipelineVisualization[], ProblemDetails>({
     queryFn: () =>
@@ -34,6 +37,13 @@ export function pipelines() {
       ]),
   });
 
+  useEffect(() => {
+    const token = socketClient.subscribe({
+      type: ServerMessage.Type.execution_update,
+      callback: () => query.reload(),
+    });
+    return () => socketClient.unsubscribe(token);
+  }, []);
   const isSomePipelineExecuting = query.data?.some((pipeline) => pipeline.squareIcon === "loading") || false;
   useEffect(() => {
     const interval = Temporal.Duration.from({

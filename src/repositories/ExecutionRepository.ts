@@ -2,7 +2,7 @@ import { Sqlite } from "@/drizzle/sqlite";
 import { $action } from "@/drizzle/tables/$action";
 import { $execution } from "@/drizzle/tables/$execution";
 import { Execution } from "@/models/Execution";
-import { and, eq, isNotNull, isNull, SQL } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, SQL } from "drizzle-orm";
 import { ExecutionConverter } from "./converters/ExecutionConverter";
 
 export class ExecutionRepository {
@@ -13,6 +13,7 @@ export class ExecutionRepository {
       with: {
         actions: true,
       },
+      orderBy: [desc($execution.startedAt)],
     });
     return executions.map(ExecutionConverter.convert);
   }
@@ -27,6 +28,7 @@ export class ExecutionRepository {
       with: {
         actions: true,
       },
+      orderBy: [desc($execution.startedAt)],
     });
     return executions.map(ExecutionConverter.convert);
   }
@@ -39,9 +41,9 @@ export class ExecutionRepository {
         with: {
           actions: true,
         },
+        orderBy: [desc($execution.startedAt)],
       });
-      const converted = executions.map(ExecutionConverter.convert);
-      const mostRecent = converted.toSorted(Execution.sort)[0] || null;
+      const mostRecent = executions.map(ExecutionConverter.convert).at(0) || null;
       result.set(pipelineId, mostRecent);
     }
     return result;

@@ -13,7 +13,6 @@ describe("basics | page_titles", () => {
     const testCases: TestCase[] = [
       { url: "", expectation: { title: "Pipelines | Brespi" } },
       { url: "schedules", expectation: { title: "Schedules | Brespi" } },
-      { url: "policies", expectation: { title: "Policies | Brespi" } },
       { url: "configuration", expectation: { title: "Configuration | Brespi" } },
     ];
     for (const { url, expectation } of testCases) {

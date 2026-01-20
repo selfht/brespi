@@ -86,9 +86,9 @@ export function schedules() {
           <>
             {/* Header */}
             <div className={clsx(gridClassName, "border-none rounded-t-2xl bg-[rgb(20,20,20)] text-lg")}>
-              <div>Active</div>
-              <div>Pipeline</div>
-              <div>Cron</div>
+              <label htmlFor={Field.active}>Active</label>
+              <label htmlFor={Field.pipelineId}>Pipeline</label>
+              <label htmlFor={Field.cron}>Cron</label>
               <div>Next?</div>
               <div />
             </div>
@@ -246,15 +246,17 @@ function ScheduleEditor({ className, gridClassName, existing, pipelines, onSave,
     <div className={clsx(className, "border-t border-b border-c-info bg-black")}>
       <fieldset disabled={formState.isSubmitting} className={clsx(gridClassName)}>
         <select
-          {...register(Field.active)}
+          id={Field.active}
           className="-ml-1 text-xl p-2 w-16 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
+          {...register(Field.active)}
         >
           <option value="true">🟢</option>
           <option value="false">🔴</option>
         </select>
         <select
-          {...register(Field.pipelineId)}
+          id={Field.pipelineId}
           className="text-lg p-2 -ml-3 mr-10 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
+          {...register(Field.pipelineId)}
         >
           <option value="" disabled>
             Select a pipeline
@@ -266,6 +268,7 @@ function ScheduleEditor({ className, gridClassName, existing, pipelines, onSave,
           ))}
         </select>
         <input
+          id={Field.cron}
           type="text"
           className="font-mono p-2 -ml-3 mr-10 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
           placeholder="E.g.: 0 12 * * FRI"
