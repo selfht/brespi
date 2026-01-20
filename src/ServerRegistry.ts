@@ -11,19 +11,19 @@ import { FilterCapability } from "./capabilities/filter/FilterCapability";
 import { ManagedStorageCapability } from "./capabilities/managedstorage/ManagedStorageCapability";
 import { Sqlite } from "./drizzle/sqlite";
 import { Env } from "./Env";
+import { EventBus } from "./events/EventBus";
 import { ConfigurationRepository } from "./repositories/ConfigurationRepository";
 import { ExecutionRepository } from "./repositories/ExecutionRepository";
 import { PipelineRepository } from "./repositories/PipelineRepository";
+import { ScheduleRepository } from "./repositories/ScheduleRepository";
 import { Server } from "./Server";
 import { CleanupService } from "./services/CleanupService";
 import { ConfigurationService } from "./services/ConfigurationService";
 import { ExecutionService } from "./services/ExecutionService";
 import { PipelineService } from "./services/PipelineService";
 import { RestrictedService } from "./services/RestrictedService";
-import { StepService } from "./services/StepService";
-import { ScheduleRepository } from "./repositories/ScheduleRepository";
 import { ScheduleService } from "./services/ScheduleService";
-import { EventBus } from "./events/EventBus";
+import { StepService } from "./services/StepService";
 
 export class ServerRegistry {
   public static async bootstrap(env: Env.Private, sqlite: Sqlite): Promise<ServerRegistry> {
@@ -32,7 +32,10 @@ export class ServerRegistry {
 
   private readonly registry: Record<string, any> = {};
 
-  private constructor(env: Env.Private, sqlite: Sqlite) {
+  private constructor(
+    private readonly env: Env.Private,
+    private readonly sqlite: Sqlite,
+  ) {
     // Capabilities
     const filterCapability = this.register(FilterCapability, []);
     const managedStorageCapability = this.register(ManagedStorageCapability, []);
@@ -70,14 +73,23 @@ export class ServerRegistry {
     const pipelineService = this.register(PipelineService, [eventBus, pipelineRepository, executionRepository, stepService]);
     const executionService = this.register(ExecutionService, [env, executionRepository, pipelineRepository, adapterService]);
     const restrictedService = this.register(RestrictedService, [sqlite, configurationRepository]);
-    const scheduleService = this.register(ScheduleService, [eventBus, scheduleRepository, executionService]);
+    const scheduleService = this.register(ScheduleService, [eventBus, scheduleRepository, pipelineRepository, executionService]);
     this.register(CleanupService, [env]);
 
     // Server
     this.register(Server, [env, stepService, pipelineService, executionService, scheduleService, restrictedService, configurationService]);
   }
 
-  public get<T>(klass: Class<T>): T {
+  public get(sqlite: "sqlite"): Sqlite;
+  public get(env: "env"): Env.Private;
+  public get<T>(klass: Class<T>): T;
+  public get<T>(klass: "sqlite" | "env" | Class<T>): Sqlite | Env.Private | T {
+    if (klass === "sqlite") {
+      return this.sqlite;
+    }
+    if (klass === "env") {
+      return this.env;
+    }
     const result = this.registry[klass.name] as T;
     if (!result) {
       throw new Error(`No registration for ${klass.name}`);

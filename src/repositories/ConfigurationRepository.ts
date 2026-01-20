@@ -29,6 +29,21 @@ export class ConfigurationRepository {
     }
   }
 
+  public async initialize() {
+    const { release } = await this.mutex.acquire();
+    try {
+      if (!this.memoryObject) {
+        if (this.storage.mode === "in_memory") {
+          this.memoryObject = Configuration.Core.empty();
+        } else {
+          this.memoryObject = await this.readDiskConfiguration(this.storage);
+        }
+      }
+    } finally {
+      release();
+    }
+  }
+
   public subscribe(_event: "synchronization_change", listener: SynchronizationChangeListener) {
     this.synchronizationChangeListeners.push(listener);
   }
@@ -36,27 +51,23 @@ export class ConfigurationRepository {
   public async read<T = void>(): Promise<Configuration>;
   public async read<T = void>(fn: (configuration: Configuration) => T | Promise<T>): Promise<T>;
   public async read<T = void>(fn?: (configuration: Configuration) => T | Promise<T>): Promise<T> {
-    const { release } = await this.mutex.acquire();
-    try {
-      const configuration = await this.getCurrentValueOrInitialize();
-      if (fn) {
-        return await fn(configuration);
-      }
-      return configuration as T;
-    } finally {
-      release();
+    const configuration = await this.getCurrentValue();
+    if (fn) {
+      return await fn(configuration);
     }
+    return configuration as T;
   }
 
   // TODO: rollback in `finally` if there's an error? make this method atomic?
   public async write<T extends { configuration: Configuration.Core }>(fn: (configuration: Configuration) => T | Promise<T>): Promise<T> {
     const { release } = await this.mutex.acquire();
     try {
-      const input = await this.getCurrentValueOrInitialize();
+      const input = await this.getCurrentValue();
       const output = await fn(input);
       this.memoryObject = Configuration.Core.parse(output.configuration);
 
       const oldMemoryObjectMatchesDiskFile = this.memoryObjectMatchesDiskFile;
+
       this.memoryObjectMatchesDiskFile = await this.compareMemoryObjectWithDiskFile(this.memoryObject);
 
       if (oldMemoryObjectMatchesDiskFile !== this.memoryObjectMatchesDiskFile) {
@@ -73,13 +84,9 @@ export class ConfigurationRepository {
     }
   }
 
-  private async getCurrentValueOrInitialize(): Promise<Configuration> {
+  private async getCurrentValue(): Promise<Configuration> {
     if (!this.memoryObject) {
-      if (this.storage.mode === "in_memory") {
-        this.memoryObject = Configuration.Core.empty();
-      } else {
-        this.memoryObject = await this.readDiskConfiguration(this.storage);
-      }
+      throw new Error(`Please call \`${"initialize" satisfies keyof typeof this}\` on the configuration repository`);
     }
     return {
       ...this.memoryObject,

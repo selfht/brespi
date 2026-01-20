@@ -3,6 +3,7 @@ import { ServerError } from "@/errors/ServerError";
 import { EventBus } from "@/events/EventBus";
 import { ZodProblem } from "@/helpers/ZodIssues";
 import { Schedule } from "@/models/Schedule";
+import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { ScheduleRepository } from "@/repositories/ScheduleRepository";
 import { Cron } from "croner";
 import z from "zod/v4";
@@ -13,7 +14,8 @@ export class ScheduleService {
 
   public constructor(
     private readonly eventBus: EventBus,
-    private readonly repository: ScheduleRepository,
+    private readonly scheduleRepository: ScheduleRepository,
+    private readonly pipelineRepository: PipelineRepository,
     private readonly executionService: ExecutionService,
   ) {
     eventBus.subscribe("pipeline_deleted", ({ data: { pipeline } }) => {
@@ -22,20 +24,20 @@ export class ScheduleService {
   }
 
   public async initializeSchedules() {
-    const schedules = await this.repository.list();
+    const schedules = await this.scheduleRepository.list();
     schedules.forEach((schedule) => this.start(schedule));
   }
 
   public async list(): Promise<Schedule[]> {
-    return await this.repository.list();
+    return await this.scheduleRepository.list();
   }
 
-  public async create(unknown: z.output<typeof ScheduleService.Create>): Promise<Schedule> {
-    const { pipelineId, active, cron } = ScheduleService.Create.parse(unknown);
-    const result = await this.repository.create({
+  public async create(unknown: z.output<typeof ScheduleService.Upsert>): Promise<Schedule> {
+    const { pipelineId, active, cron } = ScheduleService.Upsert.parse(unknown);
+    const result = await this.scheduleRepository.create({
       id: Bun.randomUUIDv7(),
       object: "schedule",
-      pipelineId,
+      pipelineId: await this.ensureValidPipeline(pipelineId),
       active,
       cron: this.ensureValidCronExpression(cron),
     });
@@ -47,20 +49,15 @@ export class ScheduleService {
     return result;
   }
 
-  public async update(id: string, unknown: z.output<typeof ScheduleService.Update>): Promise<Schedule> {
-    const { pipelineId, active, cron } = ScheduleService.Update.parse(unknown);
-    const result = await this.repository.update(id, (schedule) => {
-      const result: Schedule = { ...schedule };
-      if (pipelineId !== undefined) {
-        result.pipelineId = pipelineId;
-      }
-      if (active !== undefined) {
-        result.active = active;
-      }
-      if (cron !== undefined) {
-        result.cron = this.ensureValidCronExpression(cron);
-      }
-      return schedule;
+  public async update(id: string, unknown: z.output<typeof ScheduleService.Upsert>): Promise<Schedule> {
+    const { pipelineId, active, cron } = ScheduleService.Upsert.parse(unknown);
+    const result = await this.scheduleRepository.update(id, async (schedule): Promise<Schedule> => {
+      return {
+        ...schedule,
+        pipelineId: await this.ensureValidPipeline(pipelineId),
+        active: active,
+        cron: this.ensureValidCronExpression(cron),
+      };
     });
     this.stop(id);
     this.start(result);
@@ -72,7 +69,7 @@ export class ScheduleService {
   }
 
   public async delete(id: string): Promise<Schedule> {
-    const result = await this.repository.remove(id);
+    const result = await this.scheduleRepository.remove(id);
     this.stop(id);
     this.eventBus.publish({
       type: "schedule_deleted",
@@ -82,10 +79,17 @@ export class ScheduleService {
   }
 
   private async deleteForPipeline(pipelineId: string) {
-    const schedules = await this.repository.query({ pipelineId });
+    const schedules = await this.scheduleRepository.query({ pipelineId });
     for (const { id } of schedules) {
       await this.delete(id);
     }
+  }
+
+  private async ensureValidPipeline(pipelineId: string): Promise<string> {
+    if (await this.pipelineRepository.findById(pipelineId)) {
+      return pipelineId;
+    }
+    throw ScheduleError.pipeline_not_found();
   }
 
   private ensureValidCronExpression(expression: string): string {
@@ -113,21 +117,11 @@ export class ScheduleService {
 }
 
 export namespace ScheduleService {
-  export const Create = z
+  export const Upsert = z
     .object({
       pipelineId: z.string(),
       active: z.boolean(),
       cron: z.string(),
-    })
-    .catch((e) => {
-      throw ServerError.invalid_request_body(ZodProblem.issuesSummary(e));
-    });
-
-  export const Update = z
-    .object({
-      pipelineId: z.string().optional(),
-      active: z.boolean().optional(),
-      cron: z.string().optional(),
     })
     .catch((e) => {
       throw ServerError.invalid_request_body(ZodProblem.issuesSummary(e));

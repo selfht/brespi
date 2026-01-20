@@ -34,6 +34,7 @@ export class PipelineService {
   public async create(unknown: z.output<typeof PipelineService.Upsert>): Promise<PipelineView> {
     const pipeline = this.validate({
       id: Bun.randomUUIDv7(),
+      object: "pipeline",
       ...PipelineService.Upsert.parse(unknown),
     });
     await this.pipelineRepository.create(pipeline);
@@ -47,6 +48,7 @@ export class PipelineService {
   public async update(id: string, unknown: z.output<typeof PipelineService.Upsert>): Promise<PipelineView> {
     const pipeline = this.validate({
       id,
+      object: "pipeline",
       ...PipelineService.Upsert.parse(unknown),
     });
     await this.pipelineRepository.update(pipeline);
@@ -109,7 +111,6 @@ export class PipelineService {
 export namespace PipelineService {
   export const Upsert = z
     .object({
-      object: z.literal("pipeline"),
       name: z.string(),
       steps: z.array(Step.parse.SCHEMA),
     })

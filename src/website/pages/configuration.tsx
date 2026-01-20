@@ -21,7 +21,7 @@ export function configuration() {
     <Skeleton>
       <Paper className="col-span-full p-6">
         {query.error ? (
-          <div className="p-6 text-center">
+          <div className="p-6">
             <ErrorDump error={query.error} />
           </div>
         ) : !query.data ? (

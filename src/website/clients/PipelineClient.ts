@@ -1,4 +1,5 @@
 import { Pipeline } from "@/models/Pipeline";
+import { OmitBetter } from "@/types/OmitBetter";
 import { PipelineView } from "@/views/PipelineView";
 import { Yesttp } from "yesttp";
 
@@ -15,14 +16,14 @@ export class PipelineClient {
     return PipelineView.parse(body);
   }
 
-  public async create(pipeline: Omit<Pipeline, "id">): Promise<PipelineView> {
+  public async create(pipeline: OmitBetter<Pipeline, "id" | "object">): Promise<PipelineView> {
     const { body } = await this.yesttp.post(`/pipelines`, {
       body: pipeline,
     });
     return PipelineView.parse(body);
   }
 
-  public async update(id: string, pipeline: Pipeline): Promise<PipelineView> {
+  public async update(id: string, pipeline: OmitBetter<Pipeline, "id" | "object">): Promise<PipelineView> {
     const { body } = await this.yesttp.put(`/pipelines/${id}`, {
       body: pipeline,
     });

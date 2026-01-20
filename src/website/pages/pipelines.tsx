@@ -47,7 +47,7 @@ export function pipelines() {
     <Skeleton>
       <Paper className="col-span-full">
         {query.error ? (
-          <div className="p-6 text-center">
+          <div className="p-6">
             <ErrorDump error={query.error} />
           </div>
         ) : !query.data ? (

@@ -1,3 +1,4 @@
+import { Pipeline } from "@/models/Pipeline";
 import { Schedule } from "@/models/Schedule";
 import { PipelineView } from "@/views/PipelineView";
 import clsx from "clsx";
@@ -11,30 +12,10 @@ import { ErrorDump } from "../comps/ErrorDump";
 import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
+import { FormHelper } from "../forms/FormHelper";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRegistry } from "../hooks/useRegistry";
 import { useYesQuery } from "../hooks/useYesQuery";
-
-const mockData: Array<Schedule & { pipelineName: string; nextCronEvaluation: string }> = [
-  {
-    id: Math.random().toString(),
-    object: "schedule",
-    pipelineId: Math.random().toString(),
-    pipelineName: "Storage Read",
-    cron: "0 3 * * *",
-    nextCronEvaluation: "Tomorrow 03:00",
-    active: true,
-  },
-  {
-    id: Math.random().toString(),
-    object: "schedule",
-    pipelineId: Math.random().toString(),
-    pipelineName: "Backup Everything",
-    cron: "* * 10 * *",
-    nextCronEvaluation: "Sometime with 10 in it",
-    active: false,
-  },
-];
 
 export function schedules() {
   useDocumentTitle("Schedules | Brespi");
@@ -50,16 +31,52 @@ export function schedules() {
       })),
   });
 
-  const className = clsx(
-    "grid grid-cols-[88px_minmax(220px,3fr)_minmax(180px,1.5fr)_minmax(100px,2fr)_80px]",
+  const gridClassName = clsx(
+    "grid grid-cols-[88px_minmax(220px,3fr)_minmax(180px,2fr)_minmax(100px,2fr)_80px]",
     "items-center p-6",
     "border-t border-c-dim/20",
   );
+  const editorCallbacks: Pick<Props, "onSave" | "onDelete" | "onCancel"> = {
+    onSave(schedule) {
+      const data = query.getData()!;
+      if (data.schedules.some((s) => s.id === schedule.id)) {
+        // update
+        console.log("Update");
+        query.setData({
+          ...data,
+          schedules: data.schedules.map((s) => {
+            if (s.id === schedule.id) {
+              return Internal.convertToVisualization(schedule, data.pipelines);
+            }
+            return s;
+          }),
+        });
+      } else {
+        // create
+        query.setData({
+          ...data,
+          schedules: [Internal.convertToVisualization(schedule, data.pipelines), ...data.schedules],
+        });
+      }
+      setEditing(undefined);
+    },
+    onDelete(schedule) {
+      const data = query.getData()!;
+      query.setData({
+        ...data,
+        schedules: data.schedules.filter((s) => s.id !== schedule.id),
+      });
+      setEditing(undefined);
+    },
+    onCancel() {
+      setEditing(undefined);
+    },
+  };
   return (
     <Skeleton>
       <Paper className="col-span-full">
         {query.error ? (
-          <div className="p-6 text-center">
+          <div className="p-6">
             <ErrorDump error={query.error} />
           </div>
         ) : !query.data ? (
@@ -68,9 +85,8 @@ export function schedules() {
           </div>
         ) : (
           <>
-            <CronEvaluations expression="* * * * * *" />
             {/* Header */}
-            <div className={clsx(className, "border-none rounded-t-2xl bg-[rgb(20,20,20)] text-lg")}>
+            <div className={clsx(gridClassName, "border-none rounded-t-2xl bg-[rgb(20,20,20)] text-lg")}>
               <div>Active</div>
               <div>Pipeline</div>
               <div>Cron</div>
@@ -79,14 +95,16 @@ export function schedules() {
             </div>
             {editing === "new" ? (
               <ScheduleEditor
-                className={clsx(className, query.data.schedules.length === 0 && "rounded-b-2xl")}
-                onClose={() => setEditing(undefined)}
+                className={clsx(query.data.schedules.length === 0 && "rounded-b-2xl")}
+                gridClassName={gridClassName}
+                pipelines={query.data.pipelines}
+                {...editorCallbacks}
               />
             ) : (
               <button
                 disabled={Boolean(editing)}
                 onClick={() => setEditing("new")}
-                className={clsx(className, "w-full cursor-pointer not-disabled:hover:bg-c-dim/20", {
+                className={clsx(gridClassName, "w-full cursor-pointer not-disabled:hover:bg-c-dim/20", {
                   "cursor-not-allowed!": editing,
                   "pb-8!": query.data.schedules.length === 0,
                 })}
@@ -105,28 +123,27 @@ export function schedules() {
               if (editing && typeof editing !== "string" && editing.id === schedule.id) {
                 return (
                   <ScheduleEditor
-                    className={clsx(className, index + 1 === length && "rounded-b-2xl")}
+                    gridClassName={gridClassName}
+                    className={clsx(index + 1 === length && "rounded-b-2xl")}
                     existing={schedule}
-                    onClose={() => setEditing(undefined)}
+                    pipelines={query.data!.pipelines}
+                    {...editorCallbacks}
                   />
                 );
               }
               return (
-                <div key={id} className={clsx(className, "border-t border-c-dim/20")}>
+                <div key={id} className={clsx(gridClassName, "border-t border-c-dim/20")}>
                   <div>
                     <div className="inline-flex items-center pl-3">
                       <span className={clsx("h-5 w-5 rounded-full", active ? "bg-c-success" : "bg-c-error")} />
                     </div>
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 mr-5">
                     <div className="truncate text-lg font-medium">{pipelineName}</div>
                     <div className="truncate text-c-dim">{pipelineId}</div>
                   </div>
-                  <div className="font-mono truncate">{cron}</div>
-                  <CronEvaluations
-                    expression={cron}
-                    className={clsx("truncate", !active && "text-c-dim line-through decoration-c-error")}
-                  />
+                  <div className="truncate font-mono">{cron}</div>
+                  <CronEvaluations expression={cron} className={clsx(!active && "text-c-dim line-through decoration-c-error")} />
                   <div className="flex justify-end">
                     <Button
                       onClick={() => setEditing(schedule)}
@@ -164,8 +181,12 @@ export namespace Internal {
 
 type Props = {
   className?: string;
+  gridClassName: string;
   existing?: Schedule;
-  onClose?: () => unknown;
+  pipelines: Pipeline[];
+  onSave: (schedule: Schedule) => unknown;
+  onDelete: (schedule: Schedule) => unknown;
+  onCancel: () => unknown;
 };
 enum Field {
   pipelineId = "pipelineId",
@@ -177,57 +198,96 @@ type Form = {
   [Field.active]: "true" | "false";
   [Field.cron]: string;
 };
-function ScheduleEditor({ className, existing, onClose }: Props) {
+function ScheduleEditor({ className, gridClassName, existing, pipelines, onSave, onDelete, onCancel }: Props) {
+  const scheduleClient = useRegistry(ScheduleClient);
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.pipelineId]: existing?.pipelineId ?? "",
       [Field.active]: existing ? (existing.active ? "true" : "false") : "true",
-      [Field.cron]: "",
+      [Field.cron]: existing?.cron ?? "",
     } satisfies Form,
   });
-  const save = async () => {
-    console.log("Saving");
+  const save = async (form: Form) => {
+    try {
+      clearErrors();
+      const schedule = existing
+        ? await scheduleClient.update(existing.id, {
+            pipelineId: form[Field.pipelineId],
+            cron: form[Field.cron],
+            active: form[Field.active] === "true",
+          })
+        : await scheduleClient.create({
+            pipelineId: form[Field.pipelineId],
+            cron: form[Field.cron],
+            active: form[Field.active] === "true",
+          });
+      onSave(schedule);
+    } catch (e) {
+      setError("root", {
+        message: FormHelper.formatError(e),
+      });
+    }
   };
   const remove = async () => {
-    console.log("Deleting");
+    try {
+      clearErrors();
+      if (existing && confirm("Are you sure about deleting this schedule?")) {
+        const schedule = await scheduleClient.delete(existing.id);
+        onDelete(schedule);
+      }
+    } catch (e) {
+      setError("root", {
+        message: FormHelper.formatError(e),
+      });
+    }
   };
 
   const cron = watch(Field.cron);
   return (
-    <fieldset disabled={formState.isSubmitting} className={clsx(className, "border-t border-b border-c-info bg-black")}>
-      <select
-        {...register(Field.active)}
-        className="-ml-1 text-xl p-2 w-16 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
-      >
-        <option value="true">🟢</option>
-        <option value="false">🔴</option>
-      </select>
-      <select
-        {...register(Field.pipelineId)}
-        className="text-lg p-2 -ml-3 mr-10 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
-      >
-        <option>Pipeline A</option>
-        <option>Pipeline B</option>
-      </select>
-      <input
-        type="text"
-        className="font-mono p-2 -ml-3 mr-10 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
-        {...register(Field.cron)}
-      />
-      <CronEvaluations expression={cron} />
-      <div className="flex flex-col items-end gap-1">
-        <Button className="border-none font-normal text-c-success hover:text-white" onClick={handleSubmit(save)}>
-          Save
-        </Button>
-        {existing && (
-          <Button className="border-none font-normal text-c-error hover:text-white" onClick={handleSubmit(save)}>
-            Delete
+    <div className={clsx(className, "border-t border-b border-c-info bg-black")}>
+      <fieldset disabled={formState.isSubmitting} className={clsx(gridClassName)}>
+        <select
+          {...register(Field.active)}
+          className="-ml-1 text-xl p-2 w-16 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
+        >
+          <option value="true">🟢</option>
+          <option value="false">🔴</option>
+        </select>
+        <select
+          {...register(Field.pipelineId)}
+          className="text-lg p-2 -ml-3 mr-10 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
+        >
+          <option value="" disabled>
+            Select a pipeline
+          </option>
+          {pipelines.map(({ id, name }) => (
+            <option key={id} value={id}>
+              {name}
+            </option>
+          ))}
+        </select>
+        <input
+          type="text"
+          className="font-mono p-2 -ml-3 mr-10 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
+          placeholder="E.g.: 0 12 * * FRI"
+          {...register(Field.cron)}
+        />
+        <CronEvaluations expression={cron} />
+        <div className="flex flex-col items-end gap-1">
+          <Button className="border-none font-normal text-c-success hover:text-white" onClick={handleSubmit(save)}>
+            Save
           </Button>
-        )}
-        <Button className="border-none font-normal text-c-dim hover:text-white" onClick={onClose}>
-          Cancel
-        </Button>
-      </div>
-    </fieldset>
+          {existing && (
+            <Button className="border-none font-normal text-c-error hover:text-white" onClick={handleSubmit(remove)}>
+              Delete
+            </Button>
+          )}
+          <Button className="border-none font-normal text-c-dim hover:text-white" onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
+        {formState.errors.root?.message && <pre className="col-span-full text-c-error">{formState.errors.root.message}</pre>}
+      </fieldset>
+    </div>
   );
 }

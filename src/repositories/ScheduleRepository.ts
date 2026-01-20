@@ -48,12 +48,12 @@ export class ScheduleRepository {
   public async update(scheduleOrId: string | Schedule, fn?: (schedule: Schedule) => Schedule | Promise<Schedule>): Promise<Schedule> {
     const id = typeof scheduleOrId === "string" ? scheduleOrId : scheduleOrId.id;
     const { result } = await this.configuration.write(async (configuration) => {
-      let existingCore = configuration.schedules.find((s) => s.id === id);
-      if (!existingCore) {
+      let existingCoreSchedule = configuration.schedules.find((s) => s.id === id);
+      if (!existingCoreSchedule) {
         throw ScheduleError.not_found({ id: id });
       }
-      const existing = await this.joinMetadata(existingCore);
-      const updated: Schedule = typeof scheduleOrId === "string" ? await fn!(existing) : scheduleOrId;
+      const existingSchedule = await this.joinMetadata(existingCoreSchedule);
+      const updated: Schedule = typeof scheduleOrId === "string" ? await fn!(existingSchedule) : scheduleOrId;
       await this.updateMetadata({
         id: updated.id,
         object: "schedule.metadata",
@@ -116,7 +116,7 @@ export class ScheduleRepository {
         active: meta.active,
       };
     });
-    return schedules;
+    return Array.isArray(singleOrPlural) ? schedules : schedules[0];
   }
 
   private async createMetadata(metadata: Schedule.Metadata): Promise<void> {

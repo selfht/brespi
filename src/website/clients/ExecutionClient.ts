@@ -1,5 +1,4 @@
 import { Execution } from "@/models/Execution";
-import { PipelineView } from "@/views/PipelineView";
 import { Yesttp } from "yesttp";
 
 export class ExecutionClient {

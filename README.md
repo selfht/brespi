@@ -6,7 +6,7 @@ Execution
 * ✅ ~Add descriptions with label hovering/clicking mechanics to each step~
 * ✅ ~Share the `Fields` enum between the `StepForm` and `StepTranslation` (rename the latter)~
 * Add pagination to the execution overview
-* Make sure pipelines are ordered from new to old in the `Configuration` with uuidv7
+* Make sure both Pipelines and Schedules are ordered from new to old in the `Configuration` with uuidv7
 * Add support for MySQL backups and restores
 * ✅ ~Provide runtime information when appropriate for specific steps~
 

@@ -4,8 +4,8 @@ import { Execution } from "@/models/Execution";
 import { Outcome } from "@/models/Outcome";
 import { Pipeline } from "@/models/Pipeline";
 import { ProblemDetails } from "@/models/ProblemDetails";
-import { ServerMessage } from "@/socket/ServerMessage";
 import { Step } from "@/models/Step";
+import { ServerMessage } from "@/socket/ServerMessage";
 import { PipelineView } from "@/views/PipelineView";
 import { Temporal } from "@js-temporal/polyfill";
 import clsx from "clsx";
@@ -27,6 +27,9 @@ import { Icon } from "../comps/Icon";
 import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
+import { ActionDetails } from "../details/ActionDetails";
+import { StepDescription } from "../details/StepDescription";
+import { StepDetails } from "../details/StepDetails";
 import { FormHelper } from "../forms/FormHelper";
 import { StepForm } from "../forms/StepForm";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
@@ -34,9 +37,6 @@ import { useFullScreen } from "../hooks/useFullScreen";
 import { useRegistry } from "../hooks/useRegistry";
 import { useStateRef } from "../hooks/useStateRef";
 import { useYesQuery } from "../hooks/useYesQuery";
-import { ActionDetails } from "../details/ActionDetails";
-import { StepDetails } from "../details/StepDetails";
-import { StepDescription } from "../details/StepDescription";
 
 type Form = {
   interactivity: Interactivity;
@@ -214,15 +214,12 @@ export function pipelines_$id() {
       try {
         if (id === "new") {
           const pipeline = await pipelineClient.create({
-            object: "pipeline",
             name: form.name,
             steps: form.steps,
           });
           navigate(`/pipelines/${pipeline.id}`, { replace: true });
         } else {
           const pipeline = await pipelineClient.update(id!, {
-            id: id!,
-            object: "pipeline",
             name: form.name,
             steps: form.steps,
           });
@@ -399,7 +396,7 @@ export function pipelines_$id() {
         })}
       >
         {pipelineQuery.error ? (
-          <div className="p-6 text-center">
+          <div className="p-6">
             <ErrorDump error={pipelineQuery.error} />
           </div>
         ) : !pipelineQuery.data ? (

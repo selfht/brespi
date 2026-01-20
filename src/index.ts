@@ -1,6 +1,8 @@
 import { mkdir } from "fs/promises";
 import { initializeSqlite } from "./drizzle/sqlite";
 import { Env } from "./Env";
+import { ConfigurationRepository } from "./repositories/ConfigurationRepository";
+import { seed } from "./seed";
 import { Server } from "./Server";
 import { ServerRegistry } from "./ServerRegistry";
 import { CleanupService } from "./services/CleanupService";
@@ -31,6 +33,11 @@ const sqlite = await initializeSqlite(env);
 const registry = await ServerRegistry.bootstrap(env, sqlite);
 
 /**
+ * Initialize the configuration
+ */
+await registry.get(ConfigurationRepository).initialize();
+
+/**
  * Schedules
  */
 registry.get(CleanupService).periodicallyClean();
@@ -40,3 +47,10 @@ registry.get(ScheduleService).initializeSchedules();
  * Listen for incoming requests
  */
 registry.get(Server).listen();
+
+/**
+ * Development only: seed the database
+ */
+if (env.O_BRESPI_STAGE === "development") {
+  await seed(registry);
+}
