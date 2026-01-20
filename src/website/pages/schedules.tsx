@@ -41,7 +41,6 @@ export function schedules() {
       const data = query.getData()!;
       if (data.schedules.some((s) => s.id === schedule.id)) {
         // update
-        console.log("Update");
         query.setData({
           ...data,
           schedules: data.schedules.map((s) => {

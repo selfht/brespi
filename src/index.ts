@@ -33,15 +33,15 @@ const sqlite = await initializeSqlite(env);
 const registry = await ServerRegistry.bootstrap(env, sqlite);
 
 /**
- * Initialize the configuration
+ * Set up the configuration repo
  */
 await registry.get(ConfigurationRepository).initialize();
 
 /**
  * Schedules
  */
-registry.get(CleanupService).periodicallyClean();
 registry.get(ScheduleService).initializeSchedules();
+registry.get(CleanupService).periodicallyClean();
 
 /**
  * Listen for incoming requests
@@ -49,7 +49,7 @@ registry.get(ScheduleService).initializeSchedules();
 registry.get(Server).listen();
 
 /**
- * Development only: seed the database
+ * Development only: seed the environment
  */
 if (env.O_BRESPI_STAGE === "development") {
   await seed(registry);
