@@ -64,11 +64,15 @@ export class ConfigurationRepository {
     try {
       const input = await this.getCurrentValue();
       const output = await fn(input);
-      this.memoryObject = Configuration.Core.parse(output.configuration);
-
       const oldMemoryObjectMatchesDiskFile = this.memoryObjectMatchesDiskFile;
 
-      this.memoryObjectMatchesDiskFile = await this.compareMemoryObjectWithDiskFile(this.memoryObject);
+      const memoryObject = Configuration.Core.parse(output.configuration);
+      const memoryObjectMatchesDiskFile = await this.compareMemoryObjectWithDiskFile(memoryObject);
+
+      // Assign both fields in a single tick to keep `memoryObject` and `memoryObjectMatchesDiskFile` synchronized,
+      // so the `read` method never sees an impossible state
+      this.memoryObject = memoryObject;
+      this.memoryObjectMatchesDiskFile = memoryObjectMatchesDiskFile;
 
       if (oldMemoryObjectMatchesDiskFile !== this.memoryObjectMatchesDiskFile) {
         const latestConfiguration: Configuration = {
