@@ -6,7 +6,6 @@ Execution
 * ✅ ~Add descriptions with label hovering/clicking mechanics to each step~
 * ✅ ~Share the `Fields` enum between the `StepForm` and `StepTranslation` (rename the latter)~
 * Add pagination to the execution overview
-* Make sure both Pipelines and Schedules are ordered from new to old in the `Configuration` with uuidv7
 * Add support for MySQL backups and restores
 * ✅ ~Provide runtime information when appropriate for specific steps~
 
@@ -31,11 +30,13 @@ QA
 Technical
 * ✅ ~Implement more unit tests for adapters in the style of `FilesystemAdapter.spec.ts` which can be reasonably expected to execute on basic unix hosts (`CompressionAdapter`, `EncryptionAdapter`, `ScriptAdapter`)~
 * ✅ ~Use consistent casing in all form labels and E2E fixtures~
-* Update `Decompression` and `Decryption` so they don't require any options
-* Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
 * Firefox: test canvas and `foreignObject`
 * Webkit: attempt to migrate away from [`foreignObject`](https://bugs.webkit.org/show_bug.cgi?id=23113)
+* Make sure both Pipelines and Schedules are ordered from new to old in the `Configuration` with uuidv7
+* Update `Decompression` and `Decryption` so they don't require any options maybe?
+* Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
 * Handle TODO comments
+* Refactor so the backend ALWAYS uses UTC for it's PlainDateTime objects ... but provide an environment option BRESPI_MANAGED_STORAGE_VERSIONING_TIMEZONE with a default of UTC (if people wanna see their versions in a particular timestamp) --- but the local default for PlainDateTime should be UTC always
 
 Polish
 * Icons for each different step

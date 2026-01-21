@@ -4,7 +4,7 @@ import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { S3Boundary } from "./boundaries/S3Boundary";
 import { EditorFlow } from "./flows/EditorFlow";
 
-describe("basics | editor", () => {
+describe("editor", () => {
   test.beforeEach(async ({ request }) => {
     await ResetBoundary.reset({ request });
   });

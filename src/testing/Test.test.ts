@@ -158,6 +158,9 @@ export namespace Test {
       return mockObject;
     }
 
+    const configurationRepository = new ConfigurationRepository({ X_BRESPI_CONFIGURATION: ":memory:" } as Env.Private);
+    await configurationRepository.initialize();
+
     class MockRegistry {
       public static readonly eventBus = registerMockObject<EventBus>({
         publish: mock(),
@@ -165,7 +168,7 @@ export namespace Test {
         unsubscribe: mock(),
       });
 
-      public static readonly configurationRepository = new ConfigurationRepository({ X_BRESPI_CONFIGURATION: ":memory:" } as Env.Private);
+      public static readonly configurationRepository = configurationRepository;
       public static readonly pipelineRepository = new PipelineRepository(this.configurationRepository);
       public static readonly executionRepository = new (class extends ExecutionRepository {
         public constructor() {

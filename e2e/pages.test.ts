@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { describe } from "node:test";
 
-describe("basics | page_titles", () => {
+describe("pages", () => {
   test("all main pages load and have the right title", async ({ page }) => {
     type TestCase = {
       url: string;

@@ -6,7 +6,7 @@ import { Common } from "./common/Common";
 import { EditorFlow } from "./flows/EditorFlow";
 import { ScheduleFlow } from "./flows/ScheduleFlow";
 
-describe("scheduling | start_and_stop", () => {
+describe("scheduling | basics", () => {
   test.beforeEach(async ({ request }) => {
     await ResetBoundary.reset({ request });
   });
