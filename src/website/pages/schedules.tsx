@@ -131,7 +131,7 @@ export function schedules() {
                 );
               }
               return (
-                <div key={id} className={clsx(gridClassName, "border-t border-c-dim/20")}>
+                <div key={id} className={clsx(gridClassName, "border-t border-c-dim/20")} data-testid="schedule-row">
                   <div>
                     <div className="inline-flex items-center pl-3">
                       <span className={clsx("h-5 w-5 rounded-full", active ? "bg-c-success" : "bg-c-error")} />

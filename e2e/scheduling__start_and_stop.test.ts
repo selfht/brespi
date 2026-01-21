@@ -1,4 +1,4 @@
-import test, { Page } from "@playwright/test";
+import test, { expect, Page } from "@playwright/test";
 import { describe } from "node:test";
 import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
@@ -11,7 +11,7 @@ describe("scheduling | start_and_stop", () => {
     await ResetBoundary.reset({ request });
   });
 
-  test("executes a dummy pipeline every second while active", async ({ page }) => {
+  test("executes a pipeline every second while active", async ({ page }) => {
     // given
     const scriptPath = FilesystemBoundary.SCRATCH_PAD.join("simple.sh");
     const outputDir = FilesystemBoundary.SCRATCH_PAD.join("output");
@@ -29,10 +29,27 @@ describe("scheduling | start_and_stop", () => {
     // when
     await ScheduleFlow.createSchedule(page, {
       pipelineName: name,
-      cron: "* * * * * *",
+      cron: "* * * * * *", // do something every second
       active: true,
     });
+    await page.goto("pipelines");
+    await page.getByRole("link", { name }).click();
     // then
+    const executionLocator = page.getByText("Successfully executed");
+    await expect.poll(() => executionLocator.count()).toBeGreaterThanOrEqual(2);
+
+    // when
+    await ScheduleFlow.updateSchedule(page, {
+      pipelineName: name,
+      active: false,
+    });
+    await page.goto("pipelines");
+    await page.getByRole("link", { name }).click();
+    await expect.poll(() => executionLocator.count()).toBeGreaterThanOrEqual(2);
+    // then
+    const countBeforeWaiting = await executionLocator.count();
+    await page.waitForTimeout(2000); // should've done something after 2 seconds if the schedule was still active
+    expect(await executionLocator.count()).toEqual(countBeforeWaiting);
   });
 
   type Options = {
