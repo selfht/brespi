@@ -15,9 +15,9 @@ Configuration
 * Accept an (optional) environment variable with comma separated basic auth users
 
 Schedules
-* Implement cron-style scheduled pipeline executions
+* ✅ ~Implement cron-style scheduled pipeline executions~
 
-Policies
+Managed Storage
 * Update the `ManagedStorageCapability` to track total sizes as well per `Listing`
 * ✅ ~Offer automated cleanup policies for both `S3 Upload` and `Filesystem Write`: last N versions, max X gigabyte (strict/lenient mode)~
 * ✅ ~Trigger these policies before/after every execution~
@@ -36,7 +36,7 @@ Technical
 * Update `Decompression` and `Decryption` so they don't require any options maybe?
 * Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
 * Handle TODO comments
-* Refactor so the backend ALWAYS uses UTC for it's PlainDateTime objects ... but provide an environment option BRESPI_MANAGED_STORAGE_VERSIONING_TIMEZONE with a default of UTC (if people wanna see their versions in a particular timestamp) --- but the local default for PlainDateTime should be UTC always
+* Refactor so the backend ALWAYS uses TZ=UTC for it's PlainDateTime objects ... but provide an environment option BRESPI_MANAGED_STORAGE_VERSIONING_TIMEZONE with a default of UTC (if people wanna see their versions in a particular timestamp) --- but the internal default for PlainDateTime should be UTC always
 
 Polish
 * Icons for each different step
