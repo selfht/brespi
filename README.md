@@ -22,6 +22,12 @@ Managed Storage
 * ✅ ~Offer automated cleanup policies for both `S3 Upload` and `Filesystem Write`: last N versions, max X gigabyte (strict/lenient mode)~
 * ✅ ~Trigger these policies before/after every execution~
 
+Notifications
+* Create a new nav item for "Notifications"
+* Add support for Slack
+* Add support for PagerDuty
+* Add support for Custom Script
+
 QA
 * Configure Playwright to use a `Dockerfile.e2e` which runs the app in "production" mode (unless port 3000 is already listening)
 * Set up a pipeline for typechecking, unit testing and e2e testing
