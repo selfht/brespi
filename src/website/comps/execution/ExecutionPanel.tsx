@@ -2,10 +2,12 @@ import { Prettify } from "@/helpers/Prettify";
 import { Execution } from "@/models/Execution";
 import { Outcome } from "@/models/Outcome";
 import { ProblemDetails } from "@/models/ProblemDetails";
+import { usePagination } from "@/website/hooks/usePagination";
 import { useYesQuery } from "@/website/hooks/useYesQuery";
 import clsx from "clsx";
 import { useCallback } from "react";
 import { ErrorDump } from "../ErrorDump";
+import { PaginationButtons } from "../PaginationButtons";
 import { Spinner } from "../Spinner";
 import { SquareIcon } from "../SquareIcon";
 import { ExecutionDetails } from "./ExecutionDetails";
@@ -16,8 +18,15 @@ type Props = {
   onSelect: (executionId: string) => unknown;
   onDeselect: () => unknown;
 };
+
 export function ExecutionPanel({ query, selectedExecutionId, onSelect, onDeselect }: Props) {
+  const { currentPage, setCurrentPage, totalPages, visibleItems } = usePagination({
+    items: query.data,
+    deselect: onDeselect,
+    selectedId: selectedExecutionId,
+  });
   const selectedExecution = query.data?.find((e) => e.id === selectedExecutionId);
+
   const onExecutionClick = useCallback(
     (execution: Execution) => {
       if (execution.id === selectedExecutionId) {
@@ -46,7 +55,7 @@ export function ExecutionPanel({ query, selectedExecutionId, onSelect, onDeselec
     <div className="flex items-start">
       <div className="flex-1 min-w-0 p-6">
         <h2 className="mb-6 text-xl font-extralight">Execution history</h2>
-        {query.data.map((execution) => (
+        {visibleItems.map((execution) => (
           <button
             key={execution.id}
             className={clsx("mt-4 flex items-center text-left gap-4 group cursor-pointer", {
@@ -81,6 +90,9 @@ export function ExecutionPanel({ query, selectedExecutionId, onSelect, onDeselec
           </button>
         ))}
         {query.data.length === 0 && <SquareIcon variant="no_data" />}
+        {totalPages > 1 && (
+          <PaginationButtons className="mt-6" currentPage={currentPage} totalPages={totalPages} onFlipRequest={setCurrentPage} />
+        )}
       </div>
       {query.data.length > 0 && (
         <div className="flex-1 min-w-0 p-6">
