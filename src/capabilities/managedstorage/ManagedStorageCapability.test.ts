@@ -26,17 +26,17 @@ describe(ManagedStorageCapability.name, () => {
     it("correctly generates the to-be-upserted manifest/listing/artifacts", async () => {
       // given
       const { filesystem, ...readWriteFns } = createReadWriteFns();
-      const options: ManagedStorageCapability.InsertOptions = {
+      const { options, sizesPerArtifact } = await ensureExistingBaseline({
         mutexKey: [],
         base: "hello-123-base",
         artifacts: [
-          { name: "Apple.txt", path: "/tmp-x/123" },
-          { name: "Banana.txt", path: "/tmp-x/456" },
-          { name: "Coconut.txt", path: "/tmp-x/789" },
+          { name: "Apple.txt", path: "tmp-x/123" },
+          { name: "Banana.txt", path: "tmp-x/456" },
+          { name: "Coconut.txt", path: "tmp-x/789" },
         ],
         trail: [],
         ...readWriteFns,
-      };
+      });
 
       // when
       const { insertableArtifacts } = await capability.insert(options);
@@ -51,14 +51,24 @@ describe(ManagedStorageCapability.name, () => {
       );
 
       // then (validate the listing)
+      type ListingArtifact = Partial<Listing["artifacts"][number]>;
       const listing = Listing.parse(JSON.parse(filesystem[`hello-123-base/${manifest.items[0].listingPath}`]));
       expect(listing.artifacts).toHaveLength(3);
       expect(listing.artifacts).toEqual(
         expect.arrayContaining([
           // the link between `Index --> Artifact` is always relative
-          expect.objectContaining({ path: "Apple.txt" } satisfies Partial<Listing["artifacts"][number]>),
-          expect.objectContaining({ path: "Banana.txt" } satisfies Partial<Listing["artifacts"][number]>),
-          expect.objectContaining({ path: "Coconut.txt" } satisfies Partial<Listing["artifacts"][number]>),
+          expect.objectContaining({
+            path: "Apple.txt",
+            size: sizesPerArtifact.get("Apple.txt"),
+          } satisfies ListingArtifact),
+          expect.objectContaining({
+            path: "Banana.txt",
+            size: sizesPerArtifact.get("Banana.txt"),
+          } satisfies ListingArtifact),
+          expect.objectContaining({
+            path: "Coconut.txt",
+            size: sizesPerArtifact.get("Coconut.txt"),
+          } satisfies ListingArtifact),
         ]),
       );
 
@@ -68,17 +78,17 @@ describe(ManagedStorageCapability.name, () => {
         expect.arrayContaining([
           {
             name: "Apple.txt",
-            path: "/tmp-x/123",
+            path: expect.stringMatching(/tmp-x\/123$/), // in this test we have to change the relative folder
             destinationPath: expect.stringMatching(new RegExp(`^hello-123-base/${Regex.TIMESTAMP}/Apple.txt$`)),
           },
           {
             name: "Banana.txt",
-            path: "/tmp-x/456",
+            path: expect.stringMatching(/tmp-x\/456$/), // in this test we have to change the relative folder
             destinationPath: expect.stringMatching(new RegExp(`^hello-123-base/${Regex.TIMESTAMP}/Banana.txt$`)),
           },
           {
             name: "Coconut.txt",
-            path: "/tmp-x/789",
+            path: expect.stringMatching(/tmp-x\/789$/), // in this test we have to change the relative folder
             destinationPath: expect.stringMatching(new RegExp(`^hello-123-base/${Regex.TIMESTAMP}/Coconut.txt$`)),
           },
         ]),
@@ -94,6 +104,7 @@ describe(ManagedStorageCapability.name, () => {
           object: "manifest",
           items: range.map((index) => ({
             version: Temporal.Now.plainDateTimeISO().toString(),
+            totalSize: range.length,
             listingPath: `blabla-${index}`,
           })),
         };
@@ -194,13 +205,13 @@ describe(ManagedStorageCapability.name, () => {
       const { base, expectation } = relativizeCollection.get(testCase);
       // given
       const { filesystem, ...readWriteFns } = createReadWriteFns();
-      const options: ManagedStorageCapability.InsertOptions = {
+      const { options } = await ensureExistingBaseline({
         mutexKey: [],
         artifacts: [{ name: "Apple", path: "irrelevant" }],
         trail: [],
         base,
         ...readWriteFns,
-      };
+      });
       // when
       const { insertableArtifacts } = await capability.insert(options);
       // then
@@ -240,14 +251,17 @@ describe(ManagedStorageCapability.name, () => {
           items: [
             {
               version: Timestamp.LAST_YEAR,
+              totalSize: 1,
               listingPath: `${Timestamp.LAST_YEAR}/__brespi_listing__.json`,
             },
             {
               version: Timestamp.PRESENT,
+              totalSize: 1,
               listingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
             },
             {
               version: Timestamp.VERY_LONG_AGO,
+              totalSize: 1,
               listingPath: `${Timestamp.VERY_LONG_AGO}/__brespi_listing__.json`,
             },
           ],
@@ -285,10 +299,12 @@ describe(ManagedStorageCapability.name, () => {
           items: [
             {
               version: Timestamp.LAST_YEAR,
+              totalSize: 1,
               listingPath: `${Timestamp.LAST_YEAR}/__brespi_listing__.json`,
             },
             {
               version: Timestamp.PRESENT,
+              totalSize: 1,
               listingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
             },
           ],
@@ -327,14 +343,17 @@ describe(ManagedStorageCapability.name, () => {
           items: [
             {
               version: Timestamp.VERY_LONG_AGO,
+              totalSize: 1,
               listingPath: `${Timestamp.VERY_LONG_AGO}/__brespi_listing__.json`,
             },
             {
               version: Timestamp.LAST_YEAR,
+              totalSize: 1,
               listingPath: `${Timestamp.LAST_YEAR}/__brespi_listing__.json`,
             },
             {
               version: Timestamp.PRESENT,
+              totalSize: 1,
               listingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
             },
           ],
@@ -397,6 +416,7 @@ describe(ManagedStorageCapability.name, () => {
           items: [
             {
               version: Timestamp.LAST_YEAR,
+              totalSize: 1,
               listingPath: "path1/__brespi_listing__.json",
             },
           ],
@@ -432,10 +452,12 @@ describe(ManagedStorageCapability.name, () => {
           items: [
             {
               version: Timestamp.LAST_YEAR,
+              totalSize: 1,
               listingPath: "path1/__brespi_listing__.json",
             },
             {
               version: Timestamp.LAST_YEAR,
+              totalSize: 1,
               listingPath: "path2/__brespi_listing__.json",
             },
           ],
@@ -532,6 +554,7 @@ describe(ManagedStorageCapability.name, () => {
           items: [
             {
               version: Timestamp.PRESENT,
+              totalSize: 1,
               listingPath: singleListingPath,
             },
           ],
@@ -564,6 +587,32 @@ describe(ManagedStorageCapability.name, () => {
     };
   }
 
+  async function ensureExistingBaseline(
+    options: ManagedStorageCapability.InsertOptions,
+  ): Promise<{ options: ManagedStorageCapability.InsertOptions; sizesPerArtifact: Map<string, number> }> {
+    const { scratchpad } = await Test.getScratchpad();
+    const rewrittenArtifacts: typeof options.artifacts = [];
+    const sizesPerArtifact = new Map<string, number>();
+    for (const { path, name } of options.artifacts) {
+      const newPath = join(scratchpad, path);
+      const file = Bun.file(newPath);
+      await file.write(name);
+      if (await file.exists()) {
+        rewrittenArtifacts.push({ path: newPath, name });
+        sizesPerArtifact.set(name, file.size);
+      } else {
+        throw new Error("Illegal state!!!");
+      }
+    }
+    return {
+      options: {
+        ...options,
+        artifacts: rewrittenArtifacts,
+      },
+      sizesPerArtifact,
+    };
+  }
+
   type PersistInFilesystemOptions = {
     base?: string;
     filesystem: Record<string, string>;
@@ -577,6 +626,7 @@ describe(ManagedStorageCapability.name, () => {
         object: "listing",
         artifacts: listingArtifacts.map((path) => ({
           path,
+          size: 1,
           trail: [],
         })),
       };

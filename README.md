@@ -5,7 +5,7 @@ This is a work in progress with the following TODO's:
 Execution
 * ✅ ~Add descriptions with label hovering/clicking mechanics to each step~
 * ✅ ~Share the `Fields` enum between the `StepForm` and `StepTranslation` (rename the latter)~
-* Add pagination to the execution overview
+* ✅ ~Add pagination to the execution overview~
 * Add support for MySQL backups and restores
 * ✅ ~Provide runtime information when appropriate for specific steps~
 
@@ -18,7 +18,7 @@ Schedules
 * ✅ ~Implement cron-style scheduled pipeline executions~
 
 Managed Storage
-* Update the `ManagedStorageCapability` to track total sizes as well per `Listing`
+* ✅ ~Update the `ManagedStorageCapability` to track total sizes as well per `Listing`~
 * ✅ ~Offer automated cleanup policies for both `S3 Upload` and `Filesystem Write`: last N versions, max X gigabyte (strict/lenient mode)~
 * ✅ ~Trigger these policies before/after every execution~
 

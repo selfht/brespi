@@ -12,6 +12,7 @@ export namespace Manifest {
 
   export type Item = {
     version: string;
+    totalSize: number;
     listingPath: string;
   };
   export namespace Item {
@@ -44,6 +45,7 @@ export namespace Manifest {
                 return false;
               }
             }, "invalid ISO timestamp"),
+            totalSize: z.number(),
             listingPath: z.string(),
           }),
         ),

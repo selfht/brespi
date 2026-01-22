@@ -7,6 +7,7 @@ export type Listing = {
   object: "listing";
   artifacts: Array<{
     path: string;
+    size: number;
     trail: unknown[];
   }>;
 };
@@ -32,6 +33,7 @@ export namespace Listing {
         artifacts: z.array(
           z.object({
             path: z.string(),
+            size: z.number(),
             trail: z.array(z.any()),
           }),
         ),

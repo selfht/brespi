@@ -17,6 +17,16 @@ export class ManagedStorageCapability {
     readFn,
     writeFn,
   }: ManagedStorageCapability.InsertOptions): Promise<ManagedStorageCapability.InsertResult> {
+    // 0. Calculate the file sizes
+    const artifactSizes = new Map<string, number>();
+    for (const { name, path } of artifacts) {
+      const file = Bun.file(path);
+      if (await file.exists()) {
+        artifactSizes.set(name, file.size);
+      } else {
+        throw new Error(`Illegal state: artifact could not be read; path=${path}`);
+      }
+    }
     // 1. Prepare the listing
     const createListingDetails = (version: string) => ({
       name: Listing.generateAvailableName(artifacts),
@@ -29,6 +39,7 @@ export class ManagedStorageCapability {
           object: "listing",
           artifacts: artifacts.map((artifact) => ({
             path: artifact.name, // (sic) `artifact.name` is unique in each batch (and artifact.path` refers to the current path on the filesystem)
+            size: artifactSizes.get(artifact.name)!,
             trail,
           })),
         };
@@ -50,6 +61,7 @@ export class ManagedStorageCapability {
         items: [
           {
             version,
+            totalSize: listingDetails.content.artifacts.map(({ size }) => size).reduce((a, b) => a + b, 0),
             listingPath: listingDetails.relativePath,
           },
           ...existingMf.items,

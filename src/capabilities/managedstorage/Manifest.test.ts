@@ -9,14 +9,17 @@ describe("Manifest", () => {
       const uploads: Manifest.Item[] = [
         {
           listingPath: "now",
+          totalSize: 1,
           version: Temporal.Now.plainDateTimeISO().toString(),
         },
         {
           listingPath: "past",
+          totalSize: 1,
           version: Temporal.Now.plainDateTimeISO().subtract({ days: 100 }).toString(),
         },
         {
           listingPath: "future",
+          totalSize: 1,
           version: Temporal.Now.plainDateTimeISO().add({ days: 100 }).toString(),
         },
       ];
