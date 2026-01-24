@@ -82,6 +82,18 @@ export namespace EditorFlow {
         type: "Postgres Restore";
         connectionReference?: string;
         database?: string;
+      })
+    | (StepCommon & {
+        type: "MariaDB Backup";
+        connectionReference?: string;
+        databaseSelectionStrategy?: "all" | "include" | "exclude";
+        databaseSelectionInclusions?: string;
+        databaseSelectionExclusions?: string;
+      })
+    | (StepCommon & {
+        type: "MariaDB Restore";
+        connectionReference?: string;
+        database?: string;
       });
 
   export type CreatePipelineOptions = {
@@ -300,6 +312,23 @@ export namespace EditorFlow {
         return await findCurrentlyActiveStepId(page);
       }
       case "Postgres Restore": {
+        if (step.connectionReference) await page.getByLabel("Connection reference").fill(step.connectionReference);
+        if (step.database) await page.getByLabel("Database").fill(step.database);
+        return await findCurrentlyActiveStepId(page);
+      }
+      case "MariaDB Backup": {
+        if (step.connectionReference) await page.getByLabel("Connection reference").fill(step.connectionReference);
+        if (step.databaseSelectionStrategy) {
+          await page.getByLabel("Database selection method").selectOption(step.databaseSelectionStrategy);
+          if (step.databaseSelectionStrategy === "include" && step.databaseSelectionInclusions) {
+            await page.getByLabel("Database selection: inclusions").fill(step.databaseSelectionInclusions);
+          } else if (step.databaseSelectionStrategy === "exclude" && step.databaseSelectionExclusions) {
+            await page.getByLabel("Database selection: exclusions").fill(step.databaseSelectionExclusions);
+          }
+        }
+        return await findCurrentlyActiveStepId(page);
+      }
+      case "MariaDB Restore": {
         if (step.connectionReference) await page.getByLabel("Connection reference").fill(step.connectionReference);
         if (step.database) await page.getByLabel("Database").fill(step.database);
         return await findCurrentlyActiveStepId(page);

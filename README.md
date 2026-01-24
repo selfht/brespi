@@ -6,7 +6,7 @@ Execution
 * ✅ ~Add descriptions with label hovering/clicking mechanics to each step~
 * ✅ ~Share the `Fields` enum between the `StepForm` and `StepTranslation` (rename the latter)~
 * ✅ ~Add pagination to the execution overview~
-* Add support for MariaDB backups and restores
+* ✅ ~Add support for MariaDB backups and restores~
 * ✅ ~Provide runtime information when appropriate for specific steps~
 
 Configuration

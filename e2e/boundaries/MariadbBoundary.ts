@@ -1,6 +1,6 @@
-import { Client } from "pg";
+import mariadb from "mariadb";
 
-export namespace PostgresBoundary {
+export namespace MariadbBoundary {
   export type Row = Record<string, string | number | boolean | null>;
 
   type DatabaseOptions = {
@@ -9,9 +9,9 @@ export namespace PostgresBoundary {
   };
   export async function database({ operation, database }: DatabaseOptions): Promise<void> {
     if (operation === "create") {
-      await execute({ database: "postgres", sql: `CREATE DATABASE ${database}` });
+      await execute({ database: "", sql: `CREATE DATABASE ${database}` });
     } else {
-      await execute({ database: "postgres", sql: `DROP DATABASE IF EXISTS ${database}` });
+      await execute({ database: "", sql: `DROP DATABASE IF EXISTS ${database}` });
     }
   }
 
@@ -73,8 +73,8 @@ export namespace PostgresBoundary {
     }>;
   };
   export async function setup({ database, tables }: SetupOptions): Promise<void> {
-    await PostgresBoundary.database({ operation: "drop", database });
-    await PostgresBoundary.database({ operation: "create", database });
+    await MariadbBoundary.database({ operation: "drop", database });
+    await MariadbBoundary.database({ operation: "create", database });
     for (const { name: table, initialRows: rows } of tables) {
       if (rows.length === 0) {
         throw new Error(`Table ${table} must have at least one row to infer schema`);
@@ -87,17 +87,17 @@ export namespace PostgresBoundary {
         }
         tableDefinition[key] = inferColumnType(key, value);
       }
-      await PostgresBoundary.table({ operation: "create", database, table, tableDefinition });
-      await PostgresBoundary.insert({ database, table, rows });
+      await MariadbBoundary.table({ operation: "create", database, table, tableDefinition });
+      await MariadbBoundary.insert({ database, table, rows });
     }
   }
 
   function inferColumnType(key: string, value: string | number | boolean): string {
     if (key === "id" && typeof value === "number") {
-      return "SERIAL PRIMARY KEY";
+      return "INT AUTO_INCREMENT PRIMARY KEY";
     }
     if (typeof value === "number") {
-      return Number.isInteger(value) ? "INTEGER" : "REAL";
+      return Number.isInteger(value) ? "INT" : "DOUBLE";
     }
     if (typeof value === "string") {
       return "TEXT";
@@ -121,18 +121,21 @@ export namespace PostgresBoundary {
     sql: string;
   };
   export async function execute({ database, sql: sqlToExecute }: ExecuteOptions): Promise<Row[]> {
-    const client = new Client({
+    const conn = await mariadb.createConnection({
       host: "localhost",
-      user: "postgres",
-      password: "postgres",
-      database: database,
+      user: "root",
+      password: "root",
+      database: database || undefined,
     });
     try {
-      await client.connect();
-      const result = await client.query(sqlToExecute);
-      return result.rows as Row[];
+      const result = await conn.query(sqlToExecute);
+      // MariaDB returns an array with metadata at the end for some queries
+      if (Array.isArray(result)) {
+        return result.filter((row) => typeof row === "object" && row !== null && !("affectedRows" in row)) as Row[];
+      }
+      return [];
     } finally {
-      await client.end();
+      await conn.end();
     }
   }
 }
