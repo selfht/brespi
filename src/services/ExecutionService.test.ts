@@ -24,7 +24,7 @@ describe(ExecutionService.name, async () => {
 
   it("successfully executes a linear pipeline", async () => {
     // given
-    const steps = [Step.Type.postgres_backup, Step.Type.compression, Step.Type.encryption, Step.Type.s3_upload];
+    const steps = [Step.Type.postgresql_backup, Step.Type.compression, Step.Type.encryption, Step.Type.s3_upload];
     const pipeline = await pipelineRepository.create(linearPipeline(steps));
     adapterService.submit.mockResolvedValue({
       artifacts: [],
@@ -61,7 +61,7 @@ describe(ExecutionService.name, async () => {
 
   it("fails to execute a linear pipeline if there are errors", async () => {
     // given
-    const steps = [Step.Type.postgres_backup, Step.Type.compression, Step.Type.encryption, Step.Type.s3_upload];
+    const steps = [Step.Type.postgresql_backup, Step.Type.compression, Step.Type.encryption, Step.Type.s3_upload];
     const pipeline = await pipelineRepository.create(linearPipeline(steps));
     adapterService.submit.mockImplementation((_artifacts, step, _trail) => {
       if (step.type === Step.Type.encryption) {
@@ -83,7 +83,7 @@ describe(ExecutionService.name, async () => {
     expect(completedExecution.result!.completedAt).toBeTruthy();
     expect(completedExecution.result!.duration).toBeTruthy();
     completedExecution.actions.forEach((action) => {
-      if (action.stepType === Step.Type.postgres_backup) {
+      if (action.stepType === Step.Type.postgresql_backup) {
         expect(action.result!.outcome).toEqual(Outcome.success);
         expect(action.result!.errorMessage).toBeFalsy();
         expect(action.result!.completedAt).toBeTruthy();

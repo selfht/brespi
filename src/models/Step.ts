@@ -14,8 +14,8 @@ export type Step =
   | Step.FilesystemRead
   | Step.S3Upload
   | Step.S3Download
-  | Step.PostgresBackup
-  | Step.PostgresRestore
+  | Step.PostgresqlBackup
+  | Step.PostgresqlRestore
   | Step.MariadbBackup
   | Step.MariadbRestore;
 
@@ -33,8 +33,8 @@ export namespace Step {
     filesystem_read = "filesystem_read",
     s3_upload = "s3_upload",
     s3_download = "s3_download",
-    postgres_backup = "postgres_backup",
-    postgres_restore = "postgres_restore",
+    postgresql_backup = "postgresql_backup",
+    postgresql_restore = "postgresql_restore",
     mariadb_backup = "mariadb_backup",
     mariadb_restore = "mariadb_restore",
   }
@@ -155,8 +155,8 @@ export namespace Step {
     filterCriteria: FilterCriteria | null;
   };
 
-  export type PostgresBackup = Common & {
-    type: Type.postgres_backup;
+  export type PostgresqlBackup = Common & {
+    type: Type.postgresql_backup;
     connectionReference: string;
     toolkit:
       | { resolution: "automatic" } //
@@ -167,8 +167,8 @@ export namespace Step {
       | { method: "exclude"; exclusions: string[] };
   };
 
-  export type PostgresRestore = Common & {
-    type: Type.postgres_restore;
+  export type PostgresqlRestore = Common & {
+    type: Type.postgresql_restore;
     connectionReference: string;
     toolkit:
       | { resolution: "automatic" } //
@@ -210,8 +210,8 @@ export namespace Step {
     [Step.Type.custom_script]: Step.Category.transformer,
     [Step.Type.s3_upload]: Step.Category.consumer,
     [Step.Type.s3_download]: Step.Category.producer,
-    [Step.Type.postgres_backup]: Step.Category.producer,
-    [Step.Type.postgres_restore]: Step.Category.consumer,
+    [Step.Type.postgresql_backup]: Step.Category.producer,
+    [Step.Type.postgresql_restore]: Step.Category.consumer,
     [Step.Type.mariadb_backup]: Step.Category.producer,
     [Step.Type.mariadb_restore]: Step.Category.consumer,
   };
@@ -365,7 +365,7 @@ export namespace Step {
 
         z.object({
           ...subSchema.common,
-          type: z.literal(Type.postgres_backup),
+          type: z.literal(Type.postgresql_backup),
           connectionReference: z.string(),
           toolkit: z.union([
             z.object({ resolution: z.literal("automatic") }),
@@ -380,11 +380,11 @@ export namespace Step {
             z.object({ method: z.literal("include"), inclusions: z.array(z.string()) }),
             z.object({ method: z.literal("exclude"), exclusions: z.array(z.string()) }),
           ]),
-        } satisfies SubSchema<Step.PostgresBackup>),
+        } satisfies SubSchema<Step.PostgresqlBackup>),
 
         z.object({
           ...subSchema.common,
-          type: z.literal(Type.postgres_restore),
+          type: z.literal(Type.postgresql_restore),
           connectionReference: z.string(),
           toolkit: z.union([
             z.object({ resolution: z.literal("automatic") }),
@@ -395,7 +395,7 @@ export namespace Step {
             }),
           ]),
           database: z.string(),
-        } satisfies SubSchema<Step.PostgresRestore>),
+        } satisfies SubSchema<Step.PostgresqlRestore>),
 
         z.object({
           ...subSchema.common,

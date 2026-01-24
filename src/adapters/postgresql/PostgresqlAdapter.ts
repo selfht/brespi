@@ -9,15 +9,15 @@ import { z } from "zod/v4";
 import { AbstractAdapter } from "../AbstractAdapter";
 import { AdapterResult } from "../AdapterResult";
 
-export class PostgresAdapter extends AbstractAdapter {
+export class PostgresqlAdapter extends AbstractAdapter {
   private readonly EXTENSION = ".dump";
 
   public constructor(protected readonly env: Env.Private) {
     super(env);
   }
 
-  public async backup(step: Step.PostgresBackup): Promise<AdapterResult> {
-    const { username, password, host, port } = UrlParser.postgres(this.readEnvironmentVariable(step.connectionReference));
+  public async backup(step: Step.PostgresqlBackup): Promise<AdapterResult> {
+    const { username, password, host, port } = UrlParser.postgresql(this.readEnvironmentVariable(step.connectionReference));
     const { toolkit } = step;
     const tempDir = await this.createTmpDestination();
     try {
@@ -77,17 +77,17 @@ export class PostgresAdapter extends AbstractAdapter {
       }
       return AdapterResult.create(artifacts, output.runtime);
     } catch (e) {
-      throw this.mapError(e, ExecutionError.postgres_backup_failed);
+      throw this.mapError(e, ExecutionError.postgresql_backup_failed);
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }
   }
 
-  public async restore(artifacts: Artifact[], step: Step.PostgresRestore): Promise<AdapterResult> {
+  public async restore(artifacts: Artifact[], step: Step.PostgresqlRestore): Promise<AdapterResult> {
     this.requireArtifactSize(artifacts, { min: 1, max: 1 });
     const artifact = artifacts[0];
     this.requireArtifactType("file", artifact);
-    const { username, password, host, port } = UrlParser.postgres(this.readEnvironmentVariable(step.connectionReference));
+    const { username, password, host, port } = UrlParser.postgresql(this.readEnvironmentVariable(step.connectionReference));
     const { toolkit } = step;
     try {
       const { stdout } = await this.runCommand({
@@ -127,12 +127,12 @@ export class PostgresAdapter extends AbstractAdapter {
         .parse(JSON.parse(stdout));
       return AdapterResult.create([], output.runtime);
     } catch (e) {
-      throw this.mapError(e, ExecutionError.postgres_restore_failed);
+      throw this.mapError(e, ExecutionError.postgresql_restore_failed);
     }
   }
 }
 
-export namespace PostgresAdapter {
+export namespace PostgresqlAdapter {
   export interface ConstructorArgs {
     host: string;
     user: string;

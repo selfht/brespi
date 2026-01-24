@@ -670,7 +670,7 @@ namespace Internal {
       // Producers
       Step.Type.filesystem_read,
       Step.Type.s3_download,
-      Step.Type.postgres_backup,
+      Step.Type.postgresql_backup,
       Step.Type.mariadb_backup,
       // Transformers
       Step.Type.compression,
@@ -684,7 +684,7 @@ namespace Internal {
       // Consumers
       Step.Type.filesystem_write,
       Step.Type.s3_upload,
-      Step.Type.postgres_restore,
+      Step.Type.postgresql_restore,
       Step.Type.mariadb_restore,
     ];
 

@@ -6,7 +6,7 @@ import { FormHelper } from "../FormHelper";
 const { summary, Field, Label, Description } = FormHelper.meta({
   summary: (
     <>
-      Used for restoring a Postgres database from a backup artifact using <FormElements.Code>pg_restore</FormElements.Code>.
+      Used for creating PostgreSQL backups using <FormElements.Code>pg_dump</FormElements.Code>.
     </>
   ),
   fields: {
@@ -14,7 +14,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: "Connection reference",
       description: (
         <>
-          Specifies which environment variable contains the Postgres connection string in the format{" "}
+          Specifies which environment variable contains the PostgreSQL connection string in the format{" "}
           <FormElements.Code break>postgresql://username:password@hostname:5432</FormElements.Code>.
         </>
       ),
@@ -23,7 +23,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: "Toolkit resolution",
       description: (
         <>
-          Specifies how to find Postgres executables (like <FormElements.Code>psql</FormElements.Code>).
+          Specifies how to find PostgreSQL executables (like <FormElements.Code>psql</FormElements.Code>).
         </>
       ),
     },
@@ -35,17 +35,25 @@ const { summary, Field, Label, Description } = FormHelper.meta({
         </>
       ),
     },
-    toolkit_pg_restore: {
-      label: 'Toolkit: "pg_restore" path',
+    toolkit_pg_dump: {
+      label: 'Toolkit: "pg_dump" path',
       description: (
         <>
-          Specifies where to find the <FormElements.Code>pg_restore</FormElements.Code> executable.
+          Specifies where to find the <FormElements.Code>pg_dump</FormElements.Code> executable.
         </>
       ),
     },
-    database: {
-      label: "Database",
-      description: "Specifies the name of the target database to restore into.",
+    databaseSelection_strategy: {
+      label: "Database selection method",
+      description: "Specifies whether to backup all databases, or only a selection.",
+    },
+    databaseSelection_inclusions: {
+      label: "Database selection: inclusions",
+      description: "Specifies (comma-separated) database names to include in the backup.",
+    },
+    databaseSelection_exclusions: {
+      label: "Database selection: exclusions",
+      description: "Specifies (comma-separated) database names to exclude from the backup.",
     },
   },
 });
@@ -53,26 +61,32 @@ type Form = {
   [Field.connectionReference]: string;
   [Field.toolkit_resolution]: "automatic" | "manual";
   [Field.toolkit_psql]: string;
-  [Field.toolkit_pg_restore]: string;
-  [Field.database]: string;
+  [Field.toolkit_pg_dump]: string;
+  [Field.databaseSelection_strategy]: "all" | "include" | "exclude";
+  [Field.databaseSelection_inclusions]: string;
+  [Field.databaseSelection_exclusions]: string;
 };
 
 type Props = {
   id: string;
-  existing?: Step.PostgresRestore;
-  onSave: (step: Step.PostgresRestore) => Promise<any>;
+  existing?: Step.PostgresqlBackup;
+  onSave: (step: Step.PostgresqlBackup) => Promise<any>;
   onDelete: (id: string) => unknown;
   onCancel: () => unknown;
   className?: string;
 };
-export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
+export function PostgresqlBackupForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [Field.connectionReference]: existing?.connectionReference ?? "",
       [Field.toolkit_resolution]: existing?.toolkit.resolution ?? "automatic",
       [Field.toolkit_psql]: existing?.toolkit.resolution === "manual" ? existing.toolkit.psql : "",
-      [Field.toolkit_pg_restore]: existing?.toolkit.resolution === "manual" ? existing.toolkit.pg_restore : "",
-      [Field.database]: existing?.database ?? "",
+      [Field.toolkit_pg_dump]: existing?.toolkit.resolution === "manual" ? existing.toolkit.pg_dump : "",
+      [Field.databaseSelection_strategy]: existing?.databaseSelection.method ?? "all",
+      [Field.databaseSelection_inclusions]:
+        existing?.databaseSelection.method === "include" ? existing.databaseSelection.inclusions.join(",") : "",
+      [Field.databaseSelection_exclusions]:
+        existing?.databaseSelection.method === "exclude" ? existing.databaseSelection.exclusions.join(",") : "",
     } satisfies Form,
   });
   const submit: SubmitHandler<Form> = async (form) => {
@@ -82,7 +96,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
         id,
         previousId: existing?.previousId || null,
         object: "step",
-        type: Step.Type.postgres_restore,
+        type: Step.Type.postgresql_backup,
         connectionReference: form[Field.connectionReference],
         toolkit:
           form[Field.toolkit_resolution] === "automatic"
@@ -90,9 +104,22 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
             : {
                 resolution: "manual",
                 psql: form[Field.toolkit_psql],
-                pg_restore: form[Field.toolkit_pg_restore],
+                pg_dump: form[Field.toolkit_pg_dump],
               },
-        database: form[Field.database],
+        databaseSelection:
+          form[Field.databaseSelection_strategy] === "all"
+            ? {
+                method: "all",
+              }
+            : form[Field.databaseSelection_strategy] === "include"
+              ? {
+                  method: "include",
+                  inclusions: form[Field.databaseSelection_inclusions].split(",").filter(Boolean),
+                }
+              : {
+                  method: "exclude",
+                  exclusions: form[Field.databaseSelection_exclusions].split(",").filter(Boolean),
+                },
       });
     } catch (error) {
       setError("root", {
@@ -102,6 +129,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
   };
 
   const toolkitResolution = watch(Field.toolkit_resolution);
+  const databaseSelectionStrategy = watch(Field.databaseSelection_strategy);
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
@@ -134,7 +162,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
                 input={{ type: "text" }}
               />
               <FormElements.LabeledInput
-                field={Field.toolkit_pg_restore}
+                field={Field.toolkit_pg_dump}
                 labels={Label}
                 register={register}
                 activeField={activeField}
@@ -144,13 +172,33 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
             </>
           )}
           <FormElements.LabeledInput
-            field={Field.database}
+            field={Field.databaseSelection_strategy}
             labels={Label}
             register={register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
-            input={{ type: "text" }}
+            input={{ type: "select", options: ["all", "include", "exclude"] }}
           />
+          {databaseSelectionStrategy === "include" && (
+            <FormElements.LabeledInput
+              field={Field.databaseSelection_inclusions}
+              labels={Label}
+              register={register}
+              activeField={activeField}
+              onActiveFieldChange={setActiveField}
+              input={{ type: "text" }}
+            />
+          )}
+          {databaseSelectionStrategy === "exclude" && (
+            <FormElements.LabeledInput
+              field={Field.databaseSelection_exclusions}
+              labels={Label}
+              register={register}
+              activeField={activeField}
+              onActiveFieldChange={setActiveField}
+              input={{ type: "text" }}
+            />
+          )}
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"
@@ -162,7 +210,7 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
         />
       </FormElements.Left>
       <FormElements.Right
-        stepType={Step.Type.postgres_restore}
+        stepType={Step.Type.postgresql_backup}
         formState={formState}
         clearErrors={clearErrors}
         fieldDescriptions={Description}
@@ -173,5 +221,5 @@ export function PostgresRestoreForm({ id, existing, onSave, onDelete, onCancel, 
     </FormElements.Container>
   );
 }
-PostgresRestoreForm.Field = Field;
-PostgresRestoreForm.Label = Label;
+PostgresqlBackupForm.Field = Field;
+PostgresqlBackupForm.Label = Label;

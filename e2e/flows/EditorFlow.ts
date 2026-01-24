@@ -72,14 +72,14 @@ export namespace EditorFlow {
         filterCriteriaNameRegex?: string;
       })
     | (StepCommon & {
-        type: "Postgres Backup";
+        type: "PostgreSQL Backup";
         connectionReference?: string;
         databaseSelectionStrategy?: "all" | "include" | "exclude";
         databaseSelectionInclusions?: string;
         databaseSelectionExclusions?: string;
       })
     | (StepCommon & {
-        type: "Postgres Restore";
+        type: "PostgreSQL Restore";
         connectionReference?: string;
         database?: string;
       })
@@ -299,7 +299,7 @@ export namespace EditorFlow {
         }
         return await findCurrentlyActiveStepId(page);
       }
-      case "Postgres Backup": {
+      case "PostgreSQL Backup": {
         if (step.connectionReference) await page.getByLabel("Connection reference").fill(step.connectionReference);
         if (step.databaseSelectionStrategy) {
           await page.getByLabel("Database selection method").selectOption(step.databaseSelectionStrategy);
@@ -311,7 +311,7 @@ export namespace EditorFlow {
         }
         return await findCurrentlyActiveStepId(page);
       }
-      case "Postgres Restore": {
+      case "PostgreSQL Restore": {
         if (step.connectionReference) await page.getByLabel("Connection reference").fill(step.connectionReference);
         if (step.database) await page.getByLabel("Database").fill(step.database);
         return await findCurrentlyActiveStepId(page);

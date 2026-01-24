@@ -14,8 +14,8 @@ test("creates and deletes a simple backup pipeline", async ({ page }) => {
     steps: [
       {
         id: "A",
-        type: "Postgres Backup",
-        connectionReference: "MY_POSTGRES_URL",
+        type: "PostgreSQL Backup",
+        connectionReference: "MY_POSTGRESQL_URL",
       },
       {
         previousId: "A",

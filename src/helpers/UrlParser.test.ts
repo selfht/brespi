@@ -3,7 +3,7 @@ import { UrlParser } from "./UrlParser";
 import { Test } from "@/testing/Test.test";
 
 describe("UrlParser", () => {
-  describe(UrlParser.postgres.name, () => {
+  describe(UrlParser.postgresql.name, () => {
     const successCollection = Test.createCollection<{
       url: string;
       expectation: {
@@ -113,7 +113,7 @@ describe("UrlParser", () => {
     it.each(successCollection.testCases)("%s", async (testCase) => {
       const { url, expectation } = successCollection.get(testCase);
       // when
-      const parts = UrlParser.postgres(url);
+      const parts = UrlParser.postgresql(url);
       // then
       expect(parts).toEqual(expectation);
     });
@@ -154,7 +154,7 @@ describe("UrlParser", () => {
     it.each(errorCollection.testCases)("error: %s", async (testCase) => {
       const { url, expectation } = errorCollection.get(testCase);
       // when
-      const action = () => UrlParser.postgres(url);
+      const action = () => UrlParser.postgresql(url);
       // then
       expect(action).toThrow(expectation.error);
     });

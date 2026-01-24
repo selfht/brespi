@@ -14,8 +14,8 @@ import { FolderFlattenForm } from "./step/FolderFlattenForm";
 import { FolderGroupForm } from "./step/FolderGroupForm";
 import { MariadbBackupForm } from "./step/MariadbBackupForm";
 import { MariadbRestoreForm } from "./step/MariadbRestoreForm";
-import { PostgresBackupForm } from "./step/PostgresBackupForm";
-import { PostgresRestoreForm } from "./step/PostgresRestoreForm";
+import { PostgresqlBackupForm } from "./step/PostgresqlBackupForm";
+import { PostgresqlRestoreForm } from "./step/PostgresqlRestoreForm";
 import { S3DownloadForm } from "./step/S3DownloadForm";
 import { S3UploadForm } from "./step/S3UploadForm";
 
@@ -59,10 +59,10 @@ export function StepForm({ type, existing, onSave, ...props }: Props): JSX.Eleme
       return <S3UploadForm existing={existing as Step.S3Upload} onSave={validateAndSave} {...props} />;
     case Step.Type.s3_download:
       return <S3DownloadForm existing={existing as Step.S3Download} onSave={validateAndSave} {...props} />;
-    case Step.Type.postgres_backup:
-      return <PostgresBackupForm existing={existing as Step.PostgresBackup} onSave={validateAndSave} {...props} />;
-    case Step.Type.postgres_restore:
-      return <PostgresRestoreForm existing={existing as Step.PostgresRestore} onSave={validateAndSave} {...props} />;
+    case Step.Type.postgresql_backup:
+      return <PostgresqlBackupForm existing={existing as Step.PostgresqlBackup} onSave={validateAndSave} {...props} />;
+    case Step.Type.postgresql_restore:
+      return <PostgresqlRestoreForm existing={existing as Step.PostgresqlRestore} onSave={validateAndSave} {...props} />;
     case Step.Type.mariadb_backup:
       return <MariadbBackupForm existing={existing as Step.MariadbBackup} onSave={validateAndSave} {...props} />;
     case Step.Type.mariadb_restore:

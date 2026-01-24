@@ -3,7 +3,7 @@ export namespace UrlParser {
    * postgresql://user:pass@localhost:5432
    * postgres://user:pass@localhost:5432
    */
-  export function postgres(url: string): ConnectionParts {
+  export function postgresql(url: string): ConnectionParts {
     return parse(url, ["postgresql:", "postgres:"]);
   }
 

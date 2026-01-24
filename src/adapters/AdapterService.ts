@@ -7,7 +7,7 @@ import { EncryptionAdapter } from "./encyption/EncryptionAdapter";
 import { FilesystemAdapter } from "./filesystem/FilesystemAdapter";
 import { FilterAdapter } from "./filter/FilterAdapter";
 import { MariadbAdapter } from "./mariadb/MariadbAdapter";
-import { PostgresAdapter } from "./postgres/PostgresAdapter";
+import { PostgresqlAdapter } from "./postgresql/PostgresqlAdapter";
 import { S3Adapter } from "./s3/S3Adapter";
 import { ScriptAdapter } from "./scripting/ScriptAdapter";
 
@@ -27,7 +27,7 @@ export class AdapterService {
     filterAdapter: FilterAdapter,
     scriptAdapter: ScriptAdapter,
     s3Adapter: S3Adapter,
-    postgresAdapter: PostgresAdapter,
+    postgresqlAdapter: PostgresqlAdapter,
     mariadbAdapter: MariadbAdapter,
   ) {
     this.registry = {
@@ -67,11 +67,11 @@ export class AdapterService {
       [Step.Type.s3_download]: async (_, options) => {
         return await s3Adapter.download(options);
       },
-      [Step.Type.postgres_backup]: async (_, options) => {
-        return await postgresAdapter.backup(options);
+      [Step.Type.postgresql_backup]: async (_, options) => {
+        return await postgresqlAdapter.backup(options);
       },
-      [Step.Type.postgres_restore]: async (artifacts, options) => {
-        return await postgresAdapter.restore(artifacts, options);
+      [Step.Type.postgresql_restore]: async (artifacts, options) => {
+        return await postgresqlAdapter.restore(artifacts, options);
       },
       [Step.Type.mariadb_backup]: async (_, options) => {
         return await mariadbAdapter.backup(options);

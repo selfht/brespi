@@ -190,15 +190,15 @@ describe(ManagedStorageCapability.name, async () => {
         },
       },
       {
-        base: "backups/postgres",
+        base: "backups/postgresql",
         expectation: {
-          destinationPathMatcher: new RegExp(`^backups/postgres/${Regex.TIMESTAMP}/.+`),
+          destinationPathMatcher: new RegExp(`^backups/postgresql/${Regex.TIMESTAMP}/.+`),
         },
       },
       {
-        base: "/backups/postgres",
+        base: "/backups/postgresql",
         expectation: {
-          destinationPathMatcher: new RegExp(`^/backups/postgres/${Regex.TIMESTAMP}/.+`),
+          destinationPathMatcher: new RegExp(`^/backups/postgresql/${Regex.TIMESTAMP}/.+`),
         },
       },
     ]);
@@ -520,21 +520,21 @@ describe(ManagedStorageCapability.name, async () => {
         },
       },
       {
-        base: "backups/postgres",
+        base: "backups/postgresql",
         manifest: {
           singleListingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
         },
         expectation: {
-          listingPathPrefix: `backups/postgres/${Timestamp.PRESENT}`,
+          listingPathPrefix: `backups/postgresql/${Timestamp.PRESENT}`,
         },
       },
       {
-        base: "/backups/postgres",
+        base: "/backups/postgresql",
         manifest: {
           singleListingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
         },
         expectation: {
-          listingPathPrefix: `/backups/postgres/${Timestamp.PRESENT}`,
+          listingPathPrefix: `/backups/postgresql/${Timestamp.PRESENT}`,
         },
       },
     ]);

@@ -11,11 +11,11 @@ export async function seed(registry: ServerRegistry) {
   const pipelineService = registry.get(PipelineService);
   const scheduleService = registry.get(ScheduleService);
   // seed
-  await createPostgresBackupAndRestoreWithSchedule(pipelineService, scheduleService);
+  await createPostgresqlBackupAndRestoreWithSchedule(pipelineService, scheduleService);
   await createMariadbBackup(pipelineService);
 }
 
-async function createPostgresBackupAndRestoreWithSchedule(pipelineService: PipelineService, scheduleService: ScheduleService) {
+async function createPostgresqlBackupAndRestoreWithSchedule(pipelineService: PipelineService, scheduleService: ScheduleService) {
   const backup = await pipelineService.create({
     name: "PostgreSQL Backup",
     steps: [
@@ -23,8 +23,8 @@ async function createPostgresBackupAndRestoreWithSchedule(pipelineService: Pipel
         id: "A",
         previousId: null,
         object: "step",
-        type: Step.Type.postgres_backup,
-        connectionReference: "MY_POSTGRES_URL",
+        type: Step.Type.postgresql_backup,
+        connectionReference: "MY_POSTGRESQL_URL",
         toolkit: {
           resolution: "automatic",
         },
@@ -64,8 +64,8 @@ async function createPostgresBackupAndRestoreWithSchedule(pipelineService: Pipel
         id: "B",
         previousId: "hbnijprgbhjg",
         object: "step",
-        type: Step.Type.postgres_restore,
-        connectionReference: "MY_POSTGRES_URL",
+        type: Step.Type.postgresql_restore,
+        connectionReference: "MY_POSTGRESQL_URL",
         toolkit: {
           resolution: "automatic",
         },
@@ -105,8 +105,8 @@ async function createPostgresBackupAndRestoreWithSchedule(pipelineService: Pipel
         id: "otaifqxwlrfi",
         previousId: "ytnzxdfmegvi",
         object: "step",
-        type: Step.Type.postgres_restore,
-        connectionReference: "MY_POSTGRES_URL",
+        type: Step.Type.postgresql_restore,
+        connectionReference: "MY_POSTGRESQL_URL",
         toolkit: {
           resolution: "automatic",
         },
@@ -116,8 +116,8 @@ async function createPostgresBackupAndRestoreWithSchedule(pipelineService: Pipel
         id: "reqyjvrxxdmz",
         previousId: "khtdstqezwyh",
         object: "step",
-        type: Step.Type.postgres_restore,
-        connectionReference: "MY_POSTGRES_URL",
+        type: Step.Type.postgresql_restore,
+        connectionReference: "MY_POSTGRESQL_URL",
         toolkit: {
           resolution: "automatic",
         },

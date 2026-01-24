@@ -5,7 +5,7 @@ import { EncryptionAdapter } from "./adapters/encyption/EncryptionAdapter";
 import { FilesystemAdapter } from "./adapters/filesystem/FilesystemAdapter";
 import { FilterAdapter } from "./adapters/filter/FilterAdapter";
 import { MariadbAdapter } from "./adapters/mariadb/MariadbAdapter";
-import { PostgresAdapter } from "./adapters/postgres/PostgresAdapter";
+import { PostgresqlAdapter } from "./adapters/postgresql/PostgresqlAdapter";
 import { S3Adapter } from "./adapters/s3/S3Adapter";
 import { ScriptAdapter } from "./adapters/scripting/ScriptAdapter";
 import { FilterCapability } from "./capabilities/filter/FilterCapability";
@@ -48,7 +48,7 @@ export class ServerRegistry {
     const { scriptAdapter } = this.register({ ScriptAdapter }, [env]);
     const { filesystemAdapter } = this.register({ FilesystemAdapter }, [env, managedStorageCapability, filterCapability]);
     const { s3Adapter } = this.register({ S3Adapter }, [env, managedStorageCapability, filterCapability]);
-    const { postgresAdapter } = this.register({ PostgresAdapter }, [env]);
+    const { postgresqlAdapter } = this.register({ PostgresqlAdapter }, [env]);
     const { mariadbAdapter } = this.register({ MariadbAdapter }, [env]);
     const { adapterService } = this.register({ AdapterService }, [
       filesystemAdapter,
@@ -57,7 +57,7 @@ export class ServerRegistry {
       filterAdapter,
       scriptAdapter,
       s3Adapter,
-      postgresAdapter,
+      postgresqlAdapter,
       mariadbAdapter,
     ]);
 

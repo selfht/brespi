@@ -1,7 +1,7 @@
 import test, { expect, Page } from "@playwright/test";
 import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { MariadbBoundary } from "./boundaries/MariadbBoundary";
-import { PostgresBoundary } from "./boundaries/PostgresBoundary";
+import { PostgresqlBoundary } from "./boundaries/PostgresqlBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { EditorFlow } from "./flows/EditorFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
@@ -20,8 +20,8 @@ type DatabaseConfig = {
   name: string;
   boundary: DatabaseBoundary;
   connectionReference: string;
-  backupStepType: "Postgres Backup" | "MariaDB Backup";
-  restoreStepType: "Postgres Restore" | "MariaDB Restore";
+  backupStepType: "PostgreSQL Backup" | "MariaDB Backup";
+  restoreStepType: "PostgreSQL Restore" | "MariaDB Restore";
   fileExtension: string;
 };
 
@@ -30,12 +30,12 @@ enum Database {
   e2e_travel = "e2e_travel",
 }
 
-const createPostgresConfig = (): DatabaseConfig => ({
-  name: "postgres",
-  boundary: PostgresBoundary,
-  connectionReference: "MY_POSTGRES_URL",
-  backupStepType: "Postgres Backup",
-  restoreStepType: "Postgres Restore",
+const createPostgresqlConfig = (): DatabaseConfig => ({
+  name: "postgresql",
+  boundary: PostgresqlBoundary,
+  connectionReference: "MY_POSTGRESQL_URL",
+  backupStepType: "PostgreSQL Backup",
+  restoreStepType: "PostgreSQL Restore",
   fileExtension: ".dump",
 });
 
@@ -48,7 +48,7 @@ const createMariadbConfig = (): DatabaseConfig => ({
   fileExtension: ".sql",
 });
 
-for (const createConfig of [createPostgresConfig, createMariadbConfig]) {
+for (const createConfig of [createPostgresqlConfig, createMariadbConfig]) {
   const config = createConfig();
 
   test.describe(config.name, () => {

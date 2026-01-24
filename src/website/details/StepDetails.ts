@@ -15,8 +15,8 @@ import { FolderFlattenForm } from "../forms/step/FolderFlattenForm";
 import { FolderGroupForm } from "../forms/step/FolderGroupForm";
 import { MariadbBackupForm } from "../forms/step/MariadbBackupForm";
 import { MariadbRestoreForm } from "../forms/step/MariadbRestoreForm";
-import { PostgresBackupForm } from "../forms/step/PostgresBackupForm";
-import { PostgresRestoreForm } from "../forms/step/PostgresRestoreForm";
+import { PostgresqlBackupForm } from "../forms/step/PostgresqlBackupForm";
+import { PostgresqlRestoreForm } from "../forms/step/PostgresqlRestoreForm";
 import { S3DownloadForm } from "../forms/step/S3DownloadForm";
 import { S3UploadForm } from "../forms/step/S3UploadForm";
 
@@ -138,9 +138,9 @@ export namespace StepDetails {
           [F.filterCriteria_nameRegex]: step.filterCriteria?.method === "regex" ? step.filterCriteria.nameRegex : undefined,
         });
       }
-      case Step.Type.postgres_backup: {
-        const F = PostgresBackupForm.Field;
-        return performLabeling<typeof F>(PostgresBackupForm.Label, {
+      case Step.Type.postgresql_backup: {
+        const F = PostgresqlBackupForm.Field;
+        return performLabeling<typeof F>(PostgresqlBackupForm.Label, {
           [F.connectionReference]: step.connectionReference,
           [F.toolkit_resolution]: step.toolkit.resolution,
           [F.toolkit_psql]: step.toolkit.resolution === "manual" ? step.toolkit.psql : undefined,
@@ -150,9 +150,9 @@ export namespace StepDetails {
           [F.databaseSelection_exclusions]: step.databaseSelection.method === "exclude" ? step.databaseSelection.exclusions : undefined,
         });
       }
-      case Step.Type.postgres_restore: {
-        const F = PostgresRestoreForm.Field;
-        return performLabeling<typeof F>(PostgresRestoreForm.Label, {
+      case Step.Type.postgresql_restore: {
+        const F = PostgresqlRestoreForm.Field;
+        return performLabeling<typeof F>(PostgresqlRestoreForm.Label, {
           [F.connectionReference]: step.connectionReference,
           [F.toolkit_resolution]: step.toolkit.resolution,
           [F.toolkit_psql]: step.toolkit.resolution === "manual" ? step.toolkit.psql : undefined,

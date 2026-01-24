@@ -367,10 +367,10 @@ export namespace Test {
         };
         return step as Extract<Step, { type: T }>;
       }
-      case Step.Type.postgres_backup: {
-        const step: Step.PostgresBackup = {
-          type: Step.Type.postgres_backup,
-          connectionReference: "MY_POSTGRES_URL",
+      case Step.Type.postgresql_backup: {
+        const step: Step.PostgresqlBackup = {
+          type: Step.Type.postgresql_backup,
+          connectionReference: "MY_POSTGRESQL_URL",
           toolkit: { resolution: "automatic" },
           databaseSelection: {
             method: "all",
@@ -379,10 +379,10 @@ export namespace Test {
         };
         return step as Extract<Step, { type: T }>;
       }
-      case Step.Type.postgres_restore: {
-        const step: Step.PostgresRestore = {
-          type: Step.Type.postgres_restore,
-          connectionReference: "MY_POSTGRES_URL",
+      case Step.Type.postgresql_restore: {
+        const step: Step.PostgresqlRestore = {
+          type: Step.Type.postgresql_restore,
+          connectionReference: "MY_POSTGRESQL_URL",
           toolkit: { resolution: "automatic" },
           database: "test_db",
           ...common,

@@ -1,6 +1,6 @@
 import { Client } from "pg";
 
-export namespace PostgresBoundary {
+export namespace PostgresqlBoundary {
   export type Row = Record<string, string | number | boolean | null>;
 
   type DatabaseOptions = {
@@ -9,9 +9,9 @@ export namespace PostgresBoundary {
   };
   export async function database({ operation, database }: DatabaseOptions): Promise<void> {
     if (operation === "create") {
-      await execute({ database: "postgres", sql: `CREATE DATABASE ${database}` });
+      await execute({ database: "postgresql", sql: `CREATE DATABASE ${database}` });
     } else {
-      await execute({ database: "postgres", sql: `DROP DATABASE IF EXISTS ${database}` });
+      await execute({ database: "postgresql", sql: `DROP DATABASE IF EXISTS ${database}` });
     }
   }
 
@@ -73,8 +73,8 @@ export namespace PostgresBoundary {
     }>;
   };
   export async function setup({ database, tables }: SetupOptions): Promise<void> {
-    await PostgresBoundary.database({ operation: "drop", database });
-    await PostgresBoundary.database({ operation: "create", database });
+    await PostgresqlBoundary.database({ operation: "drop", database });
+    await PostgresqlBoundary.database({ operation: "create", database });
     for (const { name: table, initialRows: rows } of tables) {
       if (rows.length === 0) {
         throw new Error(`Table ${table} must have at least one row to infer schema`);
@@ -87,8 +87,8 @@ export namespace PostgresBoundary {
         }
         tableDefinition[key] = inferColumnType(key, value);
       }
-      await PostgresBoundary.table({ operation: "create", database, table, tableDefinition });
-      await PostgresBoundary.insert({ database, table, rows });
+      await PostgresqlBoundary.table({ operation: "create", database, table, tableDefinition });
+      await PostgresqlBoundary.insert({ database, table, rows });
     }
   }
 
@@ -123,8 +123,8 @@ export namespace PostgresBoundary {
   export async function execute({ database, sql: sqlToExecute }: ExecuteOptions): Promise<Row[]> {
     const client = new Client({
       host: "localhost",
-      user: "postgres",
-      password: "postgres",
+      user: "postgresql",
+      password: "postgresql",
       database: database,
     });
     try {

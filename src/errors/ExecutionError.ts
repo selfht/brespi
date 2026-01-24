@@ -28,9 +28,9 @@ export class ExecutionError {
   // encryption/decryption
   public static readonly encryption_failed: Exception.Fn<{ cause: string }>;
   public static readonly decryption_failed: Exception.Fn<{ cause: string }>;
-  // postgres
-  public static readonly postgres_backup_failed: Exception.Fn<{ cause: string }>;
-  public static readonly postgres_restore_failed: Exception.Fn<{ cause: string }>;
+  // postgresql
+  public static readonly postgresql_backup_failed: Exception.Fn<{ cause: string }>;
+  public static readonly postgresql_restore_failed: Exception.Fn<{ cause: string }>;
   // mariadb
   public static readonly mariadb_backup_failed: Exception.Fn<{ cause: string }>;
   public static readonly mariadb_restore_failed: Exception.Fn<{ cause: string }>;
