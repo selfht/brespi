@@ -10,7 +10,8 @@ import { FilesystemAdapter } from "./FilesystemAdapter";
 
 describe(FilesystemAdapter.name, async () => {
   const { scratchpad } = await Test.getScratchpad();
-  const adapter = new FilesystemAdapter(await Test.buildEnv(), new ManagedStorageCapability(), new FilterCapability());
+  const env = await Test.buildEnv();
+  const adapter = new FilesystemAdapter(env, new ManagedStorageCapability(env), new FilterCapability());
 
   beforeEach(async () => {
     await Test.cleanup();

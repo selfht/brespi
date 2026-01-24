@@ -7,8 +7,11 @@ import { Temporal } from "@js-temporal/polyfill";
 import { join } from "path";
 import { Listing } from "./Listing";
 import { Manifest } from "./Manifest";
+import { Env } from "@/Env";
 
 export class ManagedStorageCapability {
+  public constructor(private readonly env: Env.Private) {}
+
   public async insert({
     mutexKey,
     artifacts,
@@ -28,6 +31,7 @@ export class ManagedStorageCapability {
       }
     }
     // 1. Prepare the listing
+    const env = this.env;
     const createListingDetails = (version: string) => ({
       name: Listing.generateAvailableName(artifacts),
       relativeParentPath: version,
@@ -40,8 +44,12 @@ export class ManagedStorageCapability {
           artifacts: artifacts.map((artifact) => ({
             path: artifact.name, // (sic) `artifact.name` is unique in each batch (and artifact.path` refers to the current path on the filesystem)
             size: artifactSizes.get(artifact.name)!,
-            trail,
           })),
+          trail,
+          brespi: {
+            commit: env.O_BRESPI_COMMIT,
+            version: env.O_BRESPI_VERSION,
+          },
         };
       },
     });

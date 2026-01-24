@@ -69,6 +69,8 @@ export namespace Test {
     return {
       ...Env.initialize({
         O_BRESPI_STAGE: "development",
+        O_BRESPI_COMMIT: "0123456789abcdef0123456789abcdef01234567",
+        O_BRESPI_VERSION: "0.0.0",
         X_BRESPI_ROOT: join(await ensureValidCwd(), "opt", "brespi"),
       }),
       ...overrides,
@@ -381,6 +383,28 @@ export namespace Test {
         const step: Step.PostgresRestore = {
           type: Step.Type.postgres_restore,
           connectionReference: "MY_POSTGRES_URL",
+          toolkit: { resolution: "automatic" },
+          database: "test_db",
+          ...common,
+        };
+        return step as Extract<Step, { type: T }>;
+      }
+      case Step.Type.mariadb_backup: {
+        const step: Step.MariadbBackup = {
+          type: Step.Type.mariadb_backup,
+          connectionReference: "MY_MARIADB_URL",
+          toolkit: { resolution: "automatic" },
+          databaseSelection: {
+            method: "all",
+          },
+          ...common,
+        };
+        return step as Extract<Step, { type: T }>;
+      }
+      case Step.Type.mariadb_restore: {
+        const step: Step.MariadbRestore = {
+          type: Step.Type.mariadb_restore,
+          connectionReference: "MY_MARIADB_URL",
           toolkit: { resolution: "automatic" },
           database: "test_db",
           ...common,

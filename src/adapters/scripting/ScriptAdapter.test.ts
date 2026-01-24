@@ -83,8 +83,7 @@ describe(ScriptAdapter.name, async () => {
       expect.objectContaining({
         problem: "ExecutionError::nonzero_script_exit",
         details: expect.objectContaining({
-          exitCode: 1,
-          stdall: "Overjoyed STDOUT\nMelancholic STDERR\n",
+          cause: "Overjoyed STDOUT\nMelancholic STDERR\n\n(exit 1)",
         }),
       }),
     );

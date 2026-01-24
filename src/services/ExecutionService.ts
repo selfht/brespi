@@ -335,10 +335,7 @@ export class ExecutionService {
     if (Exception.isInstance(e)) {
       let details: string = "";
       if (e.details) {
-        const { exitCode, stdall } = e.details;
-        if (exitCode && stdall) {
-          details += `\n\n${stdall}\n(exit ${exitCode})`;
-        } else if (e.details.cause) {
+        if (e.details.cause) {
           details += `\n\n${e.details.cause}`;
         } else {
           details += ` ${JSON.stringify(e.details, null, 2)}`;

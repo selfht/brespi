@@ -6,7 +6,7 @@ Execution
 * ✅ ~Add descriptions with label hovering/clicking mechanics to each step~
 * ✅ ~Share the `Fields` enum between the `StepForm` and `StepTranslation` (rename the latter)~
 * ✅ ~Add pagination to the execution overview~
-* Add support for MySQL backups and restores
+* Add support for MariaDB backups and restores
 * ✅ ~Provide runtime information when appropriate for specific steps~
 
 Configuration
@@ -38,6 +38,7 @@ Technical
 * ✅ ~Use consistent casing in all form labels and E2E fixtures~
 * Firefox: test canvas and `foreignObject`
 * Webkit: attempt to migrate away from [`foreignObject`](https://bugs.webkit.org/show_bug.cgi?id=23113)
+* Bug: when you have multiple "Filter" steps (use the seed example) and you click them in the editor, their form details dont update in between clicking
 * Make sure both Pipelines and Schedules are ordered from new to old in the `Configuration` with uuidv7
 * Update `Decompression` and `Decryption` so they don't require any options maybe?
 * Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
@@ -51,7 +52,7 @@ Polish
 
 Distribution
 * Create a shell script for building docker images with the appropriate toolset (only requirements: git + bash + docker)
-* ✅ ~Setup strategy for dealing with different Postgres/MySQL versions and corresponding dump/restore tools~
+* ✅ ~Setup strategy for dealing with different Postgres/MariaDB versions and corresponding dump/restore tools~
 * Write a README.md, CONTRIBUTING.md and LICENSE.md
 
 Marketing

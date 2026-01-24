@@ -8,8 +8,12 @@ export type Listing = {
   artifacts: Array<{
     path: string;
     size: number;
-    trail: unknown[];
   }>;
+  trail: unknown[];
+  brespi: {
+    commit: string;
+    version: string;
+  };
 };
 
 export namespace Listing {
@@ -34,9 +38,13 @@ export namespace Listing {
           z.object({
             path: z.string(),
             size: z.number(),
-            trail: z.array(z.any()),
           }),
         ),
+        trail: z.array(z.any()),
+        brespi: z.object({
+          commit: z.string(),
+          version: z.string(),
+        }),
       }),
     )
     .ensureTypeMatchesSchema();

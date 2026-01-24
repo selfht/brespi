@@ -6,13 +6,14 @@ import { Listing } from "./Listing";
 import { Manifest } from "./Manifest";
 import { ManagedStorageCapability } from "./ManagedStorageCapability";
 
-describe(ManagedStorageCapability.name, () => {
+describe(ManagedStorageCapability.name, async () => {
   const Regex = {
     RANDOM_ID: /\w+/.source,
     TIMESTAMP: /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+/.source,
   };
 
-  const capability = new ManagedStorageCapability();
+  const env = await Test.buildEnv();
+  const capability = new ManagedStorageCapability(env);
 
   beforeEach(async () => {
     await Test.cleanup();
@@ -622,15 +623,19 @@ describe(ManagedStorageCapability.name, () => {
   function persistInFilesystem({ base = "", filesystem, listingArtifacts, manifest }: PersistInFilesystemOptions) {
     filesystem[join(base, "__brespi_manifest__.json")] = JSON.stringify(manifest);
     manifest.items.forEach(({ listingPath }) => {
-      const emptyListing: Listing = {
+      const listing: Listing = {
         object: "listing",
         artifacts: listingArtifacts.map((path) => ({
           path,
           size: 1,
-          trail: [],
         })),
+        trail: [],
+        brespi: {
+          commit: env.O_BRESPI_COMMIT,
+          version: env.O_BRESPI_VERSION,
+        },
       };
-      filesystem[join(base, listingPath)] = JSON.stringify(emptyListing);
+      filesystem[join(base, listingPath)] = JSON.stringify(listing);
     });
   }
 });

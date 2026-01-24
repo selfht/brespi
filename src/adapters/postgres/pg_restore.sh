@@ -50,6 +50,16 @@ else
     PG_RESTORE_CMD="pg_restore"
 fi
 
+# Verify binaries are available
+if ! command -v "$PSQL_CMD" &> /dev/null; then
+    echo "ERROR: psql command not found: $PSQL_CMD" >&2
+    exit 1
+fi
+if ! command -v "$PG_RESTORE_CMD" &> /dev/null; then
+    echo "ERROR: pg_restore command not found: $PG_RESTORE_CMD" >&2
+    exit 1
+fi
+
 # Capture tool metadata (version and resolved path)
 PSQL_VERSION=$($PSQL_CMD --version 2>&1 | head -n 1)
 PSQL_PATH=$(command -v "$PSQL_CMD")

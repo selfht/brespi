@@ -13,6 +13,8 @@ import { FilesystemWriteForm } from "../forms/step/FilesystemWriteForm";
 import { FilterForm } from "../forms/step/FilterForm";
 import { FolderFlattenForm } from "../forms/step/FolderFlattenForm";
 import { FolderGroupForm } from "../forms/step/FolderGroupForm";
+import { MariadbBackupForm } from "../forms/step/MariadbBackupForm";
+import { MariadbRestoreForm } from "../forms/step/MariadbRestoreForm";
 import { PostgresBackupForm } from "../forms/step/PostgresBackupForm";
 import { PostgresRestoreForm } from "../forms/step/PostgresRestoreForm";
 import { S3DownloadForm } from "../forms/step/S3DownloadForm";
@@ -155,6 +157,27 @@ export namespace StepDetails {
           [F.toolkit_resolution]: step.toolkit.resolution,
           [F.toolkit_psql]: step.toolkit.resolution === "manual" ? step.toolkit.psql : undefined,
           [F.toolkit_pg_restore]: step.toolkit.resolution === "manual" ? step.toolkit.pg_restore : undefined,
+          [F.database]: step.database,
+        });
+      }
+      case Step.Type.mariadb_backup: {
+        const F = MariadbBackupForm.Field;
+        return performLabeling<typeof F>(MariadbBackupForm.Label, {
+          [F.connectionReference]: step.connectionReference,
+          [F.toolkit_resolution]: step.toolkit.resolution,
+          [F.toolkit_mariadb]: step.toolkit.resolution === "manual" ? step.toolkit.mariadb : undefined,
+          [F.toolkit_mariadb_dump]: step.toolkit.resolution === "manual" ? step.toolkit["mariadb-dump"] : undefined,
+          [F.databaseSelection_strategy]: step.databaseSelection.method,
+          [F.databaseSelection_inclusions]: step.databaseSelection.method === "include" ? step.databaseSelection.inclusions : undefined,
+          [F.databaseSelection_exclusions]: step.databaseSelection.method === "exclude" ? step.databaseSelection.exclusions : undefined,
+        });
+      }
+      case Step.Type.mariadb_restore: {
+        const F = MariadbRestoreForm.Field;
+        return performLabeling<typeof F>(MariadbRestoreForm.Label, {
+          [F.connectionReference]: step.connectionReference,
+          [F.toolkit_resolution]: step.toolkit.resolution,
+          [F.toolkit_mariadb]: step.toolkit.resolution === "manual" ? step.toolkit.mariadb : undefined,
           [F.database]: step.database,
         });
       }

@@ -1,18 +1,18 @@
 #!/bin/bash
 
 # Required environment variables - no defaults allowed
-if [ -z "$PGHOST" ]; then
-    echo "ERROR: PGHOST environment variable is required" >&2
+if [ -z "$MARIADB_HOST" ]; then
+    echo "ERROR: MARIADB_HOST environment variable is required" >&2
     exit 1
 fi
 
-if [ -z "$PGUSER" ]; then
-    echo "ERROR: PGUSER environment variable is required" >&2
+if [ -z "$MARIADB_USER" ]; then
+    echo "ERROR: MARIADB_USER environment variable is required" >&2
     exit 1
 fi
 
-if [ -z "$PGPASSWORD" ]; then
-    echo "ERROR: PGPASSWORD environment variable is required" >&2
+if [ -z "$MARIADB_PASSWORD" ]; then
+    echo "ERROR: MARIADB_PASSWORD environment variable is required" >&2
     exit 1
 fi
 
@@ -49,38 +49,53 @@ TOOLKIT_RESOLUTION="${TOOLKIT_RESOLUTION:-automatic}"
 # Define tool commands based on resolution mode
 if [ "$TOOLKIT_RESOLUTION" = "manual" ]; then
     # Manual mode: validate all paths are provided
-    if [ -z "$TOOLKIT_PSQL" ] || [ -z "$TOOLKIT_PG_DUMP" ]; then
+    if [ -z "$TOOLKIT_MARIADB" ] || [ -z "$TOOLKIT_MARIADB_DUMP" ]; then
         echo "ERROR: All tool paths required for manual resolution" >&2
         exit 1
     fi
-    PSQL_CMD="$TOOLKIT_PSQL"
-    PG_DUMP_CMD="$TOOLKIT_PG_DUMP"
+    MARIADB_CMD="$TOOLKIT_MARIADB"
+    MARIADB_DUMP_CMD="$TOOLKIT_MARIADB_DUMP"
 else
     # Automatic mode: use PATH resolution
-    PSQL_CMD="psql"
-    PG_DUMP_CMD="pg_dump"
+    MARIADB_CMD="mariadb"
+    MARIADB_DUMP_CMD="mariadb-dump"
 fi
 
 # Verify binaries are available
-if ! command -v "$PSQL_CMD" &> /dev/null; then
-    echo "ERROR: psql command not found: $PSQL_CMD" >&2
+if ! command -v "$MARIADB_CMD" &> /dev/null; then
+    echo "ERROR: mariadb command not found: $MARIADB_CMD" >&2
     exit 1
 fi
-if ! command -v "$PG_DUMP_CMD" &> /dev/null; then
-    echo "ERROR: pg_dump command not found: $PG_DUMP_CMD" >&2
+if ! command -v "$MARIADB_DUMP_CMD" &> /dev/null; then
+    echo "ERROR: mariadb-dump command not found: $MARIADB_DUMP_CMD" >&2
     exit 1
 fi
 
 # Capture tool metadata (version and resolved path)
-PSQL_VERSION=$($PSQL_CMD --version 2>&1 | head -n 1)
-PSQL_PATH=$(command -v "$PSQL_CMD")
-PG_DUMP_VERSION=$($PG_DUMP_CMD --version 2>&1 | head -n 1)
-PG_DUMP_PATH=$(command -v "$PG_DUMP_CMD")
+MARIADB_VERSION=$($MARIADB_CMD --version 2>&1 | head -n 1)
+MARIADB_PATH=$(command -v "$MARIADB_CMD")
+MARIADB_DUMP_VERSION=$($MARIADB_DUMP_CMD --version 2>&1 | head -n 1)
+MARIADB_DUMP_PATH=$(command -v "$MARIADB_DUMP_CMD")
 
-# Export for child processes
-export PGHOST
-export PGUSER
-export PGPASSWORD
+# Create temporary config file for password (more secure than MYSQL_PWD env var)
+MARIADB_CONFIG=$(mktemp)
+chmod 600 "$MARIADB_CONFIG"
+cat > "$MARIADB_CONFIG" << EOF
+[client]
+password=${MARIADB_PASSWORD}
+EOF
+
+# Ensure config file is cleaned up on exit
+cleanup() {
+    rm -f "$MARIADB_CONFIG"
+}
+trap cleanup EXIT
+
+# Build connection arguments
+MARIADB_CONN_ARGS="--defaults-extra-file=${MARIADB_CONFIG} -h ${MARIADB_HOST} -u ${MARIADB_USER}"
+if [ -n "$MARIADB_PORT" ]; then
+    MARIADB_CONN_ARGS="${MARIADB_CONN_ARGS} -P ${MARIADB_PORT}"
+fi
 
 # Create backups directory if it doesn't exist
 mkdir -p "${BACKUP_ROOT}"
@@ -90,14 +105,19 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="${BACKUP_ROOT}/${TIMESTAMP}"
 mkdir -p "${BACKUP_DIR}"
 
-# Always get ALL databases (excluding system databases)
-ALL_DBS=$($PSQL_CMD -h ${PGHOST} -U ${PGUSER} -t -c "SELECT datname FROM pg_database WHERE datistemplate = false AND datname != 'postgres';" 2>&1)
+# Get all databases (excluding system databases)
+# Capture stderr separately to avoid warnings polluting the database list
+QUERY_STDERR=$(mktemp)
+ALL_DBS=$($MARIADB_CMD $MARIADB_CONN_ARGS -N -e "SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('information_schema', 'mysql', 'performance_schema', 'sys');" 2>"$QUERY_STDERR")
+QUERY_EXIT_CODE=$?
 
 # Check if the query failed (foundational failure)
-if [ $? -ne 0 ]; then
-    echo "ERROR: Failed to query database list: ${ALL_DBS}" >&2
+if [ $QUERY_EXIT_CODE -ne 0 ]; then
+    echo "ERROR: Failed to query database list: $(cat "$QUERY_STDERR")" >&2
+    rm -f "$QUERY_STDERR"
     exit 1
 fi
+rm -f "$QUERY_STDERR"
 
 # Determine which databases to backup based on selection mode
 if [ "$SELECTION_MODE" = "all" ]; then
@@ -142,9 +162,9 @@ for db in ${ALL_DBS}; do
     done
 
     if [ "$SHOULD_BACKUP" = true ]; then
-        # Backup this database in custom format
-        BACKUP_FILE="${BACKUP_DIR}/${db}.dump"
-        $PG_DUMP_CMD -h ${PGHOST} -U ${PGUSER} -Fc ${db} > "${BACKUP_FILE}" 2>&1
+        # Backup this database
+        BACKUP_FILE="${BACKUP_DIR}/${db}.sql"
+        $MARIADB_DUMP_CMD $MARIADB_CONN_ARGS --single-transaction --routines --triggers ${db} > "${BACKUP_FILE}" 2>&1
 
         if [ $? -ne 0 ]; then
             echo "ERROR: Failed to backup database '${db}'" >&2
@@ -174,13 +194,13 @@ done
 echo ""
 echo "  ],"
 echo "  \"runtime\": {"
-echo "    \"psql\": {"
-echo "      \"version\": \"${PSQL_VERSION}\","
-echo "      \"path\": \"${PSQL_PATH}\""
+echo "    \"mariadb\": {"
+echo "      \"version\": \"${MARIADB_VERSION}\","
+echo "      \"path\": \"${MARIADB_PATH}\""
 echo "    },"
-echo "    \"pg_dump\": {"
-echo "      \"version\": \"${PG_DUMP_VERSION}\","
-echo "      \"path\": \"${PG_DUMP_PATH}\""
+echo "    \"mariadb-dump\": {"
+echo "      \"version\": \"${MARIADB_DUMP_VERSION}\","
+echo "      \"path\": \"${MARIADB_DUMP_PATH}\""
 echo "    }"
 echo "  }"
 echo "}"

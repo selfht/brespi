@@ -671,6 +671,7 @@ namespace Internal {
       Step.Type.filesystem_read,
       Step.Type.s3_download,
       Step.Type.postgres_backup,
+      Step.Type.mariadb_backup,
       // Transformers
       Step.Type.compression,
       Step.Type.decompression,
@@ -684,6 +685,7 @@ namespace Internal {
       Step.Type.filesystem_write,
       Step.Type.s3_upload,
       Step.Type.postgres_restore,
+      Step.Type.mariadb_restore,
     ];
 
     Object.values(Step.Type).map((type) => {

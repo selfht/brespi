@@ -12,7 +12,7 @@ export abstract class AbstractAdapter {
   protected async runCommand(options: CommandRunner.Options) {
     const { exitCode, ...result } = await CommandRunner.run(options);
     if (exitCode !== 0) {
-      throw ExecutionError.nonzero_script_exit({ exitCode: exitCode, stdall: result.stdall });
+      throw new Error(`${result.stdall}\n(exit ${exitCode})`);
     }
     return result;
   }

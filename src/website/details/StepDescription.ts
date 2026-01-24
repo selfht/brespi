@@ -15,6 +15,8 @@ const types: Record<Step.Type, string> = {
   [Step.Type.s3_download]: "S3 Download",
   [Step.Type.postgres_backup]: "Postgres Backup",
   [Step.Type.postgres_restore]: "Postgres Restore",
+  [Step.Type.mariadb_backup]: "MariaDB Backup",
+  [Step.Type.mariadb_restore]: "MariaDB Restore",
 };
 
 const categories: Record<Step.Category, string> = {

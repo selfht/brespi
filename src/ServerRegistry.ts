@@ -4,6 +4,7 @@ import { CompressionAdapter } from "./adapters/compression/CompressionAdapter";
 import { EncryptionAdapter } from "./adapters/encyption/EncryptionAdapter";
 import { FilesystemAdapter } from "./adapters/filesystem/FilesystemAdapter";
 import { FilterAdapter } from "./adapters/filter/FilterAdapter";
+import { MariadbAdapter } from "./adapters/mariadb/MariadbAdapter";
 import { PostgresAdapter } from "./adapters/postgres/PostgresAdapter";
 import { S3Adapter } from "./adapters/s3/S3Adapter";
 import { ScriptAdapter } from "./adapters/scripting/ScriptAdapter";
@@ -37,47 +38,57 @@ export class ServerRegistry {
     private readonly sqlite: Sqlite,
   ) {
     // Capabilities
-    const filterCapability = this.register(FilterCapability, []);
-    const managedStorageCapability = this.register(ManagedStorageCapability, []);
+    const { filterCapability } = this.register({ FilterCapability }, []);
+    const { managedStorageCapability } = this.register({ ManagedStorageCapability }, [env]);
 
     // Adapters
-    const compressionAdapter = this.register(CompressionAdapter, [env]);
-    const encryptionAdapter = this.register(EncryptionAdapter, [env]);
-    const filterAdapter = this.register(FilterAdapter, [env, filterCapability]);
-    const scriptAdapter = this.register(ScriptAdapter, [env]);
-    const fileSystemAdapter = this.register(FilesystemAdapter, [env, managedStorageCapability, filterCapability]);
-    const s3Adapter = this.register(S3Adapter, [env, managedStorageCapability, filterCapability]);
-    const postgresAdapter = this.register(PostgresAdapter, [env]);
-    const adapterService = this.register(AdapterService, [
-      fileSystemAdapter,
+    const { compressionAdapter } = this.register({ CompressionAdapter }, [env]);
+    const { encryptionAdapter } = this.register({ EncryptionAdapter }, [env]);
+    const { filterAdapter } = this.register({ FilterAdapter }, [env, filterCapability]);
+    const { scriptAdapter } = this.register({ ScriptAdapter }, [env]);
+    const { filesystemAdapter } = this.register({ FilesystemAdapter }, [env, managedStorageCapability, filterCapability]);
+    const { s3Adapter } = this.register({ S3Adapter }, [env, managedStorageCapability, filterCapability]);
+    const { postgresAdapter } = this.register({ PostgresAdapter }, [env]);
+    const { mariadbAdapter } = this.register({ MariadbAdapter }, [env]);
+    const { adapterService } = this.register({ AdapterService }, [
+      filesystemAdapter,
       compressionAdapter,
       encryptionAdapter,
       filterAdapter,
       scriptAdapter,
       s3Adapter,
       postgresAdapter,
+      mariadbAdapter,
     ]);
 
     // Events bus
-    const eventBus = this.register(EventBus, []);
+    const { eventBus } = this.register({ EventBus }, []);
 
     // Repositories
-    const configurationRepository = this.register(ConfigurationRepository, [env]);
-    const pipelineRepository = this.register(PipelineRepository, [configurationRepository]);
-    const executionRepository = this.register(ExecutionRepository, [sqlite]);
-    const scheduleRepository = this.register(ScheduleRepository, [configurationRepository, sqlite]);
+    const { configurationRepository } = this.register({ ConfigurationRepository }, [env]);
+    const { pipelineRepository } = this.register({ PipelineRepository }, [configurationRepository]);
+    const { executionRepository } = this.register({ ExecutionRepository }, [sqlite]);
+    const { scheduleRepository } = this.register({ ScheduleRepository }, [configurationRepository, sqlite]);
 
     // Services
-    const stepService = this.register(StepService, []);
-    const configurationService = this.register(ConfigurationService, [configurationRepository]);
-    const pipelineService = this.register(PipelineService, [eventBus, pipelineRepository, executionRepository, stepService]);
-    const executionService = this.register(ExecutionService, [env, executionRepository, pipelineRepository, adapterService]);
-    const restrictedService = this.register(RestrictedService, [sqlite, configurationRepository]);
-    const scheduleService = this.register(ScheduleService, [eventBus, scheduleRepository, pipelineRepository, executionService]);
-    this.register(CleanupService, [env]);
+    const { stepService } = this.register({ StepService }, []);
+    const { configurationService } = this.register({ ConfigurationService }, [configurationRepository]);
+    const { pipelineService } = this.register({ PipelineService }, [eventBus, pipelineRepository, executionRepository, stepService]);
+    const { executionService } = this.register({ ExecutionService }, [env, executionRepository, pipelineRepository, adapterService]);
+    const { restrictedService } = this.register({ RestrictedService }, [sqlite, configurationRepository]);
+    const { scheduleService } = this.register({ ScheduleService }, [eventBus, scheduleRepository, pipelineRepository, executionService]);
+    this.register({ CleanupService }, [env]);
 
     // Server
-    this.register(Server, [env, stepService, pipelineService, executionService, scheduleService, restrictedService, configurationService]);
+    this.register({ Server }, [
+      env,
+      stepService,
+      pipelineService,
+      executionService,
+      scheduleService,
+      restrictedService,
+      configurationService,
+    ]);
   }
 
   public get(sqlite: "sqlite"): Sqlite;
@@ -97,9 +108,17 @@ export class ServerRegistry {
     return result;
   }
 
-  private register<C extends Class>(Klass: C, parameters: ConstructorParameters<C>): InstanceType<C> {
+  private register<N extends string, C extends Class>(
+    classRecord: Record<N, C>,
+    parameters: ConstructorParameters<C>,
+  ): Record<Uncapitalize<N>, InstanceType<C>> {
+    const entry = Object.entries(classRecord).at(0)!;
+    const name = entry[0] as N;
+    const Klass = entry[1] as C;
     const instance: InstanceType<C> = new Klass(...parameters);
     this.registry[Klass.name] = instance;
-    return instance;
+    return {
+      [`${name[0].toLowerCase()}${name.slice(1)}`]: instance,
+    } as Record<Uncapitalize<N>, InstanceType<C>>;
   }
 }

@@ -7,7 +7,6 @@ export class ExecutionError {
   public static readonly already_executing: Exception.Fn<{ id: string }>;
   // adapters
   public static readonly unknown: Exception.Fn;
-  public static readonly nonzero_script_exit: Exception.Fn<{ exitCode: number; stdall: string }>;
   public static readonly environment_variable_missing: Exception.Fn<{ name: string }>;
   public static readonly algorithm_unsupported: Exception.Fn<{ algorithm: string }>;
   // artifacts, files & folder
@@ -16,6 +15,8 @@ export class ExecutionError {
   public static readonly fspath_does_not_exist: Exception.Fn<{ path: string }>;
   public static readonly fspath_type_invalid: Exception.Fn<{ path: string; type: string; requiredType: string }>;
   public static readonly fsdir_children_count_invalid: Exception.Fn<{ path: string; count: number; min?: number; max?: number }>;
+  // scripts
+  public static readonly nonzero_script_exit: Exception.Fn<{ cause: string }>;
   // managed storage
   public static readonly managed_storage_corrupted: Exception.Fn<{ descriptor: "manifest" | "listing" }>;
   public static readonly managed_storage_manifest_empty: Exception.Fn;
@@ -30,6 +31,9 @@ export class ExecutionError {
   // postgres
   public static readonly postgres_backup_failed: Exception.Fn<{ cause: string }>;
   public static readonly postgres_restore_failed: Exception.Fn<{ cause: string }>;
+  // mariadb
+  public static readonly mariadb_backup_failed: Exception.Fn<{ cause: string }>;
+  public static readonly mariadb_restore_failed: Exception.Fn<{ cause: string }>;
 
   static {
     Exception.initializeFields(this);

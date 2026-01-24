@@ -12,6 +12,8 @@ import { FilesystemWriteForm } from "./step/FilesystemWriteForm";
 import { FilterForm } from "./step/FilterForm";
 import { FolderFlattenForm } from "./step/FolderFlattenForm";
 import { FolderGroupForm } from "./step/FolderGroupForm";
+import { MariadbBackupForm } from "./step/MariadbBackupForm";
+import { MariadbRestoreForm } from "./step/MariadbRestoreForm";
 import { PostgresBackupForm } from "./step/PostgresBackupForm";
 import { PostgresRestoreForm } from "./step/PostgresRestoreForm";
 import { S3DownloadForm } from "./step/S3DownloadForm";
@@ -61,5 +63,9 @@ export function StepForm({ type, existing, onSave, ...props }: Props): JSX.Eleme
       return <PostgresBackupForm existing={existing as Step.PostgresBackup} onSave={validateAndSave} {...props} />;
     case Step.Type.postgres_restore:
       return <PostgresRestoreForm existing={existing as Step.PostgresRestore} onSave={validateAndSave} {...props} />;
+    case Step.Type.mariadb_backup:
+      return <MariadbBackupForm existing={existing as Step.MariadbBackup} onSave={validateAndSave} {...props} />;
+    case Step.Type.mariadb_restore:
+      return <MariadbRestoreForm existing={existing as Step.MariadbRestore} onSave={validateAndSave} {...props} />;
   }
 }

@@ -5,6 +5,7 @@ import { readdir, rename, rm } from "fs/promises";
 import { basename, dirname, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 import { AdapterResult } from "../AdapterResult";
+import { ExecutionError } from "@/errors/ExecutionError";
 
 export class ScriptAdapter extends AbstractAdapter {
   public constructor(protected readonly env: Env.Private) {
@@ -36,14 +37,18 @@ export class ScriptAdapter extends AbstractAdapter {
   }
 
   private async executeScript(scriptPath: string, executionEnv: Record<string, string> = {}): Promise<void> {
-    await this.runCommand({
-      cmd: ["bash", "-c", `./${basename(scriptPath)}`],
-      cwd: dirname(scriptPath),
-      env: {
-        ...Bun.env,
-        ...executionEnv,
-      },
-    });
+    try {
+      await this.runCommand({
+        cmd: ["bash", "-c", `./${basename(scriptPath)}`],
+        cwd: dirname(scriptPath),
+        env: {
+          ...Bun.env,
+          ...executionEnv,
+        },
+      });
+    } catch (e) {
+      throw this.mapError(e, ExecutionError.nonzero_script_exit);
+    }
   }
 
   private async moveArtifacts(artifacts: Artifact[], targetDir: string): Promise<void> {

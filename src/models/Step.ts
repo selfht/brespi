@@ -15,7 +15,9 @@ export type Step =
   | Step.S3Upload
   | Step.S3Download
   | Step.PostgresBackup
-  | Step.PostgresRestore;
+  | Step.PostgresRestore
+  | Step.MariadbBackup
+  | Step.MariadbRestore;
 
 export namespace Step {
   export enum Type {
@@ -33,6 +35,8 @@ export namespace Step {
     s3_download = "s3_download",
     postgres_backup = "postgres_backup",
     postgres_restore = "postgres_restore",
+    mariadb_backup = "mariadb_backup",
+    mariadb_restore = "mariadb_restore",
   }
   export function isTypeInstance(value: string): value is Type {
     return Object.values(Type).includes(value as Type);
@@ -172,6 +176,27 @@ export namespace Step {
     database: string;
   };
 
+  export type MariadbBackup = Common & {
+    type: Type.mariadb_backup;
+    connectionReference: string;
+    toolkit:
+      | { resolution: "automatic" } //
+      | { resolution: "manual"; mariadb: string; "mariadb-dump": string };
+    databaseSelection:
+      | { method: "all" } //
+      | { method: "include"; inclusions: string[] }
+      | { method: "exclude"; exclusions: string[] };
+  };
+
+  export type MariadbRestore = Common & {
+    type: Type.mariadb_restore;
+    connectionReference: string;
+    toolkit:
+      | { resolution: "automatic" } //
+      | { resolution: "manual"; mariadb: string };
+    database: string;
+  };
+
   const categories: Record<Step.Type, Step.Category> = {
     [Step.Type.filesystem_read]: Step.Category.producer,
     [Step.Type.filesystem_write]: Step.Category.consumer,
@@ -187,6 +212,8 @@ export namespace Step {
     [Step.Type.s3_download]: Step.Category.producer,
     [Step.Type.postgres_backup]: Step.Category.producer,
     [Step.Type.postgres_restore]: Step.Category.consumer,
+    [Step.Type.mariadb_backup]: Step.Category.producer,
+    [Step.Type.mariadb_restore]: Step.Category.consumer,
   };
   export function getCategory({ type }: Pick<Step, "type">): Step.Category {
     return categories[type];
@@ -369,6 +396,39 @@ export namespace Step {
           ]),
           database: z.string(),
         } satisfies SubSchema<Step.PostgresRestore>),
+
+        z.object({
+          ...subSchema.common,
+          type: z.literal(Type.mariadb_backup),
+          connectionReference: z.string(),
+          toolkit: z.union([
+            z.object({ resolution: z.literal("automatic") }),
+            z.object({
+              resolution: z.literal("manual"),
+              mariadb: z.string(),
+              "mariadb-dump": z.string(),
+            }),
+          ]),
+          databaseSelection: z.union([
+            z.object({ method: z.literal("all") }),
+            z.object({ method: z.literal("include"), inclusions: z.array(z.string()) }),
+            z.object({ method: z.literal("exclude"), exclusions: z.array(z.string()) }),
+          ]),
+        } satisfies SubSchema<Step.MariadbBackup>),
+
+        z.object({
+          ...subSchema.common,
+          type: z.literal(Type.mariadb_restore),
+          connectionReference: z.string(),
+          toolkit: z.union([
+            z.object({ resolution: z.literal("automatic") }),
+            z.object({
+              resolution: z.literal("manual"),
+              mariadb: z.string(),
+            }),
+          ]),
+          database: z.string(),
+        } satisfies SubSchema<Step.MariadbRestore>),
       ]);
     })
     .ensureTypeMatchesSchema();

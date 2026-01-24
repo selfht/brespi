@@ -2,7 +2,7 @@ import { ProblemDetails } from "@/models/ProblemDetails";
 import { Class } from "@/types/Class";
 import { Json } from "@/types/Json";
 
-export class Exception extends Error {
+export class Exception<D extends Record<string, Json> = Record<string, Json>> extends Error {
   public static readonly NAMESPACE = "@brespi/Exception";
 
   public static initializeFields(klass: Class) {
@@ -18,7 +18,7 @@ export class Exception extends Error {
 
   public constructor(
     public readonly problem: string,
-    public readonly details?: Record<string, Json>,
+    public readonly details?: D,
   ) {
     super(problem);
   }
@@ -36,8 +36,18 @@ export namespace Exception {
     ? (details?: Record<string, Json>) => Exception
     : (details: T) => Exception;
 
-  export function isInstance(e: any): e is Exception {
+  export function isInstance<D extends Record<string, Json>>(e: any, specific: Exception.Fn<D>): e is Exception<D>;
+  export function isInstance(e: any): e is Exception;
+  export function isInstance<D extends Record<string, Json> = Record<string, Json>>(e: any, specific?: Exception.Fn<D>): boolean {
     const marker = "namespace" satisfies keyof InstanceType<typeof Exception>;
-    return marker in e && e[marker] === Exception.NAMESPACE;
+    const isException = marker in e && e[marker] === Exception.NAMESPACE;
+    if (!isException) {
+      return false;
+    }
+    if (specific) {
+      const { problem } = specific({});
+      return problem === (e as Exception).problem;
+    }
+    return true;
   }
 }

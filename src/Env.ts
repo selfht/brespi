@@ -5,6 +5,8 @@ import { z } from "zod/v4";
 export namespace Env {
   const baseEnv = z.object({
     O_BRESPI_STAGE: z.enum(["development", "production"]),
+    O_BRESPI_COMMIT: z.string(),
+    O_BRESPI_VERSION: z.string(),
     X_BRESPI_ROOT: z.string(),
   });
   export function initialize(environment = Bun.env as z.output<typeof baseEnv>) {

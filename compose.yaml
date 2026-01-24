@@ -12,6 +12,7 @@ services:
     environment:
       MY_ENCRYPTION_KEY: unicorn
       MY_POSTGRES_URL: postgresql://postgres:postgres@postgres
+      MY_MARIADB_URL: mariadb://mariadb:mariadb@mariadb:3306
       MY_S3_ACCESS_KEY: test
       MY_S3_SECRET_KEY: test
     networks:
@@ -35,6 +36,19 @@ services:
       - "5432:5432"
     volumes:
       - ./seeds/postgres:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+
+  mariadb:
+    image: "mariadb:11"
+    environment:
+      MARIADB_USER: "mariadb"
+      MARIADB_PASSWORD: "mariadb"
+      MARIADB_ROOT_PASSWORD: "root"
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./seeds/mariadb:/docker-entrypoint-initdb.d
     networks:
       - app-network
 

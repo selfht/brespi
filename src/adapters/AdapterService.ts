@@ -6,6 +6,7 @@ import { CompressionAdapter } from "./compression/CompressionAdapter";
 import { EncryptionAdapter } from "./encyption/EncryptionAdapter";
 import { FilesystemAdapter } from "./filesystem/FilesystemAdapter";
 import { FilterAdapter } from "./filter/FilterAdapter";
+import { MariadbAdapter } from "./mariadb/MariadbAdapter";
 import { PostgresAdapter } from "./postgres/PostgresAdapter";
 import { S3Adapter } from "./s3/S3Adapter";
 import { ScriptAdapter } from "./scripting/ScriptAdapter";
@@ -27,6 +28,7 @@ export class AdapterService {
     scriptAdapter: ScriptAdapter,
     s3Adapter: S3Adapter,
     postgresAdapter: PostgresAdapter,
+    mariadbAdapter: MariadbAdapter,
   ) {
     this.registry = {
       [Step.Type.filesystem_read]: async (_, options) => {
@@ -70,6 +72,12 @@ export class AdapterService {
       },
       [Step.Type.postgres_restore]: async (artifacts, options) => {
         return await postgresAdapter.restore(artifacts, options);
+      },
+      [Step.Type.mariadb_backup]: async (_, options) => {
+        return await mariadbAdapter.backup(options);
+      },
+      [Step.Type.mariadb_restore]: async (artifacts, options) => {
+        return await mariadbAdapter.restore(artifacts, options);
       },
     };
   }
