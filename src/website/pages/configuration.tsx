@@ -1,4 +1,5 @@
 import { ErrorDump } from "../comps/ErrorDump";
+import { JsonPreview } from "../comps/JsonPreview";
 import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
@@ -20,7 +21,7 @@ export function configuration() {
             <Spinner />
           </div>
         ) : (
-          <pre>{JSON.stringify(query.data.coreConfiguration, null, 2)}</pre>
+          <JsonPreview data={query.data.coreConfiguration} maxLines={8} />
         )}
       </Paper>
     </Skeleton>
