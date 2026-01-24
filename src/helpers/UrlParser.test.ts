@@ -257,6 +257,15 @@ describe("UrlParser", () => {
           host: "host.com",
         },
       },
+      {
+        url: "mysql://user:pass@localhost:3306/database",
+        expectation: {
+          username: "user",
+          password: "pass",
+          host: "localhost",
+          port: "3306",
+        },
+      },
     ]);
     it.each(successCollection.testCases)("%s", async (testCase) => {
       const { url, expectation } = successCollection.get(testCase);
@@ -291,7 +300,7 @@ describe("UrlParser", () => {
       {
         description: "invalid protocol",
         url: "postgresql://user:pass@host.com:5432",
-        expectation: { error: "Invalid protocol: postgresql:. Expected 'mariadb:'" },
+        expectation: { error: "Invalid protocol: postgresql:. Expected 'mariadb:' or 'mysql:'" },
       },
       {
         description: "invalid URL",
