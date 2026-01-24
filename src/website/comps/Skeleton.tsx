@@ -2,7 +2,7 @@ import { Temporal } from "@js-temporal/polyfill";
 import clsx from "clsx";
 import { JSX } from "react";
 import { Link, useLocation } from "react-router";
-import { useConfigurationStatus } from "../hooks/useConfigurationStatus";
+import { useConfiguration } from "../hooks/useConfiguration";
 import { Paper } from "./Paper";
 
 type Props = JSX.IntrinsicElements["main"];
@@ -19,7 +19,7 @@ export function Skeleton(props: Props) {
 export namespace Skeleton {
   export function Header() {
     const { pathname } = useLocation();
-    const { synchronized } = useConfigurationStatus();
+    const { data } = useConfiguration();
 
     const navigationLinks = [
       { title: "Pipelines", link: "/pipelines", rounding: "left" },
@@ -43,7 +43,7 @@ export namespace Skeleton {
             >
               <span className="relative text-lg">
                 {title}
-                {title === "Configuration" && !synchronized && (
+                {title === "Configuration" && data && !data.synchronized && (
                   <div
                     data-testid="conf-out-of-sync"
                     className="absolute rounded-full size-4 border-2 border-c-dark bg-c-error -right-3 -top-1"

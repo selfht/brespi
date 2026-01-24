@@ -4,10 +4,8 @@ import { Yesttp } from "yesttp";
 export class ConfigurationClient {
   public constructor(private readonly yesttp: Yesttp) {}
 
-  public async get(): Promise<Configuration>;
-  public async get(core: "core"): Promise<Configuration.Core>;
-  public async get(core?: "core"): Promise<Configuration | Configuration.Core> {
+  public async get(): Promise<Configuration> {
     const { body } = await this.yesttp.get("/configuration");
-    return core ? Configuration.Core.parse(body) : Configuration.parse(body);
+    return Configuration.parse(body);
   }
 }
