@@ -15,7 +15,8 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       description: (
         <>
           Specifies which environment variable contains the MariaDB connection string in the format{" "}
-          <FormElements.Code break>mariadb://username:password@hostname:3306</FormElements.Code>.
+          <FormElements.Code break>mariadb://username:password@hostname:3306</FormElements.Code> or{" "}
+          <FormElements.Code break>mysql://username:password@hostname:3306</FormElements.Code>.
         </>
       ),
     },

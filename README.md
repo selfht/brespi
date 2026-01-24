@@ -39,6 +39,7 @@ Technical
 * Firefox: test canvas and `foreignObject`
 * Webkit: attempt to migrate away from [`foreignObject`](https://bugs.webkit.org/show_bug.cgi?id=23113)
 * Bug: when you have multiple "Filter" steps (use the seed example) and you click them in the editor, their form details dont update in between clicking
+* More e2e tests for the editor (being able to create links also in Edit-a-Step mode, being able to remove a link, etc.)
 * Make sure both Pipelines and Schedules are ordered from new to old in the `Configuration` with uuidv7
 * Update `Decompression` and `Decryption` so they don't require any options maybe?
 * Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
