@@ -10,8 +10,8 @@ This is a work in progress with the following TODO's:
 * ✅ Provide runtime information when appropriate for specific steps
 
 ### Configuration
-* Describe the red circle, and the entire configuration mechanism in general
-* Provide buttons for "Save" and "Copy to Clipboard"
+* ✅ Describe the red circle, and the entire configuration mechanism in general
+* ✅ Provide buttons for "Save" and "Copy to Clipboard"
 * Accept an (optional) environment variable with comma separated basic auth users
 
 ### Schedules
@@ -23,7 +23,7 @@ This is a work in progress with the following TODO's:
 * ✅ Trigger these policies before/after every execution
 
 ### Notifications
-* Create a new nav item for "Notifications"
+* Create a new nav item for "Notifications", and implement this on the server via EventBus
 * Add support for Slack
 * Add support for PagerDuty
 * Add support for Custom Script
@@ -40,6 +40,7 @@ This is a work in progress with the following TODO's:
 * Webkit: attempt to migrate away from [`foreignObject`](https://bugs.webkit.org/show_bug.cgi?id=23113)
 * Bug: when you have multiple "Filter" steps (use the seed example) and you click them in the editor, their form details dont update in between clicking
 * More e2e tests for the editor (being able to create links also in Edit-a-Step mode, being able to remove a link, etc.)
+* Add e2e tests for the configuration flow (change something -> update -> save/discard -> changes in schedules automatically reflected -> etc etc)
 * Make sure both Pipelines and Schedules are ordered from new to old in the `Configuration` with uuidv7
 * Update `Decompression` and `Decryption` so they don't require any options maybe?
 * Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
