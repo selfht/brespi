@@ -6,15 +6,15 @@ import { ErrorLike } from "bun";
 import { Generate } from "./helpers/Generate";
 import { Configuration } from "./models/Configuration";
 import { Execution } from "./models/Execution";
+import { Schedule } from "./models/Schedule";
 import { ConfigurationService } from "./services/ConfigurationService";
 import { ExecutionService } from "./services/ExecutionService";
 import { PipelineService } from "./services/PipelineService";
 import { RestrictedService } from "./services/RestrictedService";
+import { ScheduleService } from "./services/ScheduleService";
 import { StepService } from "./services/StepService";
 import { Socket } from "./socket/Socket";
 import { PipelineView } from "./views/PipelineView";
-import { ScheduleService } from "./services/ScheduleService";
-import { Schedule } from "./models/Schedule";
 
 export class Server {
   private static readonly SOCKET_ENDPOINT = "/socket";
@@ -186,15 +186,24 @@ export class Server {
         },
 
         /**
-         * Restricted endpoints (for Playwright)
+         * Restricted endpoints for local and/or e2e testing
          */
-        "/api/restricted/delete-everything": {
+        "/api/restricted/purge": {
           POST: async () => {
             if (this.env.O_BRESPI_STAGE === "development") {
-              await this.restrictedService.deleteEverything();
+              await this.restrictedService.purge();
               return new Response();
             }
-            return Response.json(ServerError.route_not_found().json());
+            return Response.json(ServerError.route_not_found().json(), { status: 404 });
+          },
+        },
+        "/api/restricted/seed": {
+          POST: async () => {
+            if (this.env.O_BRESPI_STAGE === "development") {
+              await this.restrictedService.seed();
+              return new Response();
+            }
+            return Response.json(ServerError.route_not_found().json(), { status: 404 });
           },
         },
       },

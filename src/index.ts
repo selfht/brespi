@@ -1,8 +1,7 @@
-import { mkdir, rm } from "fs/promises";
+import { mkdir } from "fs/promises";
 import { initializeSqlite } from "./drizzle/sqlite";
 import { Env } from "./Env";
 import { ConfigurationRepository } from "./repositories/ConfigurationRepository";
-import { seed } from "./seed";
 import { Server } from "./Server";
 import { ServerRegistry } from "./ServerRegistry";
 import { CleanupService } from "./services/CleanupService";
@@ -33,21 +32,6 @@ const registry = await ServerRegistry.bootstrap(env, sqlite);
 /**
  * Initialize the application
  */
-async function initializeApplication() {
-  await registry.get(ConfigurationRepository).initialize();
-  registry.get(CleanupService).keepTmpFolderClean();
-  registry.get(Server).listen();
-}
-
-/**
- * Development only: seed the environment
- */
-const seedEnvironment = true && env.O_BRESPI_STAGE === "development";
-if (seedEnvironment) {
-  await rm(env.O_BRESPI_CONFIGURATION, { force: true });
-  await initializeApplication();
-  await Bun.sleep(500);
-  await seed(registry);
-} else {
-  await initializeApplication();
-}
+await registry.get(ConfigurationRepository).initialize();
+registry.get(CleanupService).keepTmpFolderClean();
+registry.get(Server).listen();

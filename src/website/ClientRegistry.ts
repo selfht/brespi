@@ -3,12 +3,13 @@ import { ProblemDetails } from "@/models/ProblemDetails";
 import { Class } from "@/types/Class";
 import { createContext } from "react";
 import { Yesttp } from "yesttp";
+import { ConfigurationClient } from "./clients/ConfigurationClient";
 import { ExecutionClient } from "./clients/ExecutionClient";
 import { PipelineClient } from "./clients/PipelineClient";
+import { RestrictedClient } from "./clients/RestrictedClient";
+import { ScheduleClient } from "./clients/ScheduleClient";
 import { SocketClient } from "./clients/SocketClient";
 import { StepClient } from "./clients/StepClient.ts";
-import { ConfigurationClient } from "./clients/ConfigurationClient";
-import { ScheduleClient } from "./clients/ScheduleClient";
 
 export class ClientRegistry {
   /**
@@ -52,6 +53,7 @@ export class ClientRegistry {
     this.registry[ScheduleClient.name] = new ScheduleClient(yesttp);
     this.registry[ExecutionClient.name] = new ExecutionClient(yesttp);
     this.registry[ConfigurationClient.name] = new ConfigurationClient(yesttp);
+    this.registry[RestrictedClient.name] = new RestrictedClient(yesttp);
   }
 
   public getEnv() {

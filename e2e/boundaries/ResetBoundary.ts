@@ -7,7 +7,7 @@ export namespace ResetBoundary {
     request: APIRequestContext;
   };
   export async function reset({ request }: ResetOptions) {
-    await request.post("/api/restricted/delete-everything", { failOnStatusCode: true });
+    await request.post("/api/restricted/purge", { failOnStatusCode: true });
     await S3Boundary.emptyBucket();
     await FilesystemBoundary.ensureEmptyScratchPad();
   }

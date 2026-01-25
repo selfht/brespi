@@ -1,8 +1,9 @@
-import { Temporal } from "@js-temporal/polyfill";
 import clsx from "clsx";
 import { JSX } from "react";
 import { Link, useLocation } from "react-router";
+import { RestrictedClient } from "../clients/RestrictedClient";
 import { useConfiguration } from "../hooks/useConfiguration";
+import { useRegistry } from "../hooks/useRegistry";
 import { Paper } from "./Paper";
 
 type Props = JSX.IntrinsicElements["main"];
@@ -62,7 +63,24 @@ export namespace Skeleton {
   }
 
   export function Footer() {
-    const currentDate = Temporal.Now.plainDateISO();
-    return <footer className="u-root-grid-minus-gutters my-12 text-center text-4xl font-extrabold italic text-c-dark">Brespi</footer>;
+    const { O_BRESPI_STAGE } = useRegistry("env");
+    const restrictedClient = useRegistry(RestrictedClient);
+    const purge = () => restrictedClient.purge().then(() => location.reload());
+    const seed = () => restrictedClient.seed().then(() => location.reload());
+    return (
+      <footer className="u-root-grid-minus-gutters my-12 flex flex-col items-center gap-4">
+        <h1 className="text-4xl font-extrabold italic text-c-dark">Brespi</h1>
+        {O_BRESPI_STAGE === "development" && (
+          <div className="flex gap-4">
+            <button onClick={purge} className="cursor-pointer text-c-dark border border-c-dark hover:bg-c-dark/10 p-2 rounded-lg">
+              Purge
+            </button>
+            <button onClick={seed} className="cursor-pointer text-c-dark border border-c-dark hover:bg-c-dark/10 p-2 rounded-lg">
+              Seed
+            </button>
+          </div>
+        )}
+      </footer>
+    );
   }
 }
