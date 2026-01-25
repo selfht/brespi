@@ -9,9 +9,8 @@ import { join } from "path";
 import { FilesystemAdapter } from "./FilesystemAdapter";
 
 describe(FilesystemAdapter.name, async () => {
-  const { scratchpad } = await Test.getScratchpad();
-  const env = await Test.buildEnv();
-  const adapter = new FilesystemAdapter(env, new ManagedStorageCapability(env), new FilterCapability());
+  const ctx = await Test.initialize();
+  const adapter = new FilesystemAdapter(ctx.env, new ManagedStorageCapability(ctx.env), new FilterCapability());
 
   beforeEach(async () => {
     await Test.cleanup();
@@ -19,8 +18,8 @@ describe(FilesystemAdapter.name, async () => {
 
   it("writes files to a directory", async () => {
     // given
-    const artifacts = await Test.createArtifacts("f:Apple.txt", "f:Banana.txt", "f:Coconut.txt");
-    const folderPath = join(scratchpad, "storage");
+    const artifacts = await ctx.createArtifacts("f:Apple.txt", "f:Banana.txt", "f:Coconut.txt");
+    const folderPath = join(ctx.scratchpad, "storage");
     // when
     const step: Step.FilesystemWrite = {
       id: Generate.shortRandomString(),
@@ -40,8 +39,8 @@ describe(FilesystemAdapter.name, async () => {
 
   it("writes folders to a directory", async () => {
     // given
-    const artifacts = await Test.createArtifacts("d:Set", "d:List", "d:Group");
-    const folderPath = join(scratchpad, "storage");
+    const artifacts = await ctx.createArtifacts("d:Set", "d:List", "d:Group");
+    const folderPath = join(ctx.scratchpad, "storage");
     // when
     const step: Step.FilesystemWrite = {
       id: Generate.shortRandomString(),
@@ -60,18 +59,17 @@ describe(FilesystemAdapter.name, async () => {
   });
 
   it("merges and partially overwrites with an existing folder when writing artifacts (normal storage)", async () => {
-    const { scratchpad } = await Test.getScratchpad();
     const secret = `${Math.round(Math.random() * Math.pow(10, 9))}`;
 
     // given
-    const destinationDir = join(scratchpad, "destination");
+    const destinationDir = join(ctx.scratchpad, "destination");
     const originalFiles = ["Nathan-Norris.txt", "Otto-Override.txt", "Peter-Parker.txt"];
     for (const file of originalFiles) {
       await Bun.write(join(destinationDir, file), secret);
     }
 
     // when
-    const artifacts = await Test.createArtifacts("f:Otto-Override.txt");
+    const artifacts = await ctx.createArtifacts("f:Otto-Override.txt");
     const step: Step.FilesystemWrite = {
       id: Generate.shortRandomString(),
       previousId: null,
@@ -97,16 +95,15 @@ describe(FilesystemAdapter.name, async () => {
   });
 
   it("merges with an existing folder when writing artifacts (managed storage)", async () => {
-    const { scratchpad } = await Test.getScratchpad();
     const secret = `${Math.round(Math.random() * Math.pow(10, 9))}`;
 
     // given
-    const destinationDir = join(scratchpad, "destination");
+    const destinationDir = join(ctx.scratchpad, "destination");
     const existingFile = Bun.file(join(destinationDir, "index.html"));
     await existingFile.write(secret);
 
     // when
-    const artifacts = await Test.createArtifacts("f:irrelevant.txt");
+    const artifacts = await ctx.createArtifacts("f:irrelevant.txt");
     const step: Step.FilesystemWrite = {
       id: Generate.shortRandomString(),
       previousId: null,

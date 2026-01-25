@@ -4,12 +4,12 @@ import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { S3Adapter } from "./S3Adapter";
 
 describe(S3Adapter.name, async () => {
-  const { managedStorageCapabilityMock, filterCapabilityMock } = await Test.initializeMockRegistry();
-  const adapter = new S3Adapter(await Test.buildEnv(), Test.impl(managedStorageCapabilityMock), Test.impl(filterCapabilityMock));
+  const ctx = await Test.initialize();
+  const adapter = new S3Adapter(ctx.env, ctx.managedStorageCapabilityMock.cast(), ctx.filterCapabilityMock.cast());
 
   beforeEach(async () => {
     await Test.cleanup();
-    await Test.patchEnv({
+    ctx.patchEnv({
       ACCESS_KEY: "kim",
       SECRET_KEY: "possible",
     });
@@ -31,7 +31,7 @@ describe(S3Adapter.name, async () => {
     from: string;
     to: string;
   };
-  const collection = Test.createCollection<TestCase>("from", [
+  const collection = Test.Utils.createCollection<TestCase>("from", [
     { from: "backups", to: "backups" },
     { from: "/backups", to: "backups" },
     { from: "/my/backups", to: "my/backups" },
@@ -40,14 +40,14 @@ describe(S3Adapter.name, async () => {
   it.each(collection.testCases)("correctly relativizes a base prefix: %s", async (testCase) => {
     const { from, to } = collection.get(testCase);
     // given
-    managedStorageCapabilityMock.select.mockImplementation(() => {
+    ctx.managedStorageCapabilityMock.select.mockImplementation(() => {
       throw new Error("irrelevant error");
     });
     // when
     const action = () => adapter.download({ basePrefix: from, connection } as Step.S3Download);
     expect(action()).rejects.toEqual(new Error("irrelevant error"));
     // then
-    expect(managedStorageCapabilityMock.select).toHaveBeenCalledWith(
+    expect(ctx.managedStorageCapabilityMock.select).toHaveBeenCalledWith(
       expect.objectContaining({
         base: to,
       }),

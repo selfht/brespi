@@ -6,8 +6,8 @@ import { join } from "path";
 import { chmod } from "fs/promises";
 
 describe(ScriptAdapter.name, async () => {
-  const { scratchpad } = await Test.getScratchpad();
-  const adapter = new ScriptAdapter(await Test.buildEnv());
+  const ctx = await Test.initialize();
+  const adapter = new ScriptAdapter(ctx.env);
 
   beforeEach(async () => {
     await Test.cleanup();
@@ -15,14 +15,14 @@ describe(ScriptAdapter.name, async () => {
 
   it("executes a bash passthrough script", async () => {
     // given
-    const iwasherePath = join(scratchpad, "iwashere");
+    const iwasherePath = join(ctx.scratchpad, "iwashere");
     const scriptPath = await saveScript(`
       #!/bin/bash
       touch ${iwasherePath}
     `);
     expect(await Bun.file(iwasherePath).exists()).toBeFalse();
     // when
-    const input = await Test.createArtifacts("f:Apple.txt", "d:Bananafolder");
+    const input = await ctx.createArtifacts("f:Apple.txt", "d:Bananafolder");
     const { artifacts: output } = await adapter.execute(
       input,
       fixture.script({
@@ -42,7 +42,7 @@ describe(ScriptAdapter.name, async () => {
       cat $BRESPI_ARTIFACTS_IN/*.txt > $BRESPI_ARTIFACTS_OUT/single.txt
       cat $BRESPI_ARTIFACTS_IN/*.sql > $BRESPI_ARTIFACTS_OUT/single.sql
     `);
-    const input = await Test.createArtifacts(
+    const input = await ctx.createArtifacts(
       { name: "f:Apple.txt", content: "Apple" },
       { name: "f:Banana.txt", content: "Banana" },
       { name: "f:Coconut.txt", content: "Coconut" },
@@ -96,7 +96,7 @@ describe(ScriptAdapter.name, async () => {
   };
 
   async function saveScript(content: string): Promise<string> {
-    const path = join(scratchpad, Bun.randomUUIDv7());
+    const path = join(ctx.scratchpad, Bun.randomUUIDv7());
     await Bun.write(path, content);
     await chmod(path, 0o755);
     return path;

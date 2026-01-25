@@ -12,8 +12,8 @@ describe(ManagedStorageCapability.name, async () => {
     TIMESTAMP: /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+/.source,
   };
 
-  const env = await Test.buildEnv();
-  const capability = new ManagedStorageCapability(env);
+  const ctx = await Test.initialize();
+  const capability = new ManagedStorageCapability(ctx.env);
 
   beforeEach(async () => {
     await Test.cleanup();
@@ -132,7 +132,7 @@ describe(ManagedStorageCapability.name, async () => {
       }
     });
 
-    const truncateCollection = Test.createCollection<{
+    const truncateCollection = Test.Utils.createCollection<{
       timestamp: string;
       expectedVersion: string;
     }>("timestamp", [
@@ -165,7 +165,7 @@ describe(ManagedStorageCapability.name, async () => {
       expect(version).toEqual(expectedVersion);
     });
 
-    const relativizeCollection = Test.createCollection<{
+    const relativizeCollection = Test.Utils.createCollection<{
       base: string;
       expectation: {
         destinationPathMatcher: RegExp;
@@ -483,7 +483,7 @@ describe(ManagedStorageCapability.name, async () => {
       );
     });
 
-    const collection = Test.createCollection<{
+    const collection = Test.Utils.createCollection<{
       base: string;
       manifest: {
         singleListingPath: string;
@@ -591,11 +591,10 @@ describe(ManagedStorageCapability.name, async () => {
   async function ensureExistingBaseline(
     options: ManagedStorageCapability.InsertOptions,
   ): Promise<{ options: ManagedStorageCapability.InsertOptions; sizesPerArtifact: Map<string, number> }> {
-    const { scratchpad } = await Test.getScratchpad();
     const rewrittenArtifacts: typeof options.artifacts = [];
     const sizesPerArtifact = new Map<string, number>();
     for (const { path, name } of options.artifacts) {
-      const newPath = join(scratchpad, path);
+      const newPath = join(ctx.scratchpad, path);
       const file = Bun.file(newPath);
       await file.write(name);
       if (await file.exists()) {
@@ -631,8 +630,8 @@ describe(ManagedStorageCapability.name, async () => {
         })),
         trail: [],
         brespi: {
-          commit: env.O_BRESPI_COMMIT,
-          version: env.O_BRESPI_VERSION,
+          commit: ctx.env.O_BRESPI_COMMIT,
+          version: ctx.env.O_BRESPI_VERSION,
         },
       };
       filesystem[join(base, listingPath)] = JSON.stringify(listing);

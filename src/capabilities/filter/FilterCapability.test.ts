@@ -8,7 +8,7 @@ describe(FilterCapability.name, () => {
   const capability = new FilterCapability();
 
   describe("exact filtering", () => {
-    const collection = Test.createCollection<{
+    const collection = Test.Utils.createCollection<{
       description: string;
       artifacts: string[];
       name: string;
@@ -46,7 +46,7 @@ describe(FilterCapability.name, () => {
   });
 
   describe("glob filtering", () => {
-    const collection = Test.createCollection<{
+    const collection = Test.Utils.createCollection<{
       pattern: string;
       artifacts: string[];
       expectation: string[];
@@ -114,7 +114,7 @@ describe(FilterCapability.name, () => {
   });
 
   describe("regex filtering", () => {
-    const collection = Test.createCollection<{
+    const collection = Test.Utils.createCollection<{
       description: string;
       artifacts: string[];
       nameRegex: string;

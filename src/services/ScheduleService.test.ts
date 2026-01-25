@@ -3,8 +3,13 @@ import { beforeEach, describe, expect, it } from "bun:test";
 import { ScheduleService } from "./ScheduleService";
 
 describe(ScheduleService.name, async () => {
-  const { eventBus, scheduleRepository, pipelineRepository, executionService } = await Test.initializeMockRegistry();
-  const service = new ScheduleService(Test.impl(eventBus), scheduleRepository, pipelineRepository, Test.impl(executionService));
+  const ctx = await Test.initialize();
+  const service = new ScheduleService(
+    ctx.eventBusMock.cast(),
+    ctx.scheduleRepository,
+    ctx.pipelineRepository,
+    ctx.executionServiceMock.cast(),
+  );
 
   beforeEach(async () => {
     await Test.cleanup();
@@ -26,7 +31,7 @@ describe(ScheduleService.name, async () => {
     "! @ # $ %", // ridiculous
   ])("rejects invalid cron expression: %s", async (invalidCron) => {
     // given
-    const pipeline = await pipelineRepository.create({
+    const pipeline = await ctx.pipelineRepository.create({
       id: Bun.randomUUIDv7(),
       object: "pipeline",
       name: "Irrelevant",

@@ -3,7 +3,7 @@ import { CommandRunner } from "./CommandRunner";
 import { Test } from "@/testing/Test.test";
 
 describe(CommandRunner.name, () => {
-  const successCollection = Test.createCollection<{
+  const successCollection = Test.Utils.createCollection<{
     description: string;
     cmd: string[];
     expectation: {

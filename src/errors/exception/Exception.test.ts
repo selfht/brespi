@@ -6,7 +6,7 @@ import { Exception } from "./Exception";
 import { Test } from "@/testing/Test.test";
 
 describe(Exception.name, async () => {
-  const collection = Test.createCollection("name", await findErrorClassesInParentFolder());
+  const collection = Test.Utils.createCollection("name", await findErrorClassesInParentFolder());
   it.each(collection.testCases)("initializes the fields of %s", (testCase) => {
     const { klass } = collection.get(testCase);
     // given

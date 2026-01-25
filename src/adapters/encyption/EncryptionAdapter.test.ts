@@ -6,11 +6,12 @@ import { EncryptionAdapter } from "./EncryptionAdapter";
 
 describe(EncryptionAdapter.name, async () => {
   const keyRef = "UNIT_TEST_KEY";
-  const adapter = new EncryptionAdapter(await Test.buildEnv());
+  const ctx = await Test.initialize();
+  const adapter = new EncryptionAdapter(ctx.env);
 
   beforeEach(async () => {
     await Test.cleanup();
-    await Test.patchEnv({
+    ctx.patchEnv({
       [keyRef]: "secret-symmetric-key",
     });
   });
@@ -21,7 +22,7 @@ describe(EncryptionAdapter.name, async () => {
 
   it("supports reversible encryption/decryption", async () => {
     // given
-    const [original] = await Test.createArtifacts("f:plaintext");
+    const [original] = await ctx.createArtifacts("f:plaintext");
     // when
     const cipherText = await adapter.encrypt(original, fixture.encryption());
     const plainText = await adapter.decrypt(cipherText, fixture.decryption());
@@ -32,7 +33,7 @@ describe(EncryptionAdapter.name, async () => {
 
   it.each(["encrypt", "decrypt"] as const)("fails when trying to %s a directory", async (operation) => {
     // given
-    const [directory] = await Test.createArtifacts("d:myfolder");
+    const [directory] = await ctx.createArtifacts("d:myfolder");
     // when
     const action =
       operation === "encrypt" //
@@ -48,10 +49,10 @@ describe(EncryptionAdapter.name, async () => {
 
   it("fails to decrypt when the key is different", async () => {
     // given
-    const [file] = await Test.createArtifacts("f:helloworld");
+    const [file] = await ctx.createArtifacts("f:helloworld");
     const encrypted = await adapter.encrypt(file, fixture.encryption());
     // when
-    await Test.patchEnv({
+    ctx.patchEnv({
       [keyRef]: Bun.randomUUIDv7(), // randomly generated decryption key
     });
     const action = () => adapter.decrypt(encrypted, fixture.decryption());
