@@ -1,13 +1,28 @@
+import { EventBus } from "@/events/EventBus";
 import { Configuration } from "@/models/Configuration";
+import { ConfigurationRepository } from "@/repositories/ConfigurationRepository";
 import { ServerMessage } from "@/socket/ServerMessage";
 import { Socket } from "@/socket/Socket";
-import { ConfigurationRepository } from "@/repositories/ConfigurationRepository";
 
 export class ConfigurationService {
   private readonly sockets: Socket[] = [];
 
-  public constructor(private readonly repository: ConfigurationRepository) {
-    repository.subscribe("synchronization_change", (configuration) => this.notifySockets(configuration));
+  public constructor(
+    private readonly repository: ConfigurationRepository,
+    eventBus: EventBus,
+  ) {
+    repository.subscribe("synchronization_change", ({ configuration }) => {
+      this.notifySockets(configuration);
+    });
+    repository.subscribe("configuration_change", ({ configuration, origin }) => {
+      eventBus.publish({
+        type: "configuration_updated",
+        data: {
+          origin,
+          configuration,
+        },
+      });
+    });
   }
 
   public registerSocket = (socket: Socket) => {

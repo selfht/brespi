@@ -2,15 +2,19 @@ import { Env } from "@/Env";
 import { Mutex } from "@/helpers/Mutex";
 import { Configuration } from "@/models/Configuration";
 
-type SynchronizationChangeListener = (conf: Configuration) => unknown;
+type ChangeOrigin = "application" | "disk_synchronization";
+type ChangeListener = {
+  event: "configuration_change" | "synchronization_change";
+  callback: (data: { configuration: Configuration; origin: ChangeOrigin }) => unknown;
+};
 
 export class ConfigurationRepository {
   private readonly mutex = new Mutex();
   private readonly diskFilePath: string;
-  private readonly synchronizationChangeListeners: SynchronizationChangeListener[] = [];
+  private readonly changeListeners: ChangeListener[] = [];
 
   private memoryObject?: Configuration.Core;
-  private memoryObjectMatchesDiskFile: boolean = true; // by definition, this will initially be true
+  private memoryObjectMatchesDiskFile = true; // by definition, this will initially be true
 
   public constructor(env: Env.Private) {
     this.diskFilePath = env.O_BRESPI_CONFIGURATION;
@@ -20,16 +24,19 @@ export class ConfigurationRepository {
     const { release } = await this.mutex.acquire();
     try {
       if (!this.memoryObject) {
-        this.memoryObject = await this.readDiskConfiguration();
-        this.memoryObjectMatchesDiskFile = true;
+        this.performUpdate({
+          origin: "disk_synchronization",
+          memoryObject: await this.readDiskConfiguration(),
+          memoryObjectMatchesDiskFile: true,
+        });
       }
     } finally {
       release();
     }
   }
 
-  public subscribe(_event: "synchronization_change", listener: SynchronizationChangeListener) {
-    this.synchronizationChangeListeners.push(listener);
+  public subscribe(event: ChangeListener["event"], callback: ChangeListener["callback"]) {
+    this.changeListeners.push({ event, callback });
   }
 
   public async read<T = void>(): Promise<Configuration>;
@@ -51,6 +58,7 @@ export class ConfigurationRepository {
       const memoryObject = Configuration.Core.parse(output.configuration);
       const memoryObjectMatchesDiskFile = await this.compareMemoryObjectWithDiskFile(memoryObject);
       this.performUpdate({
+        origin: "application",
         memoryObject,
         memoryObjectMatchesDiskFile,
       });
@@ -117,6 +125,7 @@ export class ConfigurationRepository {
         throw new Error(`Unknown operation: ${operation}`);
       }
       this.performUpdate({
+        origin: "disk_synchronization",
         memoryObject,
         memoryObjectMatchesDiskFile: true,
       });
@@ -126,12 +135,15 @@ export class ConfigurationRepository {
   }
 
   private performUpdate({
+    origin,
     memoryObject,
     memoryObjectMatchesDiskFile,
   }: {
+    origin: ChangeOrigin;
     memoryObject: Configuration.Core;
     memoryObjectMatchesDiskFile: boolean;
   }) {
+    const oldMemoryObject = this.memoryObject;
     const oldMemoryObjectMatchesDiskFile = this.memoryObjectMatchesDiskFile;
 
     // Always assign both fields in a single tick to keep `memoryObject` and `memoryObjectMatchesDiskFile` synchronized,
@@ -139,12 +151,15 @@ export class ConfigurationRepository {
     this.memoryObject = memoryObject;
     this.memoryObjectMatchesDiskFile = memoryObjectMatchesDiskFile;
 
+    if (!Bun.deepEquals(this.memoryObject, oldMemoryObject)) {
+      this.changeListeners
+        .filter(({ event }) => event === "configuration_change") //
+        .forEach(({ callback }) => callback({ configuration: this.getCurrentValue(), origin }));
+    }
     if (this.memoryObjectMatchesDiskFile !== oldMemoryObjectMatchesDiskFile) {
-      const latestConfiguration: Configuration = {
-        ...this.memoryObject,
-        synchronized: this.memoryObjectMatchesDiskFile,
-      };
-      this.synchronizationChangeListeners.forEach((listener) => listener(latestConfiguration));
+      this.changeListeners
+        .filter(({ event }) => event === "synchronization_change") //
+        .forEach(({ callback }) => callback({ configuration: this.getCurrentValue(), origin }));
     }
   }
 }

@@ -174,7 +174,6 @@ for (const createConfig of [createPostgresqlConfig, createMariadbConfig]) {
       // then
       const dataAfterRestore = await config.boundary.queryAll({ database, table: "films" });
       expect(initialData).toEqual(dataAfterRestore);
-      console.log({ initialData, dataAfterModification, dataAfterRestore });
     });
   });
 }

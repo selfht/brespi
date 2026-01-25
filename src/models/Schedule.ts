@@ -40,4 +40,13 @@ export namespace Schedule {
     object: "schedule.metadata";
     active: boolean;
   };
+  export namespace Metadata {
+    export function standard(id: string): Metadata {
+      return {
+        id,
+        object: "schedule.metadata",
+        active: true,
+      };
+    }
+  }
 }

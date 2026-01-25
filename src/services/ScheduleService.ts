@@ -2,6 +2,7 @@ import { ScheduleError } from "@/errors/ScheduleError";
 import { ServerError } from "@/errors/ServerError";
 import { EventBus } from "@/events/EventBus";
 import { ZodProblem } from "@/helpers/ZodIssues";
+import { Configuration } from "@/models/Configuration";
 import { Schedule } from "@/models/Schedule";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { ScheduleRepository } from "@/repositories/ScheduleRepository";
@@ -21,11 +22,12 @@ export class ScheduleService {
     eventBus.subscribe("pipeline_deleted", ({ data: { pipeline } }) => {
       this.deleteForPipeline(pipeline.id).catch(console.error);
     });
-  }
-
-  public async initializeSchedules() {
-    const schedules = await this.scheduleRepository.list();
-    schedules.forEach((schedule) => this.start(schedule));
+    eventBus.subscribe("configuration_updated", ({ data: { configuration, origin } }) => {
+      if (origin === "disk_synchronization") {
+        this.synchronizeWithUpdatedConfiguration(configuration);
+      }
+      // otherwise, any change would've ocurred through application services
+    });
   }
 
   public async list(): Promise<Schedule[]> {
@@ -83,6 +85,20 @@ export class ScheduleService {
     for (const { id } of schedules) {
       await this.delete(id);
     }
+  }
+
+  private async synchronizeWithUpdatedConfiguration({ schedules: coreSchedules }: Configuration) {
+    const schedules = await this.scheduleRepository.synchronizeWithUpdatedConfiguration(coreSchedules);
+    schedules.forEach((schedule) => {
+      const shouldBeStarted = schedule.active && !this.activeCronJobs.has(schedule.id);
+      const shouldBeStopped = !schedule.active && this.activeCronJobs.has(schedule.id);
+      if (shouldBeStarted) {
+        this.start(schedule);
+      }
+      if (shouldBeStopped) {
+        this.stop(schedule.id);
+      }
+    });
   }
 
   private async ensureValidPipeline(pipelineId: string): Promise<string> {
