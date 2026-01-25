@@ -450,11 +450,7 @@ export function pipelines_$id() {
                           Cancel
                         </Button>
                         {id !== "new" && (
-                          <Button
-                            onClick={mainForm.handleSubmit(mainFormApi.delete)}
-                            disabled={Boolean(stepForm)}
-                            className="border-c-error/80! text-c-error hover:bg-c-error/30"
-                          >
+                          <Button onClick={mainForm.handleSubmit(mainFormApi.delete)} disabled={Boolean(stepForm)} theme="error">
                             Delete
                           </Button>
                         )}
@@ -463,7 +459,7 @@ export function pipelines_$id() {
                     <Button
                       onClick={mainForm.handleSubmit(mainFormApi.save)}
                       disabled={mainForm.formState.isSubmitting || Boolean(stepForm)}
-                      className="border-c-success/80! text-c-success hover:bg-c-success/30"
+                      theme="success"
                     >
                       {mainForm.formState.isSubmitting ? <Spinner className="border-black! border-t-transparent!" /> : "Save"}
                     </Button>

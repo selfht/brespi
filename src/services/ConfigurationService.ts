@@ -32,4 +32,12 @@ export class ConfigurationService {
   public get(): Promise<Configuration> {
     return this.repository.read((config) => config);
   }
+
+  public saveChanges(): Promise<Configuration> {
+    return this.repository.saveChanges();
+  }
+
+  public discardChanges(): Promise<Configuration> {
+    return this.repository.discardChanges();
+  }
 }

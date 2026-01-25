@@ -8,4 +8,14 @@ export class ConfigurationClient {
     const { body } = await this.yesttp.get("/configuration");
     return Configuration.parse(body);
   }
+
+  public async saveChanges(): Promise<Configuration> {
+    const { body } = await this.yesttp.post("/configuration/save-changes");
+    return Configuration.parse(body);
+  }
+
+  public async discardChanges(): Promise<Configuration> {
+    const { body } = await this.yesttp.post("/configuration/discard-changes");
+    return Configuration.parse(body);
+  }
 }

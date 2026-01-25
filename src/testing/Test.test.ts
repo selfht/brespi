@@ -65,16 +65,20 @@ export namespace Test {
     return { scratchpad };
   }
 
-  export async function buildEnv(overrides = {} as Partial<Env.Private>): Promise<Env.Private> {
-    return {
+  export async function buildEnv(): Promise<Env.Private> {
+    const env = {
       ...Env.initialize({
         O_BRESPI_STAGE: "development",
         O_BRESPI_COMMIT: "0123456789abcdef0123456789abcdef01234567",
         O_BRESPI_VERSION: "0.0.0",
-        X_BRESPI_ROOT: join(await ensureValidCwd(), "opt", "brespi"),
+        X_BRESPI_ROOT: join(await ensureValidCwd(), "opt", "unit", "brespi"),
       }),
-      ...overrides,
     };
+    await Promise.all([
+      mkdir(env.X_BRESPI_TMP_ROOT, { recursive: true }), //
+      mkdir(env.X_BRESPI_DATA_ROOT, { recursive: true }),
+    ]);
+    return env;
   }
 
   export async function patchEnv(environment = {} as Record<string, string>) {
@@ -152,7 +156,9 @@ export namespace Test {
   }
 
   export async function initializeMockRegistry() {
-    const sqlite = await initializeSqlite({ X_BRESPI_DATABASE: ":memory:" } as Env.Private);
+    const env = await buildEnv();
+
+    const sqlite = await initializeSqlite(env);
 
     const mockFns: Mock<any>[] = [];
     function registerMockObject<T>(mockObject: Mocked<T>): Mocked<T> {
@@ -160,7 +166,7 @@ export namespace Test {
       return mockObject;
     }
 
-    const configurationRepository = new ConfigurationRepository({ X_BRESPI_CONFIGURATION: ":memory:" } as Env.Private);
+    const configurationRepository = new ConfigurationRepository(env);
     await configurationRepository.initialize();
 
     class MockRegistry {

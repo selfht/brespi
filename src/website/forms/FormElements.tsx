@@ -82,7 +82,7 @@ export namespace FormElements {
       <div className={clsx("flex flex-row-reverse justify-between gap-4", className)}>
         <div className="flex gap-4">
           {!formState.isSubmitting && <Button onClick={onCancel}>Cancel</Button>}
-          <Button disabled={formState.isSubmitting} onClick={onSubmit} className="border-c-success text-c-success hover:bg-c-success/30">
+          <Button disabled={formState.isSubmitting} onClick={onSubmit} theme="success">
             {formState.isSubmitting ? <Spinner className="border-c-success" /> : existing ? "Update Step" : "Add Step"}
           </Button>
         </div>

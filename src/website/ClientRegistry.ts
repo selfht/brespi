@@ -19,8 +19,21 @@ export class ClientRegistry {
    */
   public static async bootstrap(): Promise<ClientRegistry> {
     const { body: env } = await new Yesttp({ baseUrl: "/api" }).get<Env.Public>("/env");
-    console.table(env);
+    this.printEnv(env);
     return new ClientRegistry(env);
+  }
+
+  private static printEnv(env: Env.Public) {
+    if (Object.entries(env).length > 0) {
+      const longestKey = Object.keys(env)
+        .map((k) => k.length)
+        .reduce((l1, l2) => Math.max(l1, l2));
+      let result = ``;
+      Object.entries(env).forEach(([key, value]) => {
+        result += `${key.padEnd(longestKey + 1)}: ${value}\n`;
+      });
+      console.log("%cBrespi\n\n%c%s", "font-size: 24px; font-weight: 800;", "font-size: 12px; font-weight: normal", result);
+    }
   }
 
   private readonly registry: Record<string, any> = {};

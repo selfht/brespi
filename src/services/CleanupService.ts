@@ -6,7 +6,7 @@ import { join } from "path";
 export class CleanupService {
   public constructor(private readonly env: Env.Private) {}
 
-  public async periodicallyClean() {
+  public keepTmpFolderClean() {
     setInterval(() => this.clean(), 60_000);
     this.clean();
   }

@@ -9,14 +9,7 @@ import { ExecutionService } from "./ExecutionService";
 
 describe(ExecutionService.name, async () => {
   const { executionRepository, pipelineRepository, adapterService } = await Test.initializeMockRegistry();
-  const service = new ExecutionService(
-    await Test.buildEnv({
-      X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from({ seconds: 0 }),
-    }),
-    executionRepository,
-    pipelineRepository,
-    Test.impl(adapterService),
-  );
+  const service = new ExecutionService(await Test.buildEnv(), executionRepository, pipelineRepository, Test.impl(adapterService));
 
   beforeEach(async () => {
     await Test.cleanup();

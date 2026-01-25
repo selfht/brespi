@@ -92,6 +92,18 @@ export class Server {
             return Response.json(configuration);
           },
         },
+        "/api/configuration/save-changes": {
+          POST: async () => {
+            const configuration: Configuration = await this.configurationService.saveChanges();
+            return Response.json(configuration);
+          },
+        },
+        "/api/configuration/discard-changes": {
+          POST: async () => {
+            const configuration: Configuration = await this.configurationService.discardChanges();
+            return Response.json(configuration);
+          },
+        },
 
         /**
          * Steps & Pipelines

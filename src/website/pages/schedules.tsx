@@ -122,6 +122,7 @@ export function schedules() {
               if (editing && typeof editing !== "string" && editing.id === schedule.id) {
                 return (
                   <ScheduleEditor
+                    key={schedule.id}
                     gridClassName={gridClassName}
                     className={clsx(index + 1 === length && "rounded-b-2xl")}
                     existing={schedule}

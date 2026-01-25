@@ -12,7 +12,7 @@ export async function seed(registry: ServerRegistry) {
   const scheduleService = registry.get(ScheduleService);
   // seed
   await createPostgresqlBackupAndRestoreWithSchedule(pipelineService, scheduleService);
-  await createMariadbBackup(pipelineService);
+  await createMariadbBackupAndRestore(pipelineService);
 }
 
 async function createPostgresqlBackupAndRestoreWithSchedule(pipelineService: PipelineService, scheduleService: ScheduleService) {
@@ -132,7 +132,7 @@ async function createPostgresqlBackupAndRestoreWithSchedule(pipelineService: Pip
   });
 }
 
-async function createMariadbBackup(pipelineService: PipelineService) {
+async function createMariadbBackupAndRestore(pipelineService: PipelineService) {
   await pipelineService.create({
     name: "MariaDB Backup",
     steps: [
