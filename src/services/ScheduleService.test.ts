@@ -3,16 +3,12 @@ import { beforeEach, describe, expect, it } from "bun:test";
 import { ScheduleService } from "./ScheduleService";
 
 describe(ScheduleService.name, async () => {
-  const ctx = await Test.initialize();
-  const service = new ScheduleService(
-    ctx.eventBusMock.cast(),
-    ctx.scheduleRepository,
-    ctx.pipelineRepository,
-    ctx.executionServiceMock.cast(),
-  );
+  let ctx!: Test.Env.Context;
+  let service!: ScheduleService;
 
   beforeEach(async () => {
-    await Test.cleanup();
+    ctx = await Test.Env.initialize();
+    service = new ScheduleService(ctx.eventBusMock.cast(), ctx.scheduleRepository, ctx.pipelineRepository, ctx.executionServiceMock.cast());
   });
 
   it.each([

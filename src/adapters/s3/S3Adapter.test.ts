@@ -1,22 +1,19 @@
-import { Test } from "@/testing/Test.test";
 import { Step } from "@/models/Step";
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { Test } from "@/testing/Test.test";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { S3Adapter } from "./S3Adapter";
 
 describe(S3Adapter.name, async () => {
-  const ctx = await Test.initialize();
-  const adapter = new S3Adapter(ctx.env, ctx.managedStorageCapabilityMock.cast(), ctx.filterCapabilityMock.cast());
+  let ctx!: Test.Env.Context;
+  let adapter!: S3Adapter;
 
   beforeEach(async () => {
-    await Test.cleanup();
+    ctx = await Test.Env.initialize();
+    adapter = new S3Adapter(ctx.env, ctx.managedStorageCapabilityMock.cast(), ctx.filterCapabilityMock.cast());
     ctx.patchEnv({
       ACCESS_KEY: "kim",
       SECRET_KEY: "possible",
     });
-  });
-
-  afterEach(async () => {
-    await Test.cleanup();
   });
 
   const connection: Step.S3Connection = {

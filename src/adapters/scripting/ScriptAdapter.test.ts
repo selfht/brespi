@@ -1,16 +1,17 @@
-import { Test } from "@/testing/Test.test";
-import { beforeEach, describe, it, expect } from "bun:test";
-import { ScriptAdapter } from "./ScriptAdapter";
 import { Step } from "@/models/Step";
-import { join } from "path";
+import { Test } from "@/testing/Test.test";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { chmod } from "fs/promises";
+import { join } from "path";
+import { ScriptAdapter } from "./ScriptAdapter";
 
 describe(ScriptAdapter.name, async () => {
-  const ctx = await Test.initialize();
-  const adapter = new ScriptAdapter(ctx.env);
+  let ctx!: Test.Env.Context;
+  let adapter!: ScriptAdapter;
 
   beforeEach(async () => {
-    await Test.cleanup();
+    ctx = await Test.Env.initialize();
+    adapter = new ScriptAdapter(ctx.env);
   });
 
   it("executes a bash passthrough script", async () => {

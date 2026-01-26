@@ -8,14 +8,15 @@ import { beforeEach, describe, expect, it } from "bun:test";
 import { ExecutionService } from "./ExecutionService";
 
 describe(ExecutionService.name, async () => {
-  const ctx = await Test.initialize();
-  const service = new ExecutionService(ctx.env, ctx.executionRepository, ctx.pipelineRepository, ctx.adapterServiceMock.cast());
+  let ctx!: Test.Env.Context;
+  let executionService!: ExecutionService;
 
   beforeEach(async () => {
-    await Test.cleanup();
+    ctx = await Test.Env.initialize();
+    executionService = new ExecutionService(ctx.env, ctx.executionRepository, ctx.pipelineRepository, ctx.adapterServiceMock.cast());
   });
 
-  it("successfully executes a linear pipeline", async () => {
+  it.only("successfully executes a linear pipeline", async () => {
     // given
     const steps = [Step.Type.postgresql_backup, Step.Type.compression, Step.Type.encryption, Step.Type.s3_upload];
     const pipeline = await ctx.pipelineRepository.create(linearPipeline(steps));
@@ -24,7 +25,7 @@ describe(ExecutionService.name, async () => {
       runtime: {},
     });
     // when
-    const { id } = await service.create({ pipelineId: pipeline!.id });
+    const { id } = await executionService.create({ pipelineId: pipeline!.id });
     const completedExecution = await Test.Utils.waitUntil(
       () => ctx.executionRepository.findById(id) as Promise<Execution>,
       (x) => Boolean(x?.result),
@@ -66,7 +67,7 @@ describe(ExecutionService.name, async () => {
       });
     });
     // when
-    const { id } = await service.create({ pipelineId: pipeline!.id });
+    const { id } = await executionService.create({ pipelineId: pipeline!.id });
     const completedExecution = await Test.Utils.waitUntil(
       () => ctx.executionRepository.findById(id) as Promise<Execution>,
       (x) => Boolean(x?.result),
@@ -136,7 +137,7 @@ describe(ExecutionService.name, async () => {
       result: null,
     });
     // when
-    const action = () => service.create({ pipelineId: "123" });
+    const action = () => executionService.create({ pipelineId: "123" });
     // then
     expect(action()).rejects.toEqual(
       expect.objectContaining({

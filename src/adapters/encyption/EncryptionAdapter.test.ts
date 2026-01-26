@@ -1,23 +1,20 @@
-import { Test } from "@/testing/Test.test";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { Test } from "@/testing/Test.test";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { EncryptionAdapter } from "./EncryptionAdapter";
 
 describe(EncryptionAdapter.name, async () => {
   const keyRef = "UNIT_TEST_KEY";
-  const ctx = await Test.initialize();
-  const adapter = new EncryptionAdapter(ctx.env);
+  let ctx!: Test.Env.Context;
+  let adapter!: EncryptionAdapter;
 
   beforeEach(async () => {
-    await Test.cleanup();
+    ctx = await Test.Env.initialize();
+    adapter = new EncryptionAdapter(ctx.env);
     ctx.patchEnv({
       [keyRef]: "secret-symmetric-key",
     });
-  });
-
-  afterEach(async () => {
-    await Test.cleanup();
   });
 
   it("supports reversible encryption/decryption", async () => {

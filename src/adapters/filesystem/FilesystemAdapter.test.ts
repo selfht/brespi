@@ -1,19 +1,20 @@
 import { FilterCapability } from "@/capabilities/filter/FilterCapability";
 import { ManagedStorageCapability } from "@/capabilities/managedstorage/ManagedStorageCapability";
 import { Generate } from "@/helpers/Generate";
-import { Test } from "@/testing/Test.test";
 import { Step } from "@/models/Step";
+import { Test } from "@/testing/Test.test";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { readdir } from "fs/promises";
 import { join } from "path";
 import { FilesystemAdapter } from "./FilesystemAdapter";
 
 describe(FilesystemAdapter.name, async () => {
-  const ctx = await Test.initialize();
-  const adapter = new FilesystemAdapter(ctx.env, new ManagedStorageCapability(ctx.env), new FilterCapability());
+  let ctx!: Test.Env.Context;
+  let adapter!: FilesystemAdapter;
 
   beforeEach(async () => {
-    await Test.cleanup();
+    ctx = await Test.Env.initialize();
+    adapter = new FilesystemAdapter(ctx.env, new ManagedStorageCapability(ctx.env), new FilterCapability());
   });
 
   it("writes files to a directory", async () => {

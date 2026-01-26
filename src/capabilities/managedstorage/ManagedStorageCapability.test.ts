@@ -1,10 +1,10 @@
 import { Test } from "@/testing/Test.test";
 import { Temporal } from "@js-temporal/polyfill";
-import { afterEach, beforeEach, describe, expect, it, spyOn } from "bun:test";
+import { beforeEach, describe, expect, it, spyOn } from "bun:test";
 import { join } from "path";
 import { Listing } from "./Listing";
-import { Manifest } from "./Manifest";
 import { ManagedStorageCapability } from "./ManagedStorageCapability";
+import { Manifest } from "./Manifest";
 
 describe(ManagedStorageCapability.name, async () => {
   const Regex = {
@@ -12,18 +12,15 @@ describe(ManagedStorageCapability.name, async () => {
     TIMESTAMP: /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+/.source,
   };
 
-  const ctx = await Test.initialize();
-  const capability = new ManagedStorageCapability(ctx.env);
+  let ctx!: Test.Env.Context;
+  let capability!: ManagedStorageCapability;
 
   beforeEach(async () => {
-    await Test.cleanup();
+    ctx = await Test.Env.initialize();
+    capability = new ManagedStorageCapability(ctx.env);
   });
 
-  afterEach(async () => {
-    await Test.cleanup();
-  });
-
-  describe(capability.insert.name, () => {
+  describe("insert", () => {
     it("correctly generates the to-be-upserted manifest/listing/artifacts", async () => {
       // given
       const { filesystem, ...readWriteFns } = createReadWriteFns();
@@ -221,7 +218,7 @@ describe(ManagedStorageCapability.name, async () => {
     });
   });
 
-  describe(capability.select.name, () => {
+  describe("select", () => {
     const Timestamp = {
       _now_: Temporal.Now.plainDateTimeISO(),
       get VERY_LONG_AGO() {

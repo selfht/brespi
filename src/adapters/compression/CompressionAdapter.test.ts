@@ -1,15 +1,16 @@
-import { Test } from "@/testing/Test.test";
+import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
+import { Test } from "@/testing/Test.test";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { CompressionAdapter } from "./CompressionAdapter";
-import { Artifact } from "@/models/Artifact";
 
 describe(CompressionAdapter.name, async () => {
-  const ctx = await Test.initialize();
-  const adapter = new CompressionAdapter(ctx.env);
+  let ctx!: Test.Env.Context;
+  let adapter!: CompressionAdapter;
 
   beforeEach(async () => {
-    await Test.cleanup();
+    ctx = await Test.Env.initialize();
+    adapter = new CompressionAdapter(ctx.env);
   });
 
   it("should respect and retain the original artifact name when compressing/decompressing a folder", async () => {

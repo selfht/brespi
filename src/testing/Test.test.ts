@@ -4,19 +4,19 @@ import { ManagedStorageCapability } from "@/capabilities/managedstorage/ManagedS
 import { $execution, $scheduleMetadata } from "@/drizzle/schema";
 import { initializeSqlite } from "@/drizzle/sqlite";
 import { Env as AppEnv } from "@/Env";
+import { EventBus } from "@/events/EventBus";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { ConfigurationRepository } from "@/repositories/ConfigurationRepository";
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
+import { ScheduleRepository } from "@/repositories/ScheduleRepository";
+import { ExecutionService } from "@/services/ExecutionService";
+import { OmitBetter } from "@/types/OmitBetter";
 import { jest, mock, Mock } from "bun:test";
 import { mkdir, rm } from "fs/promises";
 import { join } from "path";
 import { Generate } from "../helpers/Generate";
-import { ExecutionService } from "@/services/ExecutionService";
-import { ScheduleRepository } from "@/repositories/ScheduleRepository";
-import { EventBus } from "@/events/EventBus";
-import { OmitBetter } from "@/types/OmitBetter";
 
 export namespace Test {
   // ============================================================================
@@ -270,9 +270,6 @@ export namespace Test {
   // Env - Environment setup and resource management
   // ============================================================================
   export namespace Env {
-    type ExtendedExecutionRepository = ExecutionRepository & { removeAll(): Promise<void> };
-    type ExtendedScheduleRepository = ScheduleRepository & { removeAll(): Promise<void> };
-
     export interface Context {
       env: AppEnv.Private;
       scratchpad: string;
@@ -280,8 +277,8 @@ export namespace Test {
       // Repositories
       configurationRepository: ConfigurationRepository;
       pipelineRepository: PipelineRepository;
-      executionRepository: ExtendedExecutionRepository;
-      scheduleRepository: ExtendedScheduleRepository;
+      executionRepository: ExecutionRepository;
+      scheduleRepository: ScheduleRepository;
 
       // Mocks
       eventBusMock: Utils.Mocked<EventBus>;
@@ -314,25 +311,34 @@ export namespace Test {
       return cwd;
     }
 
-    async function buildEnv(): Promise<AppEnv.Private> {
-      const env = {
+    async function buildEnv(): Promise<AppEnv.Private & { unitTestRoot: string }> {
+      const unitTestRoot = join(await ensureValidCwd(), "opt", "unit");
+      return {
         ...AppEnv.initialize({
           O_BRESPI_STAGE: "development",
           O_BRESPI_COMMIT: "0123456789abcdef0123456789abcdef01234567",
           O_BRESPI_VERSION: "0.0.0",
-          X_BRESPI_ROOT: join(await ensureValidCwd(), "opt", "unit", "brespi"),
+          X_BRESPI_ROOT: join(unitTestRoot, "brespi"),
         }),
+        unitTestRoot,
       };
-      await Promise.all([mkdir(env.X_BRESPI_TMP_ROOT, { recursive: true }), mkdir(env.X_BRESPI_DATA_ROOT, { recursive: true })]);
-      return env;
     }
 
     export async function initialize(): Promise<Context> {
-      const env = await buildEnv();
-      const cwd = await ensureValidCwd();
+      // Cleanup anything remaining from earlier
+      await Promise.all(Object.values(cleanupTasks).map((fn) => fn()));
 
+      // Setup env
+      const { unitTestRoot, ...env } = await buildEnv();
+
+      // Setup filesystem
+      const scratchpad = join(unitTestRoot, "scratchpad");
+      await Promise.all([
+        mkdir(env.X_BRESPI_TMP_ROOT, { recursive: true }), //
+        mkdir(env.X_BRESPI_DATA_ROOT, { recursive: true }),
+        mkdir(scratchpad, { recursive: true }),
+      ]);
       // Setup scratchpad
-      const scratchpad = join(cwd, "opt", "scratchpad");
       cleanupTasks["scratchpad"] = () => rm(scratchpad, { force: true, recursive: true });
 
       // Setup SQLite
@@ -352,22 +358,8 @@ export namespace Test {
       await configurationRepository.initialize();
 
       const pipelineRepository = new PipelineRepository(configurationRepository);
-      const executionRepository = new (class extends ExecutionRepository {
-        public constructor() {
-          super(sqlite);
-        }
-        public async removeAll(): Promise<void> {
-          await sqlite.delete($execution);
-        }
-      })();
-      const scheduleRepository = new (class extends ScheduleRepository {
-        public constructor() {
-          super(configurationRepository, sqlite);
-        }
-        public async removeAll(): Promise<void> {
-          await sqlite.delete($scheduleMetadata);
-        }
-      })();
+      const executionRepository = new ExecutionRepository(sqlite);
+      const scheduleRepository = new ScheduleRepository(configurationRepository, sqlite);
 
       // Mocks
       const eventBusMock = registerMockObject<EventBus>({
@@ -402,11 +394,6 @@ export namespace Test {
       };
       cleanupTasks["temporary_artifacts"] = async () => {
         await rm(env.X_BRESPI_TMP_ROOT, { recursive: true, force: true });
-      };
-      cleanupTasks["repositories_clear"] = () => {
-        pipelineRepository.deleteAll();
-        executionRepository.removeAll();
-        scheduleRepository.removeAll();
       };
 
       // Context-bound helpers
@@ -460,15 +447,5 @@ export namespace Test {
         patchEnv,
       };
     }
-
-    export async function cleanup() {
-      await Promise.all(Object.values(cleanupTasks).map((fn) => fn()));
-    }
   }
-
-  // ============================================================================
-  // Convenience aliases at top level
-  // ============================================================================
-  export const initialize = Env.initialize;
-  export const cleanup = Env.cleanup;
 }
