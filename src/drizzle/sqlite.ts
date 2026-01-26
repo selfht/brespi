@@ -13,7 +13,9 @@ export async function initializeSqlite(env: Env.Private) {
   migrate(sqlite, {
     migrationsFolder: "src/drizzle/migrations",
   });
-  return sqlite;
+  return Object.assign(sqlite, {
+    close: () => database.close(),
+  });
 }
 
 export type Sqlite = Awaited<ReturnType<typeof initializeSqlite>>;

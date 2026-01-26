@@ -1,7 +1,6 @@
 import { AdapterService } from "@/adapters/AdapterService";
 import { FilterCapability } from "@/capabilities/filter/FilterCapability";
 import { ManagedStorageCapability } from "@/capabilities/managedstorage/ManagedStorageCapability";
-import { $execution, $scheduleMetadata } from "@/drizzle/schema";
 import { initializeSqlite } from "@/drizzle/sqlite";
 import { Env as AppEnv } from "@/Env";
 import { EventBus } from "@/events/EventBus";
@@ -293,43 +292,36 @@ export namespace Test {
       patchEnv(environment: Record<string, string>): void;
     }
 
+    let envIndex = 1;
     const cleanupTasks: Record<string, () => unknown | Promise<unknown>> = {};
-
-    async function ensureValidCwd(): Promise<string> {
-      const cwd = process.cwd();
-      const packageJsonPath = join(cwd, "package.json");
-      const packageJsonFile = Bun.file(packageJsonPath);
-
-      if (!(await packageJsonFile.exists())) {
-        throw new Error(`Invalid working directory, package.json not found: ${packageJsonPath}`);
-      }
-      const { name } = await packageJsonFile.json();
-      if (name !== "brespi") {
-        throw new Error(`Invalid working directory, invalid project name in package.json: ${name}`);
-      }
-
-      return cwd;
-    }
-
-    async function buildEnv(): Promise<AppEnv.Private & { unitTestRoot: string }> {
-      const unitTestRoot = join(await ensureValidCwd(), "opt", "unit");
-      return {
-        ...AppEnv.initialize({
-          O_BRESPI_STAGE: "development",
-          O_BRESPI_COMMIT: "0123456789abcdef0123456789abcdef01234567",
-          O_BRESPI_VERSION: "0.0.0",
-          X_BRESPI_ROOT: join(unitTestRoot, "brespi"),
-        }),
-        unitTestRoot,
-      };
-    }
 
     export async function initialize(): Promise<Context> {
       // Cleanup anything remaining from earlier
       await Promise.all(Object.values(cleanupTasks).map((fn) => fn()));
 
+      // Ensure we're running from the project root
+      const cwd = await (async function ensureValidCwd(): Promise<string> {
+        const cwd = process.cwd();
+        const packageJsonPath = join(cwd, "package.json");
+        const packageJsonFile = Bun.file(packageJsonPath);
+        if (!(await packageJsonFile.exists())) {
+          throw new Error(`Invalid working directory, package.json not found: ${packageJsonPath}`);
+        }
+        const { name } = await packageJsonFile.json();
+        if (name !== "brespi") {
+          throw new Error(`Invalid working directory, invalid project name in package.json: ${name}`);
+        }
+        return cwd;
+      })();
+
       // Setup env
-      const { unitTestRoot, ...env } = await buildEnv();
+      const unitTestRoot = join(cwd, "opt", "unit", `${envIndex++}`);
+      const env = AppEnv.initialize({
+        O_BRESPI_STAGE: "development",
+        O_BRESPI_COMMIT: "0123456789abcdef0123456789abcdef01234567",
+        O_BRESPI_VERSION: "0.0.0",
+        X_BRESPI_ROOT: join(unitTestRoot, "brespi"),
+      });
 
       // Setup filesystem
       const scratchpad = join(unitTestRoot, "scratchpad");
@@ -338,11 +330,14 @@ export namespace Test {
         mkdir(env.X_BRESPI_DATA_ROOT, { recursive: true }),
         mkdir(scratchpad, { recursive: true }),
       ]);
-      // Setup scratchpad
-      cleanupTasks["scratchpad"] = () => rm(scratchpad, { force: true, recursive: true });
+      cleanupTasks["filesystem"] = async () => {
+        console.log(`🗑️ Deleting: ${unitTestRoot}`);
+        await rm(unitTestRoot, { recursive: true, force: true });
+      };
 
       // Setup SQLite
       const sqlite = await initializeSqlite(env);
+      cleanupTasks["sqlite"] = () => sqlite.close();
 
       // Mock registration
       const mockFns: Mock<any>[] = [];
