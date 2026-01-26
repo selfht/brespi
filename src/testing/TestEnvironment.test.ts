@@ -43,7 +43,7 @@ export namespace TestEnvironment {
     // Context-bound helpers
     createArtifacts(...artifacts: Array<`${"f" | "d"}:${string}`>): Promise<Artifact[]>;
     createArtifacts(...artifacts: Array<{ name: `${"f" | "d"}:${string}`; content: string }>): Promise<Artifact[]>;
-    patchEnv(environment: Record<string, string>): void;
+    patchEnvironmentVariables(environment: Record<string, string>): void;
   }
 
   const originalEnv = { ...Bun.env };
@@ -156,8 +156,8 @@ export namespace TestEnvironment {
       return result;
     }
 
-    function patchEnv(environment: Record<string, string>) {
-      Object.entries(environment).forEach(([key, value]) => (Bun.env[key] = value));
+    function patchEnvironmentVariables(environment: Record<string, string>) {
+      Object.assign(Bun.env, environment);
       cleanupTasks.push(() => Object.assign(Bun.env, originalEnv));
     }
 
@@ -174,7 +174,7 @@ export namespace TestEnvironment {
       filterCapabilityMock,
       managedStorageCapabilityMock,
       createArtifacts,
-      patchEnv,
+      patchEnvironmentVariables,
     };
   }
 }

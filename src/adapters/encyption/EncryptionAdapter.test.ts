@@ -12,7 +12,7 @@ describe(EncryptionAdapter.name, async () => {
   beforeEach(async () => {
     context = await TestEnvironment.initialize();
     adapter = new EncryptionAdapter(context.env);
-    context.patchEnv({
+    context.patchEnvironmentVariables({
       [keyRef]: "secret-symmetric-key",
     });
   });
@@ -49,7 +49,7 @@ describe(EncryptionAdapter.name, async () => {
     const [file] = await context.createArtifacts("f:helloworld");
     const encrypted = await adapter.encrypt(file, fixture.encryption());
     // when
-    context.patchEnv({
+    context.patchEnvironmentVariables({
       [keyRef]: Bun.randomUUIDv7(), // randomly generated decryption key
     });
     const action = () => adapter.decrypt(encrypted, fixture.decryption());
