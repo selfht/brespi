@@ -1,4 +1,5 @@
-import { Test } from "@/testing/Test.test";
+import { TestEnvironment } from "@/testing/TestEnvironment.test";
+import { TestUtils } from "@/testing/TestUtils.test";
 import { Temporal } from "@js-temporal/polyfill";
 import { beforeEach, describe, expect, it, spyOn } from "bun:test";
 import { join } from "path";
@@ -7,18 +8,18 @@ import { ManagedStorageCapability } from "./ManagedStorageCapability";
 import { Manifest } from "./Manifest";
 
 describe(ManagedStorageCapability.name, async () => {
+  let context!: TestEnvironment.Context;
+  let capability!: ManagedStorageCapability;
+
+  beforeEach(async () => {
+    context = await TestEnvironment.initialize();
+    capability = new ManagedStorageCapability(context.env);
+  });
+
   const Regex = {
     RANDOM_ID: /\w+/.source,
     TIMESTAMP: /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+/.source,
   };
-
-  let ctx!: Test.Env.Context;
-  let capability!: ManagedStorageCapability;
-
-  beforeEach(async () => {
-    ctx = await Test.Env.initialize();
-    capability = new ManagedStorageCapability(ctx.env);
-  });
 
   describe("insert", () => {
     it("correctly generates the to-be-upserted manifest/listing/artifacts", async () => {
@@ -129,7 +130,7 @@ describe(ManagedStorageCapability.name, async () => {
       }
     });
 
-    const truncateCollection = Test.Utils.createCollection<{
+    const truncateCollection = TestUtils.createCollection<{
       timestamp: string;
       expectedVersion: string;
     }>("timestamp", [
@@ -162,7 +163,7 @@ describe(ManagedStorageCapability.name, async () => {
       expect(version).toEqual(expectedVersion);
     });
 
-    const relativizeCollection = Test.Utils.createCollection<{
+    const relativizeCollection = TestUtils.createCollection<{
       base: string;
       expectation: {
         destinationPathMatcher: RegExp;
@@ -480,7 +481,7 @@ describe(ManagedStorageCapability.name, async () => {
       );
     });
 
-    const collection = Test.Utils.createCollection<{
+    const collection = TestUtils.createCollection<{
       base: string;
       manifest: {
         singleListingPath: string;
@@ -591,7 +592,7 @@ describe(ManagedStorageCapability.name, async () => {
     const rewrittenArtifacts: typeof options.artifacts = [];
     const sizesPerArtifact = new Map<string, number>();
     for (const { path, name } of options.artifacts) {
-      const newPath = join(ctx.scratchpad, path);
+      const newPath = join(context.scratchpad, path);
       const file = Bun.file(newPath);
       await file.write(name);
       if (await file.exists()) {
@@ -627,8 +628,8 @@ describe(ManagedStorageCapability.name, async () => {
         })),
         trail: [],
         brespi: {
-          commit: ctx.env.O_BRESPI_COMMIT,
-          version: ctx.env.O_BRESPI_VERSION,
+          commit: context.env.O_BRESPI_COMMIT,
+          version: context.env.O_BRESPI_VERSION,
         },
       };
       filesystem[join(base, listingPath)] = JSON.stringify(listing);

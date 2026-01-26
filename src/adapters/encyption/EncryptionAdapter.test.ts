@@ -1,25 +1,25 @@
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
-import { Test } from "@/testing/Test.test";
+import { TestEnvironment } from "@/testing/TestEnvironment.test";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { EncryptionAdapter } from "./EncryptionAdapter";
 
 describe(EncryptionAdapter.name, async () => {
-  const keyRef = "UNIT_TEST_KEY";
-  let ctx!: Test.Env.Context;
+  let context!: TestEnvironment.Context;
   let adapter!: EncryptionAdapter;
 
+  const keyRef = "UNIT_TEST_KEY";
   beforeEach(async () => {
-    ctx = await Test.Env.initialize();
-    adapter = new EncryptionAdapter(ctx.env);
-    ctx.patchEnv({
+    context = await TestEnvironment.initialize();
+    adapter = new EncryptionAdapter(context.env);
+    context.patchEnv({
       [keyRef]: "secret-symmetric-key",
     });
   });
 
   it("supports reversible encryption/decryption", async () => {
     // given
-    const [original] = await ctx.createArtifacts("f:plaintext");
+    const [original] = await context.createArtifacts("f:plaintext");
     // when
     const cipherText = await adapter.encrypt(original, fixture.encryption());
     const plainText = await adapter.decrypt(cipherText, fixture.decryption());
@@ -30,7 +30,7 @@ describe(EncryptionAdapter.name, async () => {
 
   it.each(["encrypt", "decrypt"] as const)("fails when trying to %s a directory", async (operation) => {
     // given
-    const [directory] = await ctx.createArtifacts("d:myfolder");
+    const [directory] = await context.createArtifacts("d:myfolder");
     // when
     const action =
       operation === "encrypt" //
@@ -46,10 +46,10 @@ describe(EncryptionAdapter.name, async () => {
 
   it("fails to decrypt when the key is different", async () => {
     // given
-    const [file] = await ctx.createArtifacts("f:helloworld");
+    const [file] = await context.createArtifacts("f:helloworld");
     const encrypted = await adapter.encrypt(file, fixture.encryption());
     // when
-    ctx.patchEnv({
+    context.patchEnv({
       [keyRef]: Bun.randomUUIDv7(), // randomly generated decryption key
     });
     const action = () => adapter.decrypt(encrypted, fixture.decryption());

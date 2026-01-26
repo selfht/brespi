@@ -1,29 +1,29 @@
 import { Step } from "@/models/Step";
-import { Test } from "@/testing/Test.test";
+import { TestEnvironment } from "@/testing/TestEnvironment.test";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { chmod } from "fs/promises";
 import { join } from "path";
 import { ScriptAdapter } from "./ScriptAdapter";
 
 describe(ScriptAdapter.name, async () => {
-  let ctx!: Test.Env.Context;
+  let context!: TestEnvironment.Context;
   let adapter!: ScriptAdapter;
 
   beforeEach(async () => {
-    ctx = await Test.Env.initialize();
-    adapter = new ScriptAdapter(ctx.env);
+    context = await TestEnvironment.initialize();
+    adapter = new ScriptAdapter(context.env);
   });
 
   it("executes a bash passthrough script", async () => {
     // given
-    const iwasherePath = join(ctx.scratchpad, "iwashere");
+    const iwasherePath = join(context.scratchpad, "iwashere");
     const scriptPath = await saveScript(`
       #!/bin/bash
       touch ${iwasherePath}
     `);
     expect(await Bun.file(iwasherePath).exists()).toBeFalse();
     // when
-    const input = await ctx.createArtifacts("f:Apple.txt", "d:Bananafolder");
+    const input = await context.createArtifacts("f:Apple.txt", "d:Bananafolder");
     const { artifacts: output } = await adapter.execute(
       input,
       fixture.script({
@@ -43,7 +43,7 @@ describe(ScriptAdapter.name, async () => {
       cat $BRESPI_ARTIFACTS_IN/*.txt > $BRESPI_ARTIFACTS_OUT/single.txt
       cat $BRESPI_ARTIFACTS_IN/*.sql > $BRESPI_ARTIFACTS_OUT/single.sql
     `);
-    const input = await ctx.createArtifacts(
+    const input = await context.createArtifacts(
       { name: "f:Apple.txt", content: "Apple" },
       { name: "f:Banana.txt", content: "Banana" },
       { name: "f:Coconut.txt", content: "Coconut" },
@@ -97,7 +97,7 @@ describe(ScriptAdapter.name, async () => {
   };
 
   async function saveScript(content: string): Promise<string> {
-    const path = join(ctx.scratchpad, Bun.randomUUIDv7());
+    const path = join(context.scratchpad, Bun.randomUUIDv7());
     await Bun.write(path, content);
     await chmod(path, 0o755);
     return path;

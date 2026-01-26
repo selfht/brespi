@@ -1,14 +1,19 @@
-import { Test } from "@/testing/Test.test";
+import { TestEnvironment } from "@/testing/TestEnvironment.test";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { ScheduleService } from "./ScheduleService";
 
 describe(ScheduleService.name, async () => {
-  let ctx!: Test.Env.Context;
+  let context!: TestEnvironment.Context;
   let service!: ScheduleService;
 
   beforeEach(async () => {
-    ctx = await Test.Env.initialize();
-    service = new ScheduleService(ctx.eventBusMock.cast(), ctx.scheduleRepository, ctx.pipelineRepository, ctx.executionServiceMock.cast());
+    context = await TestEnvironment.initialize();
+    service = new ScheduleService(
+      context.eventBusMock.cast(),
+      context.scheduleRepository,
+      context.pipelineRepository,
+      context.executionServiceMock.cast(),
+    );
   });
 
   it.each([
@@ -27,7 +32,7 @@ describe(ScheduleService.name, async () => {
     "! @ # $ %", // ridiculous
   ])("rejects invalid cron expression: %s", async (invalidCron) => {
     // given
-    const pipeline = await ctx.pipelineRepository.create({
+    const pipeline = await context.pipelineRepository.create({
       id: Bun.randomUUIDv7(),
       object: "pipeline",
       name: "Irrelevant",

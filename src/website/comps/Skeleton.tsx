@@ -69,14 +69,14 @@ export namespace Skeleton {
     const seed = () => restrictedClient.seed().then(() => location.reload());
     return (
       <footer className="u-root-grid-minus-gutters my-12 flex flex-col items-center gap-4">
-        <h1 className="text-4xl font-extrabold italic text-c-dark">Brespi</h1>
+        <div className="text-4xl font-extrabold italic text-c-dark">Brespi</div>
         {O_BRESPI_STAGE === "development" && (
           <div className="flex gap-4">
-            <button onClick={purge} className="cursor-pointer text-c-dark border border-c-dark hover:bg-c-dark/10 p-2 rounded-lg">
-              Purge
-            </button>
             <button onClick={seed} className="cursor-pointer text-c-dark border border-c-dark hover:bg-c-dark/10 p-2 rounded-lg">
               Seed
+            </button>
+            <button onClick={purge} className="cursor-pointer text-c-dark border border-c-dark hover:bg-c-dark/10 p-2 rounded-lg">
+              Purge
             </button>
           </div>
         )}

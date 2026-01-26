@@ -1,10 +1,10 @@
+import { TestUtils } from "@/testing/TestUtils.test";
 import { describe, expect, it } from "bun:test";
 import { UrlParser } from "./UrlParser";
-import { Test } from "@/testing/Test.test";
 
 describe("UrlParser", () => {
   describe(UrlParser.postgresql.name, () => {
-    const successCollection = Test.Utils.createCollection<{
+    const successCollection = TestUtils.createCollection<{
       url: string;
       expectation: {
         username: string;
@@ -118,7 +118,7 @@ describe("UrlParser", () => {
       expect(parts).toEqual(expectation);
     });
 
-    const errorCollection = Test.Utils.createCollection<{
+    const errorCollection = TestUtils.createCollection<{
       description: string;
       url: string;
       expectation: {
@@ -161,7 +161,7 @@ describe("UrlParser", () => {
   });
 
   describe(UrlParser.mariadb.name, () => {
-    const successCollection = Test.Utils.createCollection<{
+    const successCollection = TestUtils.createCollection<{
       url: string;
       expectation: {
         username: string;
@@ -275,7 +275,7 @@ describe("UrlParser", () => {
       expect(parts).toEqual(expectation);
     });
 
-    const errorCollection = Test.Utils.createCollection<{
+    const errorCollection = TestUtils.createCollection<{
       description: string;
       url: string;
       expectation: {

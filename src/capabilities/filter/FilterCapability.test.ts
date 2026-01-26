@@ -1,14 +1,14 @@
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
+import { TestUtils } from "@/testing/TestUtils.test";
 import { describe, expect, it } from "bun:test";
 import { FilterCapability } from "./FilterCapability";
-import { Test } from "@/testing/Test.test";
 
 describe(FilterCapability.name, () => {
   const capability = new FilterCapability();
 
   describe("exact filtering", () => {
-    const collection = Test.Utils.createCollection<{
+    const collection = TestUtils.createCollection<{
       description: string;
       artifacts: string[];
       name: string;
@@ -46,7 +46,7 @@ describe(FilterCapability.name, () => {
   });
 
   describe("glob filtering", () => {
-    const collection = Test.Utils.createCollection<{
+    const collection = TestUtils.createCollection<{
       pattern: string;
       artifacts: string[];
       expectation: string[];
@@ -114,7 +114,7 @@ describe(FilterCapability.name, () => {
   });
 
   describe("regex filtering", () => {
-    const collection = Test.Utils.createCollection<{
+    const collection = TestUtils.createCollection<{
       description: string;
       artifacts: string[];
       nameRegex: string;

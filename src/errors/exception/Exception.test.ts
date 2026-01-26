@@ -1,12 +1,12 @@
+import { TestUtils } from "@/testing/TestUtils.test";
 import { Class } from "@/types/Class";
-import { beforeEach, describe, expect, it } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { readdir } from "fs/promises";
 import { join } from "path";
 import { Exception } from "./Exception";
-import { Test } from "@/testing/Test.test";
 
 describe(Exception.name, async () => {
-  const collection = Test.Utils.createCollection("name", await findErrorClassesInParentFolder());
+  const collection = TestUtils.createCollection("name", await findErrorClassesInParentFolder());
   it.each(collection.testCases)("initializes the fields of %s", (testCase) => {
     const { klass } = collection.get(testCase);
     // given

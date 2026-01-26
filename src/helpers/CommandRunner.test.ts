@@ -1,9 +1,9 @@
+import { TestUtils } from "@/testing/TestUtils.test";
 import { describe, expect, it } from "bun:test";
 import { CommandRunner } from "./CommandRunner";
-import { Test } from "@/testing/Test.test";
 
 describe(CommandRunner.name, () => {
-  const successCollection = Test.Utils.createCollection<{
+  const successCollection = TestUtils.createCollection<{
     description: string;
     cmd: string[];
     expectation: {

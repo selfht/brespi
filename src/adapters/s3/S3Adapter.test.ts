@@ -1,16 +1,17 @@
 import { Step } from "@/models/Step";
-import { Test } from "@/testing/Test.test";
+import { TestEnvironment } from "@/testing/TestEnvironment.test";
+import { TestUtils } from "@/testing/TestUtils.test";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { S3Adapter } from "./S3Adapter";
 
 describe(S3Adapter.name, async () => {
-  let ctx!: Test.Env.Context;
+  let context!: TestEnvironment.Context;
   let adapter!: S3Adapter;
 
   beforeEach(async () => {
-    ctx = await Test.Env.initialize();
-    adapter = new S3Adapter(ctx.env, ctx.managedStorageCapabilityMock.cast(), ctx.filterCapabilityMock.cast());
-    ctx.patchEnv({
+    context = await TestEnvironment.initialize();
+    adapter = new S3Adapter(context.env, context.managedStorageCapabilityMock.cast(), context.filterCapabilityMock.cast());
+    context.patchEnv({
       ACCESS_KEY: "kim",
       SECRET_KEY: "possible",
     });
@@ -28,7 +29,7 @@ describe(S3Adapter.name, async () => {
     from: string;
     to: string;
   };
-  const collection = Test.Utils.createCollection<TestCase>("from", [
+  const collection = TestUtils.createCollection<TestCase>("from", [
     { from: "backups", to: "backups" },
     { from: "/backups", to: "backups" },
     { from: "/my/backups", to: "my/backups" },
@@ -37,14 +38,14 @@ describe(S3Adapter.name, async () => {
   it.each(collection.testCases)("correctly relativizes a base prefix: %s", async (testCase) => {
     const { from, to } = collection.get(testCase);
     // given
-    ctx.managedStorageCapabilityMock.select.mockImplementation(() => {
+    context.managedStorageCapabilityMock.select.mockImplementation(() => {
       throw new Error("irrelevant error");
     });
     // when
     const action = () => adapter.download({ basePrefix: from, connection } as Step.S3Download);
     expect(action()).rejects.toEqual(new Error("irrelevant error"));
     // then
-    expect(ctx.managedStorageCapabilityMock.select).toHaveBeenCalledWith(
+    expect(context.managedStorageCapabilityMock.select).toHaveBeenCalledWith(
       expect.objectContaining({
         base: to,
       }),

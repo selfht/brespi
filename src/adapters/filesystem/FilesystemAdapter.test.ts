@@ -2,25 +2,25 @@ import { FilterCapability } from "@/capabilities/filter/FilterCapability";
 import { ManagedStorageCapability } from "@/capabilities/managedstorage/ManagedStorageCapability";
 import { Generate } from "@/helpers/Generate";
 import { Step } from "@/models/Step";
-import { Test } from "@/testing/Test.test";
+import { TestEnvironment } from "@/testing/TestEnvironment.test";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { readdir } from "fs/promises";
 import { join } from "path";
 import { FilesystemAdapter } from "./FilesystemAdapter";
 
 describe(FilesystemAdapter.name, async () => {
-  let ctx!: Test.Env.Context;
+  let context!: TestEnvironment.Context;
   let adapter!: FilesystemAdapter;
 
   beforeEach(async () => {
-    ctx = await Test.Env.initialize();
-    adapter = new FilesystemAdapter(ctx.env, new ManagedStorageCapability(ctx.env), new FilterCapability());
+    context = await TestEnvironment.initialize();
+    adapter = new FilesystemAdapter(context.env, new ManagedStorageCapability(context.env), new FilterCapability());
   });
 
   it("writes files to a directory", async () => {
     // given
-    const artifacts = await ctx.createArtifacts("f:Apple.txt", "f:Banana.txt", "f:Coconut.txt");
-    const folderPath = join(ctx.scratchpad, "storage");
+    const artifacts = await context.createArtifacts("f:Apple.txt", "f:Banana.txt", "f:Coconut.txt");
+    const folderPath = join(context.scratchpad, "storage");
     // when
     const step: Step.FilesystemWrite = {
       id: Generate.shortRandomString(),
@@ -40,8 +40,8 @@ describe(FilesystemAdapter.name, async () => {
 
   it("writes folders to a directory", async () => {
     // given
-    const artifacts = await ctx.createArtifacts("d:Set", "d:List", "d:Group");
-    const folderPath = join(ctx.scratchpad, "storage");
+    const artifacts = await context.createArtifacts("d:Set", "d:List", "d:Group");
+    const folderPath = join(context.scratchpad, "storage");
     // when
     const step: Step.FilesystemWrite = {
       id: Generate.shortRandomString(),
@@ -63,14 +63,14 @@ describe(FilesystemAdapter.name, async () => {
     const secret = `${Math.round(Math.random() * Math.pow(10, 9))}`;
 
     // given
-    const destinationDir = join(ctx.scratchpad, "destination");
+    const destinationDir = join(context.scratchpad, "destination");
     const originalFiles = ["Nathan-Norris.txt", "Otto-Override.txt", "Peter-Parker.txt"];
     for (const file of originalFiles) {
       await Bun.write(join(destinationDir, file), secret);
     }
 
     // when
-    const artifacts = await ctx.createArtifacts("f:Otto-Override.txt");
+    const artifacts = await context.createArtifacts("f:Otto-Override.txt");
     const step: Step.FilesystemWrite = {
       id: Generate.shortRandomString(),
       previousId: null,
@@ -99,12 +99,12 @@ describe(FilesystemAdapter.name, async () => {
     const secret = `${Math.round(Math.random() * Math.pow(10, 9))}`;
 
     // given
-    const destinationDir = join(ctx.scratchpad, "destination");
+    const destinationDir = join(context.scratchpad, "destination");
     const existingFile = Bun.file(join(destinationDir, "index.html"));
     await existingFile.write(secret);
 
     // when
-    const artifacts = await ctx.createArtifacts("f:irrelevant.txt");
+    const artifacts = await context.createArtifacts("f:irrelevant.txt");
     const step: Step.FilesystemWrite = {
       id: Generate.shortRandomString(),
       previousId: null,

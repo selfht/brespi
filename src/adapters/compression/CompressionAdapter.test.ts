@@ -1,21 +1,21 @@
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
-import { Test } from "@/testing/Test.test";
+import { TestEnvironment } from "@/testing/TestEnvironment.test";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { CompressionAdapter } from "./CompressionAdapter";
 
 describe(CompressionAdapter.name, async () => {
-  let ctx!: Test.Env.Context;
+  let context!: TestEnvironment.Context;
   let adapter!: CompressionAdapter;
 
   beforeEach(async () => {
-    ctx = await Test.Env.initialize();
-    adapter = new CompressionAdapter(ctx.env);
+    context = await TestEnvironment.initialize();
+    adapter = new CompressionAdapter(context.env);
   });
 
   it("should respect and retain the original artifact name when compressing/decompressing a folder", async () => {
     // given
-    const [original] = await ctx.createArtifacts("d:Collection");
+    const [original] = await context.createArtifacts("d:Collection");
     expect(original.name).toEqual("Collection");
     // when
     const compressed = await adapter.compress(original, fixture.compression(9));
@@ -26,7 +26,7 @@ describe(CompressionAdapter.name, async () => {
 
   it("should result in different file sizes for different compression levels", async () => {
     // given
-    const [file] = await ctx.createArtifacts("f:data");
+    const [file] = await context.createArtifacts("f:data");
     await Bun.write(file.path, generateCompressibleText());
     // when
     const level1 = await adapter.compress(file, fixture.compression(1)).then(readSize);
