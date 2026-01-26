@@ -9,11 +9,11 @@ import { ExecutionService } from "./ExecutionService";
 
 describe(ExecutionService.name, async () => {
   let ctx!: Test.Env.Context;
-  let executionService!: ExecutionService;
+  let service!: ExecutionService;
 
   beforeEach(async () => {
     ctx = await Test.Env.initialize();
-    executionService = new ExecutionService(ctx.env, ctx.executionRepository, ctx.pipelineRepository, ctx.adapterServiceMock.cast());
+    service = new ExecutionService(ctx.env, ctx.executionRepository, ctx.pipelineRepository, ctx.adapterServiceMock.cast());
   });
 
   it.only("successfully executes a linear pipeline", async () => {
@@ -25,7 +25,7 @@ describe(ExecutionService.name, async () => {
       runtime: {},
     });
     // when
-    const { id } = await executionService.create({ pipelineId: pipeline!.id });
+    const { id } = await service.create({ pipelineId: pipeline!.id });
     const completedExecution = await Test.Utils.waitUntil(
       () => ctx.executionRepository.findById(id) as Promise<Execution>,
       (x) => Boolean(x?.result),
@@ -67,7 +67,7 @@ describe(ExecutionService.name, async () => {
       });
     });
     // when
-    const { id } = await executionService.create({ pipelineId: pipeline!.id });
+    const { id } = await service.create({ pipelineId: pipeline!.id });
     const completedExecution = await Test.Utils.waitUntil(
       () => ctx.executionRepository.findById(id) as Promise<Execution>,
       (x) => Boolean(x?.result),
@@ -137,7 +137,7 @@ describe(ExecutionService.name, async () => {
       result: null,
     });
     // when
-    const action = () => executionService.create({ pipelineId: "123" });
+    const action = () => service.create({ pipelineId: "123" });
     // then
     expect(action()).rejects.toEqual(
       expect.objectContaining({
