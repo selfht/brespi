@@ -11,8 +11,6 @@ import { Temporal } from "@js-temporal/polyfill";
 import z from "zod/v4";
 import { NotificationDispatchService } from "./NotificationDispatchService";
 
-type EligibleEvent = Extract<Event, { type: NotificationEventSubscription.Type }>;
-
 export class NotificationService {
   private cache: NotificationPolicy[] = [];
   private cacheUpdated?: Temporal.PlainDateTime;
@@ -84,11 +82,14 @@ export class NotificationService {
     return this.cache;
   }
 
-  private declareEligible(_event: Event): _event is EligibleEvent {
+  private declareEligible(_event: Event): _event is NotificationEventSubscription.EligibleEvent {
     return true;
   }
 
-  private matchesSubscriptionDetails(event: EligibleEvent, eventSubscription: NotificationEventSubscription): boolean {
+  private matchesSubscriptionDetails(
+    event: NotificationEventSubscription.EligibleEvent,
+    eventSubscription: NotificationEventSubscription,
+  ): boolean {
     switch (event.type) {
       case Event.Type.execution_started: {
         return eventSubscription.triggers.includes(event.data.trigger);

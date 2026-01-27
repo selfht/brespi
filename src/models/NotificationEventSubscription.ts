@@ -14,6 +14,7 @@ export type NotificationEventSubscription =
 
 export namespace NotificationEventSubscription {
   export type Type = NotificationEventSubscription["type"];
+  export type EligibleEvent = Extract<Event, { type: Type }>;
 
   export const parse = ZodParser.forType<NotificationEventSubscription>()
     .ensureSchemaMatchesType(() =>

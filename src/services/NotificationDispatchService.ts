@@ -9,12 +9,10 @@ import { Outcome } from "@/models/Outcome";
 import { basename, dirname } from "path";
 import { Yesttp } from "yesttp";
 
-type EligibleEvent = Extract<Event, { type: NotificationEventSubscription.Type }>;
-
 export class NotificationDispatchService {
   public constructor(private readonly yesttp = new Yesttp()) {}
 
-  public async dispatch(policy: NotificationPolicy, event: EligibleEvent) {
+  public async dispatch(policy: NotificationPolicy, event: NotificationEventSubscription.EligibleEvent) {
     try {
       switch (policy.channel.name) {
         case "slack": {
@@ -39,7 +37,7 @@ export class NotificationDispatchService {
     }
   }
 
-  private async dispatchToSlack(channel: NotificationChannel.Slack, event: EligibleEvent) {
+  private async dispatchToSlack(channel: NotificationChannel.Slack, event: NotificationEventSubscription.EligibleEvent) {
     const webhookUrl = Bun.env[channel.webhookUrlReference];
     if (!webhookUrl) {
       throw new Error(`Slack webhook URL not found in environment variable: ${channel.webhookUrlReference}`);
@@ -68,7 +66,7 @@ export class NotificationDispatchService {
     await this.yesttp.post(webhookUrl, { body: { text } });
   }
 
-  private async dispatchToCustomScript(channel: NotificationChannel.CustomScript, event: EligibleEvent) {
+  private async dispatchToCustomScript(channel: NotificationChannel.CustomScript, event: NotificationEventSubscription.EligibleEvent) {
     const envVars: Record<string, string> = {
       BRESPI_EVENT: event.type,
     };
@@ -81,7 +79,7 @@ export class NotificationDispatchService {
         const result = event.data.execution.result!;
         envVars.BRESPI_PIPELINE_ID = event.data.execution.pipelineId;
         envVars.BRESPI_OUTCOME = result.outcome;
-        envVars.BRESPI_DURATION = result.duration.toString(); // TODO: check
+        envVars.BRESPI_DURATION_MS = result.duration.total("milliseconds").toString();
         break;
       }
       default: {

@@ -5,8 +5,14 @@ import { Step } from "@/models/Step";
 import { Temporal } from "@js-temporal/polyfill";
 
 export namespace TestFixture {
+  type EventOverrides = {
+    trigger?: "ad_hoc" | "schedule";
+    execution?: Execution;
+    executionOverrides?: Partial<Execution>;
+  };
+
   export function createExecutionStartedEvent(
-    overrides: Partial<{ trigger: "ad_hoc" | "schedule"; execution: Execution }> = {},
+    overrides: EventOverrides = {},
   ): Extract<Event, { type: Event.Type.execution_started }> {
     return {
       id: Bun.randomUUIDv7(),
@@ -15,13 +21,13 @@ export namespace TestFixture {
       type: Event.Type.execution_started,
       data: {
         trigger: overrides.trigger ?? "schedule",
-        execution: overrides.execution ?? createExecution({ result: null }),
+        execution: overrides.execution ?? createExecution({ result: null, ...overrides.executionOverrides }),
       },
     };
   }
 
   export function createExecutionCompletedEvent(
-    overrides: Partial<{ trigger: "ad_hoc" | "schedule"; execution: Execution; outcome: Outcome }> = {},
+    overrides: EventOverrides & { outcome?: Outcome } = {},
   ): Extract<Event, { type: Event.Type.execution_completed }> {
     const outcome = overrides.outcome ?? Outcome.success;
     return {
@@ -39,6 +45,7 @@ export namespace TestFixture {
               duration: Temporal.Duration.from({ seconds: 42 }),
               completedAt: Temporal.Now.plainDateTimeISO(),
             },
+            ...overrides.executionOverrides,
           }),
       },
     };
