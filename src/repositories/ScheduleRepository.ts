@@ -75,7 +75,7 @@ export class ScheduleRepository {
     return result;
   }
 
-  public async remove(id: string): Promise<Schedule> {
+  public async delete(id: string): Promise<Schedule> {
     const { result } = await this.configuration.write(async (configuration) => {
       const existingCore = configuration.schedules.find((s) => s.id === id);
       if (!existingCore) {

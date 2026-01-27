@@ -15,7 +15,13 @@ describe(ExecutionService.name, async () => {
 
   beforeEach(async () => {
     context = await TestEnvironment.initialize();
-    service = new ExecutionService(context.env, context.executionRepository, context.pipelineRepository, context.adapterServiceMock.cast());
+    service = new ExecutionService(
+      context.env,
+      context.executionRepository,
+      context.pipelineRepository,
+      context.adapterServiceMock.cast(),
+      context.eventBusMock.cast(),
+    );
   });
 
   it("successfully executes a linear pipeline", async () => {
@@ -27,7 +33,7 @@ describe(ExecutionService.name, async () => {
       runtime: {},
     });
     // when
-    const { id } = await service.create({ pipelineId: pipeline!.id });
+    const { id } = await service.create({ pipelineId: pipeline!.id, trigger: "ad_hoc" });
     const completedExecution = await TestUtils.waitUntil(
       () => context.executionRepository.findById(id) as Promise<Execution>,
       (x) => Boolean(x?.result),
@@ -69,7 +75,7 @@ describe(ExecutionService.name, async () => {
       });
     });
     // when
-    const { id } = await service.create({ pipelineId: pipeline!.id });
+    const { id } = await service.create({ pipelineId: pipeline!.id, trigger: "ad_hoc" });
     const completedExecution = await TestUtils.waitUntil(
       () => context.executionRepository.findById(id) as Promise<Execution>,
       (x) => Boolean(x?.result),
@@ -139,7 +145,7 @@ describe(ExecutionService.name, async () => {
       result: null,
     });
     // when
-    const action = () => service.create({ pipelineId: "123" });
+    const action = () => service.create({ pipelineId: "123", trigger: "ad_hoc" });
     // then
     expect(action()).rejects.toEqual(
       expect.objectContaining({

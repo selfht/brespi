@@ -7,9 +7,11 @@ import { Generate } from "./helpers/Generate";
 import { Middleware } from "./middleware/Middleware";
 import { Configuration } from "./models/Configuration";
 import { Execution } from "./models/Execution";
+import { NotificationPolicy } from "./models/NotificationPolicy";
 import { Schedule } from "./models/Schedule";
 import { ConfigurationService } from "./services/ConfigurationService";
 import { ExecutionService } from "./services/ExecutionService";
+import { NotificationService } from "./services/NotificationService";
 import { PipelineService } from "./services/PipelineService";
 import { RestrictedService } from "./services/RestrictedService";
 import { ScheduleService } from "./services/ScheduleService";
@@ -26,6 +28,7 @@ export class Server {
     private readonly pipelineService: PipelineService,
     private readonly executionService: ExecutionService,
     private readonly scheduleService: ScheduleService,
+    private readonly notificationService: NotificationService,
     private readonly configurationService: ConfigurationService,
     private readonly restrictedService: RestrictedService,
     private readonly middleware: Middleware,
@@ -152,7 +155,10 @@ export class Server {
             return Response.json(executions);
           }),
           POST: this.handleRoute(async (request) => {
-            const execution: Execution = await this.executionService.create(await request.json());
+            const execution: Execution = await this.executionService.create({
+              ...(await request.json()),
+              trigger: "ad_hoc",
+            });
             return Response.json(execution);
           }),
         },
@@ -187,6 +193,30 @@ export class Server {
           DELETE: this.handleRoute(async (request) => {
             const schedule: Schedule = await this.scheduleService.delete(request.params.id);
             return Response.json(schedule);
+          }),
+        },
+
+        /**
+         * Notification policies
+         */
+        "/api/notification-policies": {
+          GET: this.handleRoute(async () => {
+            const policies: NotificationPolicy[] = await this.notificationService.listPolicies();
+            return Response.json(policies);
+          }),
+          POST: this.handleRoute(async (request) => {
+            const policy: NotificationPolicy = await this.notificationService.createPolicy(await request.json());
+            return Response.json(policy);
+          }),
+        },
+        "/api/notification-policies/:id": {
+          PUT: this.handleRoute(async (request) => {
+            const policy: NotificationPolicy = await this.notificationService.updatePolicy(request.params.id, await request.json());
+            return Response.json(policy);
+          }),
+          POST: this.handleRoute(async (request) => {
+            const policy: NotificationPolicy = await this.notificationService.deletePolicy(request.params.id);
+            return Response.json(policy);
           }),
         },
 

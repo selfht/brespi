@@ -2,6 +2,7 @@ import { ZodParser } from "@/helpers/ZodParser";
 import z from "zod/v4";
 import { Pipeline } from "./Pipeline";
 import { Schedule } from "./Schedule";
+import { NotificationPolicy } from "./NotificationPolicy";
 
 export type Configuration = Configuration.Core & {
   synchronized: boolean;
@@ -11,12 +12,14 @@ export namespace Configuration {
   export type Core = {
     pipelines: Pipeline[];
     schedules: Schedule.Core[];
+    notificationPolicies: NotificationPolicy[];
   };
   export namespace Core {
     export function empty(): Core {
       return {
         pipelines: [],
         schedules: [],
+        notificationPolicies: [],
       };
     }
     export const parse = ZodParser.forType<Core>()
@@ -24,6 +27,7 @@ export namespace Configuration {
         return z.object({
           pipelines: z.array(Pipeline.parse.SCHEMA),
           schedules: z.array(Schedule.Core.parse.SCHEMA),
+          notificationPolicies: z.array(NotificationPolicy.parse.SCHEMA),
         });
       })
       .ensureTypeMatchesSchema();

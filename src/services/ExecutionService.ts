@@ -67,7 +67,7 @@ export class ExecutionService {
   }
 
   public async create(unknown: z.output<typeof ExecutionService.Create>): Promise<Execution> {
-    const { pipelineId, waitForCompletion } = ExecutionService.Create.parse(unknown);
+    const { pipelineId, trigger, waitForCompletion } = ExecutionService.Create.parse(unknown);
     const pipeline = await this.pipelineRepository.findById(pipelineId);
     if (!pipeline) {
       throw PipelineError.not_found({ id: pipelineId });
@@ -99,11 +99,11 @@ export class ExecutionService {
     if (!(await this.executionRepository.create(execution))) {
       throw ExecutionError.already_exists();
     }
-    this.eventBus.publish(Event.Type.execution_started, { execution });
+    this.eventBus.publish(Event.Type.execution_started, { execution, trigger });
 
     const completionPromise = this.execute(execution.id, pipeline) //
       .then((completedExecution) => {
-        this.eventBus.publish(Event.Type.execution_completed, { execution: completedExecution });
+        this.eventBus.publish(Event.Type.execution_completed, { execution: completedExecution, trigger });
         return completedExecution;
       });
     if (waitForCompletion) {
@@ -359,6 +359,7 @@ export namespace ExecutionService {
   export const Create = z
     .object({
       pipelineId: z.string(),
+      trigger: z.literal(["ad_hoc", "schedule"]),
       waitForCompletion: z.boolean().optional(),
     })
     .catch((e) => {

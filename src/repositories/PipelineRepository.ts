@@ -5,8 +5,8 @@ import { ConfigurationRepository } from "./ConfigurationRepository";
 export class PipelineRepository {
   public constructor(private readonly configuration: ConfigurationRepository) {}
 
-  public list(): Promise<Pipeline[]> {
-    return this.configuration.read(({ pipelines }) => pipelines);
+  public async list(): Promise<Pipeline[]> {
+    return await this.configuration.read(({ pipelines }) => pipelines);
   }
 
   public findById(id: string): Promise<Pipeline | undefined> {
@@ -65,14 +65,5 @@ export class PipelineRepository {
       };
     });
     return result;
-  }
-
-  public async deleteAll(): Promise<void> {
-    await this.configuration.write((configuration) => ({
-      configuration: {
-        ...configuration,
-        pipelines: [],
-      },
-    }));
   }
 }

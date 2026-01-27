@@ -37,14 +37,17 @@ export namespace Manifest {
         object: z.literal("manifest"),
         items: z.array(
           z.object({
-            version: z.string().refine((x) => {
-              try {
-                Temporal.PlainDateTime.from(x);
-                return true;
-              } catch {
-                return false;
-              }
-            }, "invalid ISO timestamp"),
+            version: z.string().refine(
+              (x) => {
+                try {
+                  Temporal.PlainDateTime.from(x);
+                  return true;
+                } catch {
+                  return false;
+                }
+              },
+              { error: "invalid_iso_timestamp" },
+            ),
             totalSize: z.number(),
             listingPath: z.string(),
           }),

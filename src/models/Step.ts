@@ -324,7 +324,7 @@ export namespace Step {
               return !invalidCombination;
             },
             {
-              error: "Cannot use `retention` without `managedStorage`",
+              error: "retention_without_managed_storage",
             },
           ),
 
@@ -342,7 +342,7 @@ export namespace Step {
               return !invalidCombination;
             },
             {
-              error: "Cannot use `filterCriteria` without `managedStorage`",
+              error: "filter_criteria_without_managed_storage",
             },
           ),
 

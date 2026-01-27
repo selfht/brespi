@@ -20,11 +20,11 @@ export class ScheduleService {
     private readonly pipelineRepository: PipelineRepository,
     private readonly executionService: ExecutionService,
   ) {
-    eventBus.subscribe("pipeline_deleted", ({ data: { pipeline } }) => {
+    eventBus.subscribe(Event.Type.pipeline_deleted, ({ data: { pipeline } }) => {
       this.deleteForPipeline(pipeline.id).catch(console.error);
     });
-    eventBus.subscribe("configuration_updated", ({ data: { configuration, origin } }) => {
-      if (origin === "disk_synchronization") {
+    eventBus.subscribe(Event.Type.configuration_updated, ({ data: { configuration, trigger } }) => {
+      if (trigger === "disk_synchronization") {
         this.synchronizeWithUpdatedConfiguration(configuration);
       }
       // otherwise, any change would've ocurred through application services
@@ -66,7 +66,7 @@ export class ScheduleService {
   }
 
   public async delete(id: string): Promise<Schedule> {
-    const schedule = await this.scheduleRepository.remove(id);
+    const schedule = await this.scheduleRepository.delete(id);
     this.stop(id);
     this.eventBus.publish(Event.Type.schedule_deleted, { schedule });
     return schedule;
@@ -112,7 +112,7 @@ export class ScheduleService {
   private start(schedule: Schedule) {
     if (schedule.active) {
       const cron = new Cron(schedule.cron, async () => {
-        await this.executionService.create({ pipelineId: schedule.pipelineId }).catch(console.error);
+        await this.executionService.create({ pipelineId: schedule.pipelineId, trigger: "schedule" }).catch(console.error);
       });
       this.activeCronJobs.set(schedule.id, cron);
     }

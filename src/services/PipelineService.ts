@@ -1,5 +1,6 @@
 import { PipelineError } from "@/errors/PipelineError";
 import { ServerError } from "@/errors/ServerError";
+import { Event } from "@/events/Event";
 import { EventBus } from "@/events/EventBus";
 import { ZodProblem } from "@/helpers/ZodIssues";
 import { Pipeline } from "@/models/Pipeline";
@@ -9,7 +10,6 @@ import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { PipelineView } from "@/views/PipelineView";
 import z from "zod/v4";
 import { StepService } from "./StepService";
-import { Event } from "@/events/Event";
 
 export class PipelineService {
   public constructor(
@@ -33,23 +33,21 @@ export class PipelineService {
   }
 
   public async create(unknown: z.output<typeof PipelineService.Upsert>): Promise<PipelineView> {
-    const pipeline = this.validate({
+    const pipeline = await this.pipelineRepository.create({
       id: Bun.randomUUIDv7(),
       object: "pipeline",
       ...PipelineService.Upsert.parse(unknown),
     });
-    await this.pipelineRepository.create(pipeline);
     this.eventBus.publish(Event.Type.pipeline_created, { pipeline });
     return await this.enhance(pipeline);
   }
 
   public async update(id: string, unknown: z.output<typeof PipelineService.Upsert>): Promise<PipelineView> {
-    const pipeline = this.validate({
+    const pipeline = await this.pipelineRepository.update({
       id,
       object: "pipeline",
       ...PipelineService.Upsert.parse(unknown),
     });
-    await this.pipelineRepository.update(pipeline);
     this.eventBus.publish(Event.Type.pipeline_updated, { pipeline });
     return await this.enhance(pipeline);
   }

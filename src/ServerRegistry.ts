@@ -27,6 +27,8 @@ import { PipelineService } from "./services/PipelineService";
 import { RestrictedService } from "./services/RestrictedService";
 import { ScheduleService } from "./services/ScheduleService";
 import { StepService } from "./services/StepService";
+import { NotificationRepository } from "./repositories/NotificationRepository";
+import { NotificationService } from "./services/NotificationService";
 
 export class ServerRegistry {
   public static async bootstrap(env: Env.Private, sqlite: Sqlite): Promise<ServerRegistry> {
@@ -71,6 +73,7 @@ export class ServerRegistry {
     const { pipelineRepository } = this.register({ PipelineRepository }, [configurationRepository]);
     const { executionRepository } = this.register({ ExecutionRepository }, [sqlite]);
     const { scheduleRepository } = this.register({ ScheduleRepository }, [configurationRepository, sqlite]);
+    const { notificationRepository } = this.register({ NotificationRepository }, [configurationRepository]);
 
     // Services
     const { stepService } = this.register({ StepService }, []);
@@ -84,6 +87,7 @@ export class ServerRegistry {
       eventBus,
     ]);
     const { scheduleService } = this.register({ ScheduleService }, [eventBus, scheduleRepository, pipelineRepository, executionService]);
+    const { notificationService } = this.register({ NotificationService }, [eventBus, notificationRepository]);
     const { restrictedService } = this.register({ RestrictedService }, [sqlite, configurationRepository, pipelineService, scheduleService]);
     this.register({ CleanupService }, [env]);
 
@@ -97,6 +101,7 @@ export class ServerRegistry {
       pipelineService,
       executionService,
       scheduleService,
+      notificationService,
       configurationService,
       restrictedService,
       middleware,

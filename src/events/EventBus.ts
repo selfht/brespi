@@ -4,7 +4,7 @@ import { Event } from "./Event";
 
 type Subscription = {
   token: string;
-  type: Event.Type;
+  type: Event.Type | "*";
   listener: (event: Event) => unknown;
 };
 
@@ -21,11 +21,13 @@ export class EventBus {
     } as Event;
     console.log(`⚡️ ${type}`);
     this.subscriptions
-      .filter(({ type }) => type === event.type) //
+      .filter(({ type }) => type === event.type || type === "*") //
       .forEach(({ listener }) => listener(event));
   }
 
-  public subscribe<T extends Event.Type>(type: T, listener: (event: Extract<Event, { type: T }>) => unknown) {
+  public subscribe(all: "*", listener: (event: Event) => unknown): string;
+  public subscribe<T extends Event.Type>(type: T, listener: (event: Extract<Event, { type: T }>) => unknown): string;
+  public subscribe<T extends Event.Type>(type: T | "*", listener: (event: Extract<Event, { type: T }>) => unknown): string {
     const subscription: Subscription = {
       type,
       token: Generate.shortRandomString(),
