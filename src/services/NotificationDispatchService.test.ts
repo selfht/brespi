@@ -1,9 +1,10 @@
 import { Event } from "@/events/Event";
-import { CommandRunner } from "@/helpers/CommandRunner";
 import { NotificationPolicy } from "@/models/NotificationPolicy";
 import { Outcome } from "@/models/Outcome";
 import { TestEnvironment } from "@/testing/TestEnvironment.test";
 import { TestFixture } from "@/testing/TestFixture.test";
+import { chmod } from "fs/promises";
+import { join } from "path";
 import { beforeEach, describe, expect, it, spyOn } from "bun:test";
 import { NotificationDispatchService } from "./NotificationDispatchService";
 
@@ -97,77 +98,63 @@ describe(NotificationDispatchService.name, async () => {
   describe("custom_script", () => {
     it("runs script with correct environment variables for execution_started", async () => {
       // given
-      const commandRunnerSpy = spyOn(CommandRunner, "run").mockResolvedValue({
-        exitCode: 0,
-        stdout: "",
-        stderr: "",
-        stdall: "",
-      });
-      const policy = createCustomScriptPolicy("/opt/scripts/notify.sh");
+      const outputPath = join(context.scratchpad, "output.txt");
+      const scriptPath = await saveScript(`
+        #!/bin/bash
+        echo "BRESPI_EVENT=$BRESPI_EVENT" > ${outputPath}
+        echo "BRESPI_PIPELINE_ID=$BRESPI_PIPELINE_ID" >> ${outputPath}
+      `);
+      const policy = createCustomScriptPolicy(scriptPath);
       const event = TestFixture.createExecutionStartedEvent();
 
       // when
       await service.dispatch(policy, event);
 
       // then
-      expect(commandRunnerSpy).toHaveBeenCalledTimes(1);
-      expect(commandRunnerSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          cmd: ["bash", "-c", "./notify.sh"],
-          cwd: "/opt/scripts",
-          env: expect.objectContaining({
-            BRESPI_EVENT_TYPE: Event.Type.execution_started,
-            BRESPI_PIPELINE_ID: event.data.execution.pipelineId,
-          }),
-        }),
-      );
+      const output = await Bun.file(outputPath).text();
+      expect(output).toContain(`BRESPI_EVENT=${Event.Type.execution_started}`);
+      expect(output).toContain(`BRESPI_PIPELINE_ID=${event.data.execution.pipelineId}`);
     });
 
     it("runs script with correct environment variables for execution_completed", async () => {
       // given
-      const commandRunnerSpy = spyOn(CommandRunner, "run").mockResolvedValue({
-        exitCode: 0,
-        stdout: "",
-        stderr: "",
-        stdall: "",
-      });
-      const policy = createCustomScriptPolicy("/opt/scripts/notify.sh");
+      const outputPath = join(context.scratchpad, "output.txt");
+      const scriptPath = await saveScript(`
+        #!/bin/bash
+        echo "BRESPI_EVENT=$BRESPI_EVENT" > ${outputPath}
+        echo "BRESPI_PIPELINE_ID=$BRESPI_PIPELINE_ID" >> ${outputPath}
+        echo "BRESPI_OUTCOME=$BRESPI_OUTCOME" >> ${outputPath}
+        echo "BRESPI_DURATION=$BRESPI_DURATION" >> ${outputPath}
+      `);
+      const policy = createCustomScriptPolicy(scriptPath);
       const event = TestFixture.createExecutionCompletedEvent({ outcome: Outcome.success });
 
       // when
       await service.dispatch(policy, event);
 
       // then
-      expect(commandRunnerSpy).toHaveBeenCalledTimes(1);
-      expect(commandRunnerSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          env: expect.objectContaining({
-            BRESPI_EVENT_TYPE: Event.Type.execution_completed,
-            BRESPI_PIPELINE_ID: event.data.execution.pipelineId,
-            BRESPI_OUTCOME: Outcome.success,
-            BRESPI_DURATION: event.data.execution.result!.duration.toString(),
-          }),
-        }),
-      );
+      const output = await Bun.file(outputPath).text();
+      expect(output).toContain(`BRESPI_EVENT=${Event.Type.execution_completed}`);
+      expect(output).toContain(`BRESPI_PIPELINE_ID=${event.data.execution.pipelineId}`);
+      expect(output).toContain(`BRESPI_OUTCOME=${Outcome.success}`);
+      expect(output).toContain(`BRESPI_DURATION=${event.data.execution.result!.duration.toString()}`);
     });
 
     it("logs error when script execution fails", async () => {
       // given
-      spyOn(CommandRunner, "run").mockRejectedValue(new Error("Script failed"));
-      const consoleError = spyOn(console, "error").mockImplementation(() => {});
-      const policy = createCustomScriptPolicy("/opt/scripts/notify.sh");
+      const consoleErrorSpy = spyOn(console, "error").mockImplementation(() => {});
+      const policy = createCustomScriptPolicy("/nonexistent/path/to/script.sh");
       const event = TestFixture.createExecutionCompletedEvent({ outcome: Outcome.success });
 
       // when
       await service.dispatch(policy, event);
 
       // then
-      expect(consoleError).toHaveBeenCalledWith(
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           problem: "NotificationError::dispatch_failed",
           details: expect.objectContaining({
             channel: "custom_script",
-            cause: "Script failed",
           }),
         }),
       );
@@ -188,5 +175,12 @@ describe(NotificationDispatchService.name, async () => {
       channel: { name: "custom_script", path },
       eventSubscriptions: [{ type: Event.Type.execution_completed, triggers: ["schedule"] }],
     };
+  }
+
+  async function saveScript(content: string): Promise<string> {
+    const path = join(context.scratchpad, `${Bun.randomUUIDv7()}.sh`);
+    await Bun.write(path, content);
+    await chmod(path, 0o755);
+    return path;
   }
 });

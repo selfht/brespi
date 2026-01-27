@@ -69,19 +69,19 @@ export class NotificationDispatchService {
   }
 
   private async dispatchToCustomScript(channel: NotificationChannel.CustomScript, event: EligibleEvent) {
-    const details: Record<string, string> = {
-      BRESPI_EVENT_TYPE: event.type,
+    const envVars: Record<string, string> = {
+      BRESPI_EVENT: event.type,
     };
     switch (event.type) {
       case Event.Type.execution_started: {
-        details.BRESPI_PIPELINE_ID = event.data.execution.pipelineId;
+        envVars.BRESPI_PIPELINE_ID = event.data.execution.pipelineId;
         break;
       }
       case Event.Type.execution_completed: {
         const result = event.data.execution.result!;
-        details.BRESPI_PIPELINE_ID = event.data.execution.pipelineId;
-        details.BRESPI_OUTCOME = result.outcome;
-        details.BRESPI_DURATION = result.duration.toString(); // TODO: check
+        envVars.BRESPI_PIPELINE_ID = event.data.execution.pipelineId;
+        envVars.BRESPI_OUTCOME = result.outcome;
+        envVars.BRESPI_DURATION = result.duration.toString(); // TODO: check
         break;
       }
       default: {
@@ -93,7 +93,7 @@ export class NotificationDispatchService {
       cwd: dirname(channel.path),
       env: {
         ...Bun.env,
-        ...details,
+        ...envVars,
       },
     });
   }

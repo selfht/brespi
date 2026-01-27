@@ -54,18 +54,18 @@ export namespace TestEnvironment {
     patchEnvironmentVariables(environment: Record<string, string>): void;
   }
 
-  const originalEnv = { ...Bun.env };
   const cleanupTasks: Array<() => unknown | Promise<unknown>> = [];
+  const originalEnv = { ...Bun.env };
 
   export async function initialize(): Promise<Context> {
-    // Cleanup (in reverse order!) anything from an earlier run
-    while (cleanupTasks.length > 0) {
-      const task = cleanupTasks.pop()!;
-      await task();
-    }
+    // Cleanup between unit tests
     mock.restore();
     jest.restoreAllMocks();
     Object.assign(Bun.env, originalEnv);
+    while (cleanupTasks.length > 0) {
+      const task = cleanupTasks.pop()!; // in reverse order = important!
+      await task();
+    }
 
     // Ensure we're running from the project root
     const cwd = await (async function ensureValidCwd(): Promise<string> {
