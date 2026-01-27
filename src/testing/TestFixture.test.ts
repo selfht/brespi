@@ -1,9 +1,68 @@
+import { Event } from "@/events/Event";
+import { Execution } from "@/models/Execution";
+import { Outcome } from "@/models/Outcome";
 import { Step } from "@/models/Step";
+import { Temporal } from "@js-temporal/polyfill";
 
 export namespace TestFixture {
+  export function createExecutionStartedEvent(
+    overrides: Partial<{ trigger: "ad_hoc" | "schedule"; execution: Execution }> = {},
+  ): Extract<Event, { type: Event.Type.execution_started }> {
+    return {
+      id: Bun.randomUUIDv7(),
+      object: "event",
+      published: Temporal.Now.plainDateTimeISO(),
+      type: Event.Type.execution_started,
+      data: {
+        trigger: overrides.trigger ?? "schedule",
+        execution: overrides.execution ?? createExecution({ result: null }),
+      },
+    };
+  }
+
+  export function createExecutionCompletedEvent(
+    overrides: Partial<{ trigger: "ad_hoc" | "schedule"; execution: Execution; outcome: Outcome }> = {},
+  ): Extract<Event, { type: Event.Type.execution_completed }> {
+    const outcome = overrides.outcome ?? Outcome.success;
+    return {
+      id: Bun.randomUUIDv7(),
+      object: "event",
+      published: Temporal.Now.plainDateTimeISO(),
+      type: Event.Type.execution_completed,
+      data: {
+        trigger: overrides.trigger ?? "schedule",
+        execution:
+          overrides.execution ??
+          createExecution({
+            result: {
+              outcome,
+              duration: Temporal.Duration.from({ seconds: 42 }),
+              completedAt: Temporal.Now.plainDateTimeISO(),
+            },
+          }),
+      },
+    };
+  }
+
+  export function createExecution(overrides: Partial<Execution> = {}): Execution {
+    return {
+      id: Bun.randomUUIDv7(),
+      object: "execution",
+      pipelineId: "pipeline-123",
+      startedAt: Temporal.Now.plainDateTimeISO(),
+      actions: [],
+      result: {
+        outcome: Outcome.success,
+        duration: Temporal.Duration.from({ seconds: 42 }),
+        completedAt: Temporal.Now.plainDateTimeISO(),
+      },
+      ...overrides,
+    };
+  }
+
   export function createStep<T extends Step.Type>(
     type: T,
-    extraProps = {} as Partial<Extract<Step, { type: T }>>,
+    overrides = {} as Partial<Extract<Step, { type: T }>>,
   ): Extract<Step, { type: T }> {
     const common = Object.assign(
       {
@@ -11,7 +70,7 @@ export namespace TestFixture {
         previousId: null,
         object: "step" as const,
       },
-      extraProps,
+      overrides,
     );
     switch (type) {
       case Step.Type.filesystem_read: {

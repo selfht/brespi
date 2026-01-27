@@ -20,7 +20,7 @@ describe(ExecutionService.name, async () => {
       context.executionRepository,
       context.pipelineRepository,
       context.adapterServiceMock.cast(),
-      context.eventBusMock.cast(),
+      context.eventBus,
     );
   });
 

@@ -8,11 +8,14 @@ import { Generate } from "@/helpers/Generate";
 import { Artifact } from "@/models/Artifact";
 import { ConfigurationRepository } from "@/repositories/ConfigurationRepository";
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";
+import { NotificationRepository } from "@/repositories/NotificationRepository";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { ScheduleRepository } from "@/repositories/ScheduleRepository";
 import { ExecutionService } from "@/services/ExecutionService";
+import { NotificationDispatchService } from "@/services/NotificationDispatchService";
 import { OmitBetter } from "@/types/OmitBetter";
-import { mock, Mock } from "bun:test";
+import { jest, mock, Mock } from "bun:test";
+import { Yesttp } from "yesttp";
 import { mkdir, rm } from "fs/promises";
 import { join } from "path";
 
@@ -32,13 +35,18 @@ export namespace TestEnvironment {
     pipelineRepository: PipelineRepository;
     executionRepository: ExecutionRepository;
     scheduleRepository: ScheduleRepository;
+    notificationRepository: NotificationRepository;
+
+    // Event bus
+    eventBus: EventBus;
 
     // Mocked services and capabilities
-    eventBusMock: Mocked<EventBus>;
     executionServiceMock: Mocked<ExecutionService>;
     adapterServiceMock: Mocked<AdapterService>;
+    notificationDispatchServiceMock: Mocked<NotificationDispatchService>;
     filterCapabilityMock: Mocked<FilterCapability>;
     managedStorageCapabilityMock: Mocked<ManagedStorageCapability>;
+    yesttpMock: Mocked<Yesttp>;
 
     // Context-bound helpers
     createArtifacts(...artifacts: Array<`${"f" | "d"}:${string}`>): Promise<Artifact[]>;
@@ -55,6 +63,9 @@ export namespace TestEnvironment {
       const task = cleanupTasks.pop()!;
       await task();
     }
+    mock.restore();
+    jest.restoreAllMocks();
+    Object.assign(Bun.env, originalEnv);
 
     // Ensure we're running from the project root
     const cwd = await (async function ensureValidCwd(): Promise<string> {
@@ -96,9 +107,7 @@ export namespace TestEnvironment {
     cleanupTasks.push(() => sqlite.close());
 
     // Mock registration
-    const mockFns: Mock<any>[] = [];
     function registerMockObject<T>(mockObject: OmitBetter<Mocked<T>, "cast">): Mocked<T> {
-      Object.values(mockObject as Record<string, Mock<any>>).forEach((mock) => mockFns.push(mock));
       const extra = { cast: () => mockObject as T } as Pick<Mocked<T>, "cast">;
       Object.assign(mockObject, extra);
       return mockObject as Mocked<T>;
@@ -110,13 +119,12 @@ export namespace TestEnvironment {
     const pipelineRepository = new PipelineRepository(configurationRepository);
     const executionRepository = new ExecutionRepository(sqlite);
     const scheduleRepository = new ScheduleRepository(configurationRepository, sqlite);
+    const notificationRepository = new NotificationRepository(configurationRepository);
+
+    // Event bus
+    const eventBus = new EventBus();
 
     // Mocks
-    const eventBusMock = registerMockObject<EventBus>({
-      publish: mock(),
-      subscribe: mock(),
-      unsubscribe: mock(),
-    });
     const executionServiceMock = registerMockObject<ExecutionService>({
       registerSocket: mock(),
       unregisterSocket: mock(),
@@ -127,6 +135,9 @@ export namespace TestEnvironment {
     const adapterServiceMock = registerMockObject<AdapterService>({
       submit: mock(),
     });
+    const notificationDispatchServiceMock = registerMockObject<NotificationDispatchService>({
+      dispatch: mock(),
+    });
     const filterCapabilityMock = registerMockObject<FilterCapability>({
       createPredicate: mock(),
     });
@@ -134,6 +145,13 @@ export namespace TestEnvironment {
       insert: mock(),
       select: mock(),
       clean: mock(),
+    });
+    const yesttpMock = registerMockObject<Yesttp>({
+      get: mock(),
+      post: mock(),
+      put: mock(),
+      patch: mock(),
+      delete: mock(),
     });
 
     // Context-bound helpers
@@ -158,7 +176,6 @@ export namespace TestEnvironment {
 
     function patchEnvironmentVariables(environment: Record<string, string>) {
       Object.assign(Bun.env, environment);
-      cleanupTasks.push(() => Object.assign(Bun.env, originalEnv));
     }
 
     return {
@@ -168,11 +185,14 @@ export namespace TestEnvironment {
       pipelineRepository,
       executionRepository,
       scheduleRepository,
-      eventBusMock,
+      notificationRepository,
+      eventBus,
       executionServiceMock,
       adapterServiceMock,
+      notificationDispatchServiceMock,
       filterCapabilityMock,
       managedStorageCapabilityMock,
+      yesttpMock,
       createArtifacts,
       patchEnvironmentVariables,
     };

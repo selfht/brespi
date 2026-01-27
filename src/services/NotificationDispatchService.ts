@@ -12,6 +12,8 @@ import { Yesttp } from "yesttp";
 type EligibleEvent = Extract<Event, { type: NotificationEventSubscription.Type }>;
 
 export class NotificationDispatchService {
+  public constructor(private readonly yesttp = new Yesttp()) {}
+
   public async dispatch(policy: NotificationPolicy, event: EligibleEvent) {
     try {
       switch (policy.channel.name) {
@@ -63,7 +65,7 @@ export class NotificationDispatchService {
         break;
       }
     }
-    await new Yesttp().post(webhookUrl, { body: { text } });
+    await this.yesttp.post(webhookUrl, { body: { text } });
   }
 
   private async dispatchToCustomScript(channel: NotificationChannel.CustomScript, event: EligibleEvent) {

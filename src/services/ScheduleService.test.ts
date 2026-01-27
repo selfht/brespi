@@ -9,7 +9,7 @@ describe(ScheduleService.name, async () => {
   beforeEach(async () => {
     context = await TestEnvironment.initialize();
     service = new ScheduleService(
-      context.eventBusMock.cast(),
+      context.eventBus,
       context.scheduleRepository,
       context.pipelineRepository,
       context.executionServiceMock.cast(),
