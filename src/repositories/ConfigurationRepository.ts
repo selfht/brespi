@@ -2,10 +2,10 @@ import { Env } from "@/Env";
 import { Mutex } from "@/helpers/Mutex";
 import { Configuration } from "@/models/Configuration";
 
-type ChangeOrigin = "application" | "disk_synchronization";
+type ChangeTrigger = "application" | "disk_synchronization";
 type ChangeListener = {
   event: "configuration_change" | "synchronization_change";
-  callback: (data: { configuration: Configuration; origin: ChangeOrigin }) => unknown;
+  callback: (data: { configuration: Configuration; trigger: ChangeTrigger }) => unknown;
 };
 
 export class ConfigurationRepository {
@@ -25,7 +25,7 @@ export class ConfigurationRepository {
     try {
       if (!this.memoryObject) {
         this.performUpdate({
-          origin: "disk_synchronization",
+          trigger: "disk_synchronization",
           memoryObject: await this.readDiskConfiguration(),
           memoryObjectMatchesDiskFile: true,
         });
@@ -58,7 +58,7 @@ export class ConfigurationRepository {
       const memoryObject = Configuration.Core.parse(output.configuration);
       const memoryObjectMatchesDiskFile = await this.compareMemoryObjectWithDiskFile(memoryObject);
       this.performUpdate({
-        origin: "application",
+        trigger: "application",
         memoryObject,
         memoryObjectMatchesDiskFile,
       });
@@ -125,7 +125,7 @@ export class ConfigurationRepository {
         throw new Error(`Unknown operation: ${operation}`);
       }
       this.performUpdate({
-        origin: "disk_synchronization",
+        trigger: "disk_synchronization",
         memoryObject,
         memoryObjectMatchesDiskFile: true,
       });
@@ -135,11 +135,11 @@ export class ConfigurationRepository {
   }
 
   private performUpdate({
-    origin,
+    trigger,
     memoryObject,
     memoryObjectMatchesDiskFile,
   }: {
-    origin: ChangeOrigin;
+    trigger: ChangeTrigger;
     memoryObject: Configuration.Core;
     memoryObjectMatchesDiskFile: boolean;
   }) {
@@ -154,12 +154,12 @@ export class ConfigurationRepository {
     if (!Bun.deepEquals(this.memoryObject, oldMemoryObject)) {
       this.changeListeners
         .filter(({ event }) => event === "configuration_change") //
-        .forEach(({ callback }) => callback({ configuration: this.getCurrentValue(), origin }));
+        .forEach(({ callback }) => callback({ configuration: this.getCurrentValue(), trigger }));
     }
     if (this.memoryObjectMatchesDiskFile !== oldMemoryObjectMatchesDiskFile) {
       this.changeListeners
         .filter(({ event }) => event === "synchronization_change") //
-        .forEach(({ callback }) => callback({ configuration: this.getCurrentValue(), origin }));
+        .forEach(({ callback }) => callback({ configuration: this.getCurrentValue(), trigger }));
     }
   }
 }

@@ -1,3 +1,4 @@
+import { Event } from "@/events/Event";
 import { EventBus } from "@/events/EventBus";
 import { Configuration } from "@/models/Configuration";
 import { ConfigurationRepository } from "@/repositories/ConfigurationRepository";
@@ -14,8 +15,8 @@ export class ConfigurationService {
     repository.subscribe("synchronization_change", ({ configuration }) => {
       this.notifySockets(configuration);
     });
-    repository.subscribe("configuration_change", ({ configuration, origin }) => {
-      eventBus.publish("configuration_updated", { origin, configuration });
+    repository.subscribe("configuration_change", ({ configuration, trigger }) => {
+      eventBus.publish(Event.Type.configuration_updated, { trigger, configuration });
     });
   }
 

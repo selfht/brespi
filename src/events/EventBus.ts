@@ -4,14 +4,14 @@ import { Event } from "./Event";
 
 type Subscription = {
   token: string;
-  type: Event["type"];
+  type: Event.Type;
   listener: (event: Event) => unknown;
 };
 
 export class EventBus {
   private readonly subscriptions: Subscription[] = [];
 
-  public publish<T extends Event["type"]>(type: T, data: Extract<Event, { type: T }>["data"]) {
+  public publish<T extends Event.Type>(type: T, data: Extract<Event, { type: T }>["data"]) {
     const event = {
       id: Bun.randomUUIDv7(),
       object: "event",
@@ -25,7 +25,7 @@ export class EventBus {
       .forEach(({ listener }) => listener(event));
   }
 
-  public subscribe<T extends Event["type"]>(type: T, listener: (event: Extract<Event, { type: T }>) => unknown) {
+  public subscribe<T extends Event.Type>(type: T, listener: (event: Extract<Event, { type: T }>) => unknown) {
     const subscription: Subscription = {
       type,
       token: Generate.shortRandomString(),

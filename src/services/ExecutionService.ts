@@ -4,6 +4,7 @@ import { Exception } from "@/errors/exception/Exception";
 import { ExecutionError } from "@/errors/ExecutionError";
 import { PipelineError } from "@/errors/PipelineError";
 import { ServerError } from "@/errors/ServerError";
+import { Event } from "@/events/Event";
 import { EventBus } from "@/events/EventBus";
 import { Generate } from "@/helpers/Generate";
 import { Mutex } from "@/helpers/Mutex";
@@ -98,11 +99,11 @@ export class ExecutionService {
     if (!(await this.executionRepository.create(execution))) {
       throw ExecutionError.already_exists();
     }
-    this.eventBus.publish("execution_started", { execution });
+    this.eventBus.publish(Event.Type.execution_started, { execution });
 
     const completionPromise = this.execute(execution.id, pipeline) //
       .then((completedExecution) => {
-        this.eventBus.publish("execution_completed", { execution: completedExecution });
+        this.eventBus.publish(Event.Type.execution_completed, { execution: completedExecution });
         return completedExecution;
       });
     if (waitForCompletion) {

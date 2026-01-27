@@ -1,5 +1,6 @@
 import { ScheduleError } from "@/errors/ScheduleError";
 import { ServerError } from "@/errors/ServerError";
+import { Event } from "@/events/Event";
 import { EventBus } from "@/events/EventBus";
 import { ZodProblem } from "@/helpers/ZodIssues";
 import { Configuration } from "@/models/Configuration";
@@ -44,7 +45,7 @@ export class ScheduleService {
       cron: this.ensureValidCronExpression(cron),
     });
     this.start(schedule);
-    this.eventBus.publish("schedule_created", { schedule });
+    this.eventBus.publish(Event.Type.schedule_created, { schedule });
     return schedule;
   }
 
@@ -60,14 +61,14 @@ export class ScheduleService {
     });
     this.stop(id);
     this.start(schedule);
-    this.eventBus.publish("schedule_updated", { schedule });
+    this.eventBus.publish(Event.Type.schedule_updated, { schedule });
     return schedule;
   }
 
   public async delete(id: string): Promise<Schedule> {
     const schedule = await this.scheduleRepository.remove(id);
     this.stop(id);
-    this.eventBus.publish("schedule_deleted", { schedule });
+    this.eventBus.publish(Event.Type.schedule_deleted, { schedule });
     return schedule;
   }
 

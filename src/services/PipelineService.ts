@@ -9,6 +9,7 @@ import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { PipelineView } from "@/views/PipelineView";
 import z from "zod/v4";
 import { StepService } from "./StepService";
+import { Event } from "@/events/Event";
 
 export class PipelineService {
   public constructor(
@@ -38,7 +39,7 @@ export class PipelineService {
       ...PipelineService.Upsert.parse(unknown),
     });
     await this.pipelineRepository.create(pipeline);
-    this.eventBus.publish("pipeline_created", { pipeline });
+    this.eventBus.publish(Event.Type.pipeline_created, { pipeline });
     return await this.enhance(pipeline);
   }
 
@@ -49,13 +50,13 @@ export class PipelineService {
       ...PipelineService.Upsert.parse(unknown),
     });
     await this.pipelineRepository.update(pipeline);
-    this.eventBus.publish("pipeline_updated", { pipeline });
+    this.eventBus.publish(Event.Type.pipeline_updated, { pipeline });
     return await this.enhance(pipeline);
   }
 
   public async delete(id: string): Promise<PipelineView> {
     const pipeline = await this.pipelineRepository.delete(id);
-    this.eventBus.publish("pipeline_deleted", { pipeline });
+    this.eventBus.publish(Event.Type.pipeline_deleted, { pipeline });
     return await this.enhance(pipeline);
   }
 
