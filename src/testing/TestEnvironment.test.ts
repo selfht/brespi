@@ -106,7 +106,7 @@ export namespace TestEnvironment {
 
     // Repositories
     const configurationRepository = new ConfigurationRepository(env);
-    await configurationRepository.initialize();
+    await configurationRepository.initializeFromDisk();
     const pipelineRepository = new PipelineRepository(configurationRepository);
     const executionRepository = new ExecutionRepository(sqlite);
     const scheduleRepository = new ScheduleRepository(configurationRepository, sqlite);

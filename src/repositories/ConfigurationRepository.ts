@@ -20,7 +20,7 @@ export class ConfigurationRepository {
     this.diskFilePath = env.O_BRESPI_CONFIGURATION;
   }
 
-  public async initialize() {
+  public async initializeFromDisk() {
     const { release } = await this.mutex.acquire();
     try {
       if (!this.memoryObject) {
@@ -80,7 +80,7 @@ export class ConfigurationRepository {
 
   private getCurrentValue(): Configuration {
     if (!this.memoryObject) {
-      throw new Error(`Please call \`${"initialize" satisfies keyof typeof this}\` on the configuration repository`);
+      throw new Error(`Please call \`${"initializeFromDisk" satisfies keyof typeof this}\` first`);
     }
     return {
       ...this.memoryObject,
@@ -110,7 +110,7 @@ export class ConfigurationRepository {
    */
   private async synchronizeDiskConfiguration(operation: "save" | "discard") {
     if (!this.memoryObject) {
-      throw new Error(`Please call \`${"initialize" satisfies keyof typeof this}\` on the configuration repository`);
+      throw new Error(`Please call \`${"initializeFromDisk" satisfies keyof typeof this}\` first`);
     }
     const { release } = await this.mutex.acquire();
     try {

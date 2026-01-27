@@ -12,7 +12,7 @@ This is a work in progress with the following TODO's:
 ### Configuration
 * ✅ Describe the red circle, and the entire configuration mechanism in general
 * ✅ Provide buttons for "Save" and "Copy to Clipboard"
-* Accept an (optional) environment variable with comma separated basic auth users
+* ✅ Add basic auth support
 
 ### Schedules
 * ✅ Implement cron-style scheduled pipeline executions

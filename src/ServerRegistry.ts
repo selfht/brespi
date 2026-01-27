@@ -13,6 +13,8 @@ import { ManagedStorageCapability } from "./capabilities/managedstorage/ManagedS
 import { Sqlite } from "./drizzle/sqlite";
 import { Env } from "./Env";
 import { EventBus } from "./events/EventBus";
+import { BasicAuthMiddleware } from "./middleware/basicauth/BasicAuthMiddleware";
+import { Middleware } from "./middleware/Middleware";
 import { ConfigurationRepository } from "./repositories/ConfigurationRepository";
 import { ExecutionRepository } from "./repositories/ExecutionRepository";
 import { PipelineRepository } from "./repositories/PipelineRepository";
@@ -79,6 +81,9 @@ export class ServerRegistry {
     const { restrictedService } = this.register({ RestrictedService }, [sqlite, configurationRepository, pipelineService, scheduleService]);
     this.register({ CleanupService }, [env]);
 
+    // Middleware
+    const { basicAuthMiddleware } = this.register({ BasicAuthMiddleware }, [env]);
+    const { middleware } = this.register({ Middleware }, [basicAuthMiddleware]);
     // Server
     this.register({ Server }, [
       env,
@@ -86,8 +91,9 @@ export class ServerRegistry {
       pipelineService,
       executionService,
       scheduleService,
-      restrictedService,
       configurationService,
+      restrictedService,
+      middleware,
     ]);
   }
 

@@ -4,6 +4,7 @@ import { ServerError } from "@/errors/ServerError";
 import index from "@/website/index.html";
 import { ErrorLike } from "bun";
 import { Generate } from "./helpers/Generate";
+import { Middleware } from "./middleware/Middleware";
 import { Configuration } from "./models/Configuration";
 import { Execution } from "./models/Execution";
 import { Schedule } from "./models/Schedule";
@@ -25,8 +26,9 @@ export class Server {
     private readonly pipelineService: PipelineService,
     private readonly executionService: ExecutionService,
     private readonly scheduleService: ScheduleService,
-    private readonly restrictedService: RestrictedService,
     private readonly configurationService: ConfigurationService,
+    private readonly restrictedService: RestrictedService,
+    private readonly middleware: Middleware,
   ) {}
 
   public listen() {
@@ -35,7 +37,7 @@ export class Server {
       /**
        * Websockets
        */
-      fetch: (request, server) => {
+      fetch: this.handleFetch(async (request, server) => {
         const { pathname } = new URL(request.url);
         if (pathname === Server.SOCKET_ENDPOINT) {
           const context: Socket.Context = {
@@ -47,7 +49,7 @@ export class Server {
           return Response.json(ServerError.socket_upgrade_failed().json());
         }
         return Response.json(ServerError.route_not_found().json());
-      },
+      }),
       websocket: {
         message: () => {
           // Ignore any incoming client messages
@@ -65,146 +67,149 @@ export class Server {
         /**
          * Defaults
          */
-        "/*": index,
-        "/api/*": () => {
+        "/*": index, // index.html = unprotected
+        "/api/*": this.handleRoute(() => {
           return Response.json(ServerError.route_not_found().json(), { status: 404 });
-        },
+        }),
 
         /**
          * Env
          */
         "/api/env": {
-          GET: async () => {
+          GET: this.handleRoute(() => {
             const response = Object.entries(this.env)
               .filter(([key]) => key.startsWith("O_BRESPI_" satisfies Env.PublicPrefix))
               .map(([key, value]) => ({ [key]: value }))
               .reduce((kv1, kv2) => Object.assign({}, kv1, kv2), {});
             return Response.json(response as Env.Public);
-          },
+          }),
         },
 
         /**
          * Configuration
          */
         "/api/configuration": {
-          GET: async () => {
+          GET: this.handleRoute(async () => {
             const configuration: Configuration = await this.configurationService.get();
             return Response.json(configuration);
-          },
+          }),
         },
         "/api/configuration/save-changes": {
-          POST: async () => {
+          POST: this.handleRoute(async () => {
             const configuration: Configuration = await this.configurationService.saveChanges();
             return Response.json(configuration);
-          },
+          }),
         },
         "/api/configuration/discard-changes": {
-          POST: async () => {
+          POST: this.handleRoute(async () => {
             const configuration: Configuration = await this.configurationService.discardChanges();
             return Response.json(configuration);
-          },
+          }),
         },
 
         /**
          * Steps & Pipelines
          */
         "/api/steps/validate": {
-          POST: async (request) => {
+          POST: this.handleRoute(async (request) => {
             this.stepService.validate(await request.json());
             return new Response();
-          },
+          }),
         },
         "/api/pipelines": {
-          GET: async () => {
+          GET: this.handleRoute(async () => {
             const pipelines: PipelineView[] = await this.pipelineService.list();
             return Response.json(pipelines);
-          },
-          POST: async (request) => {
+          }),
+          POST: this.handleRoute(async (request) => {
             const pipeline: PipelineView = await this.pipelineService.create(await request.json());
             return Response.json(pipeline);
-          },
+          }),
         },
         "/api/pipelines/:id": {
-          GET: async (request) => {
+          GET: this.handleRoute(async (request) => {
             const pipeline: PipelineView = await this.pipelineService.find(request.params.id);
             return Response.json(pipeline);
-          },
-          PUT: async (request) => {
+          }),
+          PUT: this.handleRoute(async (request) => {
             const pipeline: PipelineView = await this.pipelineService.update(request.params.id, await request.json());
             return Response.json(pipeline);
-          },
-          DELETE: async (request) => {
+          }),
+          DELETE: this.handleRoute(async (request) => {
             const pipeline: PipelineView = await this.pipelineService.delete(request.params.id);
             return Response.json(pipeline);
-          },
+          }),
         },
 
         /**
          * Executions
          */
         "/api/executions": {
-          GET: async (request) => {
+          GET: this.handleRoute(async (request) => {
             const executions: Execution[] = await this.executionService.query({
               pipelineId: this.searchParam(request, "pipelineId!"),
             });
             return Response.json(executions);
-          },
-          POST: async (request) => {
+          }),
+          POST: this.handleRoute(async (request) => {
             const execution: Execution = await this.executionService.create(await request.json());
             return Response.json(execution);
-          },
+          }),
         },
         "/api/executions/:id": {
-          GET: async (request) => {
+          GET: this.handleRoute(async (request) => {
             const execution: Execution = await this.executionService.find(request.params.id);
             return Response.json(execution);
-          },
+          }),
+          POST: this.handleRoute(async (request) => {
+            return Response.json(null);
+          }),
         },
 
         /**
          * Schedules
          */
         "/api/schedules": {
-          GET: async () => {
+          GET: this.handleRoute(async () => {
             const schedules: Schedule[] = await this.scheduleService.list();
             return Response.json(schedules);
-          },
-          POST: async (request) => {
+          }),
+          POST: this.handleRoute(async (request) => {
             const schedule: Schedule = await this.scheduleService.create(await request.json());
             return Response.json(schedule);
-          },
+          }),
         },
         "/api/schedules/:id": {
-          PUT: async (request) => {
+          PUT: this.handleRoute(async (request) => {
             const schedule: Schedule = await this.scheduleService.update(request.params.id, await request.json());
             return Response.json(schedule);
-          },
-          DELETE: async (request) => {
+          }),
+          DELETE: this.handleRoute(async (request) => {
             const schedule: Schedule = await this.scheduleService.delete(request.params.id);
             return Response.json(schedule);
-          },
+          }),
         },
 
         /**
          * Restricted endpoints for local and/or e2e testing
          */
         "/api/restricted/purge": {
-          POST: async () => {
+          POST: this.handleRoute(async () => {
             if (this.env.O_BRESPI_STAGE === "development") {
               await this.restrictedService.purge();
               return new Response();
             }
             return Response.json(ServerError.route_not_found().json(), { status: 404 });
-          },
+          }),
         },
         "/api/restricted/seed": {
-          POST: async () => {
+          POST: this.handleRoute(async () => {
             if (this.env.O_BRESPI_STAGE === "development") {
               await this.restrictedService.seed();
               return new Response();
             }
             return Response.json(ServerError.route_not_found().json(), { status: 404 });
-          },
+          }),
         },
       },
       /**
@@ -228,6 +233,24 @@ export class Server {
       throw ServerError.missing_query_parameter({ name });
     }
     return value || undefined;
+  }
+
+  private handleFetch<C>(
+    fn: (request: Request, server: Bun.Server<C>) => Response | Promise<Response>,
+  ): (request: Request, server: Bun.Server<C>) => Promise<Response> {
+    return (request, server) =>
+      this.middleware.handle(request, async () => {
+        return await fn(request, server);
+      });
+  }
+
+  private handleRoute<T extends string>(
+    fn: (req: Bun.BunRequest<T>) => Response | Promise<Response>,
+  ): (req: Bun.BunRequest<T>) => Promise<Response> {
+    return (request) =>
+      this.middleware.handle(request, async () => {
+        return await fn(request);
+      });
   }
 
   private async handleError(e: ErrorLike): Promise<Response> {

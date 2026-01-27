@@ -19,8 +19,9 @@ export namespace Env {
         const data = "data";
         return {
           ...env,
-          X_BRESPI_TMP_ROOT: join(env.X_BRESPI_ROOT, "tmp"),
           O_BRESPI_CONFIGURATION: join(env.X_BRESPI_ROOT, "config.json"),
+          X_BRESPI_HTPASSWD: join(env.X_BRESPI_ROOT, ".htpasswd"),
+          X_BRESPI_TMP_ROOT: join(env.X_BRESPI_ROOT, "tmp"),
           X_BRESPI_DATA_ROOT: join(env.X_BRESPI_ROOT, data),
           X_BRESPI_DATABASE: join(env.X_BRESPI_ROOT, data, "db.sqlite"),
           X_BRESPI_ARTIFICIAL_STEP_EXECUTION_DELAY: Temporal.Duration.from(

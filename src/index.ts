@@ -5,6 +5,7 @@ import { ConfigurationRepository } from "./repositories/ConfigurationRepository"
 import { Server } from "./Server";
 import { ServerRegistry } from "./ServerRegistry";
 import { CleanupService } from "./services/CleanupService";
+import { BasicAuthMiddleware } from "./middleware/basicauth/BasicAuthMiddleware";
 
 /**
  * Initialize the env configuration
@@ -32,6 +33,7 @@ const registry = await ServerRegistry.bootstrap(env, sqlite);
 /**
  * Initialize the application
  */
-await registry.get(ConfigurationRepository).initialize();
+await registry.get(ConfigurationRepository).initializeFromDisk();
+await registry.get(BasicAuthMiddleware).initializeFromDisk();
 registry.get(CleanupService).keepTmpFolderClean();
 registry.get(Server).listen();
