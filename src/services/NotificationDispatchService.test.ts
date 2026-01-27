@@ -67,6 +67,7 @@ describe(NotificationDispatchService.name, async () => {
       // given
       const policy: NotificationPolicy = {
         id: Bun.randomUUIDv7(),
+        object: "notification_policy",
         channel: { name: "slack", webhookUrlReference: "NONEXISTENT_WEBHOOK_VAR" },
         eventSubscriptions: [{ type: Event.Type.execution_completed, triggers: ["schedule"] }],
       };
@@ -160,6 +161,7 @@ describe(NotificationDispatchService.name, async () => {
   function slackPolicy(webhookUrlReference: string): NotificationPolicy {
     return {
       id: Bun.randomUUIDv7(),
+      object: "notification_policy",
       channel: { name: "slack", webhookUrlReference },
       eventSubscriptions: [{ type: Event.Type.execution_completed, triggers: ["schedule"] }],
     };
@@ -168,6 +170,7 @@ describe(NotificationDispatchService.name, async () => {
   function customScriptPolicy(path: string): NotificationPolicy {
     return {
       id: Bun.randomUUIDv7(),
+      object: "notification_policy",
       channel: { name: "custom_script", path },
       eventSubscriptions: [{ type: Event.Type.execution_completed, triggers: ["schedule"] }],
     };

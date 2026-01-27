@@ -31,6 +31,7 @@ export class NotificationService {
   public async createPolicy(unknown: z.output<typeof NotificationService.Upsert>): Promise<NotificationPolicy> {
     const policy = await this.repository.createPolicy({
       id: Bun.randomUUIDv7(),
+      object: "notification_policy",
       ...NotificationService.Upsert.parse(unknown),
     });
     this.eventBus.publish(Event.Type.notification_policy_created, { policy });
@@ -40,6 +41,7 @@ export class NotificationService {
   public async updatePolicy(id: string, unknown: z.output<typeof NotificationService.Upsert>): Promise<NotificationPolicy> {
     const policy = await this.repository.updatePolicy({
       id,
+      object: "notification_policy",
       ...NotificationService.Upsert.parse(unknown),
     });
     this.eventBus.publish(Event.Type.notification_policy_updated, { policy });

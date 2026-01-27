@@ -25,6 +25,7 @@ export namespace Skeleton {
     const navigationLinks = [
       { title: "Pipelines", link: "/pipelines", rounding: "left" },
       { title: "Schedules", link: "/schedules", rounding: undefined },
+      { title: "Notifications", link: "/notifications", rounding: undefined },
       { title: "Configuration", link: "/configuration", rounding: "right" },
     ] as const;
 

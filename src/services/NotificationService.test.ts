@@ -162,9 +162,10 @@ describe(NotificationService.name, async () => {
     );
   });
 
-  async function createPolicy(policy: OmitBetter<NotificationPolicy, "id">): Promise<NotificationPolicy> {
+  async function createPolicy(policy: OmitBetter<NotificationPolicy, "id" | "object">): Promise<NotificationPolicy> {
     return context.notificationRepository.createPolicy({
       id: Bun.randomUUIDv7(),
+      object: "notification_policy",
       ...policy,
     });
   }

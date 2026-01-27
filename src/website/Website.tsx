@@ -21,6 +21,10 @@ const router = createBrowserRouter([
     Component: schedules,
   },
   {
+    path: "notifications",
+    Component: schedules,
+  },
+  {
     path: "configuration",
     Component: configuration,
   },
