@@ -38,10 +38,7 @@ export class PipelineService {
       ...PipelineService.Upsert.parse(unknown),
     });
     await this.pipelineRepository.create(pipeline);
-    this.eventBus.publish({
-      type: "pipeline_created",
-      data: { pipeline },
-    });
+    this.eventBus.publish("pipeline_created", { pipeline });
     return await this.enhance(pipeline);
   }
 
@@ -52,19 +49,13 @@ export class PipelineService {
       ...PipelineService.Upsert.parse(unknown),
     });
     await this.pipelineRepository.update(pipeline);
-    this.eventBus.publish({
-      type: "pipeline_updated",
-      data: { pipeline },
-    });
+    this.eventBus.publish("pipeline_updated", { pipeline });
     return await this.enhance(pipeline);
   }
 
   public async delete(id: string): Promise<PipelineView> {
     const pipeline = await this.pipelineRepository.delete(id);
-    this.eventBus.publish({
-      type: "pipeline_deleted",
-      data: { pipeline },
-    });
+    this.eventBus.publish("pipeline_deleted", { pipeline });
     return await this.enhance(pipeline);
   }
 

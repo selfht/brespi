@@ -76,7 +76,13 @@ export class ServerRegistry {
     const { stepService } = this.register({ StepService }, []);
     const { configurationService } = this.register({ ConfigurationService }, [configurationRepository, eventBus]);
     const { pipelineService } = this.register({ PipelineService }, [eventBus, pipelineRepository, executionRepository, stepService]);
-    const { executionService } = this.register({ ExecutionService }, [env, executionRepository, pipelineRepository, adapterService]);
+    const { executionService } = this.register({ ExecutionService }, [
+      env,
+      executionRepository,
+      pipelineRepository,
+      adapterService,
+      eventBus,
+    ]);
     const { scheduleService } = this.register({ ScheduleService }, [eventBus, scheduleRepository, pipelineRepository, executionService]);
     const { restrictedService } = this.register({ RestrictedService }, [sqlite, configurationRepository, pipelineService, scheduleService]);
     this.register({ CleanupService }, [env]);

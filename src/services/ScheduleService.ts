@@ -36,24 +36,21 @@ export class ScheduleService {
 
   public async create(unknown: z.output<typeof ScheduleService.Upsert>): Promise<Schedule> {
     const { pipelineId, active, cron } = ScheduleService.Upsert.parse(unknown);
-    const result = await this.scheduleRepository.create({
+    const schedule = await this.scheduleRepository.create({
       id: Bun.randomUUIDv7(),
       object: "schedule",
       pipelineId: await this.ensureValidPipeline(pipelineId),
       active,
       cron: this.ensureValidCronExpression(cron),
     });
-    this.start(result);
-    this.eventBus.publish({
-      type: "schedule_created",
-      data: { schedule: result },
-    });
-    return result;
+    this.start(schedule);
+    this.eventBus.publish("schedule_created", { schedule });
+    return schedule;
   }
 
   public async update(id: string, unknown: z.output<typeof ScheduleService.Upsert>): Promise<Schedule> {
     const { pipelineId, active, cron } = ScheduleService.Upsert.parse(unknown);
-    const result = await this.scheduleRepository.update(id, async (schedule): Promise<Schedule> => {
+    const schedule = await this.scheduleRepository.update(id, async (schedule): Promise<Schedule> => {
       return {
         ...schedule,
         pipelineId: await this.ensureValidPipeline(pipelineId),
@@ -62,22 +59,16 @@ export class ScheduleService {
       };
     });
     this.stop(id);
-    this.start(result);
-    this.eventBus.publish({
-      type: "schedule_updated",
-      data: { schedule: result },
-    });
-    return result;
+    this.start(schedule);
+    this.eventBus.publish("schedule_updated", { schedule });
+    return schedule;
   }
 
   public async delete(id: string): Promise<Schedule> {
-    const result = await this.scheduleRepository.remove(id);
+    const schedule = await this.scheduleRepository.remove(id);
     this.stop(id);
-    this.eventBus.publish({
-      type: "schedule_deleted",
-      data: { schedule: result },
-    });
-    return result;
+    this.eventBus.publish("schedule_deleted", { schedule });
+    return schedule;
   }
 
   private async deleteForPipeline(pipelineId: string) {

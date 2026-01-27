@@ -15,13 +15,7 @@ export class ConfigurationService {
       this.notifySockets(configuration);
     });
     repository.subscribe("configuration_change", ({ configuration, origin }) => {
-      eventBus.publish({
-        type: "configuration_updated",
-        data: {
-          origin,
-          configuration,
-        },
-      });
+      eventBus.publish("configuration_updated", { origin, configuration });
     });
   }
 

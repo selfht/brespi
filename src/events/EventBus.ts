@@ -11,16 +11,18 @@ type Subscription = {
 export class EventBus {
   private readonly subscriptions: Subscription[] = [];
 
-  public publish(event: OmitDistributively<Event, "id" | "object" | "published">) {
-    const completeEvent: Event = {
-      ...event,
+  public publish<T extends Event["type"]>(type: T, data: Extract<Event, { type: T }>["data"]) {
+    const event = {
       id: Bun.randomUUIDv7(),
       object: "event",
       published: Temporal.Now.plainDateTimeISO(),
-    };
+      type,
+      data,
+    } as Event;
+    console.log(`⚡️ ${type}`);
     this.subscriptions
       .filter(({ type }) => type === event.type) //
-      .forEach(({ listener }) => listener(completeEvent));
+      .forEach(({ listener }) => listener(event));
   }
 
   public subscribe<T extends Event["type"]>(type: T, listener: (event: Extract<Event, { type: T }>) => unknown) {

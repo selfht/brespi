@@ -4,6 +4,7 @@ import { Exception } from "@/errors/exception/Exception";
 import { ExecutionError } from "@/errors/ExecutionError";
 import { PipelineError } from "@/errors/PipelineError";
 import { ServerError } from "@/errors/ServerError";
+import { EventBus } from "@/events/EventBus";
 import { Generate } from "@/helpers/Generate";
 import { Mutex } from "@/helpers/Mutex";
 import { ZodProblem } from "@/helpers/ZodIssues";
@@ -30,6 +31,7 @@ export class ExecutionService {
     private readonly executionRepository: ExecutionRepository,
     private readonly pipelineRepository: PipelineRepository,
     private readonly adapterService: AdapterService,
+    private readonly eventBus: EventBus,
   ) {}
 
   public registerSocket = (socket: Socket) => {
@@ -96,13 +98,17 @@ export class ExecutionService {
     if (!(await this.executionRepository.create(execution))) {
       throw ExecutionError.already_exists();
     }
+    this.eventBus.publish("execution_started", { execution });
 
+    const completionPromise = this.execute(execution.id, pipeline) //
+      .then((completedExecution) => {
+        this.eventBus.publish("execution_completed", { execution: completedExecution });
+        return completedExecution;
+      });
     if (waitForCompletion) {
-      return await this.execute(execution.id, pipeline);
-    } else {
-      this.execute(execution.id, pipeline);
-      return execution;
+      return await completionPromise;
     }
+    return execution;
   }
 
   private async execute(executionId: string, pipeline: Pipeline): Promise<Execution> {
