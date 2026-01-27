@@ -1,7 +1,6 @@
 import { ServerError } from "@/errors/ServerError";
 import { Event } from "@/events/Event";
 import { EventBus } from "@/events/EventBus";
-import { assertNever } from "@/helpers/assertNever";
 import { Mutex } from "@/helpers/Mutex";
 import { ZodProblem } from "@/helpers/ZodIssues";
 import { NotificationChannel } from "@/models/NotificationChannel";
@@ -10,6 +9,7 @@ import { NotificationPolicy } from "@/models/NotificationPolicy";
 import { NotificationRepository } from "@/repositories/NotificationRepository";
 import { Temporal } from "@js-temporal/polyfill";
 import z from "zod/v4";
+import { NotificationDispatchService } from "./NotificationDispatchService";
 
 type EligibleEvent = Extract<Event, { type: NotificationEventSubscription.Type }>;
 
@@ -21,6 +21,7 @@ export class NotificationService {
   public constructor(
     private readonly eventBus: EventBus,
     private readonly repository: NotificationRepository,
+    private readonly dispatchService: NotificationDispatchService,
   ) {
     eventBus.subscribe("*", (event) => this.triggerNotifications(event));
   }
@@ -55,52 +56,13 @@ export class NotificationService {
 
   private async triggerNotifications(event: Event) {
     for (const policy of await this.listPoliciesFromCache()) {
-      const matchingSubscription = policy.eventSubscriptions.find(({ type }) => event.type === type);
-      if (matchingSubscription && this.declareEligible(event)) {
-        if (this.matchesSubscriptionDetails(event, matchingSubscription)) {
-          console.log(`>>> Sending ${event.type.toUpperCase()} to ${policy.channel.name.toUpperCase()}`);
-          switch (policy.channel.name) {
-            case "slack": {
-              this.dispatchToSlack(policy.channel, event);
-              break;
-            }
-            case "custom_script": {
-              this.dispatchToCustomScript(policy.channel, event);
-              break;
-            }
-            default: {
-              assertNever(policy.channel);
-            }
+      const eventSubscriptions = policy.eventSubscriptions.filter(({ type }) => event.type === type);
+      if (eventSubscriptions.length > 0 && this.declareEligible(event)) {
+        for (const eventSubscription of eventSubscriptions) {
+          if (this.matchesSubscriptionDetails(event, eventSubscription)) {
+            this.dispatchService.dispatch(policy, event);
           }
         }
-      }
-    }
-  }
-
-  private dispatchToSlack(channel: NotificationChannel.Slack, event: EligibleEvent) {
-    switch (event.type) {
-      case Event.Type.execution_started: {
-        break;
-      }
-      case Event.Type.execution_completed: {
-        break;
-      }
-      default: {
-        assertNever(event);
-      }
-    }
-  }
-
-  private dispatchToCustomScript(channel: NotificationChannel.CustomScript, event: EligibleEvent) {
-    switch (event.type) {
-      case Event.Type.execution_started: {
-        break;
-      }
-      case Event.Type.execution_completed: {
-        break;
-      }
-      default: {
-        assertNever(event);
       }
     }
   }

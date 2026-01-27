@@ -25,7 +25,6 @@ This is a work in progress with the following TODO's:
 ### Notifications
 * Create a new nav item for "Notifications", and implement this on the server via EventBus
 * Add support for Slack
-* Add support for PagerDuty
 * Add support for Custom Script
 
 ### QA

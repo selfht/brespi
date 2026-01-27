@@ -17,18 +17,19 @@ import { BasicAuthMiddleware } from "./middleware/basicauth/BasicAuthMiddleware"
 import { Middleware } from "./middleware/Middleware";
 import { ConfigurationRepository } from "./repositories/ConfigurationRepository";
 import { ExecutionRepository } from "./repositories/ExecutionRepository";
+import { NotificationRepository } from "./repositories/NotificationRepository";
 import { PipelineRepository } from "./repositories/PipelineRepository";
 import { ScheduleRepository } from "./repositories/ScheduleRepository";
 import { Server } from "./Server";
 import { CleanupService } from "./services/CleanupService";
 import { ConfigurationService } from "./services/ConfigurationService";
 import { ExecutionService } from "./services/ExecutionService";
+import { NotificationDispatchService } from "./services/NotificationDispatchService";
+import { NotificationService } from "./services/NotificationService";
 import { PipelineService } from "./services/PipelineService";
 import { RestrictedService } from "./services/RestrictedService";
 import { ScheduleService } from "./services/ScheduleService";
 import { StepService } from "./services/StepService";
-import { NotificationRepository } from "./repositories/NotificationRepository";
-import { NotificationService } from "./services/NotificationService";
 
 export class ServerRegistry {
   public static async bootstrap(env: Env.Private, sqlite: Sqlite): Promise<ServerRegistry> {
@@ -87,7 +88,8 @@ export class ServerRegistry {
       eventBus,
     ]);
     const { scheduleService } = this.register({ ScheduleService }, [eventBus, scheduleRepository, pipelineRepository, executionService]);
-    const { notificationService } = this.register({ NotificationService }, [eventBus, notificationRepository]);
+    const { notificationDispatchService } = this.register({ NotificationDispatchService }, []);
+    const { notificationService } = this.register({ NotificationService }, [eventBus, notificationRepository, notificationDispatchService]);
     const { restrictedService } = this.register({ RestrictedService }, [sqlite, configurationRepository, pipelineService, scheduleService]);
     this.register({ CleanupService }, [env]);
 
