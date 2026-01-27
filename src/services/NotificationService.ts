@@ -61,11 +61,11 @@ export class NotificationService {
           console.log(`>>> Sending ${event.type.toUpperCase()} to ${policy.channel.name.toUpperCase()}`);
           switch (policy.channel.name) {
             case "slack": {
-              this.slack(policy.channel, event);
+              this.dispatchToSlack(policy.channel, event);
               break;
             }
             case "custom_script": {
-              this.customScript(policy.channel, event);
+              this.dispatchToCustomScript(policy.channel, event);
               break;
             }
             default: {
@@ -77,7 +77,7 @@ export class NotificationService {
     }
   }
 
-  private slack(channel: NotificationChannel.Slack, event: EligibleEvent) {
+  private dispatchToSlack(channel: NotificationChannel.Slack, event: EligibleEvent) {
     switch (event.type) {
       case Event.Type.execution_started: {
         break;
@@ -91,7 +91,7 @@ export class NotificationService {
     }
   }
 
-  private customScript(channel: NotificationChannel.CustomScript, event: EligibleEvent) {
+  private dispatchToCustomScript(channel: NotificationChannel.CustomScript, event: EligibleEvent) {
     switch (event.type) {
       case Event.Type.execution_started: {
         break;
