@@ -3,6 +3,7 @@ import { Schedule } from "@/models/Schedule";
 import { ScheduleClient } from "@/website/clients/ScheduleClient";
 import { Button } from "@/website/comps/Button";
 import { CronEvaluations } from "@/website/comps/CronEvaluations";
+import { Toggle } from "@/website/comps/Toggle";
 import { useRegistry } from "@/website/hooks/useRegistry";
 import clsx from "clsx";
 import { useForm } from "react-hook-form";
@@ -11,7 +12,7 @@ import { FormHelper } from "../FormHelper";
 type Props = ScheduleEditor.Props;
 type Form = {
   [ScheduleEditor.Field.pipelineId]: string;
-  [ScheduleEditor.Field.active]: "true" | "false";
+  [ScheduleEditor.Field.active]: boolean;
   [ScheduleEditor.Field.cron]: string;
 };
 export function ScheduleEditor({ className, gridClassName, existing, pipelines, onSave, onDelete, onCancel }: Props) {
@@ -19,7 +20,7 @@ export function ScheduleEditor({ className, gridClassName, existing, pipelines, 
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [ScheduleEditor.Field.pipelineId]: existing?.pipelineId ?? "",
-      [ScheduleEditor.Field.active]: existing ? (existing.active ? "true" : "false") : "true",
+      [ScheduleEditor.Field.active]: existing ? existing.active : true,
       [ScheduleEditor.Field.cron]: existing?.cron ?? "",
     } satisfies Form,
   });
@@ -31,12 +32,12 @@ export function ScheduleEditor({ className, gridClassName, existing, pipelines, 
         ? await scheduleClient.update(existing.id, {
             pipelineId: form[ScheduleEditor.Field.pipelineId],
             cron: form[ScheduleEditor.Field.cron],
-            active: form[ScheduleEditor.Field.active] === "true",
+            active: form[ScheduleEditor.Field.active],
           })
         : await scheduleClient.create({
             pipelineId: form[ScheduleEditor.Field.pipelineId],
             cron: form[ScheduleEditor.Field.cron],
-            active: form[ScheduleEditor.Field.active] === "true",
+            active: form[ScheduleEditor.Field.active],
           });
       onSave(schedule);
     } catch (e) {
@@ -61,17 +62,11 @@ export function ScheduleEditor({ className, gridClassName, existing, pipelines, 
   };
 
   const cron = watch(ScheduleEditor.Field.cron);
+  const active = watch(ScheduleEditor.Field.active);
   return (
     <div className={clsx(className, "border-t border-b border-c-info bg-black")}>
       <fieldset disabled={formState.isSubmitting} className={clsx(gridClassName)}>
-        <select
-          id={ScheduleEditor.Field.active}
-          className="-ml-1 text-xl p-2 w-16 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
-          {...register(ScheduleEditor.Field.active)}
-        >
-          <option value="true">🟢</option>
-          <option value="false">🔴</option>
-        </select>
+        <Toggle id={ScheduleEditor.Field.active} className="ml-2 " {...register(ScheduleEditor.Field.active)} />
         <select
           id={ScheduleEditor.Field.pipelineId}
           className="text-lg p-2 -ml-3 mr-10 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
@@ -93,7 +88,7 @@ export function ScheduleEditor({ className, gridClassName, existing, pipelines, 
           placeholder="E.g.: 0 12 * * FRI"
           {...register(ScheduleEditor.Field.cron)}
         />
-        <CronEvaluations expression={cron} />
+        <CronEvaluations expression={cron} className={clsx(!active && "text-c-dim line-through decoration-c-error")} />
         <div className="flex flex-col items-end gap-1">
           <Button className="border-none font-normal text-c-success hover:text-white" onClick={handleSubmit(save)}>
             Save

@@ -1,12 +1,12 @@
 import clsx from "clsx";
-import { JSX } from "react";
+import { ComponentProps } from "react";
 import { Link, useLocation } from "react-router";
 import { RestrictedClient } from "../clients/RestrictedClient";
 import { useConfiguration } from "../hooks/useConfiguration";
 import { useRegistry } from "../hooks/useRegistry";
 import { Paper } from "./Paper";
 
-type Props = JSX.IntrinsicElements["main"];
+type Props = ComponentProps<"main">;
 export function Skeleton(props: Props) {
   return (
     <>

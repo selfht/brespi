@@ -1,4 +1,5 @@
 import { Schedule } from "@/models/Schedule";
+import { OmitBetter } from "@/types/OmitBetter";
 import { PipelineView } from "@/views/PipelineView";
 import clsx from "clsx";
 import { useState } from "react";
@@ -7,14 +8,15 @@ import { ScheduleClient } from "../clients/ScheduleClient";
 import { Button } from "../comps/Button";
 import { CronEvaluations } from "../comps/CronEvaluations";
 import { ErrorDump } from "../comps/ErrorDump";
+import { Icon } from "../comps/Icon";
 import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
+import { Toggle } from "../comps/Toggle";
 import { ScheduleEditor } from "../forms/schedule/ScheduleEditor";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRegistry } from "../hooks/useRegistry";
 import { useYesQuery } from "../hooks/useYesQuery";
-import { Toggle } from "../comps/Toggle";
 
 export function schedulesPage() {
   useDocumentTitle("Schedules | Brespi");
@@ -35,6 +37,7 @@ export function schedulesPage() {
     "items-center p-6",
     "border-t border-c-dim/20",
   );
+
   const editorCallbacks: Pick<ScheduleEditor.Props, "onSave" | "onDelete" | "onCancel"> = {
     onSave(schedule) {
       const data = query.getData()!;
@@ -70,6 +73,41 @@ export function schedulesPage() {
       setEditing(undefined);
     },
   };
+
+  const performClientSideUpdate = (id: string, update: Partial<OmitBetter<Schedule, "id">>) => {
+    const data = query.getData()!;
+    query.setData({
+      ...data,
+      schedules: data.schedules.map((s) => {
+        if (s.id === id) {
+          return { ...s, ...update };
+        }
+        return s;
+      }),
+    });
+  };
+
+  const toggleActive = (schedule: Schedule) => {
+    const oldActiveValue = schedule.active;
+    const newActiveValue = !schedule.active;
+    // Client-side update
+    performClientSideUpdate(schedule.id, {
+      active: newActiveValue,
+    });
+    // Server-side update
+    scheduleClient
+      .update(schedule.id, {
+        ...schedule,
+        active: newActiveValue,
+      })
+      .catch((err) => {
+        console.error(err);
+        performClientSideUpdate(schedule.id, {
+          active: oldActiveValue,
+        });
+      });
+  };
+
   return (
     <Skeleton>
       <Paper className="col-span-full">
@@ -84,9 +122,6 @@ export function schedulesPage() {
         ) : (
           <>
             {/* Header */}
-            <div className="flex justify-center">
-              <Toggle />
-            </div>
             <div className={clsx(gridClassName, "border-none rounded-t-2xl bg-[rgb(20,20,20)] text-lg")}>
               <label htmlFor={ScheduleEditor.Field.active}>Active</label>
               <label htmlFor={ScheduleEditor.Field.pipelineId}>Pipeline</label>
@@ -110,9 +145,7 @@ export function schedulesPage() {
                   "pb-8!": query.data.schedules.length === 0,
                 })}
               >
-                <div className="inline-flex items-center pl-3">
-                  <span className="h-5 w-5 rounded-full bg-c-info" />
-                </div>
+                <Icon className="size-8 ml-2" variant="new" />
                 <div className="col-span-4 text-start text-lg underline underline-offset-2 decoration-2 decoration-c-info">
                   New Schedule ...
                 </div>
@@ -135,11 +168,7 @@ export function schedulesPage() {
               }
               return (
                 <div key={id} className={clsx(gridClassName, "border-t border-c-dim/20")} data-testid="schedule-row">
-                  <div>
-                    <div className="inline-flex items-center pl-3">
-                      <span className={clsx("h-5 w-5 rounded-full", active ? "bg-c-success" : "bg-c-error")} />
-                    </div>
-                  </div>
+                  <Toggle className="ml-2" checked={active} onChange={() => toggleActive(schedule)} />
                   <div className="min-w-0 mr-5">
                     <div className="truncate text-lg font-medium">{pipelineName}</div>
                     <div className="truncate text-c-dim">{pipelineId}</div>

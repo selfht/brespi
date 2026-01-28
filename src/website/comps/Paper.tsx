@@ -1,7 +1,7 @@
 import clsx from "clsx";
-import { JSX } from "react/jsx-dev-runtime";
+import { ComponentProps } from "react";
 
-type Props = JSX.IntrinsicElements["div"] & {
+type Props = ComponentProps<"div"> & {
   borderClassName?: string;
 };
 export function Paper({ className, borderClassName, children, ...props }: Props) {

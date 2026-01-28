@@ -8,7 +8,8 @@ import successSvg from "../images/success.svg";
 import trashcanSvg from "../images/trashcan.svg";
 import { Spinner } from "./Spinner";
 
-const images: Record<Icon.Props["variant"], JSX.Element> = {
+type V = Icon.Props["variant"];
+const images: Record<V, JSX.Element> = {
   success: <img src={successSvg} />,
   error: <img src={errorSvg} />,
   new: <img src={newSvg} />,
@@ -19,7 +20,14 @@ const images: Record<Icon.Props["variant"], JSX.Element> = {
 };
 
 export function Icon({ variant, className }: Icon.Props) {
-  return cloneElement(images[variant], { className });
+  return cloneElement(images[variant], {
+    className: clsx(
+      {
+        "rounded-full bg-black": ["new" satisfies V, "error" satisfies V, "success" satisfies V].includes(variant),
+      },
+      className,
+    ),
+  });
 }
 
 export namespace Icon {

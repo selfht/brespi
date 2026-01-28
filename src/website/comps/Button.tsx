@@ -1,8 +1,8 @@
 import clsx from "clsx";
-import { JSX } from "react";
+import { ComponentProps } from "react";
 import { Icon } from "./Icon";
 
-type Props = JSX.IntrinsicElements["button"] & {
+type Props = ComponentProps<"button"> & {
   icon?: Icon.Props["variant"];
   theme?: "success" | "error" | "info";
 };
