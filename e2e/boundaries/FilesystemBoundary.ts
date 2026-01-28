@@ -3,7 +3,7 @@ import path, { join } from "path";
 
 export namespace FilesystemBoundary {
   export const SCRATCH_PAD = class {
-    public static readonly root = path.join("opt", "scratchpad");
+    public static readonly root = path.join("opt", "e2e-test", "scratchpad");
 
     public static join(...segments: string[]) {
       return path.join(this.root, ...segments);

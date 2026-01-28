@@ -20,8 +20,6 @@ import { Socket } from "./socket/Socket";
 import { PipelineView } from "./views/PipelineView";
 
 export class Server {
-  private static readonly SOCKET_ENDPOINT = "/socket";
-
   public constructor(
     private readonly env: Env.Private,
     private readonly stepService: StepService,
@@ -42,7 +40,7 @@ export class Server {
        */
       fetch: this.handleFetch(async (request, server) => {
         const { pathname } = new URL(request.url);
-        if (pathname === Server.SOCKET_ENDPOINT) {
+        if (pathname === "/socket") {
           const context: Socket.Context = {
             clientId: Generate.shortRandomString(),
           };
@@ -68,9 +66,14 @@ export class Server {
       },
       routes: {
         /**
-         * Defaults
+         * HTML/API fallbacks
+         *
+         * Unfortunately, no middleware/basic-auth on the HTMLBundle right now; see
+         * https://github.com/oven-sh/bun/issues/17595#issuecomment-2965865078
+         *
+         * (the suggested "secret asset path" breaks my websocket, unfortunately)
          */
-        "/*": index, // index.html = unprotected
+        "/*": index,
         "/api/*": this.handleRoute(() => {
           return Response.json(ServerError.route_not_found().json(), { status: 404 });
         }),

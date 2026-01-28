@@ -14,7 +14,8 @@
           pkgs.nodejs_24
         ];
         shellHook = ''
-          echo "📟 bun, node (for Playwright)"
+          echo "📟 bun"
+          echo "📟 node (for Playwright)"
         '';
       };
     };

@@ -3,12 +3,13 @@ import { Temporal } from "@js-temporal/polyfill";
 import { join } from "path";
 
 export namespace Generate {
+  const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
+
   export function shortRandomString() {
     const length = 6;
-    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
     let id = "";
     for (let i = 0; i < length; i++) {
-      id += chars[Math.floor(Math.random() * chars.length)];
+      id += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
     }
     return id;
   }
