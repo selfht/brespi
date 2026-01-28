@@ -31,7 +31,7 @@ import { ActionDetails } from "../details/ActionDetails";
 import { StepDescription } from "../details/StepDescription";
 import { StepDetails } from "../details/StepDetails";
 import { FormHelper } from "../forms/FormHelper";
-import { StepForm } from "../forms/StepForm";
+import { StepForm } from "../forms/step/StepForm";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useFullScreen } from "../hooks/useFullScreen";
 import { useRegistry } from "../hooks/useRegistry";
