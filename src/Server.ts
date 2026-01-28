@@ -217,7 +217,7 @@ export class Server {
             const policy: NotificationPolicy = await this.notificationService.updatePolicy(request.params.id, await request.json());
             return Response.json(policy);
           }),
-          POST: this.handleRoute(async (request) => {
+          DELETE: this.handleRoute(async (request) => {
             const policy: NotificationPolicy = await this.notificationService.deletePolicy(request.params.id);
             return Response.json(policy);
           }),

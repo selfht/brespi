@@ -14,7 +14,7 @@ export class NotificationDispatchService {
 
   public async dispatch(policy: NotificationPolicy, event: NotificationEventSubscription.EligibleEvent) {
     try {
-      switch (policy.channel.name) {
+      switch (policy.channel.type) {
         case "slack": {
           await this.dispatchToSlack(policy.channel, event);
           break;
@@ -29,7 +29,7 @@ export class NotificationDispatchService {
       }
     } catch (e) {
       const error = NotificationError.dispatch_failed({
-        channel: policy.channel.name,
+        channel: policy.channel.type,
         eventType: event.type,
         cause: e instanceof Error ? e.message : String(e),
       });

@@ -52,7 +52,7 @@ export function configurationPage() {
           <div>
             <div className="flex justify-between items-center">
               <p>
-                The current configuration matches <code className="text-white">{O_BRESPI_CONFIGURATION}</code>
+                The current configuration is either empty or matches <code className="text-white">{O_BRESPI_CONFIGURATION}</code>
               </p>
               <Button theme="info" onClick={copyToClipboard}>
                 Copy current configuration

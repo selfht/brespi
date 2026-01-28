@@ -7,23 +7,23 @@ export type NotificationChannel =
 
 export namespace NotificationChannel {
   export type Slack = {
-    name: "slack";
+    type: "slack";
     webhookUrlReference: string;
   };
   export type CustomScript = {
-    name: "custom_script";
+    type: "custom_script";
     path: string;
   };
 
   export const parse = ZodParser.forType<NotificationChannel>()
     .ensureSchemaMatchesType(() =>
-      z.discriminatedUnion("name", [
+      z.discriminatedUnion("type", [
         z.object({
-          name: z.literal("slack"),
+          type: z.literal("slack"),
           webhookUrlReference: z.string(),
         }),
         z.object({
-          name: z.literal("custom_script"),
+          type: z.literal("custom_script"),
           path: z.string(),
         }),
       ]),

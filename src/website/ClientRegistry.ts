@@ -10,6 +10,7 @@ import { RestrictedClient } from "./clients/RestrictedClient";
 import { ScheduleClient } from "./clients/ScheduleClient";
 import { SocketClient } from "./clients/SocketClient";
 import { StepClient } from "./clients/StepClient.ts";
+import { NotificationClient } from "./clients/NotificationClient";
 
 export class ClientRegistry {
   /**
@@ -53,6 +54,7 @@ export class ClientRegistry {
     this.registry[ScheduleClient.name] = new ScheduleClient(yesttp);
     this.registry[ExecutionClient.name] = new ExecutionClient(yesttp);
     this.registry[ConfigurationClient.name] = new ConfigurationClient(yesttp);
+    this.registry[NotificationClient.name] = new NotificationClient(yesttp);
     this.registry[RestrictedClient.name] = new RestrictedClient(yesttp);
   }
 

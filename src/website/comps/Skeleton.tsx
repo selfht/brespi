@@ -64,13 +64,16 @@ export namespace Skeleton {
   }
 
   export function Footer() {
-    const { O_BRESPI_STAGE } = useRegistry("env");
+    const { O_BRESPI_STAGE, O_BRESPI_VERSION, O_BRESPI_COMMIT } = useRegistry("env");
     const restrictedClient = useRegistry(RestrictedClient);
     const purge = () => restrictedClient.purge().then(() => location.reload());
     const seed = () => restrictedClient.seed().then(() => location.reload());
     return (
       <footer className="u-root-grid-minus-gutters my-12 flex flex-col items-center gap-4">
         <div className="text-4xl font-extrabold italic text-c-dark">Brespi</div>
+        <div className="font-mono text-c-dim/60">
+          v{O_BRESPI_VERSION} / {O_BRESPI_COMMIT.slice(0, 7)}
+        </div>
         {O_BRESPI_STAGE === "development" && (
           <div className="flex gap-4">
             <button onClick={seed} className="cursor-pointer text-c-dark border border-c-dark hover:bg-c-dark/10 p-2 rounded-lg">
