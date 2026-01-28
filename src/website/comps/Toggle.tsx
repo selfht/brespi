@@ -1,7 +1,8 @@
+import { OmitBetter } from "@/types/OmitBetter";
 import clsx from "clsx";
 import { ComponentProps } from "react";
 
-type Props = Omit<ComponentProps<"input">, "type">;
+type Props = OmitBetter<ComponentProps<"input">, "type">;
 export function Toggle({ className, ...props }: Props) {
   return (
     <label

@@ -4,9 +4,11 @@ import { useState } from "react";
 import { NotificationClient } from "../clients/NotificationClient";
 import { Button } from "../comps/Button";
 import { ErrorDump } from "../comps/ErrorDump";
+import { Icon } from "../comps/Icon";
 import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
+import { Toggle } from "../comps/Toggle";
 import { PolicyEditor } from "../forms/notification/PolicyEditor";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRegistry } from "../hooks/useRegistry";
@@ -21,7 +23,11 @@ export function notificationsPage() {
     queryFn: () => notificationClient.queryPolicies(),
   });
 
-  const gridClassName = clsx("grid grid-cols-[minmax(200px,1fr)_minmax(300px,2fr)_80px]", "items-center p-6", "border-t border-c-dim/20");
+  const gridClassName = clsx(
+    "grid grid-cols-[88px_minmax(180px,2fr)_minmax(280px,4fr)_80px]",
+    "items-center p-6",
+    "border-t border-c-dim/20",
+  );
 
   const editorCallbacks: Pick<PolicyEditor.Props, "onSave" | "onDelete" | "onCancel"> = {
     onSave(policy) {
@@ -58,13 +64,18 @@ export function notificationsPage() {
           <>
             {/* Header */}
             <div className={clsx(gridClassName, "border-none rounded-t-2xl bg-[rgb(20,20,20)] text-lg")}>
-              <label>Channel</label>
+              <label htmlFor={PolicyEditor.Field.active}>Active</label>
+              <label htmlFor={PolicyEditor.Field.channelType}>Channel</label>
               <label>Events</label>
               <div />
             </div>
             {/* New Policy Row */}
             {editing === "new" ? (
-              <PolicyEditor className={clsx(query.data.length === 0 && "rounded-b-2xl")} {...editorCallbacks} />
+              <PolicyEditor
+                className={clsx(query.data.length === 0 && "rounded-b-2xl")}
+                gridClassName={gridClassName}
+                {...editorCallbacks}
+              />
             ) : (
               <button
                 disabled={Boolean(editing)}
@@ -74,6 +85,7 @@ export function notificationsPage() {
                   "pb-8!": query.data.length === 0,
                 })}
               >
+                <Icon className="size-8 ml-2" variant="new" />
                 <div className="col-span-3 text-start text-lg underline underline-offset-2 decoration-2 decoration-c-info">
                   New Policy ...
                 </div>
@@ -86,6 +98,7 @@ export function notificationsPage() {
                   <PolicyEditor
                     key={policy.id}
                     className={clsx(index + 1 === length && "rounded-b-2xl")}
+                    gridClassName={gridClassName}
                     existing={policy}
                     {...editorCallbacks}
                   />
@@ -93,8 +106,10 @@ export function notificationsPage() {
               }
               return (
                 <div key={policy.id} className={clsx(gridClassName, "border-t border-c-dim/20")} data-testid="policy-row">
+                  {/* Active */}
+                  <Toggle className="ml-2" defaultChecked />
                   {/* Channel */}
-                  <div className="min-w-0">
+                  <div className="min-w-0 mr-5">
                     <div className="flex items-center gap-2">
                       <span
                         className={clsx(

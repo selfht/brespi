@@ -4,6 +4,7 @@ import { NotificationEventSubscription } from "@/models/NotificationEventSubscri
 import { NotificationPolicy } from "@/models/NotificationPolicy";
 import { NotificationClient } from "@/website/clients/NotificationClient";
 import { Button } from "@/website/comps/Button";
+import { Toggle } from "@/website/comps/Toggle";
 import { useRegistry } from "@/website/hooks/useRegistry";
 import clsx from "clsx";
 import { useForm } from "react-hook-form";
@@ -20,12 +21,13 @@ type EventSubscriptionForm = {
 
 type Props = PolicyEditor.Props;
 type Form = {
+  [PolicyEditor.Field.active]: boolean;
   [PolicyEditor.Field.channelType]: "slack" | "custom_script";
   [PolicyEditor.Field.webhookUrlReference]: string;
   [PolicyEditor.Field.scriptPath]: string;
   [PolicyEditor.Field.eventSubscriptions]: EventSubscriptionForm[];
 };
-export function PolicyEditor({ className, existing, onSave, onDelete, onCancel }: Props) {
+export function PolicyEditor({ className, gridClassName, existing, onSave, onDelete, onCancel }: Props) {
   const notificationClient = useRegistry(NotificationClient);
 
   const defaultEventSubscriptions: EventSubscriptionForm[] = [
@@ -50,6 +52,7 @@ export function PolicyEditor({ className, existing, onSave, onDelete, onCancel }
 
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
+      [PolicyEditor.Field.active]: true,
       [PolicyEditor.Field.channelType]: existing?.channel.type ?? "slack",
       [PolicyEditor.Field.webhookUrlReference]: existing?.channel.type === "slack" ? existing.channel.webhookUrlReference : "",
       [PolicyEditor.Field.scriptPath]: existing?.channel.type === "custom_script" ? existing.channel.path : "",
@@ -102,84 +105,79 @@ export function PolicyEditor({ className, existing, onSave, onDelete, onCancel }
 
   return (
     <div className={clsx(className, "border-t border-b border-c-info bg-black")}>
-      <fieldset disabled={formState.isSubmitting} className="p-6">
-        <div className="grid grid-cols-2 gap-6 mb-6">
-          {/* Channel Type */}
-          <div>
-            <label className="block text-c-dim text-sm mb-2">Channel Type</label>
-            <select
-              className="w-full text-lg p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
-              {...register(PolicyEditor.Field.channelType)}
-            >
-              <option value="slack">Slack</option>
-              <option value="custom_script">Custom Script</option>
-            </select>
-          </div>
+      <fieldset disabled={formState.isSubmitting} className={clsx(gridClassName, "items-start!")}>
+        {/* Active */}
+        <Toggle id={PolicyEditor.Field.active} className="mt-8 ml-2" {...register(PolicyEditor.Field.active)} />
 
-          {/* Channel Config */}
-          <div>
-            {channelType === "slack" ? (
-              <>
-                <label className="block text-c-dim text-sm mb-2">Webhook URL Reference</label>
-                <input
-                  type="text"
-                  className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
-                  placeholder="MY_SLACK_WEBHOOK"
-                  {...register(PolicyEditor.Field.webhookUrlReference)}
-                />
-              </>
-            ) : (
-              <>
-                <label className="block text-c-dim text-sm mb-2">Script Path</label>
-                <input
-                  type="text"
-                  className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
-                  placeholder="/scripts/notify.sh"
-                  {...register(PolicyEditor.Field.scriptPath)}
-                />
-              </>
-            )}
-          </div>
+        {/* Channel */}
+        <div className="min-w-0 mr-5">
+          <label className="block text-c-dim text-sm mb-1">Type</label>
+          <select
+            id={PolicyEditor.Field.channelType}
+            className="w-full text-lg p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none! mb-3"
+            {...register(PolicyEditor.Field.channelType)}
+          >
+            <option value="slack">Slack</option>
+            <option value="custom_script">Custom Script</option>
+          </select>
+          {channelType === "slack" ? (
+            <>
+              <label className="block text-c-dim text-sm mb-1">Webhook URL Reference</label>
+              <input
+                type="text"
+                className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
+                placeholder="MY_SLACK_WEBHOOK"
+                {...register(PolicyEditor.Field.webhookUrlReference)}
+              />
+            </>
+          ) : (
+            <>
+              <label className="block text-c-dim text-sm mb-1">Script Path</label>
+              <input
+                type="text"
+                className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
+                placeholder="/scripts/notify.sh"
+                {...register(PolicyEditor.Field.scriptPath)}
+              />
+            </>
+          )}
         </div>
 
-        {/* Event Subscriptions */}
-        <div className="mb-6">
-          <label className="block text-c-dim text-sm mb-3">Event Subscriptions</label>
-          <div className="space-y-4">
-            {eventSubscriptions.map((sub, index) => (
-              <div key={sub.type} className="flex items-start gap-4">
-                <label className="flex items-center gap-2 min-w-[200px]">
-                  <input type="checkbox" className="w-4 h-4" {...register(`${PolicyEditor.Field.eventSubscriptions}.${index}.enabled`)} />
-                  <span className="font-mono text-sm">{sub.type}</span>
-                </label>
-                {eventSubscriptions[index].enabled && (
-                  <div className="flex items-center gap-4 text-sm text-c-dim">
-                    <span>Triggers:</span>
-                    <label className="flex items-center gap-1">
-                      <input
-                        type="checkbox"
-                        className="w-3 h-3"
-                        {...register(`${PolicyEditor.Field.eventSubscriptions}.${index}.triggers.schedule`)}
-                      />
-                      <span>schedule</span>
-                    </label>
-                    <label className="flex items-center gap-1">
-                      <input
-                        type="checkbox"
-                        className="w-3 h-3"
-                        {...register(`${PolicyEditor.Field.eventSubscriptions}.${index}.triggers.ad_hoc`)}
-                      />
-                      <span>ad_hoc</span>
-                    </label>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+        {/* Events */}
+        <div className="mt-6 flex flex-col gap-3">
+          {eventSubscriptions.map((sub, index) => (
+            <div key={sub.type}>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" className="w-4 h-4" {...register(`${PolicyEditor.Field.eventSubscriptions}.${index}.enabled`)} />
+                <span className="font-mono text-sm">{sub.type}</span>
+              </label>
+              {eventSubscriptions[index].enabled && (
+                <div className="flex items-center gap-4 text-sm text-c-dim ml-6 mt-1">
+                  <span>Triggers:</span>
+                  <label className="flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      className="w-3 h-3"
+                      {...register(`${PolicyEditor.Field.eventSubscriptions}.${index}.triggers.schedule`)}
+                    />
+                    <span>schedule</span>
+                  </label>
+                  <label className="flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      className="w-3 h-3"
+                      {...register(`${PolicyEditor.Field.eventSubscriptions}.${index}.triggers.ad_hoc`)}
+                    />
+                    <span>ad_hoc</span>
+                  </label>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
 
         {/* Actions */}
-        <div className="flex gap-4">
+        <div className="flex flex-col items-end gap-1">
           <Button className="border-none font-normal text-c-success hover:text-white" onClick={handleSubmit(save)}>
             Save
           </Button>
@@ -192,7 +190,6 @@ export function PolicyEditor({ className, existing, onSave, onDelete, onCancel }
             Cancel
           </Button>
         </div>
-        {formState.errors.root?.message && <pre className="mt-4 text-c-error">{formState.errors.root.message}</pre>}
       </fieldset>
     </div>
   );
@@ -201,12 +198,14 @@ export function PolicyEditor({ className, existing, onSave, onDelete, onCancel }
 export namespace PolicyEditor {
   export type Props = {
     className?: string;
+    gridClassName: string;
     existing?: NotificationPolicy;
     onSave: (policy: NotificationPolicy) => unknown;
     onDelete: (policy: NotificationPolicy) => unknown;
     onCancel: () => unknown;
   };
   export enum Field {
+    active = "active",
     channelType = "channelType",
     webhookUrlReference = "webhookUrlReference",
     scriptPath = "scriptPath",
