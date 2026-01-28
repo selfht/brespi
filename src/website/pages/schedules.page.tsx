@@ -1,9 +1,7 @@
-import { Pipeline } from "@/models/Pipeline";
 import { Schedule } from "@/models/Schedule";
 import { PipelineView } from "@/views/PipelineView";
 import clsx from "clsx";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { PipelineClient } from "../clients/PipelineClient";
 import { ScheduleClient } from "../clients/ScheduleClient";
 import { Button } from "../comps/Button";
@@ -12,11 +10,11 @@ import { ErrorDump } from "../comps/ErrorDump";
 import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
-import { FormHelper } from "../forms/FormHelper";
+import { ScheduleEditor } from "../forms/schedule/ScheduleEditor";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRegistry } from "../hooks/useRegistry";
 import { useYesQuery } from "../hooks/useYesQuery";
-import { ScheduleEditor } from "../forms/schedule/ScheduleEditor";
+import { Toggle } from "../comps/Toggle";
 
 export function schedulesPage() {
   useDocumentTitle("Schedules | Brespi");
@@ -86,6 +84,9 @@ export function schedulesPage() {
         ) : (
           <>
             {/* Header */}
+            <div className="flex justify-center">
+              <Toggle />
+            </div>
             <div className={clsx(gridClassName, "border-none rounded-t-2xl bg-[rgb(20,20,20)] text-lg")}>
               <label htmlFor={ScheduleEditor.Field.active}>Active</label>
               <label htmlFor={ScheduleEditor.Field.pipelineId}>Pipeline</label>
