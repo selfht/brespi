@@ -2,31 +2,32 @@ import { useEffect, useState } from "react";
 import { createBrowserRouter, replace, RouterProvider } from "react-router";
 import { ClientRegistry } from "./ClientRegistry";
 import { SocketClient } from "./clients/SocketClient";
-import { configuration } from "./pages/configuration";
-import { pipelines } from "./pages/pipelines";
-import { pipelines_$id } from "./pages/pipelines.$id";
-import { schedules } from "./pages/schedules";
+import { configurationPage } from "./pages/configuration.page";
+import { notificationsPage } from "./pages/notifications.page";
+import { pipelinesPage } from "./pages/pipelines.page";
+import { pipelines$idPage } from "./pages/pipelines.$id.page";
+import { schedulesPage } from "./pages/schedules.page";
 
 const router = createBrowserRouter([
   {
     path: "pipelines",
-    Component: pipelines,
+    Component: pipelinesPage,
   },
   {
     path: "pipelines/:id",
-    Component: pipelines_$id,
+    Component: pipelines$idPage,
   },
   {
     path: "schedules",
-    Component: schedules,
+    Component: schedulesPage,
   },
   {
     path: "notifications",
-    Component: schedules,
+    Component: notificationsPage,
   },
   {
     path: "configuration",
-    Component: configuration,
+    Component: configurationPage,
   },
   {
     path: "*",

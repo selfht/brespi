@@ -16,7 +16,7 @@ import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRegistry } from "../hooks/useRegistry";
 import { useYesQuery } from "../hooks/useYesQuery";
 
-export function notifications() {
+export function notificationsPage() {
   useDocumentTitle("Notifications | Brespi");
 
   const notificationClient = useRegistry(NotificationClient);
@@ -37,7 +37,7 @@ export function notifications() {
           </div>
         ) : (
           <div>
-            <pre>{JSON.stringify(notifications, null, 2)}</pre>
+            <pre>{JSON.stringify(notificationsPage, null, 2)}</pre>
           </div>
         )}
       </Paper>

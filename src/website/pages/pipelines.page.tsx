@@ -18,7 +18,7 @@ import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRegistry } from "../hooks/useRegistry";
 import { useYesQuery } from "../hooks/useYesQuery";
 
-export function pipelines() {
+export function pipelinesPage() {
   useDocumentTitle("Pipelines | Brespi");
   const pipelineClient = useRegistry(PipelineClient);
   const socketClient = useRegistry(SocketClient);

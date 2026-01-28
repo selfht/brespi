@@ -10,7 +10,7 @@ import { useConfiguration } from "../hooks/useConfiguration";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRegistry } from "../hooks/useRegistry";
 
-export function configuration() {
+export function configurationPage() {
   useDocumentTitle("Configuration | Brespi");
   const query = useConfiguration();
   const client = useRegistry(ConfigurationClient);

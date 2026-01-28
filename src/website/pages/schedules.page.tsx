@@ -17,7 +17,7 @@ import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRegistry } from "../hooks/useRegistry";
 import { useYesQuery } from "../hooks/useYesQuery";
 
-export function schedules() {
+export function schedulesPage() {
   useDocumentTitle("Schedules | Brespi");
   const [editing, setEditing] = useState<"new" | Schedule>();
 

@@ -44,7 +44,7 @@ type Form = {
   steps: Step[];
 };
 
-export function pipelines_$id() {
+export function pipelines$idPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const pipelineClient = useRegistry(PipelineClient);
