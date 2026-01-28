@@ -91,7 +91,7 @@ describe(NotificationDispatchService.name, async () => {
     type TestCase<E extends NotificationEventSubscription.EligibleEvent = NotificationEventSubscription.EligibleEvent> = {
       description: string;
       event: E;
-      expectation: (event: E) => Record<string, string>;
+      expectationFn: (event: E) => Record<string, string>;
     };
     const tc = <E extends NotificationEventSubscription.EligibleEvent>(s: TestCase<E>): TestCase => {
       return s as unknown as TestCase;
@@ -101,7 +101,7 @@ describe(NotificationDispatchService.name, async () => {
       tc({
         description: "execution_started",
         event: TestFixture.createExecutionStartedEvent(),
-        expectation: (e) => ({
+        expectationFn: (e) => ({
           BRESPI_EVENT: e.type,
           BRESPI_PIPELINE_ID: e.data.execution.pipelineId,
         }),
@@ -109,7 +109,7 @@ describe(NotificationDispatchService.name, async () => {
       tc({
         description: "execution_completed",
         event: TestFixture.createExecutionCompletedEvent({ outcome: Outcome.success }),
-        expectation: (e) => ({
+        expectationFn: (e) => ({
           BRESPI_EVENT: e.type,
           BRESPI_PIPELINE_ID: e.data.execution.pipelineId,
           BRESPI_OUTCOME: e.data.execution.result!.outcome,
@@ -118,7 +118,8 @@ describe(NotificationDispatchService.name, async () => {
       }),
     ]);
     it.each(collection.testCases)("runs a script with correct environment variables: %s", async (testCase) => {
-      const { event, expectation } = collection.get(testCase);
+      const { event, expectationFn } = collection.get(testCase);
+      const expectation = expectationFn(event);
       // given
       const outputPath = join(context.scratchpad, "output.txt");
       const scriptPath = await saveScript(`
@@ -132,7 +133,9 @@ describe(NotificationDispatchService.name, async () => {
 
       // then
       const output = await Bun.file(outputPath).text();
-      Object.entries(expectation(event)).forEach(([key, value]) => {
+      const outputEnvVarAssignmentCount = (output.match(/BRESPI_/g) || []).length;
+      expect(outputEnvVarAssignmentCount).toEqual(Object.entries(expectation).length);
+      Object.entries(expectation).forEach(([key, value]) => {
         expect(output).toContain(`${key}=${value}`);
       });
     });
