@@ -53,4 +53,11 @@ export namespace Icon {
       </svg>
     );
   }
+
+  type NoDataProps = {
+    className?: string;
+  };
+  export function NoData({ className }: NoDataProps) {
+    return <div className={clsx("text-center text-sm font-semibold text-c-dim", className)}>NO DATA</div>;
+  }
 }

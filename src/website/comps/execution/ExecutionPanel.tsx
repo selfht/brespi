@@ -9,7 +9,7 @@ import { useCallback } from "react";
 import { ErrorDump } from "../ErrorDump";
 import { PaginationButtons } from "../PaginationButtons";
 import { Spinner } from "../Spinner";
-import { SquareIcon } from "../SquareIcon";
+import { ExecutionIcon } from "../ExecutionIcon";
 import { ExecutionDetails } from "./ExecutionDetails";
 
 type Props = {
@@ -59,20 +59,15 @@ export function ExecutionPanel({ query, selectedExecutionId, onSelect, onDeselec
           <button
             key={execution.id}
             className={clsx("mt-4 flex items-center text-left gap-4 group cursor-pointer", {
-              "opacity-40": selectedExecutionId && execution.id !== selectedExecutionId,
+              "opacity-30": selectedExecutionId && execution.id !== selectedExecutionId,
             })}
             onClick={() => onExecutionClick(execution)}
           >
-            <SquareIcon
-              variant={execution.result?.outcome || "loading"}
-              className={clsx("group-hover:border-white group-hover:bg-c-dim/20", {
-                "border-white bg-c-dim/20": execution.id === selectedExecutionId,
-              })}
-            />
+            <ExecutionIcon variant={execution.result?.outcome || "loading"} />
             <div>
               <h3
-                className={clsx("text-base font-medium group-hover:text-white", {
-                  "text-white": execution.id === selectedExecutionId,
+                className={clsx("text-base font-medium group-hover:underline", {
+                  underline: execution.id === selectedExecutionId,
                 })}
               >
                 {execution.result
@@ -89,7 +84,7 @@ export function ExecutionPanel({ query, selectedExecutionId, onSelect, onDeselec
             </div>
           </button>
         ))}
-        {query.data.length === 0 && <SquareIcon variant="no_data" />}
+        {query.data.length === 0 && <ExecutionIcon variant="no_data" />}
         {totalPages > 1 && (
           <PaginationButtons className="mt-6" currentPage={currentPage} totalPages={totalPages} onFlipRequest={setCurrentPage} />
         )}

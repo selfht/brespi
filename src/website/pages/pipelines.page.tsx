@@ -13,7 +13,7 @@ import { ErrorDump } from "../comps/ErrorDump";
 import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
-import { SquareIcon } from "../comps/SquareIcon";
+import { ExecutionIcon } from "../comps/ExecutionIcon";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRegistry } from "../hooks/useRegistry";
 import { useYesQuery } from "../hooks/useYesQuery";
@@ -30,7 +30,7 @@ export function pipelinesPage() {
           link: "/pipelines/new",
           title: "New Pipeline ...",
           titleUnderline: true,
-          squareIcon: "new",
+          icon: "new",
           currentlyExecutingId: null,
         },
         ...pipelines.map(Internal.convertToVisualization),
@@ -44,7 +44,7 @@ export function pipelinesPage() {
     });
     return () => socketClient.unsubscribe(token);
   }, []);
-  const isSomePipelineExecuting = query.data?.some((pipeline) => pipeline.squareIcon === "loading") || false;
+  const isSomePipelineExecuting = query.data?.some((pipeline) => pipeline.icon === "loading") || false;
   useEffect(() => {
     const interval = Temporal.Duration.from({
       seconds: isSomePipelineExecuting ? 2 : 20,
@@ -65,7 +65,7 @@ export function pipelinesPage() {
             <Spinner />
           </div>
         ) : (
-          query.data.map(({ link, title, titleUnderline, subtitle, squareIcon }, index, { length }) => (
+          query.data.map(({ link, title, titleUnderline, subtitle, icon }, index, { length }) => (
             <Link
               key={link}
               to={link}
@@ -75,7 +75,7 @@ export function pipelinesPage() {
                 "rounded-b-2xl": index + 1 === length,
               })}
             >
-              <SquareIcon variant={squareIcon} />
+              <ExecutionIcon variant={icon} />
               <div>
                 <h3
                   className={clsx("text-lg font-medium", titleUnderline && "underline underline-offset-2 decoration-2 decoration-c-info")}
@@ -98,29 +98,29 @@ export namespace Internal {
     title: string;
     titleUnderline: boolean;
     subtitle?: string;
-    squareIcon: SquareIcon.Props["variant"];
+    icon: ExecutionIcon.Props["variant"];
   };
   export function convertToVisualization({ id, name, lastExecution }: PipelineView): PipelineVisualization {
     let subtitle = "";
-    let squareIcon: PipelineVisualization["squareIcon"];
+    let icon: PipelineVisualization["icon"];
     if (lastExecution) {
       if (lastExecution.result) {
         subtitle = `${lastExecution.result.outcome === Outcome.success ? "Successfully executed" : "Failed to execute"} on ${Prettify.timestamp(lastExecution.result.completedAt)}`;
-        squareIcon = lastExecution.result.outcome;
+        icon = lastExecution.result.outcome;
       } else {
         subtitle = `Started executing on ${Prettify.timestamp(lastExecution.startedAt)} ...`;
-        squareIcon = "loading";
+        icon = "loading";
       }
     } else {
       subtitle = "Last execution: N/A";
-      squareIcon = "no_data";
+      icon = "no_data";
     }
     return {
       link: `/pipelines/${id}`,
       title: name,
       titleUnderline: false,
       subtitle,
-      squareIcon,
+      icon,
     };
   }
 }
