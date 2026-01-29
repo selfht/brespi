@@ -38,14 +38,16 @@ This is a work in progress with the following TODO's:
 * ✅ Use consistent casing in all form labels and E2E fixtures
 * Firefox: test canvas and `foreignObject`
 * Webkit: attempt to migrate away from [`foreignObject`](https://bugs.webkit.org/show_bug.cgi?id=23113)
+* Bug: should be able to also link step arrows when editing a step (no matter if it's new or not); implement some kind of "after_submit" hook which defines the new relations afterwards?
 * Bug: when you have multiple "Filter" steps (use the seed example) and you click them in the editor, their form details dont update in between clicking
-* More e2e tests for the editor (being able to create links also in Edit-a-Step mode, being able to remove a link, etc.)
+* More e2e tests for the editor for both of the 2 bugs above
 * Add e2e tests for the configuration flow (change something -> update -> save/discard -> changes in schedules automatically reflected -> etc etc)
 * Make sure both Pipelines and Schedules are ordered from new to old in the `Configuration` with uuidv7
 * Update `Decompression` and `Decryption` so they don't require any options maybe?
 * Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
-* Handle TODO comments
 * Refactor so the backend ALWAYS uses TZ=UTC for it's PlainDateTime objects ... but provide an environment option BRESPI_MANAGED_STORAGE_VERSIONING_TIMEZONE with a default of UTC (if people wanna see their versions in a particular timestamp) --- but the internal default for PlainDateTime should be UTC always
+* New convention to use `$` instead of the `*Reference` suffix for environment variable references
+* Handle TODO comments
 
 ### Polish
 * Icons for each different step
