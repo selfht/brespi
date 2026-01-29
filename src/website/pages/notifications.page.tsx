@@ -1,6 +1,6 @@
 import { NotificationPolicy } from "@/models/NotificationPolicy";
 import clsx from "clsx";
-import { useState } from "react";
+import { JSX, useState } from "react";
 import { NotificationClient } from "../clients/NotificationClient";
 import { Button } from "../comps/Button";
 import { ErrorDump } from "../comps/ErrorDump";
@@ -14,6 +14,8 @@ import { PolicyEditorTypes } from "../forms/notification/PolicyEditorTypes";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRegistry } from "../hooks/useRegistry";
 import { useYesQuery } from "../hooks/useYesQuery";
+import { NotificationChannel } from "@/models/NotificationChannel";
+import { Event } from "@/events/Event";
 
 export function notificationsPage() {
   useDocumentTitle("Notifications | Brespi");
@@ -70,7 +72,7 @@ export function notificationsPage() {
               <label>Events</label>
               <div />
             </div>
-            {/* New Policy Row */}
+            {/* New policy row */}
             {editing === "new" ? (
               <PolicyEditor
                 className={clsx(query.data.length === 0 && "rounded-b-2xl")}
@@ -105,33 +107,33 @@ export function notificationsPage() {
                   />
                 );
               }
+              const channelTranslation: Record<NotificationChannel["type"], string> = {
+                slack: "Slack",
+                custom_script: "Custom script",
+              };
               return (
                 <div key={policy.id} className={clsx(gridClassName, "border-t border-c-dim/20")} data-testid="policy-row">
                   {/* Active */}
                   <Toggle className="ml-2" defaultChecked />
                   {/* Channel */}
-                  <div className="min-w-0 mr-5">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={clsx(
-                          "px-2 py-1 rounded text-sm font-medium",
-                          policy.channel.type === "slack" ? "bg-[#4A154B] text-white" : "bg-green-900 text-green-100",
-                        )}
-                      >
-                        {policy.channel.type === "slack" ? "Slack" : "Custom Script"}
-                      </span>
-                    </div>
-                    <div className="truncate text-c-dim text-sm font-mono mt-1">
-                      {policy.channel.type === "slack" ? policy.channel.webhookUrlReference : policy.channel.path}
-                    </div>
+                  <div className="min-w-0 mr-10">
+                    <div className="truncate text-lg font-medium">{channelTranslation[policy.channel.type]}</div>
+                    {policy.channel.type === "slack" && <div className="truncate text-c-dim">{policy.channel.webhookUrlReference}</div>}
+                    {policy.channel.type === "custom_script" && <div className="truncate text-c-dim">{policy.channel.path}</div>}
                   </div>
                   {/* Events */}
                   <div className="flex flex-wrap gap-2">
-                    {policy.eventSubscriptions.map((sub, i) => (
-                      <span key={i} className="px-2 py-1 rounded bg-blue-900/50 text-blue-200 text-sm font-mono">
-                        {sub.type} ({sub.triggers.join(", ")})
-                      </span>
-                    ))}
+                    {policy.eventSubscriptions.map((sub): JSX.Element => {
+                      switch (sub.type) {
+                        case Event.Type.execution_started:
+                        case Event.Type.execution_completed:
+                          return (
+                            <span key={sub.type} className="border-2 rounded-lg border-c-info p-2">
+                              <span className="font-bold">{sub.type}</span>
+                            </span>
+                          );
+                      }
+                    })}
                   </div>
                   {/* Actions */}
                   <div className="flex justify-end">

@@ -96,7 +96,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
                 Select a channel
               </option>
               <option value="slack">Slack</option>
-              <option value="custom_script">Custom Script</option>
+              <option value="custom_script">Custom script</option>
             </select>
             {channelType === "slack" && (
               <>
