@@ -101,24 +101,22 @@ export class NotificationService {
 }
 
 export namespace NotificationService {
-  const a = {
-    id: Bun.randomUUIDv7(),
-    channel: {
-      name: "slack",
-      webhookUrlReference: "MY_SLACK_WEBHOOK",
-    },
-    eventSubscriptions: [
-      {
-        type: Event.Type.execution_completed,
-        triggers: ["schedule"],
-      },
-    ],
-  };
   export const Upsert = z
     .object({
       channel: NotificationChannel.parse.SCHEMA,
       eventSubscriptions: z.array(EventSubscription.parse.SCHEMA),
     })
+    .transform((value) => ({
+      ...value,
+      eventSubscriptions: value.eventSubscriptions.filter((sub) => {
+        switch (sub.type) {
+          case Event.Type.execution_started:
+            return sub.triggers.length > 0;
+          case Event.Type.execution_completed:
+            return sub.triggers.length > 0;
+        }
+      }),
+    }))
     .catch((e) => {
       throw ServerError.invalid_request_body(ZodProblem.issuesSummary(e));
     });

@@ -15,7 +15,7 @@ export function ExecutionIcon({ variant, className }: Props) {
 }
 export namespace ExecutionIcon {
   export type Props = {
-    variant: Extract<Icon.Props["variant"], "success" | "error" | "loading"> | "no_data";
+    variant: Extract<Icon.Props["variant"], "new" | "success" | "error" | "loading"> | "no_data";
     className?: string;
   };
 }

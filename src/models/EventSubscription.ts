@@ -6,7 +6,6 @@ export type EventSubscription =
   | {
       type: Event.Type.execution_started;
       triggers: Array<"ad_hoc" | "schedule">;
-      something_else_lol: number;
     }
   | {
       type: Event.Type.execution_completed;
@@ -25,7 +24,6 @@ export namespace EventSubscription {
           triggers: z
             .array(z.literal(["ad_hoc", "schedule"]))
             .refine((array) => new Set(array).size === array.length, { error: "duplicate_triggers" }),
-          something_else_lol: z.number(),
         }),
         z.object({
           type: z.literal(Event.Type.execution_completed),
