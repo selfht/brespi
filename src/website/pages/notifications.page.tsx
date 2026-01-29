@@ -66,7 +66,7 @@ export function notificationsPage() {
             {/* Header */}
             <div className={clsx(gridClassName, "border-none rounded-t-2xl bg-[rgb(20,20,20)] text-lg")}>
               <label htmlFor={PolicyEditorTypes.Field.active}>Active</label>
-              <label htmlFor={PolicyEditorTypes.Field.channelType}>Channel</label>
+              <label htmlFor={PolicyEditorTypes.Field.channel}>Channel</label>
               <label>Events</label>
               <div />
             </div>

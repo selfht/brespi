@@ -13,31 +13,6 @@ import { FormHelper } from "../FormHelper";
 import { PolicyEditorTypes } from "./PolicyEditorTypes";
 import { SubscriptionsForm } from "./SubscriptionsForm";
 
-function defaultSubscriptionForm(type: EventSubscription["type"], existing?: NotificationPolicy): PolicyEditorTypes.FormSubscription {
-  switch (type) {
-    case Event.Type.execution_started: {
-      const existingSub = existing?.eventSubscriptions.find((s) => s.type === type);
-      return {
-        enabled: Boolean(existingSub),
-        subscription: existingSub ?? {
-          type,
-          triggers: ["ad_hoc", "schedule"],
-        },
-      };
-    }
-    case Event.Type.execution_completed: {
-      const existingSub = existing?.eventSubscriptions.find((s) => s.type === type);
-      return {
-        enabled: Boolean(existingSub),
-        subscription: existingSub ?? {
-          type,
-          triggers: ["ad_hoc", "schedule"],
-        },
-      };
-    }
-  }
-}
-
 const Field = PolicyEditorTypes.Field;
 type Form = PolicyEditorTypes.Form;
 type Props = PolicyEditor.Props;
@@ -45,16 +20,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
   const notificationClient = useRegistry(NotificationClient);
 
   const form = useForm<Form>({
-    defaultValues: {
-      [Field.active]: true,
-      [Field.channelType]: existing?.channel.type ?? "",
-      [Field.webhookUrlReference]: existing?.channel.type === "slack" ? existing.channel.webhookUrlReference : "",
-      [Field.scriptPath]: existing?.channel.type === "custom_script" ? existing.channel.path : "",
-      [Field.eventSubscriptions]: [
-        defaultSubscriptionForm(Event.Type.execution_started, existing),
-        defaultSubscriptionForm(Event.Type.execution_completed, existing),
-      ],
-    } satisfies Form,
+    defaultValues: Internal.buildDefaultValues(existing),
   });
 
   const save = async (data: Form) => {
@@ -62,7 +28,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
       form.clearErrors();
       await FormHelper.snoozeBeforeSubmit();
       let channel: NotificationChannel;
-      switch (data[Field.channelType]) {
+      switch (data[Field.channel]) {
         case "": {
           channel = {} as NotificationChannel; // let it fail later
           break;
@@ -70,24 +36,21 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
         case "slack": {
           channel = {
             type: "slack",
-            webhookUrlReference: data[Field.webhookUrlReference],
+            webhookUrlReference: data[Field.slack_webhookUrlReference],
           };
           break;
         }
         case "custom_script": {
-          // $AB
           channel = {
             type: "custom_script",
-            path: data[Field.scriptPath],
+            path: data[Field.customScript_path],
           };
           break;
         }
       }
       const request: OmitBetter<NotificationPolicy, "id" | "object"> = {
         channel,
-        eventSubscriptions: data[Field.eventSubscriptions] //
-          .filter(({ enabled }) => enabled)
-          .map(({ subscription }) => subscription),
+        eventSubscriptions: Internal.buildEventSubscriptions(data),
       };
       const policy = existing
         ? await notificationClient.updatePolicy(existing.id, request)
@@ -115,7 +78,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
     }
   };
 
-  const channelType = form.watch(Field.channelType);
+  const channelType = form.watch(Field.channel);
   return (
     <FormProvider {...form}>
       <div className={clsx(className, "border-t border-b border-c-info bg-black")}>
@@ -125,9 +88,9 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
           {/* Channel */}
           <div className="min-w-0 mr-10">
             <select
-              id={Field.channelType}
+              id={Field.channel}
               className="w-full text-lg p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none! mb-3"
-              {...form.register(Field.channelType)}
+              {...form.register(Field.channel)}
             >
               <option value="" disabled>
                 Select a channel
@@ -142,7 +105,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
                   type="text"
                   className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
                   placeholder="MY_SLACK_WEBHOOK_URL"
-                  {...form.register(Field.webhookUrlReference)}
+                  {...form.register(Field.slack_webhookUrlReference)}
                 />
               </>
             )}
@@ -155,7 +118,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
                   type="text"
                   className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
                   placeholder="/scripts/notify.sh"
-                  {...form.register(Field.scriptPath)}
+                  {...form.register(Field.customScript_path)}
                 />
               </>
             )}
@@ -181,7 +144,6 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
     </FormProvider>
   );
 }
-
 export namespace PolicyEditor {
   export type Props = {
     className?: string;
@@ -191,4 +153,48 @@ export namespace PolicyEditor {
     onDelete: (policy: NotificationPolicy) => unknown;
     onCancel: () => unknown;
   };
+}
+
+namespace Internal {
+  export function buildDefaultValues(existing?: NotificationPolicy): Form {
+    const executionStarted = existing?.eventSubscriptions.find((s) => s.type === Event.Type.execution_started);
+    const executionCompleted = existing?.eventSubscriptions.find((s) => s.type === Event.Type.execution_completed);
+    return {
+      [Field.active]: true,
+      [Field.channel]: existing?.channel.type ?? "",
+      [Field.slack_webhookUrlReference]: existing?.channel.type === "slack" ? existing.channel.webhookUrlReference : "",
+      [Field.customScript_path]: existing?.channel.type === "custom_script" ? existing.channel.path : "",
+      // execution_started
+      [Field.subscription_executionStarted_enabled]: Boolean(executionStarted),
+      [Field.subscription_executionStarted_triggerAdHoc]: executionStarted?.triggers.includes("ad_hoc") ?? true,
+      [Field.subscription_executionStarted_triggerSchedule]: executionStarted?.triggers.includes("schedule") ?? true,
+      // execution_completed
+      [Field.subscription_executionCompleted_enabled]: Boolean(executionCompleted),
+      [Field.subscription_executionCompleted_triggerAdHoc]: executionCompleted?.triggers.includes("ad_hoc") ?? true,
+      [Field.subscription_executionCompleted_triggerSchedule]: executionCompleted?.triggers.includes("schedule") ?? true,
+    };
+  }
+
+  export function buildEventSubscriptions(data: Form): EventSubscription[] {
+    const subscriptions: EventSubscription[] = [];
+    if (data[Field.subscription_executionStarted_enabled]) {
+      subscriptions.push({
+        type: Event.Type.execution_started,
+        triggers: [
+          ...(data[Field.subscription_executionStarted_triggerAdHoc] ? (["ad_hoc"] as const) : []),
+          ...(data[Field.subscription_executionStarted_triggerSchedule] ? (["schedule"] as const) : []),
+        ],
+      });
+    }
+    if (data[Field.subscription_executionCompleted_enabled]) {
+      subscriptions.push({
+        type: Event.Type.execution_completed,
+        triggers: [
+          ...(data[Field.subscription_executionCompleted_triggerAdHoc] ? (["ad_hoc"] as const) : []),
+          ...(data[Field.subscription_executionCompleted_triggerSchedule] ? (["schedule"] as const) : []),
+        ],
+      });
+    }
+    return subscriptions;
+  }
 }
