@@ -124,7 +124,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
           </select>
           {channelType === "slack" && (
             <>
-              <label className="block text-c-dim text-sm mb-1">Environment variable containing the Slack webhook URL</label>
+              <label className="block text-c-dim text-sm mb-1">Specify the environment variable containing the Slack webhook URL</label>
               <input
                 type="text"
                 className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
@@ -135,7 +135,9 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
           )}
           {channelType === "custom_script" && (
             <>
-              <label className="block text-c-dim text-sm mb-1">Filesystem path for the script that will be invoked</label>
+              <label className="block text-c-dim text-sm mb-1">
+                Specify the filesystem path for the custom script that will be invoked
+              </label>
               <input
                 type="text"
                 className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
