@@ -108,7 +108,6 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
       <fieldset disabled={formState.isSubmitting} className={clsx(gridClassName, "items-start!")}>
         {/* Active */}
         <Toggle id={PolicyEditor.Field.active} className="mt-1.5 ml-2" {...register(PolicyEditor.Field.active)} />
-
         {/* Channel */}
         <div className="min-w-0 mr-10">
           <select
@@ -147,7 +146,6 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
             </>
           )}
         </div>
-
         {/* Events */}
         <div className="flex flex-col gap-5">
           {eventSubscriptions.map((sub, index) => (
@@ -180,7 +178,6 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
             </div>
           ))}
         </div>
-
         {/* Actions */}
         <div className="flex flex-col items-end gap-1">
           <Button className="border-none font-normal text-c-success hover:text-white" onClick={handleSubmit(save)}>
