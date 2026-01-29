@@ -24,7 +24,7 @@ export function notificationsPage() {
   });
 
   const gridClassName = clsx(
-    "grid grid-cols-[88px_minmax(180px,2fr)_minmax(280px,4fr)_80px]",
+    "grid grid-cols-[88px_minmax(180px,2fr)_minmax(280px,3fr)_80px]",
     "items-center p-6",
     "border-t border-c-dim/20",
   );
