@@ -1,13 +1,13 @@
 import { ZodParser } from "@/helpers/ZodParser";
 import z from "zod/v4";
 import { NotificationChannel } from "./NotificationChannel";
-import { NotificationEventSubscription } from "./NotificationEventSubscription";
+import { EventSubscription } from "./EventSubscription";
 
 export type NotificationPolicy = {
   id: string;
   object: "notification_policy";
   channel: NotificationChannel;
-  eventSubscriptions: NotificationEventSubscription[];
+  eventSubscriptions: EventSubscription[];
 };
 
 export namespace NotificationPolicy {
@@ -17,7 +17,7 @@ export namespace NotificationPolicy {
         id: z.string(),
         object: z.literal("notification_policy"),
         channel: NotificationChannel.parse.SCHEMA,
-        eventSubscriptions: z.array(NotificationEventSubscription.parse.SCHEMA),
+        eventSubscriptions: z.array(EventSubscription.parse.SCHEMA),
       }),
     )
     .ensureTypeMatchesSchema();

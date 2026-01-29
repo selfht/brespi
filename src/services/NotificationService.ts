@@ -4,7 +4,7 @@ import { EventBus } from "@/events/EventBus";
 import { Mutex } from "@/helpers/Mutex";
 import { ZodProblem } from "@/helpers/ZodIssues";
 import { NotificationChannel } from "@/models/NotificationChannel";
-import { NotificationEventSubscription } from "@/models/NotificationEventSubscription";
+import { EventSubscription } from "@/models/EventSubscription";
 import { NotificationPolicy } from "@/models/NotificationPolicy";
 import { NotificationRepository } from "@/repositories/NotificationRepository";
 import { Temporal } from "@js-temporal/polyfill";
@@ -84,14 +84,11 @@ export class NotificationService {
     return this.cache;
   }
 
-  private declareEligible(_event: Event): _event is NotificationEventSubscription.EligibleEvent {
+  private declareEligible(_event: Event): _event is EventSubscription.EligibleEvent {
     return true;
   }
 
-  private matchesSubscriptionDetails(
-    event: NotificationEventSubscription.EligibleEvent,
-    eventSubscription: NotificationEventSubscription,
-  ): boolean {
+  private matchesSubscriptionDetails(event: EventSubscription.EligibleEvent, eventSubscription: EventSubscription): boolean {
     switch (event.type) {
       case Event.Type.execution_started: {
         return eventSubscription.triggers.includes(event.data.trigger);
@@ -120,7 +117,7 @@ export namespace NotificationService {
   export const Upsert = z
     .object({
       channel: NotificationChannel.parse.SCHEMA,
-      eventSubscriptions: z.array(NotificationEventSubscription.parse.SCHEMA),
+      eventSubscriptions: z.array(EventSubscription.parse.SCHEMA),
     })
     .catch((e) => {
       throw ServerError.invalid_request_body(ZodProblem.issuesSummary(e));

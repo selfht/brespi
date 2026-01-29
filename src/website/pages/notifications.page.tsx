@@ -9,7 +9,7 @@ import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
 import { Toggle } from "../comps/Toggle";
-import { PolicyEditor } from "../forms/notification/PolicyEditor";
+import { NotificationPolicyEditor } from "../forms/notification/NotificationPolicyEditor";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRegistry } from "../hooks/useRegistry";
 import { useYesQuery } from "../hooks/useYesQuery";
@@ -29,7 +29,7 @@ export function notificationsPage() {
     "border-t border-c-dim/20",
   );
 
-  const editorCallbacks: Pick<PolicyEditor.Props, "onSave" | "onDelete" | "onCancel"> = {
+  const editorCallbacks: Pick<NotificationPolicyEditor.Props, "onSave" | "onDelete" | "onCancel"> = {
     onSave(policy) {
       const data = query.getData()!;
       if (data.some((p) => p.id === policy.id)) {
@@ -64,14 +64,14 @@ export function notificationsPage() {
           <>
             {/* Header */}
             <div className={clsx(gridClassName, "border-none rounded-t-2xl bg-[rgb(20,20,20)] text-lg")}>
-              <label htmlFor={PolicyEditor.Field.active}>Active</label>
-              <label htmlFor={PolicyEditor.Field.channelType}>Channel</label>
+              <label htmlFor={NotificationPolicyEditor.Field.active}>Active</label>
+              <label htmlFor={NotificationPolicyEditor.Field.channelType}>Channel</label>
               <label>Events</label>
               <div />
             </div>
             {/* New Policy Row */}
             {editing === "new" ? (
-              <PolicyEditor
+              <NotificationPolicyEditor
                 className={clsx(query.data.length === 0 && "rounded-b-2xl")}
                 gridClassName={gridClassName}
                 {...editorCallbacks}
@@ -95,7 +95,7 @@ export function notificationsPage() {
             {query.data.map((policy, index, { length }) => {
               if (editing && typeof editing !== "string" && editing.id === policy.id) {
                 return (
-                  <PolicyEditor
+                  <NotificationPolicyEditor
                     key={policy.id}
                     className={clsx(index + 1 === length && "rounded-b-2xl")}
                     gridClassName={gridClassName}

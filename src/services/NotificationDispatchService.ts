@@ -3,7 +3,7 @@ import { Event } from "@/events/Event";
 import { assertNever } from "@/helpers/assertNever";
 import { CommandRunner } from "@/helpers/CommandRunner";
 import { NotificationChannel } from "@/models/NotificationChannel";
-import { NotificationEventSubscription } from "@/models/NotificationEventSubscription";
+import { EventSubscription } from "@/models/EventSubscription";
 import { NotificationPolicy } from "@/models/NotificationPolicy";
 import { Outcome } from "@/models/Outcome";
 import { basename, dirname } from "path";
@@ -12,7 +12,7 @@ import { Yesttp } from "yesttp";
 export class NotificationDispatchService {
   public constructor(private readonly yesttp = new Yesttp()) {}
 
-  public async dispatch(policy: NotificationPolicy, event: NotificationEventSubscription.EligibleEvent) {
+  public async dispatch(policy: NotificationPolicy, event: EventSubscription.EligibleEvent) {
     try {
       switch (policy.channel.type) {
         case "slack": {
@@ -37,7 +37,7 @@ export class NotificationDispatchService {
     }
   }
 
-  private async dispatchToSlack(channel: NotificationChannel.Slack, event: NotificationEventSubscription.EligibleEvent) {
+  private async dispatchToSlack(channel: NotificationChannel.Slack, event: EventSubscription.EligibleEvent) {
     const webhookUrl = Bun.env[channel.webhookUrlReference];
     if (!webhookUrl) {
       throw new Error(`Slack webhook URL not found in environment variable: ${channel.webhookUrlReference}`);
@@ -66,7 +66,7 @@ export class NotificationDispatchService {
     await this.yesttp.post(webhookUrl, { body: { text } });
   }
 
-  private async dispatchToCustomScript(channel: NotificationChannel.CustomScript, event: NotificationEventSubscription.EligibleEvent) {
+  private async dispatchToCustomScript(channel: NotificationChannel.CustomScript, event: EventSubscription.EligibleEvent) {
     const envVars: Record<string, string> = {
       BRESPI_EVENT: event.type,
     };

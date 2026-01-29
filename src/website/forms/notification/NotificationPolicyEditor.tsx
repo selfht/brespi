@@ -1,6 +1,6 @@
 import { Event } from "@/events/Event";
 import { NotificationChannel } from "@/models/NotificationChannel";
-import { NotificationEventSubscription } from "@/models/NotificationEventSubscription";
+import { EventSubscription } from "@/models/EventSubscription";
 import { NotificationPolicy } from "@/models/NotificationPolicy";
 import { NotificationClient } from "@/website/clients/NotificationClient";
 import { Button } from "@/website/comps/Button";
@@ -10,68 +10,72 @@ import clsx from "clsx";
 import { useForm } from "react-hook-form";
 import { FormHelper } from "../FormHelper";
 
-type EventSubscriptionForm = {
-  type: NotificationEventSubscription["type"];
+type SubscriptionForm = {
   enabled: boolean;
-  triggers: {
-    ad_hoc: boolean;
-    schedule: boolean;
-  };
+  subscription: EventSubscription;
 };
+function createSubscriptionForm(type: EventSubscription["type"], existing?: NotificationPolicy): SubscriptionForm {
+  switch (type) {
+    case Event.Type.execution_started: {
+      const existingSub = existing?.eventSubscriptions.find((s) => s.type === type);
+      return {
+        enabled: existing?.eventSubscriptions.some((s) => s.type === type) || false,
+        subscription: existingSub ?? {
+          type,
+          triggers: ["ad_hoc", "schedule"],
+          something_else_lol: 99,
+        },
+      };
+    }
+    case Event.Type.execution_completed: {
+      const existingSub = existing?.eventSubscriptions.find((s) => s.type === type);
+      return {
+        enabled: existing?.eventSubscriptions.some((s) => s.type === type) || false,
+        subscription: existingSub ?? {
+          type,
+          triggers: ["ad_hoc", "schedule"],
+        },
+      };
+    }
+  }
+}
 
-type Props = PolicyEditor.Props;
+type Props = NotificationPolicyEditor.Props;
 type Form = {
-  [PolicyEditor.Field.active]: boolean;
-  [PolicyEditor.Field.channelType]: "" | "slack" | "custom_script";
-  [PolicyEditor.Field.webhookUrlReference]: string;
-  [PolicyEditor.Field.scriptPath]: string;
-  [PolicyEditor.Field.eventSubscriptions]: EventSubscriptionForm[];
+  [NotificationPolicyEditor.Field.active]: boolean;
+  [NotificationPolicyEditor.Field.channelType]: "" | "slack" | "custom_script";
+  [NotificationPolicyEditor.Field.webhookUrlReference]: string;
+  [NotificationPolicyEditor.Field.scriptPath]: string;
+  [NotificationPolicyEditor.Field.eventSubscriptions]: SubscriptionForm[];
 };
-export function PolicyEditor({ className, gridClassName, existing, onSave, onDelete, onCancel }: Props) {
+export function NotificationPolicyEditor({ className, gridClassName, existing, onSave, onDelete, onCancel }: Props) {
   const notificationClient = useRegistry(NotificationClient);
-
-  const defaultEventSubscriptions: EventSubscriptionForm[] = [
-    {
-      type: Event.Type.execution_started,
-      enabled: existing?.eventSubscriptions.some((s) => s.type === Event.Type.execution_started) ?? false,
-      triggers: {
-        ad_hoc: existing?.eventSubscriptions.find((s) => s.type === Event.Type.execution_started)?.triggers.includes("ad_hoc") ?? false,
-        schedule: existing?.eventSubscriptions.find((s) => s.type === Event.Type.execution_started)?.triggers.includes("schedule") ?? false,
-      },
-    },
-    {
-      type: Event.Type.execution_completed,
-      enabled: existing?.eventSubscriptions.some((s) => s.type === Event.Type.execution_completed) ?? false,
-      triggers: {
-        ad_hoc: existing?.eventSubscriptions.find((s) => s.type === Event.Type.execution_completed)?.triggers.includes("ad_hoc") ?? false,
-        schedule:
-          existing?.eventSubscriptions.find((s) => s.type === Event.Type.execution_completed)?.triggers.includes("schedule") ?? false,
-      },
-    },
-  ];
 
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
-      [PolicyEditor.Field.active]: true,
-      [PolicyEditor.Field.channelType]: existing?.channel.type ?? "",
-      [PolicyEditor.Field.webhookUrlReference]: existing?.channel.type === "slack" ? existing.channel.webhookUrlReference : "",
-      [PolicyEditor.Field.scriptPath]: existing?.channel.type === "custom_script" ? existing.channel.path : "",
-      [PolicyEditor.Field.eventSubscriptions]: defaultEventSubscriptions,
+      [NotificationPolicyEditor.Field.active]: true,
+      [NotificationPolicyEditor.Field.channelType]: existing?.channel.type ?? "",
+      [NotificationPolicyEditor.Field.webhookUrlReference]: existing?.channel.type === "slack" ? existing.channel.webhookUrlReference : "",
+      [NotificationPolicyEditor.Field.scriptPath]: existing?.channel.type === "custom_script" ? existing.channel.path : "",
+      [NotificationPolicyEditor.Field.eventSubscriptions]: [
+        createSubscriptionForm(Event.Type.execution_started, existing),
+        createSubscriptionForm(Event.Type.execution_completed, existing),
+      ],
     } satisfies Form,
   });
 
-  const channelType = watch(PolicyEditor.Field.channelType);
-  const eventSubscriptions = watch(PolicyEditor.Field.eventSubscriptions);
+  const channelType = watch(NotificationPolicyEditor.Field.channelType);
+  const eventSubscriptions = watch(NotificationPolicyEditor.Field.eventSubscriptions);
 
   const save = async (form: Form) => {
     try {
       clearErrors();
       await FormHelper.snoozeBeforeSubmit();
       const channel: NotificationChannel =
-        form[PolicyEditor.Field.channelType] === "slack"
-          ? { type: "slack", webhookUrlReference: form[PolicyEditor.Field.webhookUrlReference] }
-          : { type: "custom_script", path: form[PolicyEditor.Field.scriptPath] };
-      const subscriptions: NotificationEventSubscription[] = form[PolicyEditor.Field.eventSubscriptions]
+        form[NotificationPolicyEditor.Field.channelType] === "slack"
+          ? { type: "slack", webhookUrlReference: form[NotificationPolicyEditor.Field.webhookUrlReference] }
+          : { type: "custom_script", path: form[NotificationPolicyEditor.Field.scriptPath] };
+      const subscriptions: EventSubscription[] = form[NotificationPolicyEditor.Field.eventSubscriptions]
         .filter((sub) => sub.enabled)
         .map((sub) => ({
           type: sub.type,
@@ -107,13 +111,13 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
     <div className={clsx(className, "border-t border-b border-c-info bg-black")}>
       <fieldset disabled={formState.isSubmitting} className={clsx(gridClassName, "items-start!")}>
         {/* Active */}
-        <Toggle id={PolicyEditor.Field.active} className="mt-1.5 ml-2" {...register(PolicyEditor.Field.active)} />
+        <Toggle id={NotificationPolicyEditor.Field.active} className="mt-1.5 ml-2" {...register(NotificationPolicyEditor.Field.active)} />
         {/* Channel */}
         <div className="min-w-0 mr-10">
           <select
-            id={PolicyEditor.Field.channelType}
+            id={NotificationPolicyEditor.Field.channelType}
             className="w-full text-lg p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none! mb-3"
-            {...register(PolicyEditor.Field.channelType)}
+            {...register(NotificationPolicyEditor.Field.channelType)}
           >
             <option value="" disabled>
               Select a channel
@@ -128,7 +132,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
                 type="text"
                 className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
                 placeholder="MY_SLACK_WEBHOOK_URL"
-                {...register(PolicyEditor.Field.webhookUrlReference)}
+                {...register(NotificationPolicyEditor.Field.webhookUrlReference)}
               />
             </>
           )}
@@ -141,7 +145,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
                 type="text"
                 className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
                 placeholder="/scripts/notify.sh"
-                {...register(PolicyEditor.Field.scriptPath)}
+                {...register(NotificationPolicyEditor.Field.scriptPath)}
               />
             </>
           )}
@@ -151,7 +155,11 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
           {eventSubscriptions.map((sub, index) => (
             <div key={sub.type}>
               <label className="flex items-center gap-2">
-                <input type="checkbox" className="w-4 h-4" {...register(`${PolicyEditor.Field.eventSubscriptions}.${index}.enabled`)} />
+                <input
+                  type="checkbox"
+                  className="w-4 h-4"
+                  {...register(`${NotificationPolicyEditor.Field.eventSubscriptions}.${index}.enabled`)}
+                />
                 <span className="font-mono">{sub.type}</span>
               </label>
               {eventSubscriptions[index].enabled && (
@@ -161,7 +169,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
                     <input
                       type="checkbox"
                       className="w-3 h-3"
-                      {...register(`${PolicyEditor.Field.eventSubscriptions}.${index}.triggers.schedule`)}
+                      {...register(`${NotificationPolicyEditor.Field.eventSubscriptions}.${index}.triggers.schedule`)}
                     />
                     <span>schedule</span>
                   </label>
@@ -169,7 +177,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
                     <input
                       type="checkbox"
                       className="w-3 h-3"
-                      {...register(`${PolicyEditor.Field.eventSubscriptions}.${index}.triggers.ad_hoc`)}
+                      {...register(`${NotificationPolicyEditor.Field.eventSubscriptions}.${index}.triggers.ad_hoc`)}
                     />
                     <span>ad_hoc</span>
                   </label>
@@ -197,7 +205,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
   );
 }
 
-export namespace PolicyEditor {
+export namespace NotificationPolicyEditor {
   export type Props = {
     className?: string;
     gridClassName: string;

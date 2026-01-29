@@ -1,5 +1,5 @@
 import { Event } from "@/events/Event";
-import { NotificationEventSubscription } from "@/models/NotificationEventSubscription";
+import { EventSubscription } from "@/models/EventSubscription";
 import { NotificationPolicy } from "@/models/NotificationPolicy";
 import { Outcome } from "@/models/Outcome";
 import { TestEnvironment } from "@/testing/TestEnvironment.test";
@@ -20,12 +20,12 @@ describe(NotificationDispatchService.name, async () => {
   });
 
   describe("slack", () => {
-    type TestCase<E extends NotificationEventSubscription.EligibleEvent = NotificationEventSubscription.EligibleEvent> = {
+    type TestCase<E extends EventSubscription.EligibleEvent = EventSubscription.EligibleEvent> = {
       description: string;
       event: E;
       expectation: (event: E) => RegExp;
     };
-    const tc = <E extends NotificationEventSubscription.EligibleEvent>(s: TestCase<E>): TestCase => {
+    const tc = <E extends EventSubscription.EligibleEvent>(s: TestCase<E>): TestCase => {
       return s as unknown as TestCase;
     };
     const collection = TestUtils.createCollection<TestCase>("description", [
@@ -88,12 +88,12 @@ describe(NotificationDispatchService.name, async () => {
   });
 
   describe("custom_script", () => {
-    type TestCase<E extends NotificationEventSubscription.EligibleEvent = NotificationEventSubscription.EligibleEvent> = {
+    type TestCase<E extends EventSubscription.EligibleEvent = EventSubscription.EligibleEvent> = {
       description: string;
       event: E;
       expectationFn: (event: E) => Record<string, string>;
     };
-    const tc = <E extends NotificationEventSubscription.EligibleEvent>(s: TestCase<E>): TestCase => {
+    const tc = <E extends EventSubscription.EligibleEvent>(s: TestCase<E>): TestCase => {
       return s as unknown as TestCase;
     };
 
