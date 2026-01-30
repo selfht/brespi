@@ -7,30 +7,22 @@ import { Temporal } from "node_modules/@js-temporal/polyfill/index.cjs";
 
 export type Event =
   // configuration
-  | Instance<Event.Type.configuration_updated, { configuration: Configuration; trigger: "application" | "disk_synchronization" }>
+  | Event.ConfigurationUpdated
   // pipelines
-  | Instance<Event.Type.pipeline_created, { pipeline: Pipeline }>
-  | Instance<Event.Type.pipeline_updated, { pipeline: Pipeline }>
-  | Instance<Event.Type.pipeline_deleted, { pipeline: Pipeline }>
+  | Event.PipelineCreated
+  | Event.PipelineUpdated
+  | Event.PipelineDeleted
   // schedules
-  | Instance<Event.Type.schedule_created, { schedule: Schedule }>
-  | Instance<Event.Type.schedule_updated, { schedule: Schedule }>
-  | Instance<Event.Type.schedule_deleted, { schedule: Schedule }>
+  | Event.ScheduleCreated
+  | Event.ScheduleUpdated
+  | Event.ScheduleDeleted
   // executions
-  | Instance<Event.Type.execution_started, { execution: Execution; trigger: "ad_hoc" | "schedule" }>
-  | Instance<Event.Type.execution_completed, { execution: Execution; trigger: "ad_hoc" | "schedule" }>
+  | Event.ExecutionStarted
+  | Event.ExecutionCompleted
   // notification policies
-  | Instance<Event.Type.notification_policy_created, { policy: NotificationPolicy }>
-  | Instance<Event.Type.notification_policy_updated, { policy: NotificationPolicy }>
-  | Instance<Event.Type.notification_policy_deleted, { policy: NotificationPolicy }>;
-
-type Instance<T extends Event.Type, D> = {
-  id: string;
-  object: "event";
-  published: Temporal.PlainDateTime;
-  type: T;
-  data: D;
-};
+  | Event.NotificationPolicyCreated
+  | Event.NotificationPolicyUpdated
+  | Event.NotificationPolicyDeleted;
 
 export namespace Event {
   export enum Type {
@@ -47,4 +39,33 @@ export namespace Event {
     notification_policy_updated = "notification_policy_updated",
     notification_policy_deleted = "notification_policy_deleted",
   }
+
+  type Instance<T extends Event.Type, D> = {
+    id: string;
+    object: "event";
+    published: Temporal.PlainDateTime;
+    type: T;
+    data: D;
+  };
+
+  // configuration
+  export type ConfigurationUpdated = Instance<
+    Event.Type.configuration_updated,
+    { configuration: Configuration; trigger: "application" | "disk_synchronization" }
+  >;
+  // pipelines
+  export type PipelineCreated = Instance<Event.Type.pipeline_created, { pipeline: Pipeline }>;
+  export type PipelineUpdated = Instance<Event.Type.pipeline_updated, { pipeline: Pipeline }>;
+  export type PipelineDeleted = Instance<Event.Type.pipeline_deleted, { pipeline: Pipeline }>;
+  // schedules
+  export type ScheduleCreated = Instance<Event.Type.schedule_created, { schedule: Schedule }>;
+  export type ScheduleUpdated = Instance<Event.Type.schedule_updated, { schedule: Schedule }>;
+  export type ScheduleDeleted = Instance<Event.Type.schedule_deleted, { schedule: Schedule }>;
+  // executions
+  export type ExecutionStarted = Instance<Event.Type.execution_started, { execution: Execution; trigger: "ad_hoc" | "schedule" }>;
+  export type ExecutionCompleted = Instance<Event.Type.execution_completed, { execution: Execution; trigger: "ad_hoc" | "schedule" }>;
+  // notification policies
+  export type NotificationPolicyCreated = Instance<Event.Type.notification_policy_created, { policy: NotificationPolicy }>;
+  export type NotificationPolicyUpdated = Instance<Event.Type.notification_policy_updated, { policy: NotificationPolicy }>;
+  export type NotificationPolicyDeleted = Instance<Event.Type.notification_policy_deleted, { policy: NotificationPolicy }>;
 }

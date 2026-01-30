@@ -59,7 +59,6 @@ export class NotificationDispatchService {
   private async details(event: EventSubscription.EligibleEvent): Promise<EventDetails> {
     const getPipelineName = async (pipelineId: string) => {
       const pipeline = await this.pipelineRepository.findById(pipelineId);
-      console.log(pipeline);
       return pipeline?.name ?? "";
     };
     switch (event.type) {

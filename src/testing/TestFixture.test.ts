@@ -4,55 +4,59 @@ import { Outcome } from "@/models/Outcome";
 import { Step } from "@/models/Step";
 import { Temporal } from "@js-temporal/polyfill";
 
-export namespace TestFixture {
-  type EventOverrides = {
-    trigger?: "ad_hoc" | "schedule";
-    execution?: Execution;
-    executionOverrides?: Partial<Execution>;
-  };
+type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T[P]> } : T;
 
-  export function createExecutionStartedEvent(
-    overrides: EventOverrides = {},
-  ): Extract<Event, { type: Event.Type.execution_started }> {
-    return {
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype;
+}
+
+function deepMerge<T extends object>(target: T, source: DeepPartial<T>): T {
+  const result = { ...target } as Record<string, unknown>;
+  for (const key in source) {
+    const sourceVal = (source as Record<string, unknown>)[key];
+    const targetVal = result[key];
+    if (sourceVal !== undefined) {
+      if (isPlainObject(targetVal) && isPlainObject(sourceVal)) {
+        result[key] = deepMerge(targetVal, sourceVal);
+      } else {
+        result[key] = sourceVal;
+      }
+    }
+  }
+  return result as T;
+}
+
+export namespace TestFixture {
+  export function createExecutionStartedEvent(overrides: DeepPartial<Event.ExecutionStarted> = {}): Event.ExecutionStarted {
+    const defaults: Event.ExecutionStarted = {
       id: Bun.randomUUIDv7(),
       object: "event",
       published: Temporal.Now.plainDateTimeISO(),
       type: Event.Type.execution_started,
       data: {
-        trigger: overrides.trigger ?? "schedule",
-        execution: overrides.execution ?? createExecution({ result: null, ...overrides.executionOverrides }),
+        trigger: "schedule",
+        execution: createExecution({ result: null }),
       },
     };
+    return deepMerge(defaults, overrides);
   }
 
-  export function createExecutionCompletedEvent(
-    overrides: EventOverrides & { outcome?: Outcome } = {},
-  ): Extract<Event, { type: Event.Type.execution_completed }> {
-    const outcome = overrides.outcome ?? Outcome.success;
-    return {
+  export function createExecutionCompletedEvent(overrides: DeepPartial<Event.ExecutionCompleted> = {}): Event.ExecutionCompleted {
+    const defaults: Event.ExecutionCompleted = {
       id: Bun.randomUUIDv7(),
       object: "event",
       published: Temporal.Now.plainDateTimeISO(),
       type: Event.Type.execution_completed,
       data: {
-        trigger: overrides.trigger ?? "schedule",
-        execution:
-          overrides.execution ??
-          createExecution({
-            result: {
-              outcome,
-              duration: Temporal.Duration.from({ seconds: 42 }),
-              completedAt: Temporal.Now.plainDateTimeISO(),
-            },
-            ...overrides.executionOverrides,
-          }),
+        trigger: "schedule",
+        execution: createExecution(),
       },
     };
+    return deepMerge(defaults, overrides);
   }
 
-  export function createExecution(overrides: Partial<Execution> = {}): Execution {
-    return {
+  export function createExecution(overrides: DeepPartial<Execution> = {}): Execution {
+    const defaults: Execution = {
       id: Bun.randomUUIDv7(),
       object: "execution",
       pipelineId: "pipeline-123",
@@ -63,8 +67,8 @@ export namespace TestFixture {
         duration: Temporal.Duration.from({ seconds: 42 }),
         completedAt: Temporal.Now.plainDateTimeISO(),
       },
-      ...overrides,
     };
+    return deepMerge(defaults, overrides);
   }
 
   export function createStep<T extends Step.Type>(

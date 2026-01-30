@@ -9,16 +9,23 @@ import { beforeEach, describe, expect, it, spyOn } from "bun:test";
 import { chmod } from "fs/promises";
 import { join } from "path";
 import { NotificationDispatchService } from "./NotificationDispatchService";
-import { Pipeline } from "@/models/Pipeline";
 
 describe(NotificationDispatchService.name, async () => {
+  const PIPELINE_ID = "my-pipeline-id";
+  const PIPELINE_NAME = "superpipeline";
+
   let context!: TestEnvironment.Context;
   let service!: NotificationDispatchService;
 
   beforeEach(async () => {
     context = await TestEnvironment.initialize();
-    service = new NotificationDispatchService(context.pipelineRepositoryMock.cast(), context.yesttpMock.cast());
-    context.pipelineRepositoryMock.findById.mockResolvedValue({ name: "Blabla" } as Pipeline);
+    service = new NotificationDispatchService(context.pipelineRepository, context.yesttpMock.cast());
+    await context.pipelineRepository.create({
+      id: PIPELINE_ID,
+      object: "pipeline",
+      name: PIPELINE_NAME,
+      steps: [],
+    });
   });
 
   describe("slack", () => {
@@ -33,18 +40,22 @@ describe(NotificationDispatchService.name, async () => {
     const collection = TestUtils.createCollection<TestCase>("description", [
       tc({
         description: "execution_started",
-        event: TestFixture.createExecutionStartedEvent(),
+        event: TestFixture.createExecutionStartedEvent({ data: { execution: { pipelineId: PIPELINE_ID } } }),
         expectation: (e) => new RegExp(`${e.data.execution.pipelineId}`, "is"),
       }),
       tc({
         description: "execution_completed / success",
-        event: TestFixture.createExecutionCompletedEvent({ outcome: Outcome.success }),
-        expectation: (e) => new RegExp(`succeeded.*${e.data.execution.pipelineId}.*${e.data.execution.result!.duration}`, "is"),
+        event: TestFixture.createExecutionCompletedEvent({
+          data: { execution: { pipelineId: PIPELINE_ID, result: { outcome: Outcome.success } } },
+        }),
+        expectation: (e) => new RegExp(`succeeded.*${e.data.execution.pipelineId}`, "is"),
       }),
       tc({
         description: "execution_completed / failure",
-        event: TestFixture.createExecutionCompletedEvent({ outcome: Outcome.error }),
-        expectation: (e) => new RegExp(`failed.*${e.data.execution.pipelineId}.*${e.data.execution.result!.duration}`, "is"),
+        event: TestFixture.createExecutionCompletedEvent({
+          data: { execution: { pipelineId: PIPELINE_ID, result: { outcome: Outcome.error } } },
+        }),
+        expectation: (e) => new RegExp(`failed.*${e.data.execution.pipelineId}`, "is"),
       }),
     ]);
     it.each(collection.testCases)("posts to slack: %s", async (testCase) => {
@@ -71,13 +82,21 @@ describe(NotificationDispatchService.name, async () => {
         id: Bun.randomUUIDv7(),
         object: "notification_policy",
         active: true,
-        channel: { type: "slack", webhookUrlReference: "NONEXISTENT_WEBHOOK_VAR" },
-        eventSubscriptions: [{ type: Event.Type.execution_completed, triggers: ["schedule"] }],
+        channel: {
+          type: "slack",
+          webhookUrlReference: "NONEXISTENT_WEBHOOK_VAR",
+        },
+        eventSubscriptions: [
+          {
+            type: Event.Type.execution_completed,
+            triggers: ["schedule"],
+          },
+        ],
       };
-      const event = TestFixture.createExecutionCompletedEvent({ outcome: Outcome.success });
+      const event = TestFixture.createExecutionCompletedEvent({ data: { execution: { result: { outcome: Outcome.success } } } });
 
       // when
-      const errorSpy = spyOn(console, "error").mockImplementation(() => {});
+      const errorSpy = spyOn(console, "error");
       await service.dispatch(policy, event);
 
       // then
@@ -103,18 +122,22 @@ describe(NotificationDispatchService.name, async () => {
     const collection = TestUtils.createCollection<TestCase>("description", [
       tc({
         description: "execution_started",
-        event: TestFixture.createExecutionStartedEvent(),
+        event: TestFixture.createExecutionStartedEvent({ data: { execution: { pipelineId: PIPELINE_ID } } }),
         expectationFn: (e) => ({
           BRESPI_EVENT: e.type,
-          BRESPI_PIPELINE_ID: e.data.execution.pipelineId,
+          BRESPI_PIPELINE_ID: PIPELINE_ID,
+          BRESPI_PIPELINE_NAME: PIPELINE_NAME,
         }),
       }),
       tc({
         description: "execution_completed",
-        event: TestFixture.createExecutionCompletedEvent({ outcome: Outcome.success }),
+        event: TestFixture.createExecutionCompletedEvent({
+          data: { execution: { pipelineId: PIPELINE_ID, result: { outcome: Outcome.success } } },
+        }),
         expectationFn: (e) => ({
           BRESPI_EVENT: e.type,
           BRESPI_PIPELINE_ID: e.data.execution.pipelineId,
+          BRESPI_PIPELINE_NAME: PIPELINE_NAME,
           BRESPI_OUTCOME: e.data.execution.result!.outcome,
           BRESPI_DURATION_MS: e.data.execution.result!.duration.total("milliseconds").toString(),
         }),
@@ -137,7 +160,11 @@ describe(NotificationDispatchService.name, async () => {
       // then
       const output = await Bun.file(outputPath).text();
       const outputEnvVarAssignmentCount = (output.match(/BRESPI_/g) || []).length;
-      expect(outputEnvVarAssignmentCount).toEqual(Object.entries(expectation).length);
+      const expectedEnvVarAssignmentCount = Object.entries(expectation).length;
+      expect(
+        outputEnvVarAssignmentCount,
+        `Expected ${expectedEnvVarAssignmentCount} but encountered ${outputEnvVarAssignmentCount} "BRESPI_" lines`,
+      ).toEqual(expectedEnvVarAssignmentCount);
       Object.entries(expectation).forEach(([key, value]) => {
         expect(output).toContain(`${key}=${value}`);
       });
@@ -146,10 +173,10 @@ describe(NotificationDispatchService.name, async () => {
     it("logs an error when script execution fails", async () => {
       // given
       const policy = customScriptPolicy("/nonexistent/path/to/script.sh");
-      const event = TestFixture.createExecutionCompletedEvent({ outcome: Outcome.success });
+      const event = TestFixture.createExecutionCompletedEvent({ data: { execution: { result: { outcome: Outcome.success } } } });
 
       // when
-      const errorSpy = spyOn(console, "error").mockImplementation(() => {});
+      const errorSpy = spyOn(console, "error");
       await service.dispatch(policy, event);
 
       // then

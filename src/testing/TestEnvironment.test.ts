@@ -39,7 +39,6 @@ export namespace TestEnvironment {
     eventBus: EventBus;
 
     // Mocks
-    pipelineRepositoryMock: Mocked<PipelineRepository>;
     executionServiceMock: Mocked<ExecutionService>;
     adapterServiceMock: Mocked<AdapterService>;
     notificationDispatchServiceMock: Mocked<NotificationDispatchService>;
@@ -59,6 +58,7 @@ export namespace TestEnvironment {
   export async function initialize(): Promise<Context> {
     // Cleanup between unit tests
     mock.restore();
+    jest.clearAllMocks();
     jest.restoreAllMocks();
     Object.assign(Bun.env, originalEnv);
     while (cleanupTasks.length > 0) {
@@ -122,13 +122,6 @@ export namespace TestEnvironment {
     const eventBus = new EventBus();
 
     // Mocks
-    const pipelineRepositoryMock = registerMockObject<PipelineRepository>({
-      query: mock(),
-      findById: mock(),
-      create: mock(),
-      update: mock(),
-      delete: mock(),
-    });
     const executionServiceMock = registerMockObject<ExecutionService>({
       registerSocket: mock(),
       unregisterSocket: mock(),
@@ -193,7 +186,6 @@ export namespace TestEnvironment {
       notificationRepository,
       eventBus,
       // mocks
-      pipelineRepositoryMock,
       executionServiceMock,
       adapterServiceMock,
       notificationDispatchServiceMock,
