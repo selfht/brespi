@@ -5,7 +5,6 @@ import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { S3Boundary } from "./boundaries/S3Boundary";
 import { Common } from "./common/Common";
 import { PipelineFlow } from "./flows/PipelineFlow";
-import { ExecutionFlow } from "./flows/ExecutionFlow";
 
 test.beforeEach(async ({ request, page }) => {
   await ResetBoundary.reset(request);
@@ -27,7 +26,7 @@ test("creates and executes a branched pipeline", async ({ page }) => {
     await Common.writeFile(path, `This is ${snack}`);
   }
   // when
-  await PipelineFlow.createPipeline(page, {
+  await PipelineFlow.create(page, {
     name: "Branching",
     steps: [
       {
@@ -70,7 +69,7 @@ test("creates and executes a branched pipeline", async ({ page }) => {
       },
     ],
   });
-  await ExecutionFlow.executePipeline(page);
+  await PipelineFlow.execute(page);
   // then
   const destinations = {
     filesystemA: await listParentDirectoryButOnlyShowOwnPaths(outputDir.filesystemA),

@@ -6,7 +6,6 @@ import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { S3Boundary } from "./boundaries/S3Boundary";
 import { Common } from "./common/Common";
 import { PipelineFlow } from "./flows/PipelineFlow";
-import { ExecutionFlow } from "./flows/ExecutionFlow";
 
 type AdapterConfig = {
   name: string;
@@ -163,7 +162,7 @@ async function performHappyFlowTest({ page, listStorageEntries, pipelineStep }: 
 
   // when (write to managed storage; first time)
   const writePipelineId = await createWritePipeline(page, { inputDir, writeStep: pipelineStep.write });
-  await ExecutionFlow.executePipeline(page);
+  await PipelineFlow.execute(page);
   // then (artifacts are stored)
   await verifyStorage({
     entries: await listStorageEntries(),
@@ -173,7 +172,7 @@ async function performHappyFlowTest({ page, listStorageEntries, pipelineStep }: 
 
   // when (retrieving these artifacts)
   const readPipelineId = await createReadPipeline(page, { readStep: pipelineStep.read, outputDir });
-  await ExecutionFlow.executePipeline(page);
+  await PipelineFlow.execute(page);
   // then (we get the exact same files back)
   const firstRetrieval = await verifyIdenticalFolderContent({ inputDir, outputDir });
   expect(firstRetrieval.toSorted()).toEqual(fruits.toSorted());
@@ -184,7 +183,7 @@ async function performHappyFlowTest({ page, listStorageEntries, pipelineStep }: 
   const vegetables = ["Daikon.txt", "Eggplant.txt"];
   await writeTestFiles(inputDir, vegetables);
   // then (new artifacts are stored as well)
-  await ExecutionFlow.executePipeline(page, { id: writePipelineId });
+  await PipelineFlow.execute(page, { id: writePipelineId });
   await verifyStorage({
     entries: await listStorageEntries(),
     expectedFilenames: [...fruits, ...vegetables],
@@ -192,7 +191,7 @@ async function performHappyFlowTest({ page, listStorageEntries, pipelineStep }: 
   });
 
   // when (retrieving the latest version)
-  await ExecutionFlow.executePipeline(page, { id: readPipelineId });
+  await PipelineFlow.execute(page, { id: readPipelineId });
   // then (the latest artifacts are retrieved)
   const secondRetrieval = await verifyIdenticalFolderContent({ inputDir, outputDir });
   expect(secondRetrieval.toSorted()).toEqual(vegetables.toSorted());
@@ -227,7 +226,7 @@ async function performRetentionTest({ page, listStorageEntries, pipelineStep }: 
     const furniture = (i: number) => [`Armchair-${iteration}.txt`, `Bench-${iteration}.txt`, `Cabinet-${iteration}.txt`];
     await writeTestFiles(inputDir, furniture(iteration));
     // when (run the pipeline)
-    await ExecutionFlow.executePipeline(page);
+    await PipelineFlow.execute(page);
     await page.getByRole("button", { name: "Close execution view" }).click();
 
     // then
@@ -259,7 +258,7 @@ async function performCorruptWriteTest(options: PerformErrorFlowTest) {
     inputDir: FilesystemBoundary.SCRATCH_PAD.join(),
     writeStep: options.pipelineStep.write,
   });
-  await ExecutionFlow.executePipeline(options.page, { expectedOutcome: "error" });
+  await PipelineFlow.execute(options.page, { expectedOutcome: "error" });
   await expect(options.page.getByText(Constant.manifestCorruptionError)).toBeVisible();
 }
 
@@ -271,7 +270,7 @@ async function performCorruptManifestReadTest(options: PerformErrorFlowTest) {
     readStep: options.pipelineStep.read!,
     outputDir: FilesystemBoundary.SCRATCH_PAD.join(),
   });
-  await ExecutionFlow.executePipeline(options.page, { expectedOutcome: "error" });
+  await PipelineFlow.execute(options.page, { expectedOutcome: "error" });
   await expect(options.page.getByText(Constant.manifestCorruptionError)).toBeVisible();
 }
 
@@ -287,7 +286,7 @@ async function performCorruptListingReadTest(options: PerformErrorFlowTest) {
     readStep: options.pipelineStep.read!,
     outputDir: FilesystemBoundary.SCRATCH_PAD.join(),
   });
-  await ExecutionFlow.executePipeline(options.page, { expectedOutcome: "error" });
+  await PipelineFlow.execute(options.page, { expectedOutcome: "error" });
   await expect(options.page.getByText(Constant.listingCorruptionError)).toBeVisible();
 }
 
@@ -359,7 +358,7 @@ async function setupStorageWithFiles({ page, listStorageEntries, pipelineStep }:
   }
 
   await createWritePipeline(page, { inputDir, writeStep: pipelineStep.write });
-  await ExecutionFlow.executePipeline(page);
+  await PipelineFlow.execute(page);
 
   const entries = await listStorageEntries();
   expect(entries).toEqual(expect.arrayContaining(testFiles.map((f) => expect.stringContaining(f))));
@@ -372,7 +371,7 @@ type CreateWritePipeline = {
   writeStep: PipelineFlow.StepOptions;
 };
 async function createWritePipeline(page: Page, { inputDir, writeStep }: CreateWritePipeline) {
-  return await PipelineFlow.createPipeline(page, {
+  return await PipelineFlow.create(page, {
     name: "Storage Write",
     steps: [
       {
@@ -398,7 +397,7 @@ type CreateReadPipeline = {
   outputDir: string;
 };
 async function createReadPipeline(page: Page, { readStep, outputDir }: CreateReadPipeline) {
-  return await PipelineFlow.createPipeline(page, {
+  return await PipelineFlow.create(page, {
     name: "Storage Read",
     steps: [
       {

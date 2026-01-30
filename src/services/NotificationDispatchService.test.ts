@@ -9,6 +9,7 @@ import { beforeEach, describe, expect, it, spyOn } from "bun:test";
 import { chmod } from "fs/promises";
 import { join } from "path";
 import { NotificationDispatchService } from "./NotificationDispatchService";
+import { Pipeline } from "@/models/Pipeline";
 
 describe(NotificationDispatchService.name, async () => {
   let context!: TestEnvironment.Context;
@@ -16,7 +17,8 @@ describe(NotificationDispatchService.name, async () => {
 
   beforeEach(async () => {
     context = await TestEnvironment.initialize();
-    service = new NotificationDispatchService(context.yesttpMock.cast());
+    service = new NotificationDispatchService(context.pipelineRepositoryMock.cast(), context.yesttpMock.cast());
+    context.pipelineRepositoryMock.findById.mockResolvedValue({ name: "Blabla" } as Pipeline);
   });
 
   describe("slack", () => {
@@ -32,7 +34,7 @@ describe(NotificationDispatchService.name, async () => {
       tc({
         description: "execution_started",
         event: TestFixture.createExecutionStartedEvent(),
-        expectation: (e) => new RegExp(`execution started.*${e.data.execution.pipelineId}`, "is"),
+        expectation: (e) => new RegExp(`${e.data.execution.pipelineId}`, "is"),
       }),
       tc({
         description: "execution_completed / success",

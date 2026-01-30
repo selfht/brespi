@@ -6,7 +6,6 @@ import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { S3Boundary } from "./boundaries/S3Boundary";
 import { Common } from "./common/Common";
 import { PipelineFlow } from "./flows/PipelineFlow";
-import { ExecutionFlow } from "./flows/ExecutionFlow";
 
 type TestCase = {
   artifacts: string[];
@@ -81,7 +80,7 @@ async function performFilterTest({ page, createPipelineFn, testCase }: Options) 
   }
   // when
   await createPipelineFn(page, testCase.filterCriteria);
-  await ExecutionFlow.executePipeline(page);
+  await PipelineFlow.execute(page);
   // then
   const filteredArtifacts = await FilesystemBoundary.listFlattenedFolderEntries(outputDir);
   expect(filteredArtifacts.sort()).toEqual(testCase.expectedArtifacts);
@@ -90,7 +89,7 @@ async function performFilterTest({ page, createPipelineFn, testCase }: Options) 
 type PipelineOptions = Step.FilterCriteria;
 
 async function createStandaloneFilterPipeline(page: Page, filterCriteria: PipelineOptions) {
-  return await PipelineFlow.createPipeline(page, {
+  return await PipelineFlow.create(page, {
     name: "Normal Filter",
     steps: [
       {
@@ -123,7 +122,7 @@ async function createStandaloneFilterPipeline(page: Page, filterCriteria: Pipeli
 
 async function createFilesystemReadFilterPipeline(page: Page, filterCriteria: PipelineOptions) {
   const temporaryStorageFolder = FilesystemBoundary.SCRATCH_PAD.join("temporary-storage");
-  return await PipelineFlow.createPipeline(page, {
+  return await PipelineFlow.create(page, {
     name: "Filesystem Read Filter",
     steps: [
       {
@@ -166,7 +165,7 @@ async function createFilesystemReadFilterPipeline(page: Page, filterCriteria: Pi
 }
 
 async function createS3DownloadFilterPipeline(page: Page, filterCriteria: PipelineOptions) {
-  return await PipelineFlow.createPipeline(page, {
+  return await PipelineFlow.create(page, {
     name: "Filesystem Read Filter",
     steps: [
       {

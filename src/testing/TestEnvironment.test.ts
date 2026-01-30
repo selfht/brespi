@@ -30,17 +30,16 @@ export namespace TestEnvironment {
     env: Env.Private;
     scratchpad: string;
 
-    // Real repositories
+    // Reals
     configurationRepository: ConfigurationRepository;
     pipelineRepository: PipelineRepository;
     executionRepository: ExecutionRepository;
     scheduleRepository: ScheduleRepository;
     notificationRepository: NotificationRepository;
-
-    // Event bus
     eventBus: EventBus;
 
-    // Mocked services and capabilities
+    // Mocks
+    pipelineRepositoryMock: Mocked<PipelineRepository>;
     executionServiceMock: Mocked<ExecutionService>;
     adapterServiceMock: Mocked<AdapterService>;
     notificationDispatchServiceMock: Mocked<NotificationDispatchService>;
@@ -113,18 +112,23 @@ export namespace TestEnvironment {
       return mockObject as Mocked<T>;
     }
 
-    // Repositories
+    // Reals
     const configurationRepository = new ConfigurationRepository(env);
     await configurationRepository.initializeFromDisk();
     const pipelineRepository = new PipelineRepository(configurationRepository);
     const executionRepository = new ExecutionRepository(sqlite);
     const scheduleRepository = new ScheduleRepository(configurationRepository, sqlite);
     const notificationRepository = new NotificationRepository(configurationRepository, sqlite);
-
-    // Event bus
     const eventBus = new EventBus();
 
     // Mocks
+    const pipelineRepositoryMock = registerMockObject<PipelineRepository>({
+      query: mock(),
+      findById: mock(),
+      create: mock(),
+      update: mock(),
+      delete: mock(),
+    });
     const executionServiceMock = registerMockObject<ExecutionService>({
       registerSocket: mock(),
       unregisterSocket: mock(),
@@ -181,12 +185,15 @@ export namespace TestEnvironment {
     return {
       env,
       scratchpad,
+      // reals
       configurationRepository,
       pipelineRepository,
       executionRepository,
       scheduleRepository,
       notificationRepository,
       eventBus,
+      // mocks
+      pipelineRepositoryMock,
       executionServiceMock,
       adapterServiceMock,
       notificationDispatchServiceMock,

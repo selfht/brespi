@@ -10,7 +10,7 @@ test.beforeEach(async ({ request, page }) => {
 
 test("creates and deletes a simple backup pipeline", async ({ page }) => {
   // given
-  const pipeline: PipelineFlow.CreatePipelineOptions = {
+  const pipeline: PipelineFlow.CreateOptions = {
     name: "Typical Backup Pipeline",
     steps: [
       {
@@ -39,7 +39,7 @@ test("creates and deletes a simple backup pipeline", async ({ page }) => {
   };
 
   // when
-  await PipelineFlow.createPipeline(page, pipeline);
+  await PipelineFlow.create(page, pipeline);
   await page.getByRole("link", { name: "Pipelines" }).click();
   // then (there's a pipeline on the main page)
   const pipelineLink = page.getByRole("link", { name: pipeline.name });
@@ -51,7 +51,7 @@ test("creates and deletes a simple backup pipeline", async ({ page }) => {
   // when
   await pipelineLink.click();
   page.on("dialog", (dialog) => dialog.accept());
-  await PipelineFlow.deletePipeline(page);
+  await PipelineFlow.remove(page);
   // then (we're on the homepage again)
   await expect(page).toHaveTitle("Pipelines | Brespi");
   expect(page.url()).toMatch(/\/pipelines$/);

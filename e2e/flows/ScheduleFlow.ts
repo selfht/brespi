@@ -6,7 +6,7 @@ export namespace ScheduleFlow {
     cron: string;
     active: boolean;
   };
-  export async function createSchedule(page: Page, { active, pipelineName, cron }: CreateOptions) {
+  export async function create(page: Page, { active, pipelineName, cron }: CreateOptions) {
     await page.getByRole("link", { name: "Schedules", exact: true }).click();
     page.getByRole("button", { name: "New Schedule ...", exact: true }).click();
     await page.getByLabel("Active").setChecked(active, { force: true }); // Force, because it's hidden (opaque)
@@ -21,7 +21,7 @@ export namespace ScheduleFlow {
     pipelineName?: string;
     cron?: string;
   };
-  export async function updateSchedule(page: Page, { index, active, pipelineName, cron }: UpdateOptions) {
+  export async function update(page: Page, { index, active, pipelineName, cron }: UpdateOptions) {
     await page.getByRole("link", { name: "Schedules", exact: true }).click();
     await page.getByTestId("schedule-row").nth(index).getByRole("button", { name: "Edit" }).click();
     if (active !== undefined) await page.getByLabel("Active").setChecked(active, { force: true }); // Force, because it's hidden (opaque)

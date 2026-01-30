@@ -5,7 +5,6 @@ import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { Common } from "./common/Common";
 import { PipelineFlow } from "./flows/PipelineFlow";
-import { ExecutionFlow } from "./flows/ExecutionFlow";
 
 const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
 const outputDir = FilesystemBoundary.SCRATCH_PAD.join("output");
@@ -30,7 +29,7 @@ test("executes a transformer script which merges files", async ({ page }) => {
     `);
   // when
   await createPipeline(page, { scriptPath: script });
-  await ExecutionFlow.executePipeline(page);
+  await PipelineFlow.execute(page);
   // then
   expect(await readdir(outputDir)).toHaveLength(1);
   const mergedFileContents = await Common.readFile(join(outputDir, "ABC.txt"));
@@ -50,7 +49,7 @@ test("executes with the 'passthrough' option active", async ({ page }) => {
     `);
   // when
   await createPipeline(page, { scriptPath: script, passthrough: true });
-  await ExecutionFlow.executePipeline(page);
+  await PipelineFlow.execute(page);
   // then
   expect(await readdir(outputDir)).toHaveLength(2);
   expect(await readdir(outputDir)).toEqual(expect.arrayContaining(["A.txt", "B.txt"]));
@@ -68,7 +67,7 @@ test("shows an error when script execution fails", async ({ page }) => {
       exit 1
     `);
   // when
-  await PipelineFlow.createPipeline(page, {
+  await PipelineFlow.create(page, {
     name: "Encryption Error",
     steps: [
       {
@@ -78,7 +77,7 @@ test("shows an error when script execution fails", async ({ page }) => {
       },
     ],
   });
-  await ExecutionFlow.executePipeline(page, { expectedOutcome: "error" });
+  await PipelineFlow.execute(page, { expectedOutcome: "error" });
   // then
   const error = `ExecutionError::nonzero_script_exit
 
@@ -95,7 +94,7 @@ type Options = {
   passthrough?: boolean;
 };
 async function createPipeline(page: Page, { scriptPath, passthrough = false }: Options) {
-  return await PipelineFlow.createPipeline(page, {
+  return await PipelineFlow.create(page, {
     name: "Custom Script",
     steps: [
       {

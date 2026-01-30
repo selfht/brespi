@@ -26,7 +26,7 @@ test("executes a pipeline every second while active", async ({ page }) => {
   });
 
   // when
-  await ScheduleFlow.createSchedule(page, {
+  await ScheduleFlow.create(page, {
     pipelineName: name,
     cron: "* * * * * *", // do something every second
     active: true,
@@ -38,7 +38,7 @@ test("executes a pipeline every second while active", async ({ page }) => {
   await expect.poll(() => executionLocator.count()).toBeGreaterThanOrEqual(2);
 
   // when
-  await ScheduleFlow.updateSchedule(page, {
+  await ScheduleFlow.update(page, {
     index: 0,
     active: false,
   });
@@ -59,7 +59,7 @@ type Options = {
 };
 async function createPipeline(page: Page, { scriptPath, passthrough, outputDir, managedStorage }: Options) {
   const name = "My Custom Script";
-  const id = await PipelineFlow.createPipeline(page, {
+  const id = await PipelineFlow.create(page, {
     name: "My Custom Script",
     steps: [
       {

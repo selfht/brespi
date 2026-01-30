@@ -3,6 +3,7 @@ import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { Common } from "./common/Common";
 import { NotificationFlow } from "./flows/NotificationFlow";
+import { PipelineFlow } from "./flows/PipelineFlow";
 
 test.beforeEach(async ({ request, page }) => {
   await ResetBoundary.reset(request);
@@ -14,7 +15,7 @@ test("custom notification script gets invoked", async ({ page }) => {
   const scriptPath = FilesystemBoundary.SCRATCH_PAD.join("notify.sh");
   await Common.writeExecutableFile(scriptPath).withContents(`
       #!/bin/bash
-      echo "iwashere" > iwashere.txt
+      echo "iwashere" >> iwashere.txt
     `);
   await NotificationFlow.createPolicy(page, {
     channel: "Custom script",
@@ -25,4 +26,19 @@ test("custom notification script gets invoked", async ({ page }) => {
       execution_completed: true,
     },
   });
+
+  // when
+  await PipelineFlow.create(page, {
+    name: "Irrelevant",
+    steps: [
+      {
+        type: "Filter",
+        filterCriteriaMethod: "exact",
+        filterCriteriaName: "will-always-succeed",
+      },
+    ],
+  });
+  await PipelineFlow.execute(page);
+
+  // then
 });

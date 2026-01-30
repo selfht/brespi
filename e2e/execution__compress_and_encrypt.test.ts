@@ -5,7 +5,6 @@ import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { Common } from "./common/Common";
 import { PipelineFlow } from "./flows/PipelineFlow";
-import { ExecutionFlow } from "./flows/ExecutionFlow";
 
 const path = {
   originalFile: FilesystemBoundary.SCRATCH_PAD.join("original.txt"),
@@ -29,7 +28,7 @@ test("compression and encryption are reversible", async ({ page }) => {
   await writeFile(path.originalFile, "Hello World, this is my original file!");
 
   // when (compress and encrypt)
-  await PipelineFlow.createPipeline(page, {
+  await PipelineFlow.create(page, {
     name: "Compress And Encrypt",
     steps: [
       {
@@ -55,12 +54,12 @@ test("compression and encryption are reversible", async ({ page }) => {
       },
     ],
   });
-  await ExecutionFlow.executePipeline(page);
+  await PipelineFlow.execute(page);
   // then (expect a scratch file to have been created, with different contents)
   expect(await readFile(path.forwardProcessingFile)).not.toEqual(await readFile(path.originalFile));
 
   // when (decrypt and decompress)
-  await PipelineFlow.createPipeline(page, {
+  await PipelineFlow.create(page, {
     name: "Decrypt and Decompress",
     steps: [
       {
@@ -86,7 +85,7 @@ test("compression and encryption are reversible", async ({ page }) => {
       },
     ],
   });
-  await ExecutionFlow.executePipeline(page);
+  await PipelineFlow.execute(page);
   // then (expect a scratch file to have been created, with the same contents)
   expect(await readFile(path.reverseProcessingFile)).toEqual(await readFile(path.originalFile));
 });
@@ -96,7 +95,7 @@ test("shows an error when trying to decompress a directory", async ({ page }) =>
   const dir = FilesystemBoundary.SCRATCH_PAD.join("folderboy");
   await mkdir(dir);
   // when
-  await PipelineFlow.createPipeline(page, {
+  await PipelineFlow.create(page, {
     name: "Decompression Error",
     steps: [
       {
@@ -111,7 +110,7 @@ test("shows an error when trying to decompress a directory", async ({ page }) =>
       },
     ],
   });
-  await ExecutionFlow.executePipeline(page, { expectedOutcome: "error" });
+  await PipelineFlow.execute(page, { expectedOutcome: "error" });
   // then
   const error = `ExecutionError::artifact_type_invalid {
       "name": "folderboy",
@@ -134,7 +133,7 @@ test("shows an error when trying to decrypt a corrupted file", async ({ page }) 
       tail -c +2 "$file" > "$BRESPI_ARTIFACTS_OUT/$(basename "$file")"
     `);
   // when
-  await PipelineFlow.createPipeline(page, {
+  await PipelineFlow.create(page, {
     name: "Decryption Error",
     steps: [
       {
@@ -162,7 +161,7 @@ test("shows an error when trying to decrypt a corrupted file", async ({ page }) 
       },
     ],
   });
-  await ExecutionFlow.executePipeline(page, { expectedOutcome: "error" });
+  await PipelineFlow.execute(page, { expectedOutcome: "error" });
   // then
   const error = "ExecutionError::decryption_failed";
   await expect(page.getByText(error)).toBeVisible();

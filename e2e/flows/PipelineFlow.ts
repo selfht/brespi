@@ -96,11 +96,11 @@ export namespace PipelineFlow {
         database?: string;
       });
 
-  export type CreatePipelineOptions = {
+  export type CreateOptions = {
     name: string;
     steps: StepOptions[];
   };
-  export async function createPipeline(page: Page, options: CreatePipelineOptions): Promise<string> {
+  export async function create(page: Page, options: CreateOptions): Promise<string> {
     const Config = {
       DRAG_STEPS_TO_PREVENT_CLICK_INTERPRETATION: 30,
       Grid: {
@@ -173,10 +173,27 @@ export namespace PipelineFlow {
     return pipelineId;
   }
 
-  export type DeletePipelineOptions = {
+  export type RemoveOptions = {
     id?: string;
   };
-  export async function deletePipeline(page: Page, { id } = {} as DeletePipelineOptions): Promise<void> {
+  export async function remove(page: Page, { id } = {} as RemoveOptions): Promise<void> {
+    if (id) {
+      await page.goto(`pipelines/${id}`);
+    } else {
+      const pipelineIdFromUrl = Common.extractCurrentPipelineIdFromUrl(page);
+      if (!pipelineIdFromUrl) {
+        throw new Error("Cannot execute pipeline; no active pipeline view is open, and no id was supplied");
+      }
+    }
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await page.getByRole("button", { name: "Delete", exact: true }).click();
+  }
+
+  type ExecuteOptions = {
+    id?: string;
+    expectedOutcome?: "success" | "error";
+  };
+  export async function execute(page: Page, { id, expectedOutcome = "success" } = {} as ExecuteOptions) {
     if (id) {
       await page.goto(`pipelines/${id}`);
     } else {
@@ -186,8 +203,18 @@ export namespace PipelineFlow {
       }
     }
 
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
-    await page.getByRole("button", { name: "Delete", exact: true }).click();
+    const nameLocator = page.getByRole("heading", { level: 1 });
+    await expect(nameLocator).toHaveText(/.+/);
+    const name = await nameLocator.textContent();
+    await expect(page).toHaveTitle(`${name} | Pipelines | Brespi`);
+
+    await page.getByRole("button", { name: "Execute", exact: true }).click();
+    if (expectedOutcome === "success") {
+      await expect(page.getByText("This execution has succeeded")).toBeVisible();
+    }
+    if (expectedOutcome === "error") {
+      await expect(page.getByText("This execution has failed")).toBeVisible();
+    }
   }
 
   async function fillStepForm(page: Page, step: StepOptions): Promise<string> {

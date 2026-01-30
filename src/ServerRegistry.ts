@@ -88,7 +88,7 @@ export class ServerRegistry {
       eventBus,
     ]);
     const { scheduleService } = this.register({ ScheduleService }, [eventBus, scheduleRepository, pipelineRepository, executionService]);
-    const { notificationDispatchService } = this.register({ NotificationDispatchService }, []);
+    const { notificationDispatchService } = this.register({ NotificationDispatchService }, [pipelineRepository]);
     const { notificationService } = this.register({ NotificationService }, [eventBus, notificationRepository, notificationDispatchService]);
     const { restrictedService } = this.register({ RestrictedService }, [sqlite, configurationRepository, pipelineService, scheduleService]);
     this.register({ CleanupService }, [env]);

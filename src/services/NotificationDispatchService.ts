@@ -2,25 +2,44 @@ import { NotificationError } from "@/errors/NotificationError";
 import { Event } from "@/events/Event";
 import { assertNever } from "@/helpers/assertNever";
 import { CommandRunner } from "@/helpers/CommandRunner";
-import { NotificationChannel } from "@/models/NotificationChannel";
 import { EventSubscription } from "@/models/EventSubscription";
+import { NotificationChannel } from "@/models/NotificationChannel";
 import { NotificationPolicy } from "@/models/NotificationPolicy";
 import { Outcome } from "@/models/Outcome";
+import { PipelineRepository } from "@/repositories/PipelineRepository";
+import { Temporal } from "@js-temporal/polyfill";
 import { basename, dirname } from "path";
 import { Yesttp } from "yesttp";
 
+type EventDetails =
+  | {
+      event: Event.Type.execution_started;
+      pipelineId: string;
+      pipelineName: string;
+    }
+  | {
+      event: Event.Type.execution_completed;
+      pipelineId: string;
+      pipelineName: string;
+      outcome: "success" | "error";
+      duration: Temporal.Duration;
+    };
+
 export class NotificationDispatchService {
-  public constructor(private readonly yesttp = new Yesttp()) {}
+  public constructor(
+    private readonly pipelineRepository: PipelineRepository,
+    private readonly yesttp = new Yesttp(),
+  ) {}
 
   public async dispatch(policy: NotificationPolicy, event: EventSubscription.EligibleEvent) {
     try {
       switch (policy.channel.type) {
         case "slack": {
-          await this.dispatchToSlack(policy.channel, event);
+          await this.dispatchToSlack(policy.channel, await this.details(event));
           break;
         }
         case "custom_script": {
-          await this.dispatchToCustomScript(policy.channel, event);
+          await this.dispatchToCustomScript(policy.channel, await this.details(event));
           break;
         }
         default: {
@@ -37,27 +56,58 @@ export class NotificationDispatchService {
     }
   }
 
-  private async dispatchToSlack(channel: NotificationChannel.Slack, event: EventSubscription.EligibleEvent) {
+  private async details(event: EventSubscription.EligibleEvent): Promise<EventDetails> {
+    const getPipelineName = async (pipelineId: string) => {
+      const pipeline = await this.pipelineRepository.findById(pipelineId);
+      console.log(pipeline);
+      return pipeline?.name ?? "";
+    };
+    switch (event.type) {
+      case Event.Type.execution_started: {
+        const { pipelineId } = event.data.execution;
+        return {
+          event: event.type,
+          pipelineId,
+          pipelineName: await getPipelineName(pipelineId),
+        };
+      }
+      case Event.Type.execution_completed: {
+        const { pipelineId, result } = event.data.execution;
+        const { outcome, duration } = result!;
+        return {
+          event: event.type,
+          pipelineId,
+          pipelineName: await getPipelineName(pipelineId),
+          outcome,
+          duration,
+        };
+      }
+    }
+  }
+
+  private async dispatchToSlack(channel: NotificationChannel.Slack, details: EventDetails) {
     const webhookUrl = Bun.env[channel.webhookUrlReference];
     if (!webhookUrl) {
       throw new Error(`Slack webhook URL not found in environment variable: ${channel.webhookUrlReference}`);
     }
     let text: string;
-    switch (event.type) {
+    switch (details.event) {
       case Event.Type.execution_started: {
-        text = `Execution started
+        text = `⏳ Execution started
           \`\`\`
-          pipeline: ${event.data.execution.pipelineId}
+          pipeline: ${details.pipelineName}
+          pipelineId: ${details.pipelineId}
           \`\`\`
        `;
         break;
       }
       case Event.Type.execution_completed: {
-        const result = event.data.execution.result!;
-        text = `Execution ${result.outcome === Outcome.success ? "succeeded" : "failed"}
+        const success = details.outcome === "success";
+        text = `${success ? "✅" : "❌"} Execution ${success ? "succeeded" : "failed"}
           \`\`\`
-          pipeline: ${event.data.execution.pipelineId}
-          duration: ${result.duration}
+          pipeline: ${details.pipelineName}
+          pipelineId: ${details.pipelineId}
+          durationMs: ${details.duration.total("milliseconds")}
           \`\`\`
         `;
         break;
@@ -66,24 +116,29 @@ export class NotificationDispatchService {
     await this.yesttp.post(webhookUrl, { body: { text } });
   }
 
-  private async dispatchToCustomScript(channel: NotificationChannel.CustomScript, event: EventSubscription.EligibleEvent) {
+  private async dispatchToCustomScript(channel: NotificationChannel.CustomScript, details: EventDetails) {
     const envVars: Record<string, string> = {
-      BRESPI_EVENT: event.type,
+      BRESPI_EVENT: details.event,
     };
-    switch (event.type) {
+    switch (details.event) {
       case Event.Type.execution_started: {
-        envVars.BRESPI_PIPELINE_ID = event.data.execution.pipelineId;
+        Object.assign(envVars, {
+          BRESPI_PIPELINE_ID: details.pipelineId,
+          BRESPI_PIPELINE_NAME: details.pipelineName,
+        });
         break;
       }
       case Event.Type.execution_completed: {
-        const result = event.data.execution.result!;
-        envVars.BRESPI_PIPELINE_ID = event.data.execution.pipelineId;
-        envVars.BRESPI_OUTCOME = result.outcome;
-        envVars.BRESPI_DURATION_MS = result.duration.total("milliseconds").toString();
+        Object.assign(envVars, {
+          BRESPI_PIPELINE_ID: details.pipelineId,
+          BRESPI_PIPELINE_NAME: details.pipelineName,
+          BRESPI_OUTCOME: details.outcome,
+          BRESPI_DURATION_MS: details.duration.total("milliseconds").toString(),
+        });
         break;
       }
       default: {
-        assertNever(event);
+        assertNever(details);
       }
     }
     await CommandRunner.run({

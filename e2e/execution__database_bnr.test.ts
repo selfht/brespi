@@ -4,7 +4,6 @@ import { MariadbBoundary } from "./boundaries/MariadbBoundary";
 import { PostgresqlBoundary } from "./boundaries/PostgresqlBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { PipelineFlow } from "./flows/PipelineFlow";
-import { ExecutionFlow } from "./flows/ExecutionFlow";
 
 type Row = Record<string, string | number | boolean | null>;
 
@@ -125,7 +124,7 @@ for (const createConfig of [createPostgresqlConfig, createMariadbConfig]) {
       });
       // when
       await createBackupPipeline(page, config, { backupDir, databases: Object.values(Database) });
-      await ExecutionFlow.executePipeline(page);
+      await PipelineFlow.execute(page);
       // then
       const entries = await FilesystemBoundary.listFlattenedFolderEntries(backupDir);
       Object.values(Database).forEach((db) => {
@@ -155,7 +154,7 @@ for (const createConfig of [createPostgresqlConfig, createMariadbConfig]) {
 
       // when (perform a backup)
       await createBackupPipeline(page, config, { backupDir, databases: [database] });
-      await ExecutionFlow.executePipeline(page);
+      await PipelineFlow.execute(page);
 
       // when (modify records)
       await config.boundary.execute({ database, sql: "DELETE FROM films WHERE id = 2" });
@@ -170,7 +169,7 @@ for (const createConfig of [createPostgresqlConfig, createMariadbConfig]) {
 
       // when (perform a restore)
       await createRestorePipeline(page, config, { backupDir, database });
-      await ExecutionFlow.executePipeline(page);
+      await PipelineFlow.execute(page);
 
       // then
       const dataAfterRestore = await config.boundary.queryAll({ database, table: "films" });
@@ -184,7 +183,7 @@ type BackupOptions = {
   databases: string[];
 };
 async function createBackupPipeline(page: Page, config: DatabaseConfig, { backupDir, databases }: BackupOptions) {
-  return await PipelineFlow.createPipeline(page, {
+  return await PipelineFlow.create(page, {
     name: `${config.name} Backup`,
     steps: [
       {
@@ -210,7 +209,7 @@ type RestoreOptions = {
   database: string;
 };
 async function createRestorePipeline(page: Page, config: DatabaseConfig, { backupDir, database }: RestoreOptions) {
-  return await PipelineFlow.createPipeline(page, {
+  return await PipelineFlow.create(page, {
     name: `${config.name} Restore`,
     steps: [
       {
