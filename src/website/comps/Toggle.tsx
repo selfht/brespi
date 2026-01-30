@@ -7,12 +7,12 @@ export function Toggle({ className, ...props }: Props) {
   return (
     <label
       className={clsx(
-        "size-8 rounded-full flex justify-center cursor-pointer has-disabled:cursor-not-allowed",
+        "relative size-8 rounded-full flex justify-center cursor-pointer has-disabled:cursor-not-allowed",
         "bg-black border-2 border-black",
         className,
       )}
     >
-      <input type="checkbox" className="sr-only peer" {...props} />
+      <input type="checkbox" className="opacity-0 absolute inset-0 peer" {...props} />
       <div
         className={clsx(
           "size-7 rounded-full relative -top-0.5",

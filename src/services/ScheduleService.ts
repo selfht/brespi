@@ -51,13 +51,12 @@ export class ScheduleService {
 
   public async update(id: string, unknown: z.output<typeof ScheduleService.Upsert>): Promise<Schedule> {
     const { pipelineId, active, cron } = ScheduleService.Upsert.parse(unknown);
-    const schedule = await this.scheduleRepository.update(id, async (schedule): Promise<Schedule> => {
-      return {
-        ...schedule,
-        pipelineId: await this.ensureValidPipeline(pipelineId),
-        active: active,
-        cron: this.ensureValidCronExpression(cron),
-      };
+    const schedule = await this.scheduleRepository.update({
+      id,
+      object: "schedule",
+      pipelineId: await this.ensureValidPipeline(pipelineId),
+      active: active,
+      cron: this.ensureValidCronExpression(cron),
     });
     this.stop(id);
     this.start(schedule);

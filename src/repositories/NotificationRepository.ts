@@ -38,36 +38,30 @@ export class NotificationRepository {
     return result;
   }
 
-  public async updatePolicy(policy: NotificationPolicy): Promise<NotificationPolicy>;
-  public async updatePolicy(id: string, fn: (policy: NotificationPolicy) => NotificationPolicy | Promise<NotificationPolicy>): Promise<NotificationPolicy>;
-  public async updatePolicy(policyOrId: string | NotificationPolicy, fn?: (policy: NotificationPolicy) => NotificationPolicy | Promise<NotificationPolicy>): Promise<NotificationPolicy> {
-    const id = typeof policyOrId === "string" ? policyOrId : policyOrId.id;
-    const { result } = await this.configuration.write(async (configuration) => {
-      const existingCorePolicy = configuration.notificationPolicies.find((p) => p.id === id);
-      if (!existingCorePolicy) {
-        throw NotificationError.policy_not_found({ id });
+  public async updatePolicy(policy: NotificationPolicy): Promise<NotificationPolicy> {
+    await this.configuration.write(async (configuration) => {
+      if (!configuration.notificationPolicies.some((p) => p.id === policy.id)) {
+        throw NotificationError.policy_not_found({ id: policy.id });
       }
-      const existingPolicy = await this.joinMetadata(existingCorePolicy);
-      const updated: NotificationPolicy = typeof policyOrId === "string" ? await fn!(existingPolicy) : policyOrId;
       await this.upsertMetadata({
-        id: updated.id,
+        id: policy.id,
         object: "notification_policy.metadata",
-        active: updated.active,
+        active: policy.active,
       });
       return {
-        result: updated,
+        result: policy,
         configuration: {
           ...configuration,
           notificationPolicies: configuration.notificationPolicies.map((p) => {
-            if (p.id === id) {
-              return updated;
+            if (p.id === policy.id) {
+              return policy;
             }
             return p;
           }),
         },
       };
     });
-    return result;
+    return policy;
   }
 
   public async deletePolicy(id: string): Promise<NotificationPolicy> {
@@ -106,7 +100,9 @@ export class NotificationRepository {
 
   private async joinMetadata(policy: NotificationPolicy.Core): Promise<NotificationPolicy>;
   private async joinMetadata(policies: NotificationPolicy.Core[]): Promise<NotificationPolicy[]>;
-  private async joinMetadata(singleOrPlural: NotificationPolicy.Core | NotificationPolicy.Core[]): Promise<NotificationPolicy | NotificationPolicy[]> {
+  private async joinMetadata(
+    singleOrPlural: NotificationPolicy.Core | NotificationPolicy.Core[],
+  ): Promise<NotificationPolicy | NotificationPolicy[]> {
     const corePolicies: NotificationPolicy.Core[] = Array.isArray(singleOrPlural) ? singleOrPlural : [singleOrPlural];
     const metadatas = await this.sqlite.query.$notificationPolicyMetadata
       .findMany({
@@ -156,13 +152,10 @@ export class NotificationRepository {
 
   private async upsertMetadata(metadata: NotificationPolicy.Metadata): Promise<void> {
     const data = NotificationPolicyMetadataConverter.convert(metadata);
-    await this.sqlite
-      .insert($notificationPolicyMetadata)
-      .values(data)
-      .onConflictDoUpdate({
-        target: $notificationPolicyMetadata.id,
-        set: data,
-      });
+    await this.sqlite.insert($notificationPolicyMetadata).values(data).onConflictDoUpdate({
+      target: $notificationPolicyMetadata.id,
+      set: data,
+    });
   }
 
   private async deleteMetadata(id: string): Promise<void> {

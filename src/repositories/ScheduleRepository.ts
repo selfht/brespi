@@ -43,36 +43,30 @@ export class ScheduleRepository {
     return result;
   }
 
-  public async update(schedule: Schedule): Promise<Schedule>;
-  public async update(id: string, fn: (schedule: Schedule) => Schedule | Promise<Schedule>): Promise<Schedule>;
-  public async update(scheduleOrId: string | Schedule, fn?: (schedule: Schedule) => Schedule | Promise<Schedule>): Promise<Schedule> {
-    const id = typeof scheduleOrId === "string" ? scheduleOrId : scheduleOrId.id;
-    const { result } = await this.configuration.write(async (configuration) => {
-      let existingCoreSchedule = configuration.schedules.find((s) => s.id === id);
-      if (!existingCoreSchedule) {
-        throw ScheduleError.not_found({ id: id });
+  public async update(schedule: Schedule): Promise<Schedule> {
+    await this.configuration.write(async (configuration) => {
+      if (!configuration.schedules.some((s) => s.id === schedule.id)) {
+        throw ScheduleError.not_found({ id: schedule.id });
       }
-      const existingSchedule = await this.joinMetadata(existingCoreSchedule);
-      const updated: Schedule = typeof scheduleOrId === "string" ? await fn!(existingSchedule) : scheduleOrId;
       await this.upsertMetadata({
-        id: updated.id,
+        id: schedule.id,
         object: "schedule.metadata",
-        active: updated.active,
+        active: schedule.active,
       });
       return {
-        result: updated,
+        result: schedule,
         configuration: {
           ...configuration,
           schedules: configuration.schedules.map((s) => {
-            if (s.id === id) {
-              return updated;
+            if (s.id === schedule.id) {
+              return schedule;
             }
             return s;
           }),
         },
       };
     });
-    return result;
+    return policy;
   }
 
   public async delete(id: string): Promise<Schedule> {
