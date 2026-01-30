@@ -2,22 +2,37 @@ import { $scheduleMetadata } from "@/drizzle/schema";
 import { Sqlite } from "@/drizzle/sqlite";
 import { ScheduleError } from "@/errors/ScheduleError";
 import { Schedule } from "@/models/Schedule";
-import { eq, inArray } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 import { ConfigurationRepository } from "./ConfigurationRepository";
 import { ScheduleMetadataConverter } from "./converters/ScheduleMetadataConverter";
+import { HybridHelper } from "./HybridHelper";
 
 export class ScheduleRepository {
+  private readonly hybridHelper: HybridHelper<Schedule, Schedule.Core, Schedule.Metadata>;
+
   public constructor(
     private readonly configuration: ConfigurationRepository,
     private readonly sqlite: Sqlite,
-  ) {}
+  ) {
+    this.hybridHelper = new HybridHelper({
+      combineFn: (core, { active }) => ({ ...core, active }),
+      standardMetaFn: ({ id }) => Schedule.Metadata.standard(id),
+      listMetasFn: () => this.sqlite.query.$scheduleMetadata.findMany().then((data) => data.map(ScheduleMetadataConverter.convert)),
+      queryMetasFn: ({ ids }) =>
+        this.sqlite.query.$scheduleMetadata
+          .findMany({ where: inArray($scheduleMetadata.id, ids) })
+          .then((data) => data.map(ScheduleMetadataConverter.convert)),
+      insertMetasFn: (metas) => this.sqlite.insert($scheduleMetadata).values(metas.map((m) => ScheduleMetadataConverter.convert(m))),
+      deleteMetasFn: ({ ids }) => this.sqlite.delete($scheduleMetadata).where(inArray($scheduleMetadata.id, ids)),
+    });
+  }
 
   public async query(q?: { pipelineId: string }): Promise<Schedule[]> {
     let { schedules } = await this.configuration.read();
     if (q) {
       schedules = schedules.filter((s) => s.pipelineId === q.pipelineId);
     }
-    return await this.joinMetadata(schedules);
+    return await this.hybridHelper.joinMetadata(schedules);
   }
 
   public async create(schedule: Schedule): Promise<Schedule> {
@@ -73,7 +88,7 @@ export class ScheduleRepository {
       if (!existingCore) {
         throw ScheduleError.not_found({ id });
       }
-      const existing = await this.joinMetadata(existingCore);
+      const existing = await this.hybridHelper.joinMetadata(existingCore);
       return {
         result: existing,
         configuration: {
@@ -82,73 +97,12 @@ export class ScheduleRepository {
         },
       };
     });
-    await this.deleteMetadata(id);
+    await this.hybridHelper.deleteMetadata(id);
     return result;
   }
 
   public async synchronizeWithUpdatedConfiguration(coreSchedules: Schedule.Core[]): Promise<Schedule[]> {
-    // 0. Get the available metadata
-    let metadatas = await this.listMetadatas();
-    // 1. Insert missing metadatas
-    const schedulesWithMissingMetadata = coreSchedules.filter((cs) => !metadatas.some((m) => cs.id === m.id));
-    const missingMetadatas = await this.insertMissingMetadatas(schedulesWithMissingMetadata);
-    metadatas = [...metadatas, ...missingMetadatas];
-    // 2. Delete superfluous metadatas
-    const superfluousMetadatasWithoutSchedule = metadatas.filter((m) => !coreSchedules.some((cs) => m.id === cs.id)).map(({ id }) => id);
-    await this.sqlite.delete($scheduleMetadata).where(inArray($scheduleMetadata.id, superfluousMetadatasWithoutSchedule));
-    metadatas = metadatas.filter((m) => !superfluousMetadatasWithoutSchedule.includes(m.id));
-    // 3. Return the latest state
-    return this.combine(coreSchedules, metadatas);
-  }
-
-  private async joinMetadata(schedule: Schedule.Core): Promise<Schedule>;
-  private async joinMetadata(schedules: Schedule.Core[]): Promise<Schedule[]>;
-  private async joinMetadata(singleOrPlural: Schedule.Core | Schedule.Core[]): Promise<Schedule | Schedule[]> {
-    const coreSchedules: Schedule.Core[] = Array.isArray(singleOrPlural) ? singleOrPlural : [singleOrPlural];
-    const metadatas = await this.sqlite.query.$scheduleMetadata
-      .findMany({
-        where: inArray(
-          $scheduleMetadata.id,
-          coreSchedules.map(({ id }) => id),
-        ),
-      })
-      .then((data) => data.map(ScheduleMetadataConverter.convert));
-    // START intermezzo: check if we're missing metadata information for schedules (this is possible)
-    const coreSchedulesWithoutMetadata = coreSchedules.filter((cs) => !metadatas.some((m) => cs.id === m.id));
-    const missingMetadatas = await this.insertMissingMetadatas(coreSchedulesWithoutMetadata);
-    metadatas.push(...missingMetadatas);
-    // END intermezzo
-    const result = this.combine(coreSchedules, metadatas);
-    return Array.isArray(singleOrPlural) ? result : result[0];
-  }
-
-  private async insertMissingMetadatas(coreSchedulesWithoutMetadata: Schedule.Core[]): Promise<Schedule.Metadata[]> {
-    const missingMetadatas = coreSchedulesWithoutMetadata.map(({ id }) => Schedule.Metadata.standard(id));
-    if (missingMetadatas.length > 0) {
-      // otherwise drizzle throws an error
-      await this.sqlite
-        .insert($scheduleMetadata) //
-        .values(missingMetadatas.map((m) => ScheduleMetadataConverter.convert(m)));
-    }
-    return missingMetadatas;
-  }
-
-  private combine(coreSchedules: Schedule.Core[], metadatas: Schedule.Metadata[]): Schedule[] {
-    return coreSchedules.map<Schedule>((coreSchedule) => {
-      const meta = metadatas.find((m) => m.id === coreSchedule.id);
-      if (!meta) {
-        throw new Error(`Missing schedule metadata; id=${coreSchedule.id}`);
-      }
-      return {
-        ...coreSchedule,
-        active: meta.active,
-      };
-    });
-  }
-
-  private async listMetadatas(): Promise<Schedule.Metadata[]> {
-    const metadatas = await this.sqlite.query.$scheduleMetadata.findMany();
-    return metadatas.map(ScheduleMetadataConverter.convert);
+    return this.hybridHelper.synchronizeWithUpdatedConfiguration(coreSchedules);
   }
 
   private async upsertMetadata(metadata: Schedule.Metadata): Promise<void> {
@@ -160,9 +114,5 @@ export class ScheduleRepository {
         target: $scheduleMetadata.id,
         set: data,
       });
-  }
-
-  private async deleteMetadata(id: string): Promise<void> {
-    await this.sqlite.delete($scheduleMetadata).where(eq($scheduleMetadata.id, id));
   }
 }
