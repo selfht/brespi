@@ -119,7 +119,7 @@ export namespace TestEnvironment {
     const pipelineRepository = new PipelineRepository(configurationRepository);
     const executionRepository = new ExecutionRepository(sqlite);
     const scheduleRepository = new ScheduleRepository(configurationRepository, sqlite);
-    const notificationRepository = new NotificationRepository(configurationRepository);
+    const notificationRepository = new NotificationRepository(configurationRepository, sqlite);
 
     // Event bus
     const eventBus = new EventBus();

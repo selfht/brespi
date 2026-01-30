@@ -22,6 +22,13 @@
       "when": 1768323893589,
       "tag": "0002_create_schedule_metadata_table",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1769711698900,
+      "tag": "0003_create_notification_policy_metadata_table",
+      "breakpoints": true
     }
   ]
 }

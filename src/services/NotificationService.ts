@@ -1,3 +1,4 @@
+import { Configuration } from "@/models/Configuration";
 import { ServerError } from "@/errors/ServerError";
 import { Event } from "@/events/Event";
 import { EventBus } from "@/events/EventBus";
@@ -22,6 +23,15 @@ export class NotificationService {
     private readonly dispatchService: NotificationDispatchService,
   ) {
     eventBus.subscribe("*", (event) => this.triggerNotifications(event));
+    eventBus.subscribe(Event.Type.configuration_updated, ({ data: { configuration, trigger } }) => {
+      if (trigger === "disk_synchronization") {
+        this.synchronizeWithUpdatedConfiguration(configuration);
+      }
+    });
+  }
+
+  private async synchronizeWithUpdatedConfiguration({ notificationPolicies }: Configuration) {
+    await this.repository.synchronizeWithUpdatedConfiguration(notificationPolicies);
   }
 
   public async listPolicies(): Promise<NotificationPolicy[]> {
@@ -29,20 +39,26 @@ export class NotificationService {
   }
 
   public async createPolicy(unknown: z.output<typeof NotificationService.Upsert>): Promise<NotificationPolicy> {
+    const { active, channel, eventSubscriptions } = NotificationService.Upsert.parse(unknown);
     const policy = await this.repository.createPolicy({
       id: Bun.randomUUIDv7(),
       object: "notification_policy",
-      ...NotificationService.Upsert.parse(unknown),
+      active,
+      channel,
+      eventSubscriptions,
     });
     this.eventBus.publish(Event.Type.notification_policy_created, { policy });
     return policy;
   }
 
   public async updatePolicy(id: string, unknown: z.output<typeof NotificationService.Upsert>): Promise<NotificationPolicy> {
+    const { active, channel, eventSubscriptions } = NotificationService.Upsert.parse(unknown);
     const policy = await this.repository.updatePolicy({
       id,
       object: "notification_policy",
-      ...NotificationService.Upsert.parse(unknown),
+      active,
+      channel,
+      eventSubscriptions,
     });
     this.eventBus.publish(Event.Type.notification_policy_updated, { policy });
     return policy;
@@ -56,6 +72,7 @@ export class NotificationService {
 
   private async triggerNotifications(event: Event) {
     for (const policy of await this.listPoliciesFromCache()) {
+      if (!policy.active) continue;
       const eventSubscriptions = policy.eventSubscriptions.filter(({ type }) => event.type === type);
       if (eventSubscriptions.length > 0 && this.declareEligible(event)) {
         for (const eventSubscription of eventSubscriptions) {
@@ -103,6 +120,7 @@ export class NotificationService {
 export namespace NotificationService {
   export const Upsert = z
     .object({
+      active: z.boolean(),
       channel: NotificationChannel.parse.SCHEMA,
       eventSubscriptions: z.array(EventSubscription.parse.SCHEMA),
     })

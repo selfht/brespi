@@ -3,14 +3,34 @@ import z from "zod/v4";
 import { NotificationChannel } from "./NotificationChannel";
 import { EventSubscription } from "./EventSubscription";
 
-export type NotificationPolicy = {
-  id: string;
-  object: "notification_policy";
-  channel: NotificationChannel;
-  eventSubscriptions: EventSubscription[];
+export type NotificationPolicy = NotificationPolicy.Core & {
+  active: boolean;
 };
 
 export namespace NotificationPolicy {
+  export type Core = {
+    id: string;
+    object: "notification_policy";
+    channel: NotificationChannel;
+    eventSubscriptions: EventSubscription[];
+  };
+
+  export type Metadata = {
+    id: string;
+    object: "notification_policy.metadata";
+    active: boolean;
+  };
+
+  export namespace Metadata {
+    export function standard(id: string): Metadata {
+      return {
+        id,
+        object: "notification_policy.metadata",
+        active: true,
+      };
+    }
+  }
+
   export const parse = ZodParser.forType<NotificationPolicy>()
     .ensureSchemaMatchesType(() =>
       z
@@ -19,6 +39,7 @@ export namespace NotificationPolicy {
           object: z.literal("notification_policy"),
           channel: NotificationChannel.parse.SCHEMA,
           eventSubscriptions: z.array(EventSubscription.parse.SCHEMA),
+          active: z.boolean(),
         })
         .refine(
           ({ eventSubscriptions }) => {

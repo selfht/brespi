@@ -74,7 +74,7 @@ export class ServerRegistry {
     const { pipelineRepository } = this.register({ PipelineRepository }, [configurationRepository]);
     const { executionRepository } = this.register({ ExecutionRepository }, [sqlite]);
     const { scheduleRepository } = this.register({ ScheduleRepository }, [configurationRepository, sqlite]);
-    const { notificationRepository } = this.register({ NotificationRepository }, [configurationRepository]);
+    const { notificationRepository } = this.register({ NotificationRepository }, [configurationRepository, sqlite]);
 
     // Services
     const { stepService } = this.register({ StepService }, []);

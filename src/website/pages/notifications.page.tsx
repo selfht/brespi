@@ -1,4 +1,7 @@
+import { Event } from "@/events/Event";
+import { NotificationChannel } from "@/models/NotificationChannel";
 import { NotificationPolicy } from "@/models/NotificationPolicy";
+import { OmitBetter } from "@/types/OmitBetter";
 import clsx from "clsx";
 import { JSX, useState } from "react";
 import { NotificationClient } from "../clients/NotificationClient";
@@ -14,8 +17,6 @@ import { PolicyEditorTypes } from "../forms/notification/PolicyEditorTypes";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRegistry } from "../hooks/useRegistry";
 import { useYesQuery } from "../hooks/useYesQuery";
-import { NotificationChannel } from "@/models/NotificationChannel";
-import { Event } from "@/events/Event";
 
 export function notificationsPage() {
   useDocumentTitle("Notifications | Brespi");
@@ -50,6 +51,30 @@ export function notificationsPage() {
     onCancel() {
       setEditing(undefined);
     },
+  };
+
+  const performClientSideUpdate = (id: string, update: Partial<OmitBetter<NotificationPolicy, "id">>) => {
+    const data = query.getData()!;
+    query.setData(
+      data.map((p) => {
+        if (p.id === id) {
+          return { ...p, ...update };
+        }
+        return p;
+      }),
+    );
+  };
+
+  const toggleActive = (policy: NotificationPolicy) => {
+    const oldActiveValue = policy.active;
+    const newActiveValue = !policy.active;
+    // Client-side update
+    performClientSideUpdate(policy.id, { active: newActiveValue });
+    // Server-side update
+    notificationClient.updatePolicy(policy.id, { ...policy, active: newActiveValue }).catch((err) => {
+      console.error(err);
+      performClientSideUpdate(policy.id, { active: oldActiveValue });
+    });
   };
 
   return (
@@ -114,7 +139,7 @@ export function notificationsPage() {
               return (
                 <div key={policy.id} className={clsx(gridClassName, "border-t border-c-dim/20")} data-testid="policy-row">
                   {/* Active */}
-                  <Toggle className="ml-2" defaultChecked />
+                  <Toggle className="ml-2" checked={policy.active} onChange={() => toggleActive(policy)} />
                   {/* Channel */}
                   <div className="min-w-0 mr-10">
                     <div className="truncate text-lg font-medium">{channelTranslation[policy.channel.type]}</div>
@@ -128,7 +153,10 @@ export function notificationsPage() {
                         case Event.Type.execution_started:
                         case Event.Type.execution_completed:
                           return (
-                            <span key={sub.type} className="border-2 rounded-lg border-c-info p-2">
+                            <span
+                              key={sub.type}
+                              className={clsx("border-2 rounded-lg p-2", policy.active ? "border-c-info" : "border-c-dim text-c-dim")}
+                            >
                               <span className="font-bold">{sub.type}</span>
                             </span>
                           );

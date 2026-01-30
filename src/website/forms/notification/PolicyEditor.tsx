@@ -49,6 +49,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
         }
       }
       const request: OmitBetter<NotificationPolicy, "id" | "object"> = {
+        active: data[Field.active],
         channel,
         eventSubscriptions: Internal.buildEventSubscriptions(data),
       };
@@ -160,7 +161,7 @@ namespace Internal {
     const executionStarted = existing?.eventSubscriptions.find((s) => s.type === Event.Type.execution_started);
     const executionCompleted = existing?.eventSubscriptions.find((s) => s.type === Event.Type.execution_completed);
     return {
-      [Field.active]: true,
+      [Field.active]: existing?.active ?? true,
       [Field.channel]: existing?.channel.type ?? "",
       [Field.slack_webhookUrlReference]: existing?.channel.type === "slack" ? existing.channel.webhookUrlReference : "",
       [Field.customScript_path]: existing?.channel.type === "custom_script" ? existing.channel.path : "",
