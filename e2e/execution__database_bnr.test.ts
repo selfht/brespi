@@ -3,7 +3,7 @@ import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { MariadbBoundary } from "./boundaries/MariadbBoundary";
 import { PostgresqlBoundary } from "./boundaries/PostgresqlBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
-import { EditorFlow } from "./flows/EditorFlow";
+import { PipelineFlow } from "./flows/PipelineFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
 
 type Row = Record<string, string | number | boolean | null>;
@@ -52,8 +52,9 @@ for (const createConfig of [createPostgresqlConfig, createMariadbConfig]) {
   const config = createConfig();
 
   test.describe(config.name, () => {
-    test.beforeEach(async ({ request }) => {
-      await ResetBoundary.reset({ request });
+    test.beforeEach(async ({ request, page }) => {
+      await ResetBoundary.reset(request);
+      await page.goto("");
     });
 
     test.afterEach(async () => {
@@ -183,7 +184,7 @@ type BackupOptions = {
   databases: string[];
 };
 async function createBackupPipeline(page: Page, config: DatabaseConfig, { backupDir, databases }: BackupOptions) {
-  return await EditorFlow.createPipeline(page, {
+  return await PipelineFlow.createPipeline(page, {
     name: `${config.name} Backup`,
     steps: [
       {
@@ -209,7 +210,7 @@ type RestoreOptions = {
   database: string;
 };
 async function createRestorePipeline(page: Page, config: DatabaseConfig, { backupDir, database }: RestoreOptions) {
-  return await EditorFlow.createPipeline(page, {
+  return await PipelineFlow.createPipeline(page, {
     name: `${config.name} Restore`,
     steps: [
       {

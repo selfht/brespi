@@ -1,7 +1,7 @@
 import { type Locator, type Page, expect } from "@playwright/test";
 import { Common } from "e2e/common/Common";
 
-export namespace EditorFlow {
+export namespace PipelineFlow {
   type StepCommon = {
     id?: string;
     previousId?: string;
@@ -119,7 +119,7 @@ export namespace EditorFlow {
       );
     }
     // Navigate to pipeline editor
-    await page.goto("pipelines");
+    await page.getByRole("link", { name: "Pipelines", exact: true }).click();
     await page.getByRole("link", { name: "New Pipeline ..." }).click();
     // Track locators for the canvas and individual steps blocks (for arrow drawing)
     const canvas = page.getByTestId("canvas");

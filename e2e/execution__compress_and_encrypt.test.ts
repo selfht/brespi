@@ -4,7 +4,7 @@ import { join } from "path";
 import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { Common } from "./common/Common";
-import { EditorFlow } from "./flows/EditorFlow";
+import { PipelineFlow } from "./flows/PipelineFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
 
 const path = {
@@ -19,8 +19,9 @@ const path = {
   },
 };
 
-test.beforeEach(async ({ request }) => {
-  await ResetBoundary.reset({ request });
+test.beforeEach(async ({ request, page }) => {
+  await ResetBoundary.reset(request);
+  await page.goto("");
 });
 
 test("compression and encryption are reversible", async ({ page }) => {
@@ -28,7 +29,7 @@ test("compression and encryption are reversible", async ({ page }) => {
   await writeFile(path.originalFile, "Hello World, this is my original file!");
 
   // when (compress and encrypt)
-  await EditorFlow.createPipeline(page, {
+  await PipelineFlow.createPipeline(page, {
     name: "Compress And Encrypt",
     steps: [
       {
@@ -59,7 +60,7 @@ test("compression and encryption are reversible", async ({ page }) => {
   expect(await readFile(path.forwardProcessingFile)).not.toEqual(await readFile(path.originalFile));
 
   // when (decrypt and decompress)
-  await EditorFlow.createPipeline(page, {
+  await PipelineFlow.createPipeline(page, {
     name: "Decrypt and Decompress",
     steps: [
       {
@@ -95,7 +96,7 @@ test("shows an error when trying to decompress a directory", async ({ page }) =>
   const dir = FilesystemBoundary.SCRATCH_PAD.join("folderboy");
   await mkdir(dir);
   // when
-  await EditorFlow.createPipeline(page, {
+  await PipelineFlow.createPipeline(page, {
     name: "Decompression Error",
     steps: [
       {
@@ -133,7 +134,7 @@ test("shows an error when trying to decrypt a corrupted file", async ({ page }) 
       tail -c +2 "$file" > "$BRESPI_ARTIFACTS_OUT/$(basename "$file")"
     `);
   // when
-  await EditorFlow.createPipeline(page, {
+  await PipelineFlow.createPipeline(page, {
     name: "Decryption Error",
     steps: [
       {

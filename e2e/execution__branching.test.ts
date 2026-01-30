@@ -4,11 +4,12 @@ import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { S3Boundary } from "./boundaries/S3Boundary";
 import { Common } from "./common/Common";
-import { EditorFlow } from "./flows/EditorFlow";
+import { PipelineFlow } from "./flows/PipelineFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
 
-test.beforeEach(async ({ request }) => {
-  await ResetBoundary.reset({ request });
+test.beforeEach(async ({ request, page }) => {
+  await ResetBoundary.reset(request);
+  await page.goto("");
 });
 
 test("creates and executes a branched pipeline", async ({ page }) => {
@@ -26,7 +27,7 @@ test("creates and executes a branched pipeline", async ({ page }) => {
     await Common.writeFile(path, `This is ${snack}`);
   }
   // when
-  await EditorFlow.createPipeline(page, {
+  await PipelineFlow.createPipeline(page, {
     name: "Branching",
     steps: [
       {

@@ -2,11 +2,12 @@ import test, { expect, Page } from "@playwright/test";
 import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { Common } from "./common/Common";
-import { EditorFlow } from "./flows/EditorFlow";
+import { PipelineFlow } from "./flows/PipelineFlow";
 import { ScheduleFlow } from "./flows/ScheduleFlow";
 
-test.beforeEach(async ({ request }) => {
-  await ResetBoundary.reset({ request });
+test.beforeEach(async ({ request, page }) => {
+  await ResetBoundary.reset(request);
+  await page.goto("");
 });
 
 test("executes a pipeline every second while active", async ({ page }) => {
@@ -38,7 +39,7 @@ test("executes a pipeline every second while active", async ({ page }) => {
 
   // when
   await ScheduleFlow.updateSchedule(page, {
-    pipelineName: name,
+    index: 0,
     active: false,
   });
   await page.goto("pipelines");
@@ -58,7 +59,7 @@ type Options = {
 };
 async function createPipeline(page: Page, { scriptPath, passthrough, outputDir, managedStorage }: Options) {
   const name = "My Custom Script";
-  const id = await EditorFlow.createPipeline(page, {
+  const id = await PipelineFlow.createPipeline(page, {
     name: "My Custom Script",
     steps: [
       {

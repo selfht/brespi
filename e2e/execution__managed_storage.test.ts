@@ -5,7 +5,7 @@ import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { S3Boundary } from "./boundaries/S3Boundary";
 import { Common } from "./common/Common";
-import { EditorFlow } from "./flows/EditorFlow";
+import { PipelineFlow } from "./flows/PipelineFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
 
 type AdapterConfig = {
@@ -13,15 +13,16 @@ type AdapterConfig = {
   listStorageEntries: () => Promise<string[]>;
   writeStorageEntry: (path: string, content: string) => Promise<unknown>;
   pipelineStep: {
-    read: EditorFlow.StepOptions;
-    write: EditorFlow.StepOptions;
-    writeWithRetentionFn: (retentionMaxVersions: number) => EditorFlow.StepOptions;
+    read: PipelineFlow.StepOptions;
+    write: PipelineFlow.StepOptions;
+    writeWithRetentionFn: (retentionMaxVersions: number) => PipelineFlow.StepOptions;
   };
   beforeHappyFlow?: () => Promise<void>;
 };
 
-test.beforeEach(async ({ request }) => {
-  await ResetBoundary.reset({ request });
+test.beforeEach(async ({ request, page }) => {
+  await ResetBoundary.reset(request);
+  await page.goto("");
 });
 
 const Constant = {
@@ -148,8 +149,8 @@ type PerformHappyFlowTest = {
   page: Page;
   listStorageEntries: () => Promise<string[]>;
   pipelineStep: {
-    write: EditorFlow.StepOptions;
-    read: EditorFlow.StepOptions;
+    write: PipelineFlow.StepOptions;
+    read: PipelineFlow.StepOptions;
   };
 };
 async function performHappyFlowTest({ page, listStorageEntries, pipelineStep }: PerformHappyFlowTest) {
@@ -201,7 +202,7 @@ type PerformRetentionTest = {
   page: Page;
   listStorageEntries: () => Promise<string[]>;
   pipelineStep: {
-    write: (retentionMaxVersions: number) => EditorFlow.StepOptions;
+    write: (retentionMaxVersions: number) => PipelineFlow.StepOptions;
   };
 };
 async function performRetentionTest({ page, listStorageEntries, pipelineStep }: PerformRetentionTest) {
@@ -245,8 +246,8 @@ type PerformErrorFlowTest = {
   listStorageEntries: () => Promise<string[]>;
   writeStorageEntry: (path: string, content: string) => Promise<unknown>;
   pipelineStep: {
-    write: EditorFlow.StepOptions;
-    read?: EditorFlow.StepOptions;
+    write: PipelineFlow.StepOptions;
+    read?: PipelineFlow.StepOptions;
   };
 };
 
@@ -368,10 +369,10 @@ async function setupStorageWithFiles({ page, listStorageEntries, pipelineStep }:
 
 type CreateWritePipeline = {
   inputDir: string;
-  writeStep: EditorFlow.StepOptions;
+  writeStep: PipelineFlow.StepOptions;
 };
 async function createWritePipeline(page: Page, { inputDir, writeStep }: CreateWritePipeline) {
-  return await EditorFlow.createPipeline(page, {
+  return await PipelineFlow.createPipeline(page, {
     name: "Storage Write",
     steps: [
       {
@@ -393,11 +394,11 @@ async function createWritePipeline(page: Page, { inputDir, writeStep }: CreateWr
 }
 
 type CreateReadPipeline = {
-  readStep: EditorFlow.StepOptions;
+  readStep: PipelineFlow.StepOptions;
   outputDir: string;
 };
 async function createReadPipeline(page: Page, { readStep, outputDir }: CreateReadPipeline) {
-  return await EditorFlow.createPipeline(page, {
+  return await PipelineFlow.createPipeline(page, {
     name: "Storage Read",
     steps: [
       {

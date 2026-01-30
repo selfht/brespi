@@ -4,14 +4,15 @@ import { dirname, join } from "path";
 import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { Common } from "./common/Common";
-import { EditorFlow } from "./flows/EditorFlow";
+import { PipelineFlow } from "./flows/PipelineFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
 
 const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
 const outputDir = FilesystemBoundary.SCRATCH_PAD.join("output");
 
-test.beforeEach(async ({ request }) => {
-  await ResetBoundary.reset({ request });
+test.beforeEach(async ({ request, page }) => {
+  await ResetBoundary.reset(request);
+  await page.goto("");
 });
 
 test("executes a transformer script which merges files", async ({ page }) => {
@@ -67,7 +68,7 @@ test("shows an error when script execution fails", async ({ page }) => {
       exit 1
     `);
   // when
-  await EditorFlow.createPipeline(page, {
+  await PipelineFlow.createPipeline(page, {
     name: "Encryption Error",
     steps: [
       {
@@ -94,7 +95,7 @@ type Options = {
   passthrough?: boolean;
 };
 async function createPipeline(page: Page, { scriptPath, passthrough = false }: Options) {
-  return await EditorFlow.createPipeline(page, {
+  return await PipelineFlow.createPipeline(page, {
     name: "Custom Script",
     steps: [
       {

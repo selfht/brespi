@@ -5,7 +5,7 @@ import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { S3Boundary } from "./boundaries/S3Boundary";
 import { Common } from "./common/Common";
-import { EditorFlow } from "./flows/EditorFlow";
+import { PipelineFlow } from "./flows/PipelineFlow";
 import { ExecutionFlow } from "./flows/ExecutionFlow";
 
 type TestCase = {
@@ -17,8 +17,9 @@ type TestCase = {
 const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
 const outputDir = FilesystemBoundary.SCRATCH_PAD.join("output");
 
-test.beforeEach(async ({ request }) => {
-  await ResetBoundary.reset({ request });
+test.beforeEach(async ({ request, page }) => {
+  await ResetBoundary.reset(request);
+  await page.goto("");
 });
 
 test("standalone filter step ::: method exact", async ({ page }) => {
@@ -89,7 +90,7 @@ async function performFilterTest({ page, createPipelineFn, testCase }: Options) 
 type PipelineOptions = Step.FilterCriteria;
 
 async function createStandaloneFilterPipeline(page: Page, filterCriteria: PipelineOptions) {
-  return await EditorFlow.createPipeline(page, {
+  return await PipelineFlow.createPipeline(page, {
     name: "Normal Filter",
     steps: [
       {
@@ -122,7 +123,7 @@ async function createStandaloneFilterPipeline(page: Page, filterCriteria: Pipeli
 
 async function createFilesystemReadFilterPipeline(page: Page, filterCriteria: PipelineOptions) {
   const temporaryStorageFolder = FilesystemBoundary.SCRATCH_PAD.join("temporary-storage");
-  return await EditorFlow.createPipeline(page, {
+  return await PipelineFlow.createPipeline(page, {
     name: "Filesystem Read Filter",
     steps: [
       {
@@ -165,7 +166,7 @@ async function createFilesystemReadFilterPipeline(page: Page, filterCriteria: Pi
 }
 
 async function createS3DownloadFilterPipeline(page: Page, filterCriteria: PipelineOptions) {
-  return await EditorFlow.createPipeline(page, {
+  return await PipelineFlow.createPipeline(page, {
     name: "Filesystem Read Filter",
     steps: [
       {

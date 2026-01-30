@@ -2,19 +2,36 @@ import { $notificationPolicyMetadata } from "@/drizzle/schema";
 import { Sqlite } from "@/drizzle/sqlite";
 import { NotificationError } from "@/errors/NotificationError";
 import { NotificationPolicy } from "@/models/NotificationPolicy";
-import { eq, inArray } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 import { ConfigurationRepository } from "./ConfigurationRepository";
 import { NotificationPolicyMetadataConverter } from "./converters/NotificationPolicyMetadataConverter";
+import { HybridHelper } from "./HybridHelper";
 
 export class NotificationRepository {
+  private readonly hybridHelper: HybridHelper<NotificationPolicy, NotificationPolicy.Core, NotificationPolicy.Metadata>;
+
   public constructor(
     private readonly configuration: ConfigurationRepository,
     private readonly sqlite: Sqlite,
-  ) {}
+  ) {
+    this.hybridHelper = new HybridHelper({
+      combineFn: (core, { active }) => ({ ...core, active }),
+      standardMetaFn: ({ id }) => NotificationPolicy.Metadata.standard(id),
+      listMetasFn: () =>
+        this.sqlite.query.$notificationPolicyMetadata.findMany().then((data) => data.map(NotificationPolicyMetadataConverter.convert)),
+      queryMetasFn: ({ ids }) =>
+        this.sqlite.query.$notificationPolicyMetadata
+          .findMany({ where: inArray($notificationPolicyMetadata.id, ids) })
+          .then((data) => data.map(NotificationPolicyMetadataConverter.convert)),
+      insertMetasFn: (metas) =>
+        this.sqlite.insert($notificationPolicyMetadata).values(metas.map((m) => NotificationPolicyMetadataConverter.convert(m))),
+      deleteMetasFn: ({ ids }) => this.sqlite.delete($notificationPolicyMetadata).where(inArray($notificationPolicyMetadata.id, ids)),
+    });
+  }
 
   public async queryPolicies(): Promise<NotificationPolicy[]> {
     const { notificationPolicies } = await this.configuration.read();
-    return await this.joinMetadata(notificationPolicies);
+    return await this.hybridHelper.joinMetadata(notificationPolicies);
   }
 
   public async createPolicy(policy: NotificationPolicy): Promise<NotificationPolicy> {
@@ -70,7 +87,7 @@ export class NotificationRepository {
       if (!existingCore) {
         throw NotificationError.policy_not_found({ id });
       }
-      const existing = await this.joinMetadata(existingCore);
+      const existing = await this.hybridHelper.joinMetadata(existingCore);
       return {
         result: existing,
         configuration: {
@@ -79,75 +96,12 @@ export class NotificationRepository {
         },
       };
     });
-    await this.deleteMetadata(id);
+    await this.hybridHelper.deleteMetadata(id);
     return result;
   }
 
   public async synchronizeWithUpdatedConfiguration(corePolicies: NotificationPolicy.Core[]): Promise<NotificationPolicy[]> {
-    // 0. Get the available metadata
-    let metadatas = await this.listMetadatas();
-    // 1. Insert missing metadatas
-    const policiesWithMissingMetadata = corePolicies.filter((cp) => !metadatas.some((m) => cp.id === m.id));
-    const missingMetadatas = await this.insertMissingMetadatas(policiesWithMissingMetadata);
-    metadatas = [...metadatas, ...missingMetadatas];
-    // 2. Delete superfluous metadatas
-    const superfluousMetadatasWithoutPolicy = metadatas.filter((m) => !corePolicies.some((cp) => m.id === cp.id)).map(({ id }) => id);
-    await this.sqlite.delete($notificationPolicyMetadata).where(inArray($notificationPolicyMetadata.id, superfluousMetadatasWithoutPolicy));
-    metadatas = metadatas.filter((m) => !superfluousMetadatasWithoutPolicy.includes(m.id));
-    // 3. Return the latest state
-    return this.combine(corePolicies, metadatas);
-  }
-
-  private async joinMetadata(policy: NotificationPolicy.Core): Promise<NotificationPolicy>;
-  private async joinMetadata(policies: NotificationPolicy.Core[]): Promise<NotificationPolicy[]>;
-  private async joinMetadata(
-    singleOrPlural: NotificationPolicy.Core | NotificationPolicy.Core[],
-  ): Promise<NotificationPolicy | NotificationPolicy[]> {
-    const corePolicies: NotificationPolicy.Core[] = Array.isArray(singleOrPlural) ? singleOrPlural : [singleOrPlural];
-    const metadatas = await this.sqlite.query.$notificationPolicyMetadata
-      .findMany({
-        where: inArray(
-          $notificationPolicyMetadata.id,
-          corePolicies.map(({ id }) => id),
-        ),
-      })
-      .then((data) => data.map(NotificationPolicyMetadataConverter.convert));
-    // START intermezzo: check if we're missing metadata information for policies (this is possible)
-    const corePoliciesWithoutMetadata = corePolicies.filter((cp) => !metadatas.some((m) => cp.id === m.id));
-    const missingMetadatas = await this.insertMissingMetadatas(corePoliciesWithoutMetadata);
-    metadatas.push(...missingMetadatas);
-    // END intermezzo
-    const result = this.combine(corePolicies, metadatas);
-    return Array.isArray(singleOrPlural) ? result : result[0];
-  }
-
-  private async insertMissingMetadatas(corePoliciesWithoutMetadata: NotificationPolicy.Core[]): Promise<NotificationPolicy.Metadata[]> {
-    const missingMetadatas = corePoliciesWithoutMetadata.map(({ id }) => NotificationPolicy.Metadata.standard(id));
-    if (missingMetadatas.length > 0) {
-      // otherwise drizzle throws an error
-      await this.sqlite
-        .insert($notificationPolicyMetadata)
-        .values(missingMetadatas.map((m) => NotificationPolicyMetadataConverter.convert(m)));
-    }
-    return missingMetadatas;
-  }
-
-  private combine(corePolicies: NotificationPolicy.Core[], metadatas: NotificationPolicy.Metadata[]): NotificationPolicy[] {
-    return corePolicies.map<NotificationPolicy>((corePolicy) => {
-      const meta = metadatas.find((m) => m.id === corePolicy.id);
-      if (!meta) {
-        throw new Error(`Missing notification policy metadata; id=${corePolicy.id}`);
-      }
-      return {
-        ...corePolicy,
-        active: meta.active,
-      };
-    });
-  }
-
-  private async listMetadatas(): Promise<NotificationPolicy.Metadata[]> {
-    const metadatas = await this.sqlite.query.$notificationPolicyMetadata.findMany();
-    return metadatas.map(NotificationPolicyMetadataConverter.convert);
+    return this.hybridHelper.synchronizeWithUpdatedConfiguration(corePolicies);
   }
 
   private async upsertMetadata(metadata: NotificationPolicy.Metadata): Promise<void> {
@@ -156,9 +110,5 @@ export class NotificationRepository {
       target: $notificationPolicyMetadata.id,
       set: data,
     });
-  }
-
-  private async deleteMetadata(id: string): Promise<void> {
-    await this.sqlite.delete($notificationPolicyMetadata).where(eq($notificationPolicyMetadata.id, id));
   }
 }

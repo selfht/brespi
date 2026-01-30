@@ -101,8 +101,11 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
             </select>
             {channelType === "slack" && (
               <>
-                <label className="block text-c-dim text-sm mb-1">Specify the environment variable containing the Slack webhook URL</label>
+                <label htmlFor={Field.slack_webhookUrlReference} className="block text-c-dim text-sm mb-1">
+                  Specify the environment variable containing the Slack webhook URL
+                </label>
                 <input
+                  id={Field.slack_webhookUrlReference}
                   type="text"
                   className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
                   placeholder="MY_SLACK_WEBHOOK_URL"
@@ -112,10 +115,11 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
             )}
             {channelType === "custom_script" && (
               <>
-                <label className="block text-c-dim text-sm mb-1">
+                <label htmlFor={Field.customScript_path} className="block text-c-dim text-sm mb-1">
                   Specify the filesystem path for the custom script that will be invoked
                 </label>
                 <input
+                  id={Field.customScript_path}
                   type="text"
                   className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
                   placeholder="/scripts/notify.sh"
