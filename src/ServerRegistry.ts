@@ -90,7 +90,13 @@ export class ServerRegistry {
     const { scheduleService } = this.register({ ScheduleService }, [eventBus, scheduleRepository, pipelineRepository, executionService]);
     const { notificationDispatchService } = this.register({ NotificationDispatchService }, [pipelineRepository]);
     const { notificationService } = this.register({ NotificationService }, [eventBus, notificationRepository, notificationDispatchService]);
-    const { restrictedService } = this.register({ RestrictedService }, [sqlite, configurationRepository, pipelineService, scheduleService]);
+    const { restrictedService } = this.register({ RestrictedService }, [
+      sqlite,
+      configurationRepository,
+      pipelineService,
+      scheduleService,
+      notificationService,
+    ]);
     this.register({ CleanupService }, [env]);
 
     // Middleware

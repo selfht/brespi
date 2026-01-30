@@ -1,11 +1,13 @@
 import * as schema from "@/drizzle/schema";
 import { Sqlite } from "@/drizzle/sqlite";
+import { Event } from "@/events/Event";
 import { Configuration } from "@/models/Configuration";
+import { Step } from "@/models/Step";
 import { ConfigurationRepository } from "@/repositories/ConfigurationRepository";
 import { isTable } from "drizzle-orm";
+import { NotificationService } from "./NotificationService";
 import { PipelineService } from "./PipelineService";
 import { ScheduleService } from "./ScheduleService";
-import { Step } from "@/models/Step";
 
 export class RestrictedService {
   public constructor(
@@ -13,6 +15,7 @@ export class RestrictedService {
     private readonly configurationRepository: ConfigurationRepository,
     private readonly pipelineService: PipelineService,
     private readonly scheduleService: ScheduleService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   public async purge(): Promise<void> {
@@ -31,6 +34,7 @@ export class RestrictedService {
     await this.purge();
     await this.createPostgresqlBackupAndRestoreWithSchedule();
     await this.createMariadbBackupAndRestore();
+    await this.createSlackNotificationPolicy();
   }
 
   private async createPostgresqlBackupAndRestoreWithSchedule() {
@@ -258,6 +262,20 @@ export class RestrictedService {
           },
           database: "musicworld",
         },
+      ],
+    });
+  }
+
+  private async createSlackNotificationPolicy() {
+    await this.notificationService.createPolicy({
+      active: false,
+      channel: {
+        type: "slack",
+        webhookUrlReference: "MY_SLACK_WEBHOOK_URL",
+      },
+      eventSubscriptions: [
+        { type: Event.Type.execution_started, triggers: ["ad_hoc", "schedule"] },
+        { type: Event.Type.execution_completed, triggers: ["ad_hoc", "schedule"] },
       ],
     });
   }

@@ -145,7 +145,7 @@ export class ExecutionService {
     const completedAt = Temporal.Now.plainDateTimeISO();
     execution.result = {
       outcome: hasError ? Outcome.error : Outcome.success,
-      duration: execution.startedAt.until(completedAt),
+      duration: execution.startedAt.until(completedAt).round("milliseconds"),
       completedAt,
     };
     await this.executionRepository.update(execution);

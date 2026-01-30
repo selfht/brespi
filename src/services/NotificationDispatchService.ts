@@ -5,7 +5,6 @@ import { CommandRunner } from "@/helpers/CommandRunner";
 import { EventSubscription } from "@/models/EventSubscription";
 import { NotificationChannel } from "@/models/NotificationChannel";
 import { NotificationPolicy } from "@/models/NotificationPolicy";
-import { Outcome } from "@/models/Outcome";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { Temporal } from "@js-temporal/polyfill";
 import { basename, dirname } from "path";
@@ -92,23 +91,21 @@ export class NotificationDispatchService {
     let text: string;
     switch (details.event) {
       case Event.Type.execution_started: {
-        text = `⏳ Execution started
-          \`\`\`
-          pipeline: ${details.pipelineName}
-          pipelineId: ${details.pipelineId}
-          \`\`\`
-       `;
+        text = `⏳ Pipeline execution started
+\`\`\`
+pipeline: ${details.pipelineName}
+pipelineId: ${details.pipelineId}
+\`\`\``;
         break;
       }
       case Event.Type.execution_completed: {
         const success = details.outcome === "success";
-        text = `${success ? "✅" : "❌"} Execution ${success ? "succeeded" : "failed"}
-          \`\`\`
-          pipeline: ${details.pipelineName}
-          pipelineId: ${details.pipelineId}
-          durationMs: ${details.duration.total("milliseconds")}
-          \`\`\`
-        `;
+        text = `${success ? "✅" : "❌"} Pipeline execution ${success ? "succeeded" : "failed"}
+\`\`\`
+pipeline: ${details.pipelineName}
+pipelineId: ${details.pipelineId}
+durationMs: ${details.duration.total("milliseconds")}
+\`\`\``;
         break;
       }
     }

@@ -23,9 +23,9 @@ This is a work in progress with the following TODO's:
 * ✅ Trigger these policies before/after every execution
 
 ### Notifications
-* Create a new nav item for "Notifications", and implement this on the server via EventBus
-* Add support for Slack
-* Add support for Custom Script
+* ✅ Create a new nav item for "Notifications", and implement this on the server via EventBus
+* ✅ Add support for Slack
+* ✅ Add support for Custom Script
 
 ### QA
 * Configure Playwright to use a `Dockerfile.e2e` which runs the app in "production" mode (unless port 3000 is already listening)
