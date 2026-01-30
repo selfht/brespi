@@ -31,8 +31,8 @@ export class ScheduleService {
     });
   }
 
-  public async list(): Promise<Schedule[]> {
-    return await this.scheduleRepository.list();
+  public async query(): Promise<Schedule[]> {
+    return await this.scheduleRepository.query();
   }
 
   public async create(unknown: z.output<typeof ScheduleService.Upsert>): Promise<Schedule> {

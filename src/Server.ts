@@ -124,7 +124,7 @@ export class Server {
         },
         "/api/pipelines": {
           GET: this.handleRoute(async () => {
-            const pipelines: PipelineView[] = await this.pipelineService.list();
+            const pipelines: PipelineView[] = await this.pipelineService.query();
             return Response.json(pipelines);
           }),
           POST: this.handleRoute(async (request) => {
@@ -180,7 +180,7 @@ export class Server {
          */
         "/api/schedules": {
           GET: this.handleRoute(async () => {
-            const schedules: Schedule[] = await this.scheduleService.list();
+            const schedules: Schedule[] = await this.scheduleService.query();
             return Response.json(schedules);
           }),
           POST: this.handleRoute(async (request) => {
@@ -204,7 +204,7 @@ export class Server {
          */
         "/api/notification-policies": {
           GET: this.handleRoute(async () => {
-            const policies: NotificationPolicy[] = await this.notificationService.listPolicies();
+            const policies: NotificationPolicy[] = await this.notificationService.queryPolicies();
             return Response.json(policies);
           }),
           POST: this.handleRoute(async (request) => {

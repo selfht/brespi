@@ -12,14 +12,12 @@ export class ScheduleRepository {
     private readonly sqlite: Sqlite,
   ) {}
 
-  public async list(): Promise<Schedule[]> {
-    const { schedules } = await this.configuration.read();
+  public async query(q?: { pipelineId: string }): Promise<Schedule[]> {
+    let { schedules } = await this.configuration.read();
+    if (q) {
+      schedules = schedules.filter((s) => s.pipelineId === q.pipelineId);
+    }
     return await this.joinMetadata(schedules);
-  }
-
-  public async query(q: { pipelineId: string }): Promise<Schedule[]> {
-    const { schedules } = await this.configuration.read();
-    return await this.joinMetadata(schedules.filter((s) => s.pipelineId === q.pipelineId));
   }
 
   public async create(schedule: Schedule): Promise<Schedule> {
@@ -66,7 +64,7 @@ export class ScheduleRepository {
         },
       };
     });
-    return policy;
+    return schedule;
   }
 
   public async delete(id: string): Promise<Schedule> {

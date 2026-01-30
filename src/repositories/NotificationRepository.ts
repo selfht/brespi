@@ -12,7 +12,7 @@ export class NotificationRepository {
     private readonly sqlite: Sqlite,
   ) {}
 
-  public async listPolicies(): Promise<NotificationPolicy[]> {
+  public async queryPolicies(): Promise<NotificationPolicy[]> {
     const { notificationPolicies } = await this.configuration.read();
     return await this.joinMetadata(notificationPolicies);
   }

@@ -34,8 +34,8 @@ export class NotificationService {
     await this.repository.synchronizeWithUpdatedConfiguration(notificationPolicies);
   }
 
-  public async listPolicies(): Promise<NotificationPolicy[]> {
-    return this.repository.listPolicies();
+  public async queryPolicies(): Promise<NotificationPolicy[]> {
+    return this.repository.queryPolicies();
   }
 
   public async createPolicy(unknown: z.output<typeof NotificationService.Upsert>): Promise<NotificationPolicy> {
@@ -90,7 +90,7 @@ export class NotificationService {
       const { release } = await this.cacheMutex.acquire();
       try {
         if (checkStale()) {
-          const policies = await this.repository.listPolicies();
+          const policies = await this.repository.queryPolicies();
           this.cache = policies;
           this.cacheUpdated = Temporal.Now.plainDateTimeISO();
         }

@@ -5,7 +5,7 @@ import { ConfigurationRepository } from "./ConfigurationRepository";
 export class PipelineRepository {
   public constructor(private readonly configuration: ConfigurationRepository) {}
 
-  public async list(): Promise<Pipeline[]> {
+  public async query(): Promise<Pipeline[]> {
     return await this.configuration.read(({ pipelines }) => pipelines);
   }
 

@@ -19,8 +19,8 @@ export class PipelineService {
     private readonly stepService: StepService,
   ) {}
 
-  public async list(): Promise<PipelineView[]> {
-    const pipelines = await this.pipelineRepository.list();
+  public async query(): Promise<PipelineView[]> {
+    const pipelines = await this.pipelineRepository.query();
     return await this.enhance(pipelines);
   }
 
