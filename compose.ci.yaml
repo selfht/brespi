@@ -1,3 +1,0 @@
-services:
-  application:
-    user: "${DOCKER_UID}:${DOCKER_GID}"

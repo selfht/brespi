@@ -37,8 +37,4 @@ jobs:
         run: bun test
 
       - name: "Application :: E2E Tests"
-        env:
-          DOCKER_UID: "1001"
-          DOCKER_GID: "1001"
-          COMPOSE_FILE: "compose.yaml:compose.ci.yaml"
         run: bun e2e:headless
