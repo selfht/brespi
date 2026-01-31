@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     command: ${START_COMMAND:-bun start:dev}
+    user: "${HOST_UID}:${HOST_GID}"
     ports:
       - "3000:3000"
     volumes:
