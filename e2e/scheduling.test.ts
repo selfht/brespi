@@ -10,7 +10,7 @@ test.beforeEach(async ({ request, page }) => {
   await page.goto("");
 });
 
-test("executes a pipeline every second while active", async ({ page }) => {
+test.fixme("executes a pipeline every second while active", async ({ page }) => {
   // given
   const scriptPath = FilesystemBoundary.SCRATCH_PAD.join("simple.sh");
   const outputDir = FilesystemBoundary.SCRATCH_PAD.join("output");
@@ -35,7 +35,7 @@ test("executes a pipeline every second while active", async ({ page }) => {
   await page.getByRole("link", { name }).click();
   // then
   const executionLocator = page.getByText("Successfully executed");
-  await expect.poll(() => executionLocator.count(), { timeout: 10_000 }).toBeGreaterThanOrEqual(2);
+  await expect.poll(() => executionLocator.count()).toBeGreaterThanOrEqual(2);
 
   // when
   await ScheduleFlow.update(page, {

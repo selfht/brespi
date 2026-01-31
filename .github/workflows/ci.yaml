@@ -37,4 +37,4 @@ jobs:
         run: bun test
 
       - name: "Application :: E2E Tests"
-        run: HOST_UID=$(id -u) HOST_GID=$(id -g) bun e2e:headless sch
+        run: HOST_UID=$(id -u) HOST_GID=$(id -g) bun e2e:headless
