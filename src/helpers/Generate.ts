@@ -1,6 +1,4 @@
-import { Env } from "@/Env";
 import { Temporal } from "@js-temporal/polyfill";
-import { join } from "path";
 
 export namespace Generate {
   const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -16,13 +14,5 @@ export namespace Generate {
 
   export function uniqueEpochBasedId() {
     return `${Temporal.Now.instant().epochMilliseconds}-${shortRandomString()}`;
-  }
-
-  export function tmpDestination(env: Pick<Env.Private, "X_BRESPI_TMP_ROOT">) {
-    const destinationId = uniqueEpochBasedId();
-    return {
-      destinationId: destinationId,
-      destinationPath: join(env.X_BRESPI_TMP_ROOT, destinationId),
-    };
   }
 }
