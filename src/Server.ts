@@ -228,7 +228,7 @@ export class Server {
          */
         "/api/restricted/purge": {
           POST: this.handleRoute(async () => {
-            if (this.env.O_BRESPI_STAGE === "development") {
+            if (this.env.X_BRESPI_ENABLE_RESTRICTED_ENTPOINTS) {
               await this.restrictedService.purge();
               return new Response();
             }
@@ -237,7 +237,7 @@ export class Server {
         },
         "/api/restricted/seed": {
           POST: this.handleRoute(async () => {
-            if (this.env.O_BRESPI_STAGE === "development") {
+            if (this.env.X_BRESPI_ENABLE_RESTRICTED_ENTPOINTS) {
               await this.restrictedService.seed();
               return new Response();
             }

@@ -18,6 +18,7 @@ import { jest, mock, Mock } from "bun:test";
 import { Yesttp } from "yesttp";
 import { mkdir, rm } from "fs/promises";
 import { join } from "path";
+import { FS } from "@/helpers/FS";
 
 export namespace TestEnvironment {
   type Mocked<T> = {
@@ -90,6 +91,7 @@ export namespace TestEnvironment {
       O_BRESPI_COMMIT: "0123456789abcdef0123456789abcdef01234567",
       O_BRESPI_VERSION: "0.0.0",
       X_BRESPI_ROOT: join(unitTestRoot, "brespi"),
+      X_BRESPI_ENABLE_RESTRICTED_ENTPOINTS: "false",
     });
 
     // Setup filesystem
@@ -157,7 +159,7 @@ export namespace TestEnvironment {
     ): Promise<Artifact[]> {
       const result: Artifact[] = [];
       for (const artifact of artifacts) {
-        const { destinationId, destinationPath } = Generate.tmpDestination(env);
+        const { destinationId, destinationPath } = FS.createTmpDestination(env);
         const name = typeof artifact === "string" ? artifact.slice(2) : artifact.name.slice(2);
         const type = (typeof artifact === "string" ? artifact : artifact.name).startsWith("f:") ? "file" : ("directory" as const);
         const content = typeof artifact === "string" ? `Content for ${artifact}` : artifact.content;

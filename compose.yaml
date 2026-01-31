@@ -2,8 +2,8 @@ services:
   application:
     build:
       context: .
-      dockerfile: Dockerfile.dev
-    command: bun dev
+      dockerfile: Dockerfile
+    command: ${START_COMMAND:-bun start:dev}
     ports:
       - "3000:3000"
     volumes:

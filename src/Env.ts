@@ -4,10 +4,11 @@ import { z } from "zod/v4";
 
 export namespace Env {
   const baseEnv = z.object({
+    X_BRESPI_ROOT: z.string(),
     O_BRESPI_STAGE: z.enum(["development", "production"]),
     O_BRESPI_COMMIT: z.string().default("0000000000000000000000000000000000000000"),
     O_BRESPI_VERSION: z.string().default("0.0.0"),
-    X_BRESPI_ROOT: z.string(),
+    X_BRESPI_ENABLE_RESTRICTED_ENTPOINTS: z.enum(["true", "false"]).default("false"),
   });
   export function initialize(environment = Bun.env as z.output<typeof baseEnv>) {
     return baseEnv
@@ -30,6 +31,7 @@ export namespace Env {
           X_BRESPI_TMP_ITEMS_RETENTION_PERIOD: Temporal.Duration.from(
             env.O_BRESPI_STAGE === "development" ? { minutes: 5 } : { days: 3 }, //
           ),
+          X_BRESPI_ENABLE_RESTRICTED_ENTPOINTS: env.X_BRESPI_ENABLE_RESTRICTED_ENTPOINTS === "true",
         };
       })
       .parse(environment);

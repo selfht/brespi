@@ -51,6 +51,10 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
+    env: {
+      ...process.env,
+      START_COMMAND: "bun start:e2e",
+    },
     command: "docker compose up",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
