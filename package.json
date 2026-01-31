@@ -10,10 +10,9 @@
     "install-browsers": "playwright install chromium webkit firefox",
     "tc": "bunx tsc --noEmit",
     "dev": "bun --env-file=.env.development --hot src/index.ts",
-    "e2e": "playwright test --ui",
-    "e2e:headless": "playwright test",
     "start": "bun --env-file=.env.production src/index.ts",
-    "build": "bun run build.ts"
+    "e2e": "playwright test --ui",
+    "e2e:headless": "playwright test"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.966.0",

@@ -19,7 +19,6 @@ export class EventBus {
       type,
       data,
     } as Event;
-    console.log(`⚡️ ${type}`);
     this.subscriptions
       .filter(({ type }) => type === event.type || type === "*") //
       .forEach(({ listener }) => listener(event));
