@@ -13,7 +13,7 @@
     "start:e2e": "bun --env-file=.env.e2e --hot src/index.ts",
     "start:prod": "bun --env-file=.env.prod src/index.ts",
     "e2e": "playwright test --ui",
-    "e2e:headless": "playwright test --max-failures 1"
+    "e2e:headless": "playwright test --max-failures 1 --reporter github"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.966.0",
