@@ -37,4 +37,4 @@ jobs:
         run: bun test
 
       - name: "Application :: E2E Tests"
-        run: UID=$(id -u) GID=$(id -g) bun e2e:headless
+        run: sudo bun e2e:headless

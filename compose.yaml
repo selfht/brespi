@@ -8,7 +8,6 @@ services:
       - "3000:3000"
     volumes:
       - .:/app
-    user: ${UID}:${GID}
     working_dir: /app
     environment:
       MY_ENCRYPTION_KEY: unicorn
