@@ -37,4 +37,7 @@ jobs:
         run: bun test
 
       - name: "Application :: E2E Tests"
-        run: bun e2e:headless
+        run: |
+          export UID=$(id -u)
+          export GID=$(id -g)
+          bun e2e:headless
