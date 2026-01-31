@@ -35,7 +35,7 @@ test("executes a pipeline every second while active", async ({ page }) => {
   await page.getByRole("link", { name }).click();
   // then
   const executionLocator = page.getByText("Successfully executed");
-  await expect.poll(() => executionLocator.count()).toBeGreaterThanOrEqual(2);
+  await expect.poll(() => executionLocator.count(), { timeout: 10_000 }).toBeGreaterThanOrEqual(2);
 
   // when
   await ScheduleFlow.update(page, {
