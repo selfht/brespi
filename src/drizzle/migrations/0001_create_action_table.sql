@@ -1,4 +1,3 @@
--- Custom SQL migration file, put your code below! --
 create table action (
     id text primary key,
     execution_id text not null references execution(id) on delete cascade,

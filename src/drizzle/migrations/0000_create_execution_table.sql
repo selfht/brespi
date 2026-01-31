@@ -1,4 +1,3 @@
--- Custom SQL migration file, put your code below! --
 create table execution (
     id text primary key,
     pipeline_id text not null,
