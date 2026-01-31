@@ -30,7 +30,7 @@ export class RestrictedService {
     await this.configurationRepository.saveChanges();
   }
 
-  public async seed() {
+  public async seed(): Promise<void> {
     await this.purge();
     const { backup: postgresql } = await this.createPostgresqlBackupAndRestore();
     const { backup: mariadb } = await this.createMariadbBackupAndRestore();
