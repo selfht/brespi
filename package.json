@@ -7,7 +7,7 @@
   "module": "src/index.ts",
   "scripts": {
     "drizzle": "sh -c ': \"${1:?Please pass a migration name}\"; bunx drizzle-kit generate --name=$1 --custom' _",
-    "install-browsers": "playwright install chromium webkit firefox",
+    "install-browsers": "playwright install chromium",
     "tc": "bunx tsc --noEmit",
     "dev": "bun --env-file=.env.development --hot src/index.ts",
     "start": "bun --env-file=.env.production src/index.ts",
