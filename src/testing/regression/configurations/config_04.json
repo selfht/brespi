@@ -1,0 +1,89 @@
+{
+  "pipelines": [
+    {
+      "id": "bc54bcd1-b0b8-4828-b90e-6609578ddecc",
+      "object": "pipeline",
+      "name": "PostgreSQL Restore from S3",
+      "steps": [
+        {
+          "id": "1twp52",
+          "previousId": null,
+          "object": "step",
+          "type": "s3_download",
+          "connection": {
+            "bucket": "company-backups",
+            "region": "us-east-1",
+            "endpoint": "https://s3.us-east-1.amazonaws.com",
+            "accessKeyReference": "AWS_ACCESS_KEY_ID",
+            "secretKeyReference": "AWS_SECRET_ACCESS_KEY"
+          },
+          "basePrefix": "postgresql/production",
+          "managedStorage": {
+            "target": "latest"
+          },
+          "filterCriteria": null
+        },
+        {
+          "id": "d5223a",
+          "previousId": "1twp52",
+          "object": "step",
+          "type": "decryption",
+          "keyReference": "BACKUP_ENCRYPTION_KEY",
+          "algorithm": {
+            "implementation": "aes256cbc"
+          }
+        },
+        {
+          "id": "frca70",
+          "previousId": "d5223a",
+          "object": "step",
+          "type": "decompression",
+          "algorithm": {
+            "implementation": "targzip"
+          }
+        },
+        {
+          "id": "g6v3sn",
+          "previousId": "frca70",
+          "object": "step",
+          "type": "filter",
+          "filterCriteria": {
+            "method": "glob",
+            "nameGlob": "app_*.sql"
+          }
+        },
+        {
+          "id": "11p1hs",
+          "previousId": "g6v3sn",
+          "object": "step",
+          "type": "postgresql_restore",
+          "connectionReference": "PG_STAGING_CONNECTION",
+          "toolkit": {
+            "resolution": "automatic"
+          },
+          "database": "app_staging"
+        }
+      ]
+    }
+  ],
+  "schedules": [],
+  "notificationPolicies": [
+    {
+      "id": "5b8b9195-6eb5-4df3-a290-1c1953eae9e5",
+      "object": "notification_policy",
+      "channel": {
+        "type": "custom_script",
+        "path": "/opt/scripts/notify-pagerduty.sh"
+      },
+      "eventSubscriptions": [
+        {
+          "type": "execution_completed",
+          "triggers": [
+            "ad_hoc"
+          ]
+        }
+      ],
+      "active": true
+    }
+  ]
+}

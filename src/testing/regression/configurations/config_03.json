@@ -1,0 +1,61 @@
+{
+  "pipelines": [
+    {
+      "id": "0c82b0b4-0b0d-441c-b5b4-9f4d933487f2",
+      "object": "pipeline",
+      "name": "MariaDB Local Backup",
+      "steps": [
+        {
+          "id": "moc0hd",
+          "previousId": null,
+          "object": "step",
+          "type": "mariadb_backup",
+          "connectionReference": "MARIA_CONNECTION_STRING",
+          "toolkit": {
+            "resolution": "manual",
+            "mariadb": "/usr/bin/mariadb",
+            "mariadb-dump": "/usr/bin/mariadb-dump"
+          },
+          "databaseSelection": {
+            "method": "include",
+            "inclusions": [
+              "app_production",
+              "app_analytics"
+            ]
+          }
+        },
+        {
+          "id": "amktqq",
+          "previousId": "moc0hd",
+          "object": "step",
+          "type": "compression",
+          "algorithm": {
+            "implementation": "targzip",
+            "level": 6
+          }
+        },
+        {
+          "id": "18n0x9",
+          "previousId": "amktqq",
+          "object": "step",
+          "type": "filesystem_write",
+          "folderPath": "/backups/mariadb",
+          "managedStorage": true,
+          "retention": {
+            "policy": "last_n_versions",
+            "maxVersions": 14
+          }
+        }
+      ]
+    }
+  ],
+  "schedules": [
+    {
+      "id": "1f6540dd-0bf1-46a5-99ce-ef322647d561",
+      "object": "schedule",
+      "pipelineId": "0c82b0b4-0b0d-441c-b5b4-9f4d933487f2",
+      "cron": "0 3 * * *"
+    }
+  ],
+  "notificationPolicies": []
+}

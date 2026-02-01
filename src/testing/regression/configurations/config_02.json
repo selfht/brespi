@@ -1,0 +1,101 @@
+{
+  "pipelines": [
+    {
+      "id": "47aeeb72-fe25-43a9-8728-cce02ab30647",
+      "object": "pipeline",
+      "name": "PostgreSQL to S3 Encrypted Backup",
+      "steps": [
+        {
+          "id": "u8ha0p",
+          "previousId": null,
+          "object": "step",
+          "type": "postgresql_backup",
+          "connectionReference": "PG_CONNECTION_STRING",
+          "toolkit": {
+            "resolution": "automatic"
+          },
+          "databaseSelection": {
+            "method": "exclude",
+            "exclusions": [
+              "postgres",
+              "template0",
+              "template1"
+            ]
+          }
+        },
+        {
+          "id": "c52lsh",
+          "previousId": "u8ha0p",
+          "object": "step",
+          "type": "compression",
+          "algorithm": {
+            "implementation": "targzip",
+            "level": 9
+          }
+        },
+        {
+          "id": "rh5iva",
+          "previousId": "c52lsh",
+          "object": "step",
+          "type": "encryption",
+          "keyReference": "BACKUP_ENCRYPTION_KEY",
+          "algorithm": {
+            "implementation": "aes256cbc"
+          }
+        },
+        {
+          "id": "ljzmrl",
+          "previousId": "rh5iva",
+          "object": "step",
+          "type": "s3_upload",
+          "connection": {
+            "bucket": "company-backups",
+            "region": "us-east-1",
+            "endpoint": "https://s3.us-east-1.amazonaws.com",
+            "accessKeyReference": "AWS_ACCESS_KEY_ID",
+            "secretKeyReference": "AWS_SECRET_ACCESS_KEY"
+          },
+          "basePrefix": "postgresql/production",
+          "retention": {
+            "policy": "last_n_versions",
+            "maxVersions": 30
+          }
+        }
+      ]
+    }
+  ],
+  "schedules": [
+    {
+      "id": "7f3e52e4-43ac-489d-9a28-3e7022174504",
+      "object": "schedule",
+      "pipelineId": "47aeeb72-fe25-43a9-8728-cce02ab30647",
+      "cron": "0 * * * *"
+    }
+  ],
+  "notificationPolicies": [
+    {
+      "id": "82c877e7-2fe3-4508-877f-556510fae305",
+      "object": "notification_policy",
+      "channel": {
+        "type": "slack",
+        "webhookUrlReference": "SLACK_OPS_WEBHOOK"
+      },
+      "eventSubscriptions": [
+        {
+          "type": "execution_started",
+          "triggers": [
+            "ad_hoc"
+          ]
+        },
+        {
+          "type": "execution_completed",
+          "triggers": [
+            "ad_hoc",
+            "schedule"
+          ]
+        }
+      ],
+      "active": true
+    }
+  ]
+}

@@ -33,21 +33,25 @@ export class PipelineService {
   }
 
   public async create(unknown: z.output<typeof PipelineService.Upsert>): Promise<PipelineView> {
-    const pipeline = await this.pipelineRepository.create({
-      id: Bun.randomUUIDv7(),
-      object: "pipeline",
-      ...PipelineService.Upsert.parse(unknown),
-    });
+    const pipeline = await this.pipelineRepository.create(
+      this.validate({
+        id: Bun.randomUUIDv7(),
+        object: "pipeline",
+        ...PipelineService.Upsert.parse(unknown),
+      }),
+    );
     this.eventBus.publish(Event.Type.pipeline_created, { pipeline });
     return await this.enhance(pipeline);
   }
 
   public async update(id: string, unknown: z.output<typeof PipelineService.Upsert>): Promise<PipelineView> {
-    const pipeline = await this.pipelineRepository.update({
-      id,
-      object: "pipeline",
-      ...PipelineService.Upsert.parse(unknown),
-    });
+    const pipeline = await this.pipelineRepository.update(
+      this.validate({
+        id,
+        object: "pipeline",
+        ...PipelineService.Upsert.parse(unknown),
+      }),
+    );
     this.eventBus.publish(Event.Type.pipeline_updated, { pipeline });
     return await this.enhance(pipeline);
   }
@@ -73,7 +77,7 @@ export class PipelineService {
     return isArray ? pipelineViews : pipelineViews[0];
   }
 
-  private validate(pipeline: Pipeline) {
+  private validate(pipeline: Pipeline): Pipeline {
     const startingSteps = pipeline.steps.filter((s) => !s.previousId);
     if (startingSteps.length === 0) {
       throw PipelineError.missing_starting_step();

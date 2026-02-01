@@ -1,0 +1,69 @@
+{
+  "pipelines": [
+    {
+      "id": "bf6e2c58-c080-41dc-8258-05692c0ea85a",
+      "object": "pipeline",
+      "name": "Daily Filesystem Backup",
+      "steps": [
+        {
+          "id": "vuz4yx",
+          "previousId": null,
+          "object": "step",
+          "type": "filesystem_read",
+          "path": "/var/data/application",
+          "managedStorage": null,
+          "filterCriteria": null
+        },
+        {
+          "id": "7xypof",
+          "previousId": "vuz4yx",
+          "object": "step",
+          "type": "compression",
+          "algorithm": {
+            "implementation": "targzip",
+            "level": 6
+          }
+        },
+        {
+          "id": "5epby0",
+          "previousId": "7xypof",
+          "object": "step",
+          "type": "filesystem_write",
+          "folderPath": "/backups/daily",
+          "managedStorage": true,
+          "retention": {
+            "policy": "last_n_versions",
+            "maxVersions": 7
+          }
+        }
+      ]
+    }
+  ],
+  "schedules": [
+    {
+      "id": "58f11ee1-8680-4996-b44b-8bd7dc7f46e8",
+      "object": "schedule",
+      "pipelineId": "bf6e2c58-c080-41dc-8258-05692c0ea85a",
+      "cron": "0 2 * * *"
+    }
+  ],
+  "notificationPolicies": [
+    {
+      "id": "b566e87e-7822-40cf-b191-6da6563478a0",
+      "object": "notification_policy",
+      "channel": {
+        "type": "slack",
+        "webhookUrlReference": "SLACK_WEBHOOK_URL"
+      },
+      "eventSubscriptions": [
+        {
+          "type": "execution_completed",
+          "triggers": [
+            "schedule"
+          ]
+        }
+      ],
+      "active": true
+    }
+  ]
+}

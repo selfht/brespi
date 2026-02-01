@@ -6,10 +6,6 @@ describe("REGRESSION > database", async () => {
   if (!(await Bun.file(databasePath).exists())) {
     throw new Error(`Regression database not found: ${databasePath}`);
   }
-
-  it("example database test 1", () => {
-    expect(1 + 1).toEqual(2);
-  });
   it("example database test 2", () => {
     expect(1 + 1).toEqual(2);
   });

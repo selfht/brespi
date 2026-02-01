@@ -1,0 +1,152 @@
+{
+  "pipelines": [
+    {
+      "id": "5d8f566a-f00a-46ab-a666-d9533454c9b1",
+      "object": "pipeline",
+      "name": "PostgreSQL All Databases",
+      "steps": [
+        {
+          "id": "6ypcop",
+          "previousId": null,
+          "object": "step",
+          "type": "postgresql_backup",
+          "connectionReference": "PG_PROD_CONNECTION",
+          "toolkit": {
+            "resolution": "manual",
+            "psql": "/usr/local/bin/psql",
+            "pg_dump": "/usr/local/bin/pg_dump"
+          },
+          "databaseSelection": {
+            "method": "all"
+          }
+        },
+        {
+          "id": "cie3jd",
+          "previousId": "6ypcop",
+          "object": "step",
+          "type": "compression",
+          "algorithm": {
+            "implementation": "targzip",
+            "level": 5
+          }
+        },
+        {
+          "id": "n8htjm",
+          "previousId": "cie3jd",
+          "object": "step",
+          "type": "s3_upload",
+          "connection": {
+            "bucket": "db-backups",
+            "region": null,
+            "endpoint": "https://minio.internal:9000",
+            "accessKeyReference": "MINIO_ACCESS_KEY",
+            "secretKeyReference": "MINIO_SECRET_KEY"
+          },
+          "basePrefix": "postgresql",
+          "retention": {
+            "policy": "last_n_versions",
+            "maxVersions": 90
+          }
+        }
+      ]
+    },
+    {
+      "id": "fd1677a8-7379-4d5a-9829-3416ebd914c0",
+      "object": "pipeline",
+      "name": "MariaDB All Databases",
+      "steps": [
+        {
+          "id": "8awlc7",
+          "previousId": null,
+          "object": "step",
+          "type": "mariadb_backup",
+          "connectionReference": "MARIA_PROD_CONNECTION",
+          "toolkit": {
+            "resolution": "automatic"
+          },
+          "databaseSelection": {
+            "method": "all"
+          }
+        },
+        {
+          "id": "goi8qh",
+          "previousId": "8awlc7",
+          "object": "step",
+          "type": "compression",
+          "algorithm": {
+            "implementation": "targzip",
+            "level": 5
+          }
+        },
+        {
+          "id": "81q4vx",
+          "previousId": "goi8qh",
+          "object": "step",
+          "type": "s3_upload",
+          "connection": {
+            "bucket": "db-backups",
+            "region": null,
+            "endpoint": "https://minio.internal:9000",
+            "accessKeyReference": "MINIO_ACCESS_KEY",
+            "secretKeyReference": "MINIO_SECRET_KEY"
+          },
+          "basePrefix": "mariadb",
+          "retention": {
+            "policy": "last_n_versions",
+            "maxVersions": 90
+          }
+        }
+      ]
+    }
+  ],
+  "schedules": [
+    {
+      "id": "f44b0122-4041-4e85-964e-b878902a16a2",
+      "object": "schedule",
+      "pipelineId": "5d8f566a-f00a-46ab-a666-d9533454c9b1",
+      "cron": "0 1 * * *"
+    },
+    {
+      "id": "48f415d1-8bfc-4a97-bfee-e0436608771a",
+      "object": "schedule",
+      "pipelineId": "fd1677a8-7379-4d5a-9829-3416ebd914c0",
+      "cron": "0 2 * * *"
+    }
+  ],
+  "notificationPolicies": [
+    {
+      "id": "44732b12-99b0-4ae4-bf5d-9551425ddcda",
+      "object": "notification_policy",
+      "channel": {
+        "type": "slack",
+        "webhookUrlReference": "SLACK_INFRA_WEBHOOK"
+      },
+      "eventSubscriptions": [
+        {
+          "type": "execution_completed",
+          "triggers": [
+            "schedule"
+          ]
+        }
+      ],
+      "active": true
+    },
+    {
+      "id": "bf9ec6d8-4149-47ed-9324-743e228cc312",
+      "object": "notification_policy",
+      "channel": {
+        "type": "custom_script",
+        "path": "/opt/monitoring/report-backup-status.py"
+      },
+      "eventSubscriptions": [
+        {
+          "type": "execution_completed",
+          "triggers": [
+            "schedule"
+          ]
+        }
+      ],
+      "active": true
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "pipelines": [
+    {
+      "id": "0f4c5118-3fe8-4dd9-a402-392e4515ab0c",
+      "object": "pipeline",
+      "name": "MariaDB Restore from Backup",
+      "steps": [
+        {
+          "id": "whdwju",
+          "previousId": null,
+          "object": "step",
+          "type": "filesystem_read",
+          "path": "/backups/mariadb",
+          "managedStorage": {
+            "target": "latest"
+          },
+          "filterCriteria": null
+        },
+        {
+          "id": "43n7g1",
+          "previousId": "whdwju",
+          "object": "step",
+          "type": "decompression",
+          "algorithm": {
+            "implementation": "targzip"
+          }
+        },
+        {
+          "id": "4n4tb8",
+          "previousId": "43n7g1",
+          "object": "step",
+          "type": "mariadb_restore",
+          "connectionReference": "MARIA_STAGING_CONNECTION",
+          "toolkit": {
+            "resolution": "automatic"
+          },
+          "database": "staging_db"
+        }
+      ]
+    }
+  ],
+  "schedules": [],
+  "notificationPolicies": [
+    {
+      "id": "21998f10-f326-471c-a278-aa38d43b8a66",
+      "object": "notification_policy",
+      "channel": {
+        "type": "slack",
+        "webhookUrlReference": "SLACK_DBA_CHANNEL"
+      },
+      "eventSubscriptions": [
+        {
+          "type": "execution_started",
+          "triggers": [
+            "ad_hoc",
+            "schedule"
+          ]
+        },
+        {
+          "type": "execution_completed",
+          "triggers": [
+            "ad_hoc",
+            "schedule"
+          ]
+        }
+      ],
+      "active": true
+    }
+  ]
+}

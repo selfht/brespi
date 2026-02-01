@@ -1,0 +1,51 @@
+{
+  "pipelines": [
+    {
+      "id": "540e6572-c09c-4679-9c35-4b71ddbcb78f",
+      "object": "pipeline",
+      "name": "Custom ETL Pipeline",
+      "steps": [
+        {
+          "id": "oujhtv",
+          "previousId": null,
+          "object": "step",
+          "type": "filesystem_read",
+          "path": "/data/raw",
+          "managedStorage": {
+            "target": "latest"
+          },
+          "filterCriteria": {
+            "method": "glob",
+            "nameGlob": "*.csv"
+          }
+        },
+        {
+          "id": "wc8maq",
+          "previousId": "oujhtv",
+          "object": "step",
+          "type": "custom_script",
+          "path": "/opt/etl/transform.py",
+          "passthrough": true
+        },
+        {
+          "id": "rcusft",
+          "previousId": "wc8maq",
+          "object": "step",
+          "type": "filesystem_write",
+          "folderPath": "/data/processed",
+          "managedStorage": false,
+          "retention": null
+        }
+      ]
+    }
+  ],
+  "schedules": [
+    {
+      "id": "c7a55ae3-dc0a-4070-86c6-c412d0c00be1",
+      "object": "schedule",
+      "pipelineId": "540e6572-c09c-4679-9c35-4b71ddbcb78f",
+      "cron": "*/15 * * * *"
+    }
+  ],
+  "notificationPolicies": []
+}

@@ -1,0 +1,62 @@
+{
+  "pipelines": [
+    {
+      "id": "d7b8ad7d-34f3-4bad-92b9-3c08c5643e44",
+      "object": "pipeline",
+      "name": "S3 Cross-Region Replication",
+      "steps": [
+        {
+          "id": "fu0lzo",
+          "previousId": null,
+          "object": "step",
+          "type": "s3_download",
+          "connection": {
+            "bucket": "source-bucket",
+            "region": "us-west-2",
+            "endpoint": "https://s3.us-west-2.amazonaws.com",
+            "accessKeyReference": "AWS_SOURCE_ACCESS_KEY",
+            "secretKeyReference": "AWS_SOURCE_SECRET_KEY"
+          },
+          "basePrefix": "data/exports",
+          "managedStorage": {
+            "target": "specific",
+            "version": "2024-01-15"
+          },
+          "filterCriteria": {
+            "method": "exact",
+            "name": "monthly-report.csv"
+          }
+        },
+        {
+          "id": "divnn4",
+          "previousId": "fu0lzo",
+          "object": "step",
+          "type": "folder_flatten"
+        },
+        {
+          "id": "f4orsn",
+          "previousId": "divnn4",
+          "object": "step",
+          "type": "folder_group"
+        },
+        {
+          "id": "f18jx8",
+          "previousId": "f4orsn",
+          "object": "step",
+          "type": "s3_upload",
+          "connection": {
+            "bucket": "destination-bucket",
+            "region": "eu-west-1",
+            "endpoint": "https://s3.eu-west-1.amazonaws.com",
+            "accessKeyReference": "AWS_DEST_ACCESS_KEY",
+            "secretKeyReference": "AWS_DEST_SECRET_KEY"
+          },
+          "basePrefix": "replicated/data",
+          "retention": null
+        }
+      ]
+    }
+  ],
+  "schedules": [],
+  "notificationPolicies": []
+}

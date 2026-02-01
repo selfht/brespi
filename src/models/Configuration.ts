@@ -1,8 +1,8 @@
 import { ZodParser } from "@/helpers/ZodParser";
 import z from "zod/v4";
+import { NotificationPolicy } from "./NotificationPolicy";
 import { Pipeline } from "./Pipeline";
 import { Schedule } from "./Schedule";
-import { NotificationPolicy } from "./NotificationPolicy";
 
 export type Configuration = Configuration.Core & {
   synchronized: boolean;
@@ -23,13 +23,13 @@ export namespace Configuration {
       };
     }
     export const parse = ZodParser.forType<Core>()
-      .ensureSchemaMatchesType(() => {
-        return z.object({
+      .ensureSchemaMatchesType(() =>
+        z.object({
           pipelines: z.array(Pipeline.parse.SCHEMA),
           schedules: z.array(Schedule.Core.parse.SCHEMA),
           notificationPolicies: z.array(NotificationPolicy.parse.SCHEMA),
-        });
-      })
+        }),
+      )
       .ensureTypeMatchesSchema();
   }
 

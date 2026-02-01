@@ -1,0 +1,119 @@
+{
+  "pipelines": [
+    {
+      "id": "6798e19f-df2b-4bc7-b394-1d430f3d7f1c",
+      "object": "pipeline",
+      "name": "Application Backup with Custom Script",
+      "steps": [
+        {
+          "id": "dhn2dz",
+          "previousId": null,
+          "object": "step",
+          "type": "filesystem_read",
+          "path": "/opt/app/data",
+          "managedStorage": {
+            "target": "latest"
+          },
+          "filterCriteria": {
+            "method": "regex",
+            "nameRegex": ".*\\.db$"
+          }
+        },
+        {
+          "id": "bnn1to",
+          "previousId": "dhn2dz",
+          "object": "step",
+          "type": "custom_script",
+          "path": "/opt/scripts/sanitize-backup.sh",
+          "passthrough": false
+        },
+        {
+          "id": "yyukxl",
+          "previousId": "bnn1to",
+          "object": "step",
+          "type": "compression",
+          "algorithm": {
+            "implementation": "targzip",
+            "level": 9
+          }
+        },
+        {
+          "id": "wyz510",
+          "previousId": "yyukxl",
+          "object": "step",
+          "type": "filesystem_write",
+          "folderPath": "/backups/app",
+          "managedStorage": true,
+          "retention": {
+            "policy": "last_n_versions",
+            "maxVersions": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "20c89684-f047-415f-9c7a-a65fd99d7120",
+      "object": "pipeline",
+      "name": "Log Archive",
+      "steps": [
+        {
+          "id": "tdhyjb",
+          "previousId": null,
+          "object": "step",
+          "type": "filesystem_read",
+          "path": "/var/log/app",
+          "managedStorage": {
+            "target": "latest"
+          },
+          "filterCriteria": {
+            "method": "glob",
+            "nameGlob": "*.log"
+          }
+        },
+        {
+          "id": "kw012j",
+          "previousId": "tdhyjb",
+          "object": "step",
+          "type": "compression",
+          "algorithm": {
+            "implementation": "targzip",
+            "level": 1
+          }
+        }
+      ]
+    }
+  ],
+  "schedules": [
+    {
+      "id": "58a89558-7c06-492d-9c1f-5276c6061019",
+      "object": "schedule",
+      "pipelineId": "6798e19f-df2b-4bc7-b394-1d430f3d7f1c",
+      "cron": "0 4 * * *"
+    },
+    {
+      "id": "c1cf56b4-2efe-4631-a588-58a036bfd290",
+      "object": "schedule",
+      "pipelineId": "20c89684-f047-415f-9c7a-a65fd99d7120",
+      "cron": "0 0 * * 0"
+    }
+  ],
+  "notificationPolicies": [
+    {
+      "id": "28e30a29-f6f4-41b6-9b4b-4b36e0f122f7",
+      "object": "notification_policy",
+      "channel": {
+        "type": "slack",
+        "webhookUrlReference": "SLACK_ALERTS"
+      },
+      "eventSubscriptions": [
+        {
+          "type": "execution_completed",
+          "triggers": [
+            "schedule"
+          ]
+        }
+      ],
+      "active": true
+    }
+  ]
+}
