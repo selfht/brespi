@@ -102,6 +102,7 @@ describe(NotificationDispatchService.name, async () => {
       // then
       expect(context.yesttpMock.post).not.toHaveBeenCalled();
       expect(errorSpy).toHaveBeenCalledWith(
+        expect.anything(),
         expect.objectContaining({
           problem: "NotificationError::dispatch_failed",
         }),
@@ -181,6 +182,7 @@ describe(NotificationDispatchService.name, async () => {
 
       // then
       expect(errorSpy).toHaveBeenCalledWith(
+        expect.anything(),
         expect.objectContaining({
           problem: "NotificationError::dispatch_failed",
           details: expect.objectContaining({
