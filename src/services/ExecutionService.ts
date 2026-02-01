@@ -6,8 +6,7 @@ import { PipelineError } from "@/errors/PipelineError";
 import { ServerError } from "@/errors/ServerError";
 import { Event } from "@/events/Event";
 import { EventBus } from "@/events/EventBus";
-import { FS } from "@/helpers/FS";
-import { Generate } from "@/helpers/Generate";
+import { TempDestination } from "@/helpers/TempDestination";
 import { Mutex } from "@/helpers/Mutex";
 import { ZodProblem } from "@/helpers/ZodIssues";
 import { Action } from "@/models/Action";
@@ -328,7 +327,7 @@ export class ExecutionService {
   private async copyArtifacts(artifacts: Artifact[]): Promise<Artifact[]> {
     const result: Artifact[] = [];
     for (const artifact of artifacts) {
-      const { destinationId, destinationPath } = FS.createTmpDestination(this.env);
+      const { destinationId, destinationPath } = TempDestination.create(this.env);
       await copyFile(artifact.path, destinationPath);
       result.push({
         ...artifact,

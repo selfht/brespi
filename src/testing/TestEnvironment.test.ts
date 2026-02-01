@@ -4,7 +4,7 @@ import { ManagedStorageCapability } from "@/capabilities/managedstorage/ManagedS
 import { initializeSqlite } from "@/drizzle/sqlite";
 import { Env } from "@/Env";
 import { EventBus } from "@/events/EventBus";
-import { Generate } from "@/helpers/Generate";
+import { TempDestination } from "@/helpers/TempDestination";
 import { Artifact } from "@/models/Artifact";
 import { ConfigurationRepository } from "@/repositories/ConfigurationRepository";
 import { ExecutionRepository } from "@/repositories/ExecutionRepository";
@@ -15,10 +15,9 @@ import { ExecutionService } from "@/services/ExecutionService";
 import { NotificationDispatchService } from "@/services/NotificationDispatchService";
 import { OmitBetter } from "@/types/OmitBetter";
 import { jest, mock, Mock } from "bun:test";
-import { Yesttp } from "yesttp";
 import { mkdir, rm } from "fs/promises";
 import { join } from "path";
-import { FS } from "@/helpers/FS";
+import { Yesttp } from "yesttp";
 
 export namespace TestEnvironment {
   type Mocked<T> = {
@@ -159,7 +158,7 @@ export namespace TestEnvironment {
     ): Promise<Artifact[]> {
       const result: Artifact[] = [];
       for (const artifact of artifacts) {
-        const { destinationId, destinationPath } = FS.createTmpDestination(env);
+        const { destinationId, destinationPath } = TempDestination.create(env);
         const name = typeof artifact === "string" ? artifact.slice(2) : artifact.name.slice(2);
         const type = (typeof artifact === "string" ? artifact : artifact.name).startsWith("f:") ? "file" : ("directory" as const);
         const content = typeof artifact === "string" ? `Content for ${artifact}` : artifact.content;

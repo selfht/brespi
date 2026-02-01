@@ -2,8 +2,7 @@ import { Env } from "@/Env";
 import { Exception } from "@/errors/exception/Exception";
 import { ExecutionError } from "@/errors/ExecutionError";
 import { CommandRunner } from "@/helpers/CommandRunner";
-import { FS } from "@/helpers/FS";
-import { Generate } from "@/helpers/Generate";
+import { TempDestination } from "@/helpers/TempDestination";
 import { Artifact } from "@/models/Artifact";
 import { mkdir, stat } from "fs/promises";
 
@@ -27,7 +26,7 @@ export abstract class AbstractAdapter {
   }
 
   protected generateArtifactDestination() {
-    const { destinationId, destinationPath } = FS.createTmpDestination(this.env);
+    const { destinationId, destinationPath } = TempDestination.create(this.env);
     return {
       outputId: destinationId,
       outputPath: destinationPath,
@@ -35,7 +34,7 @@ export abstract class AbstractAdapter {
   }
 
   protected async createTmpDestination(): Promise<string> {
-    const { destinationPath } = FS.createTmpDestination(this.env);
+    const { destinationPath } = TempDestination.create(this.env);
     await mkdir(destinationPath, { recursive: true });
     return destinationPath;
   }
