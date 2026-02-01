@@ -18,10 +18,7 @@
           },
           "databaseSelection": {
             "method": "include",
-            "inclusions": [
-              "app_production",
-              "app_analytics"
-            ]
+            "inclusions": ["app_production", "app_analytics"]
           }
         },
         {
