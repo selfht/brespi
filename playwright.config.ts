@@ -48,6 +48,7 @@ export default defineConfig({
       START_COMMAND: "bun start:e2e",
     },
     command: "docker compose up",
+    stdout: "pipe",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     gracefulShutdown: {

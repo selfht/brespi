@@ -5,16 +5,16 @@ import { NotificationPolicy } from "@/models/NotificationPolicy";
 import { inArray } from "drizzle-orm";
 import { ConfigurationRepository } from "./ConfigurationRepository";
 import { NotificationPolicyMetadataConverter } from "./converters/NotificationPolicyMetadataConverter";
-import { HybridHelper } from "./HybridHelper";
+import { DualRepoHelper } from "./DualRepoHelper";
 
 export class NotificationRepository {
-  private readonly hybridHelper: HybridHelper<NotificationPolicy, NotificationPolicy.Core, NotificationPolicy.Metadata>;
+  private readonly dualRepoHelper: DualRepoHelper<NotificationPolicy, NotificationPolicy.Core, NotificationPolicy.Metadata>;
 
   public constructor(
     private readonly configuration: ConfigurationRepository,
     private readonly sqlite: Sqlite,
   ) {
-    this.hybridHelper = new HybridHelper({
+    this.dualRepoHelper = new DualRepoHelper({
       combineFn: (core, { active }) => ({ ...core, active }),
       standardMetaFn: ({ id }) => NotificationPolicy.Metadata.standard(id),
       listMetasFn: () =>
@@ -31,7 +31,7 @@ export class NotificationRepository {
 
   public async queryPolicies(): Promise<NotificationPolicy[]> {
     const { notificationPolicies } = await this.configuration.read();
-    return await this.hybridHelper.joinMetadata(notificationPolicies);
+    return await this.dualRepoHelper.joinMetadata(notificationPolicies);
   }
 
   public async createPolicy(policy: NotificationPolicy): Promise<NotificationPolicy> {
@@ -87,7 +87,7 @@ export class NotificationRepository {
       if (!existingCore) {
         throw NotificationError.policy_not_found({ id });
       }
-      const existing = await this.hybridHelper.joinMetadata(existingCore);
+      const existing = await this.dualRepoHelper.joinMetadata(existingCore);
       return {
         result: existing,
         configuration: {
@@ -96,12 +96,12 @@ export class NotificationRepository {
         },
       };
     });
-    await this.hybridHelper.deleteMetadata(id);
+    await this.dualRepoHelper.deleteMetadata(id);
     return result;
   }
 
   public async synchronizeWithUpdatedConfiguration(corePolicies: NotificationPolicy.Core[]): Promise<NotificationPolicy[]> {
-    return this.hybridHelper.synchronizeWithUpdatedConfiguration(corePolicies);
+    return this.dualRepoHelper.synchronizeWithUpdatedConfiguration(corePolicies);
   }
 
   private async upsertMetadata(metadata: NotificationPolicy.Metadata): Promise<void> {

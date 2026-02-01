@@ -250,7 +250,7 @@ export class Server {
        */
       error: (e) => this.handleError(e),
     });
-    console.log(`🚀 Server running at ${server.url}`);
+    console.info(`🚀 Server running at ${server.url}`);
   }
 
   private searchParam<T extends `${string}!`>(request: Bun.BunRequest, name: T): string;
@@ -299,7 +299,7 @@ export class Server {
     if (e.message?.includes("invalid input syntax for type")) {
       return Response.json(ServerError.invalid_request_body().json(), { status: 400 });
     }
-    console.error("An unknown error occurred", e);
+    console.error("❌ An unknown error occurred", e);
     return Response.json(ServerError.unknown().json(), { status: 500 });
   }
 }

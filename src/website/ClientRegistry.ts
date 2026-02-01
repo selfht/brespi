@@ -34,7 +34,7 @@ export class ClientRegistry {
       Object.entries(env).forEach(([key, value]) => {
         result += `${key.padEnd(longestKey + 1)}: ${value}\n`;
       });
-      console.log("%cBrespi\n\n%c%s", "font-size: 24px; font-weight: 800;", "font-size: 12px; font-weight: normal", result);
+      console.info("%cBrespi\n\n%c%s", "font-size: 24px; font-weight: 800;", "font-size: 12px; font-weight: normal", result);
     }
   }
 

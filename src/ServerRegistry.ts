@@ -14,6 +14,7 @@ import { Sqlite } from "./drizzle/sqlite";
 import { Env } from "./Env";
 import { EventBus } from "./events/EventBus";
 import { BasicAuthMiddleware } from "./middleware/basicauth/BasicAuthMiddleware";
+import { LoggingMiddleware } from "./middleware/basicauth/LoggingMiddleware";
 import { Middleware } from "./middleware/Middleware";
 import { ConfigurationRepository } from "./repositories/ConfigurationRepository";
 import { ExecutionRepository } from "./repositories/ExecutionRepository";
@@ -100,8 +101,9 @@ export class ServerRegistry {
     this.register({ CleanupService }, [env]);
 
     // Middleware
+    const { loggingMiddleware } = this.register({ LoggingMiddleware }, []);
     const { basicAuthMiddleware } = this.register({ BasicAuthMiddleware }, [env]);
-    const { middleware } = this.register({ Middleware }, [basicAuthMiddleware]);
+    const { middleware } = this.register({ Middleware }, [loggingMiddleware, basicAuthMiddleware]);
     // Server
     this.register({ Server }, [
       env,

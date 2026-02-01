@@ -7,7 +7,7 @@ type Options<F, C, M> = {
   deleteMetasFn(opts: { ids: string[] }): Promise<unknown>;
 };
 
-export class HybridHelper<F, C extends { id: string }, M extends { id: string }> {
+export class DualRepoHelper<F, C extends { id: string }, M extends { id: string }> {
   public constructor(private readonly options: Options<F, C, M>) {}
 
   public async deleteMetadata(id: string): Promise<void> {

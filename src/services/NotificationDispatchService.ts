@@ -51,7 +51,7 @@ export class NotificationDispatchService {
         eventType: event.type,
         cause: e instanceof Error ? e.message : String(e),
       });
-      console.error(error.json());
+      console.error(`❌ Notification failed`, error.json());
     }
   }
 

@@ -5,16 +5,16 @@ import { Schedule } from "@/models/Schedule";
 import { inArray } from "drizzle-orm";
 import { ConfigurationRepository } from "./ConfigurationRepository";
 import { ScheduleMetadataConverter } from "./converters/ScheduleMetadataConverter";
-import { HybridHelper } from "./HybridHelper";
+import { DualRepoHelper } from "./DualRepoHelper";
 
 export class ScheduleRepository {
-  private readonly hybridHelper: HybridHelper<Schedule, Schedule.Core, Schedule.Metadata>;
+  private readonly dualRepoHelper: DualRepoHelper<Schedule, Schedule.Core, Schedule.Metadata>;
 
   public constructor(
     private readonly configuration: ConfigurationRepository,
     private readonly sqlite: Sqlite,
   ) {
-    this.hybridHelper = new HybridHelper({
+    this.dualRepoHelper = new DualRepoHelper({
       combineFn: (core, { active }) => ({ ...core, active }),
       standardMetaFn: ({ id }) => Schedule.Metadata.standard(id),
       listMetasFn: () => this.sqlite.query.$scheduleMetadata.findMany().then((data) => data.map(ScheduleMetadataConverter.convert)),
@@ -32,7 +32,7 @@ export class ScheduleRepository {
     if (q) {
       schedules = schedules.filter((s) => s.pipelineId === q.pipelineId);
     }
-    return await this.hybridHelper.joinMetadata(schedules);
+    return await this.dualRepoHelper.joinMetadata(schedules);
   }
 
   public async create(schedule: Schedule): Promise<Schedule> {
@@ -88,7 +88,7 @@ export class ScheduleRepository {
       if (!existingCore) {
         throw ScheduleError.not_found({ id });
       }
-      const existing = await this.hybridHelper.joinMetadata(existingCore);
+      const existing = await this.dualRepoHelper.joinMetadata(existingCore);
       return {
         result: existing,
         configuration: {
@@ -97,12 +97,12 @@ export class ScheduleRepository {
         },
       };
     });
-    await this.hybridHelper.deleteMetadata(id);
+    await this.dualRepoHelper.deleteMetadata(id);
     return result;
   }
 
   public async synchronizeWithUpdatedConfiguration(coreSchedules: Schedule.Core[]): Promise<Schedule[]> {
-    return this.hybridHelper.synchronizeWithUpdatedConfiguration(coreSchedules);
+    return this.dualRepoHelper.synchronizeWithUpdatedConfiguration(coreSchedules);
   }
 
   private async upsertMetadata(metadata: Schedule.Metadata): Promise<void> {

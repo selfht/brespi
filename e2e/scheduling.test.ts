@@ -10,13 +10,13 @@ test.beforeEach(async ({ request, page }) => {
   await page.goto("");
 });
 
-test.fixme("executes a pipeline every second while active", async ({ page }) => {
+test("executes a pipeline every second while active", async ({ page }) => {
   // given
   const scriptPath = FilesystemBoundary.SCRATCH_PAD.join("simple.sh");
   const outputDir = FilesystemBoundary.SCRATCH_PAD.join("output");
   await Common.writeExecutableFile(scriptPath).withContents(`
       #!/bin/bash
-      echo "Hello World" > "$BRESPI_ARTIFACTACTS_OUT/greetings.txt"
+      echo "Hello World" > "$BRESPI_ARTIFACTS_OUT/greetings.txt"
     `);
   const { name } = await createPipeline(page, {
     scriptPath,
