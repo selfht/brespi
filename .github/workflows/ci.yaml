@@ -34,7 +34,10 @@ jobs:
         run: bun tc
 
       - name: "Application :: Unit Tests"
-        run: bun test
+        run: bun test:unit
+
+      - name: "Application :: Regression Tests"
+        run: bun test:regression
 
       - name: "Application :: E2E Tests"
         run: HOST_UID=$(id -u) HOST_GID=$(id -g) bun e2e:headless

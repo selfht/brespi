@@ -30,7 +30,7 @@ This is a work in progress with the following TODO's:
 ### QA
 * ✅ Configure headless Playwright to run the app in "production" mode (unless port 3000 is already listening)
 * ✅ Set up a pipeline for typechecking, unit testing and e2e testing
-* Create a "regression suite" consisting of a healthy mix of possible data configurations, to try and detect accidental backwards-incompatible data changes
+* ✅ Create a "regression suite" consisting of a healthy mix of possible data configurations, to try and detect accidental backwards-incompatible data changes
 * Test the "regression suite" by introducing/mandating a new property on the `eventSubscription` object (an array of `pipelineIds`)
 
 ### Technical
