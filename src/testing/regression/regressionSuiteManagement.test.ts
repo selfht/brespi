@@ -3,7 +3,7 @@ import { $action, $execution, $notificationPolicyMetadata, $scheduleMetadata } f
 import { initializeSqlite, Sqlite } from "@/drizzle/sqlite";
 import { Env } from "@/Env";
 import { describe, test } from "bun:test";
-import { InferInsertModel } from "drizzle-orm";
+import { getTableName, InferInsertModel } from "drizzle-orm";
 import { basename, dirname, join } from "path";
 
 /**
@@ -59,7 +59,10 @@ export namespace regressionSuiteManagement {
       $scheduleMetadata: $scheduleMetadata,
       $notificationPolicyMetadata: $notificationPolicyMetadata,
     };
-    return Object.entries(tables).map(([tableName, table]) => ({ tableName, table }));
+    return Object.values(tables).map((table) => ({
+      table,
+      tableName: getTableName(table),
+    }));
   }
 
   const databasePath = join(suitePath, "db.sqlite");
