@@ -8,7 +8,7 @@ import { Interactivity } from "./Interactivity";
 import { createCell } from "./jointframework/createCell";
 import { createLink } from "./jointframework/createLink";
 import { createPaper } from "./jointframework/createPaper";
-import { CalloutHelper } from "./jointframework/visuals/CalloutHelper";
+import { CalloutManager } from "./jointframework/visuals/CalloutManager";
 import { PositioningHelper } from "./jointframework/visuals/BlockPositioningHelper";
 import { StylingHelper } from "./jointframework/visuals/BlockStylingHelper";
 import { setupBlockInteractions } from "./jointframework/setupBlockInteractions";
@@ -36,6 +36,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
   const elementRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<dia.Graph>(null);
   const paperRef = useRef<dia.Paper>(null);
+  const calloutManagerRef = useRef<CalloutManager>(null);
   const blocksRef = useRef<JointBlock[]>([]);
   const interactivityRef = useRef<Interactivity>(interactivity);
   const suppressEventsRef = useRef<boolean>(false);
@@ -85,7 +86,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
       /**
        * Part 1/2: cleanup
        */
-      CalloutHelper.hideDetails();
+      calloutManagerRef.current?.hideDetails();
       paperRef.current!.translate(0, 0);
       graphRef.current!.clear();
       /**
@@ -208,7 +209,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
       Object.assign(block, changes);
       StylingHelper.synchronizeBlockStylingWithCell(cell, block);
       if (block.selected && changes.details) {
-        CalloutHelper.showDetails(cell, {
+        calloutManagerRef.current?.showDetails(cell, {
           label: changes.label,
           theme: changes.theme,
           details: changes.details,
@@ -235,7 +236,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
           if (cell) {
             StylingHelper.synchronizeBlockStylingWithCell(cell, block);
             if (block.id !== id) {
-              CalloutHelper.hideDetails(cell);
+              calloutManagerRef.current?.hideDetails();
             }
           }
         });
@@ -243,7 +244,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
         if (interactivityRef.current === Interactivity.viewing) {
           const targetCell = graphRef.current!.getCell(id);
           if (targetCell && targetBlock.details) {
-            CalloutHelper.showDetails(targetCell, {
+            calloutManagerRef.current?.showDetails(targetCell, {
               theme: targetBlock.theme,
               label: targetBlock.label,
               details: targetBlock.details,
@@ -260,7 +261,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
         const cell = graphRef.current!.getCell(id);
         if (cell) {
           StylingHelper.synchronizeBlockStylingWithCell(cell, block);
-          CalloutHelper.hideDetails(cell);
+          calloutManagerRef.current?.hideDetails();
           internal.notifyBlocksChange(CanvasEvent.deselect);
         }
       }
@@ -281,8 +282,8 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
     });
     graphRef.current = graph;
     paperRef.current = paper;
+    calloutManagerRef.current = new CalloutManager(paper);
 
-    CalloutHelper.initialize(paper);
     setupBlockInteractions({
       graph,
       paper,
@@ -310,7 +311,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
     observer.observe(elementRef.current.parentElement!);
 
     return () => {
-      CalloutHelper.cleanup();
+      calloutManagerRef.current?.cleanup();
       panning.cleanup();
       observer.disconnect();
       paper.remove();

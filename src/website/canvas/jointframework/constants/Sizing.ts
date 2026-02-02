@@ -31,6 +31,14 @@ export namespace Sizing {
    */
   export const CALLOUT_WIDTH = 240;
   export const CALLOUT_Y_OFFSET = 10; // Distance below label
+  export const CALLOUT_PADDING = 8;
+  export const CALLOUT_GAP = 12;
+  export const CALLOUT_LABEL_FONT_SIZE = 18;
+  export const CALLOUT_KEY_FONT_SIZE = 14;
+  export const CALLOUT_VALUE_FONT_SIZE = 14;
+  export const CALLOUT_LINE_HEIGHT = 1.4;
+  export const CALLOUT_BORDER_RADIUS = 8;
+  export const CALLOUT_BORDER_WIDTH = 3;
 
   /**
    * Link (connection arrow) styling
