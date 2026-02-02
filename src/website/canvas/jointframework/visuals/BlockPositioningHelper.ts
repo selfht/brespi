@@ -2,7 +2,7 @@ import { Block } from "../../Block";
 import { Coordinates } from "../models/Coordinates";
 import { Dimensions } from "../models/Dimensions";
 import { JointBlock } from "../models/JointBlock";
-import { Sizing } from "../sizing/Sizing";
+import { Sizing } from "../constants/Sizing";
 
 export namespace PositioningHelper {
   export function performSmartPositioning(blocks: Block[], paperDimensions: Dimensions): JointBlock[] {

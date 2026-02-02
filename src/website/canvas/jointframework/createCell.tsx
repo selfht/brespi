@@ -1,10 +1,15 @@
-import { Spinner } from "@/website/comps/Spinner";
 import { dia, shapes } from "@joint/core";
-import { renderToString } from "react-dom/server";
 import { Block } from "../Block";
-import { StylingHelper } from "./helpers/StylingHelper";
+import { StylingHelper } from "./visuals/BlockStylingHelper";
 import { JointBlock } from "./models/JointBlock";
-import { Sizing } from "./sizing/Sizing";
+import { Sizing } from "./constants/Sizing";
+
+// SVG spinner constants
+const SPINNER_SIZE = 20;
+const SPINNER_STROKE_WIDTH = 2;
+const SPINNER_RADIUS = (SPINNER_SIZE - SPINNER_STROKE_WIDTH) / 2;
+const SPINNER_CIRCUMFERENCE = 2 * Math.PI * SPINNER_RADIUS;
+const SPINNER_DASH_ARRAY = `${SPINNER_CIRCUMFERENCE * 0.75} ${SPINNER_CIRCUMFERENCE * 0.25}`;
 
 export function createCell(block: JointBlock) {
   const items: dia.Element.Port[] = [];
@@ -63,9 +68,18 @@ export function createCell(block: JointBlock) {
       },
       markup: [
         { tagName: "rect", selector: "body" },
-        { tagName: "foreignObject", selector: "spinner" },
+        {
+          tagName: "g",
+          selector: "spinner",
+          children: [
+            {
+              tagName: "circle",
+              selector: "spinnerCircle",
+              children: [{ tagName: "animateTransform", selector: "spinnerAnimation" }],
+            },
+          ],
+        },
         { tagName: "text", selector: "label" },
-        { tagName: "foreignObject", selector: "callout" },
       ],
       attrs: {
         root: {
@@ -80,15 +94,25 @@ export function createCell(block: JointBlock) {
         },
         spinner: {
           display: "none",
-          x: 0,
-          y: 0,
-          width: "calc(w)",
-          height: "calc(h)",
-          html: renderToString(
-            <div className="h-full flex justify-center items-center border-transparent" style={{ borderWidth: Sizing.BLOCK_STROKE_WIDTH }}>
-              <Spinner className="border-c-info! border-t-c-info/0!" />
-            </div>,
-          ),
+          transform: `translate(calc(0.5*w - ${SPINNER_SIZE / 2}), calc(0.5*h - ${SPINNER_SIZE / 2}))`,
+        },
+        spinnerCircle: {
+          cx: SPINNER_SIZE / 2,
+          cy: SPINNER_SIZE / 2,
+          r: SPINNER_RADIUS,
+          fill: "none",
+          stroke: "#3b82f6", // c-info color
+          strokeWidth: SPINNER_STROKE_WIDTH,
+          strokeDasharray: SPINNER_DASH_ARRAY,
+          strokeLinecap: "round",
+        },
+        spinnerAnimation: {
+          attributeName: "transform",
+          type: "rotate",
+          from: `0 ${SPINNER_SIZE / 2} ${SPINNER_SIZE / 2}`,
+          to: `360 ${SPINNER_SIZE / 2} ${SPINNER_SIZE / 2}`,
+          dur: "1s",
+          repeatCount: "indefinite",
         },
         label: {
           text: block.label,
@@ -97,17 +121,6 @@ export function createCell(block: JointBlock) {
           x: "calc(0.5*w)", // Center horizontally
           y: `calc(h+${Sizing.LABEL_Y_OFFSET})`, // Below block
           textAnchor: "middle",
-        },
-        callout: {
-          display: "none", // Hidden by default
-          x: `calc(0.5*w-${Sizing.CALLOUT_WIDTH / 2})`,
-          y: `calc(h+${Sizing.CALLOUT_Y_OFFSET})`, // Below label with spacing
-          width: Sizing.CALLOUT_WIDTH,
-          height: 1, // Will grow based on content
-          style: {
-            overflow: "visible",
-          },
-          html: "",
         },
       },
       ports: {

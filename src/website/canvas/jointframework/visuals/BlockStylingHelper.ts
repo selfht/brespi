@@ -1,6 +1,5 @@
 import { dia } from "@joint/core";
 import { Block } from "../../Block";
-import clsx from "clsx";
 
 export namespace StylingHelper {
   export function synchronizeBlockStylingWithCell(cell: dia.Cell, { theme, selected, handles }: Block): dia.Cell {

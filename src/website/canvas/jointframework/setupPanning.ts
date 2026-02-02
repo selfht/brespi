@@ -1,6 +1,6 @@
 import { dia } from "@joint/core";
 import { RefObject } from "react";
-import { Sizing } from "./sizing/Sizing";
+import { Sizing } from "./constants/Sizing";
 
 type Options = {
   paperRef: RefObject<dia.Paper | null>;

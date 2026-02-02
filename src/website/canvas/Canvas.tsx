@@ -8,9 +8,9 @@ import { Interactivity } from "./Interactivity";
 import { createCell } from "./jointframework/createCell";
 import { createLink } from "./jointframework/createLink";
 import { createPaper } from "./jointframework/createPaper";
-import { CalloutHelper } from "./jointframework/helpers/CalloutHelper";
-import { PositioningHelper } from "./jointframework/helpers/PositioningHelper";
-import { StylingHelper } from "./jointframework/helpers/StylingHelper";
+import { CalloutHelper } from "./jointframework/visuals/CalloutHelper";
+import { PositioningHelper } from "./jointframework/visuals/BlockPositioningHelper";
+import { StylingHelper } from "./jointframework/visuals/BlockStylingHelper";
 import { setupBlockInteractions } from "./jointframework/setupBlockInteractions";
 import { setupLinkInteractions } from "./jointframework/setupLinkInteractions";
 import { setupPanning } from "./jointframework/setupPanning";
@@ -85,6 +85,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
       /**
        * Part 1/2: cleanup
        */
+      CalloutHelper.hideDetails();
       paperRef.current!.translate(0, 0);
       graphRef.current!.clear();
       /**
@@ -281,6 +282,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
     graphRef.current = graph;
     paperRef.current = paper;
 
+    CalloutHelper.initialize(paper);
     setupBlockInteractions({
       graph,
       paper,
@@ -308,6 +310,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
     observer.observe(elementRef.current.parentElement!);
 
     return () => {
+      CalloutHelper.cleanup();
       panning.cleanup();
       observer.disconnect();
       paper.remove();

@@ -4,7 +4,7 @@ import { Block } from "../Block";
 import { JointBlockWithProposedHandle } from "./models/JointBlockWithProposedHandle";
 import { JointBlock } from "./models/JointBlock";
 import { createLink } from "./createLink";
-import { Sizing } from "./sizing/Sizing";
+import { Sizing } from "./constants/Sizing";
 
 type Options = {
   elementRef: RefObject<HTMLElement | null>;

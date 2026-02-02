@@ -76,6 +76,55 @@ const COLORS = {
 
 type CalloutData = Pick<RequireNoNulls<JointBlock>, "theme" | "label" | "details">;
 
+/**
+ * SVG Spinner - equivalent to the CSS border spinner
+ * Uses stroke-dasharray to create a 3/4 arc and animateTransform for rotation
+ */
+function SvgSpinner({ size = 20, strokeWidth = 2, color = "#3b82f6" }: { size?: number; strokeWidth?: number; color?: string }) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  // Show 3/4 of the circle (like border-t-transparent)
+  const dashArray = `${circumference * 0.75} ${circumference * 0.25}`;
+
+  return (
+    <g>
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeDasharray={dashArray}
+        strokeLinecap="round"
+      >
+        <animateTransform
+          attributeName="transform"
+          type="rotate"
+          from={`0 ${size / 2} ${size / 2}`}
+          to={`360 ${size / 2} ${size / 2}`}
+          dur="1s"
+          repeatCount="indefinite"
+        />
+      </circle>
+    </g>
+  );
+}
+
+/**
+ * Block with spinner inside (like the "busy" state)
+ */
+function SvgBlockWithSpinner({ width = 60, height = 45 }: { width?: number; height?: number }) {
+  return (
+    <g>
+      <rect width={width} height={height} rx={8} fill="#f3f4f6" stroke="#3b82f6" strokeWidth={2} />
+      <g transform={`translate(${width / 2 - 10}, ${height / 2 - 10})`}>
+        <SvgSpinner size={20} strokeWidth={2} color="#3b82f6" />
+      </g>
+    </g>
+  );
+}
+
 function SvgCallout({ data, width }: { data: CalloutData; width: number }) {
   const { theme, label, details } = data;
   const colors = COLORS[theme];
@@ -237,6 +286,7 @@ export function svgExperimentPage() {
     <div style={{ padding: 20 }}>
       <h1 style={{ marginBottom: 16 }}>SVG Experiment (no foreignObject)</h1>
       <svg width="800" height="700" style={{ border: "1px solid #ccc", background: "#fafafa" }}>
+        {/* Callout examples */}
         <g transform="translate(20, 20)">
           <SvgCallout data={calloutData} width={220} />
         </g>
@@ -247,6 +297,32 @@ export function svgExperimentPage() {
 
         <g transform="translate(550, 20)">
           <SvgCallout data={calloutData3} width={200} />
+        </g>
+
+        {/* Spinner examples */}
+        <g transform="translate(20, 400)">
+          <text y={-10} fontSize={14} fontWeight="bold" fill="#333">
+            Spinners (native SVG)
+          </text>
+
+          {/* Standalone spinners */}
+          <g transform="translate(0, 10)">
+            <SvgSpinner size={20} color="#3b82f6" />
+          </g>
+          <g transform="translate(40, 10)">
+            <SvgSpinner size={30} strokeWidth={3} color="#22c55e" />
+          </g>
+          <g transform="translate(90, 10)">
+            <SvgSpinner size={40} strokeWidth={4} color="#ef4444" />
+          </g>
+
+          {/* Block with spinner (busy state) */}
+          <g transform="translate(160, 0)">
+            <SvgBlockWithSpinner />
+            <text x={30} y={65} fontSize={12} textAnchor="middle" fill="#666">
+              Busy block
+            </text>
+          </g>
         </g>
       </svg>
     </div>

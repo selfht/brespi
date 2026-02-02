@@ -1,5 +1,5 @@
 import { shapes } from "@joint/core";
-import { Sizing } from "./sizing/Sizing";
+import { Sizing } from "./constants/Sizing";
 
 export function createLink() {
   return new shapes.standard.Link({
