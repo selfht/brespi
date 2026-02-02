@@ -7,6 +7,7 @@ import { notificationsPage } from "./pages/notifications.page";
 import { pipelinesPage } from "./pages/pipelines.page";
 import { pipelines$idPage } from "./pages/pipelines.$id.page";
 import { schedulesPage } from "./pages/schedules.page";
+import { svgExperimentPage } from "./pages/svg-experiment.page";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
   {
     path: "configuration",
     Component: configurationPage,
+  },
+  {
+    path: "svg-experiment",
+    Component: svgExperimentPage,
   },
   {
     path: "*",
