@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { useEffect } from "react";
 
 const { summary, Field, Label, Description } = FormHelper.meta({
   summary: "Used for writing to the local filesystem.",
@@ -25,12 +26,21 @@ const { summary, Field, Label, Description } = FormHelper.meta({
     },
   },
 });
+
 type Form = {
   [Field.folderPath]: string;
   [Field.managedStorage]: "true" | "false";
   [Field.retentionPolicy]: "none" | "last_n_versions";
   [Field.retentionMaxVersions]: number;
 };
+function defaultValues(existing: Step.FilesystemWrite | undefined): Form {
+  return {
+    [Field.folderPath]: existing?.folderPath ?? "",
+    [Field.managedStorage]: existing ? (existing.managedStorage ? "true" : "false") : "false",
+    [Field.retentionPolicy]: existing ? (existing.retention ? existing.retention.policy : "none") : "none",
+    [Field.retentionMaxVersions]: existing ? (existing.retention ? existing.retention.maxVersions : 10) : 10,
+  };
+}
 
 type Props = {
   id: string;
@@ -41,14 +51,10 @@ type Props = {
   className?: string;
 };
 export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
-    defaultValues: {
-      [Field.folderPath]: existing?.folderPath ?? "",
-      [Field.managedStorage]: existing ? (existing.managedStorage ? "true" : "false") : "false",
-      [Field.retentionPolicy]: existing ? (existing.retention ? existing.retention.policy : "none") : "none",
-      [Field.retentionMaxVersions]: existing ? (existing.retention ? existing.retention.maxVersions : 10) : 10,
-    } satisfies Form,
+  const { register, handleSubmit, formState, watch, setError, clearErrors, reset } = useForm<Form>({
+    defaultValues: defaultValues(existing),
   });
+  useEffect(() => reset(defaultValues(existing)), [existing]);
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
     try {

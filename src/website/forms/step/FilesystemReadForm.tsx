@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { useEffect } from "react";
 
 const { summary, Field, Label, Description } = FormHelper.meta({
   summary: "Used for reading from the local filesystem.",
@@ -45,6 +46,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
     },
   },
 });
+
 type Form = {
   [Field.path]: string;
   [Field.managedStorage]: "true" | "false";
@@ -56,6 +58,19 @@ type Form = {
   [Field.filterCriteria_nameGlob]: string;
   [Field.filterCriteria_nameRegex]: string;
 };
+function defaultValues(existing: Step.FilesystemRead | undefined): Form {
+  return {
+    [Field.path]: existing?.path ?? "",
+    [Field.managedStorage]: existing ? (existing.managedStorage ? "true" : "false") : "false",
+    [Field.managedStorage_target]: existing?.managedStorage?.target ?? "latest",
+    [Field.managedStorage_version]: existing?.managedStorage?.target ?? "",
+    [Field.filterCriteria]: existing ? (existing.filterCriteria ? "true" : "false") : "false",
+    [Field.filterCriteria_method]: existing?.filterCriteria?.method ?? "exact",
+    [Field.filterCriteria_name]: existing?.filterCriteria?.method === "exact" ? existing.filterCriteria.name : "",
+    [Field.filterCriteria_nameGlob]: existing?.filterCriteria?.method === "glob" ? existing.filterCriteria.nameGlob : "",
+    [Field.filterCriteria_nameRegex]: existing?.filterCriteria?.method === "regex" ? existing.filterCriteria.nameRegex : "",
+  };
+}
 
 type Props = {
   id: string;
@@ -66,19 +81,10 @@ type Props = {
   className?: string;
 };
 export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
-    defaultValues: {
-      [Field.path]: existing?.path ?? "",
-      [Field.managedStorage]: existing ? (existing.managedStorage ? "true" : "false") : "false",
-      [Field.managedStorage_target]: existing?.managedStorage?.target ?? "latest",
-      [Field.managedStorage_version]: existing?.managedStorage?.target ?? "",
-      [Field.filterCriteria]: existing ? (existing.filterCriteria ? "true" : "false") : "false",
-      [Field.filterCriteria_method]: existing?.filterCriteria?.method ?? "exact",
-      [Field.filterCriteria_name]: existing?.filterCriteria?.method === "exact" ? existing.filterCriteria.name : "",
-      [Field.filterCriteria_nameGlob]: existing?.filterCriteria?.method === "glob" ? existing.filterCriteria.nameGlob : "",
-      [Field.filterCriteria_nameRegex]: existing?.filterCriteria?.method === "regex" ? existing.filterCriteria.nameRegex : "",
-    } satisfies Form,
+  const { register, handleSubmit, formState, watch, setError, clearErrors, reset } = useForm<Form>({
+    defaultValues: defaultValues(existing),
   });
+  useEffect(() => reset(defaultValues(existing)), [existing]);
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
     try {

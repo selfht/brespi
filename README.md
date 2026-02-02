@@ -39,7 +39,7 @@ This is a work in progress with the following TODO's:
 * ✅ Firefox: test canvas and `foreignObject`
 * ✅ Webkit: attempt to migrate away from [`foreignObject`](https://bugs.webkit.org/show_bug.cgi?id=23113)
 * ✅ Bug: should be able to also link step arrows when editing a step (no matter if it's new or not); implement some kind of "after_submit" hook which defines the new relations afterwards?
-* Bug: when you have multiple "Filter" steps (use the seed example) and you click them in the editor, their form details dont update in between clicking
+* ✅ Bug: when you have multiple "Filter" steps (use the seed example) and you click them in the editor, their form details dont update in between clicking
 * More e2e tests for the editor for both of the 2 bugs above
 * Add e2e tests for the configuration flow (change something -> update -> save/discard -> changes in schedules automatically reflected -> etc etc)
 * Make sure both Pipelines and Schedules are ordered from new to old in the `Configuration` with uuidv7

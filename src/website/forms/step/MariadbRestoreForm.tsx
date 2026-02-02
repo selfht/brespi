@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { useEffect } from "react";
 
 const { summary, Field, Label, Description } = FormHelper.meta({
   summary: (
@@ -41,12 +42,21 @@ const { summary, Field, Label, Description } = FormHelper.meta({
     },
   },
 });
+
 type Form = {
   [Field.connectionReference]: string;
   [Field.toolkit_resolution]: "automatic" | "manual";
   [Field.toolkit_mariadb]: string;
   [Field.database]: string;
 };
+function defaultValues(existing: Step.MariadbRestore | undefined): Form {
+  return {
+    [Field.connectionReference]: existing?.connectionReference ?? "",
+    [Field.toolkit_resolution]: existing?.toolkit.resolution ?? "automatic",
+    [Field.toolkit_mariadb]: existing?.toolkit.resolution === "manual" ? existing.toolkit.mariadb : "",
+    [Field.database]: existing?.database ?? "",
+  };
+}
 
 type Props = {
   id: string;
@@ -57,14 +67,10 @@ type Props = {
   className?: string;
 };
 export function MariadbRestoreForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
-    defaultValues: {
-      [Field.connectionReference]: existing?.connectionReference ?? "",
-      [Field.toolkit_resolution]: existing?.toolkit.resolution ?? "automatic",
-      [Field.toolkit_mariadb]: existing?.toolkit.resolution === "manual" ? existing.toolkit.mariadb : "",
-      [Field.database]: existing?.database ?? "",
-    } satisfies Form,
+  const { register, handleSubmit, formState, watch, setError, clearErrors, reset } = useForm<Form>({
+    defaultValues: defaultValues(existing),
   });
+  useEffect(() => reset(defaultValues(existing)), [existing]);
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
     try {

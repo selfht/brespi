@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { useEffect } from "react";
 
 const { summary, Field, Label, Description } = FormHelper.meta({
   summary: (
@@ -57,6 +58,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
     },
   },
 });
+
 type Form = {
   [Field.connectionReference]: string;
   [Field.toolkit_resolution]: "automatic" | "manual";
@@ -66,6 +68,19 @@ type Form = {
   [Field.databaseSelection_inclusions]: string;
   [Field.databaseSelection_exclusions]: string;
 };
+function defaultValues(existing: Step.PostgresqlBackup | undefined): Form {
+  return {
+    [Field.connectionReference]: existing?.connectionReference ?? "",
+    [Field.toolkit_resolution]: existing?.toolkit.resolution ?? "automatic",
+    [Field.toolkit_psql]: existing?.toolkit.resolution === "manual" ? existing.toolkit.psql : "",
+    [Field.toolkit_pg_dump]: existing?.toolkit.resolution === "manual" ? existing.toolkit.pg_dump : "",
+    [Field.databaseSelection_strategy]: existing?.databaseSelection.method ?? "all",
+    [Field.databaseSelection_inclusions]:
+      existing?.databaseSelection.method === "include" ? existing.databaseSelection.inclusions.join(",") : "",
+    [Field.databaseSelection_exclusions]:
+      existing?.databaseSelection.method === "exclude" ? existing.databaseSelection.exclusions.join(",") : "",
+  };
+}
 
 type Props = {
   id: string;
@@ -76,19 +91,10 @@ type Props = {
   className?: string;
 };
 export function PostgresqlBackupForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
-    defaultValues: {
-      [Field.connectionReference]: existing?.connectionReference ?? "",
-      [Field.toolkit_resolution]: existing?.toolkit.resolution ?? "automatic",
-      [Field.toolkit_psql]: existing?.toolkit.resolution === "manual" ? existing.toolkit.psql : "",
-      [Field.toolkit_pg_dump]: existing?.toolkit.resolution === "manual" ? existing.toolkit.pg_dump : "",
-      [Field.databaseSelection_strategy]: existing?.databaseSelection.method ?? "all",
-      [Field.databaseSelection_inclusions]:
-        existing?.databaseSelection.method === "include" ? existing.databaseSelection.inclusions.join(",") : "",
-      [Field.databaseSelection_exclusions]:
-        existing?.databaseSelection.method === "exclude" ? existing.databaseSelection.exclusions.join(",") : "",
-    } satisfies Form,
+  const { register, handleSubmit, formState, watch, setError, clearErrors, reset } = useForm<Form>({
+    defaultValues: defaultValues(existing),
   });
+  useEffect(() => reset(defaultValues(existing)), [existing]);
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
     try {

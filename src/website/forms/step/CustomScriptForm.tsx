@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { useEffect } from "react";
 
 const { summary, Field, Label, Description } = FormHelper.meta({
   summary: "Used for executing a custom bash script, with the possiblity of generating, transforming or otherwise processing artifacts.",
@@ -23,10 +24,17 @@ const { summary, Field, Label, Description } = FormHelper.meta({
     },
   },
 });
+
 type Form = {
   [Field.path]: string;
   [Field.passthrough]: "true" | "false";
 };
+function defaultValues(existing: Step.CustomScript | undefined): Form {
+  return {
+    [Field.path]: existing?.path ?? "",
+    [Field.passthrough]: existing ? (existing.passthrough ? "true" : "false") : "true",
+  };
+}
 
 type Props = {
   id: string;
@@ -37,12 +45,10 @@ type Props = {
   className?: string;
 };
 export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
-    defaultValues: {
-      [Field.path]: existing?.path ?? "",
-      [Field.passthrough]: existing ? (existing.passthrough ? "true" : "false") : "true",
-    } satisfies Form,
+  const { register, handleSubmit, formState, watch, setError, clearErrors, reset } = useForm<Form>({
+    defaultValues: defaultValues(existing),
   });
+  useEffect(() => reset(defaultValues(existing)), [existing]);
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
     try {

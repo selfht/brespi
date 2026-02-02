@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { useEffect } from "react";
 
 const { summary, Field, Label, Description } = FormHelper.meta({
   summary: "Used for decompressing file artifacts.",
@@ -12,9 +13,15 @@ const { summary, Field, Label, Description } = FormHelper.meta({
     },
   },
 });
+
 type Form = {
   [Field.algorithm_implementation]: "targzip";
 };
+function defaultValues(existing: Step.Decompression | undefined): Form {
+  return {
+    [Field.algorithm_implementation]: existing?.algorithm.implementation ?? "targzip",
+  };
+}
 
 type Props = {
   id: string;
@@ -25,11 +32,10 @@ type Props = {
   className?: string;
 };
 export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
-    defaultValues: {
-      [Field.algorithm_implementation]: existing?.algorithm.implementation ?? "targzip",
-    } satisfies Form,
+  const { register, handleSubmit, formState, setError, clearErrors, reset } = useForm<Form>({
+    defaultValues: defaultValues(existing),
   });
+  useEffect(() => reset(defaultValues(existing)), [existing]);
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
     try {

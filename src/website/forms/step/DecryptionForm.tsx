@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { useEffect } from "react";
 
 const { summary, Field, Label, Description } = FormHelper.meta({
   summary: "Used for decrypting file artifacts.",
@@ -16,10 +17,17 @@ const { summary, Field, Label, Description } = FormHelper.meta({
     },
   },
 });
+
 type Form = {
   [Field.keyReference]: string;
   [Field.algorithm_implementation]: "aes256cbc";
 };
+function defaultValues(existing: Step.Decryption | undefined): Form {
+  return {
+    [Field.keyReference]: existing?.keyReference ?? "",
+    [Field.algorithm_implementation]: existing?.algorithm.implementation ?? "aes256cbc",
+  };
+}
 
 type Props = {
   id: string;
@@ -30,12 +38,10 @@ type Props = {
   className?: string;
 };
 export function DecryptionForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, setError, clearErrors } = useForm<Form>({
-    defaultValues: {
-      [Field.keyReference]: existing?.keyReference ?? "",
-      [Field.algorithm_implementation]: existing?.algorithm.implementation ?? "aes256cbc",
-    } satisfies Form,
+  const { register, handleSubmit, formState, setError, clearErrors, reset } = useForm<Form>({
+    defaultValues: defaultValues(existing),
   });
+  useEffect(() => reset(defaultValues(existing)), [existing]);
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
     try {
