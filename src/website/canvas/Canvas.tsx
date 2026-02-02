@@ -164,6 +164,9 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
         }
       });
     },
+    list() {
+      return blocksRef.current ?? [];
+    },
     insert(block) {
       block = {
         id: block.id,
@@ -355,6 +358,7 @@ export namespace Canvas {
     reset: (blocks: Block[]) => Promise<void>;
     format: () => void;
     // crud
+    list: () => Block[];
     insert: (block: OmitBetter<Block, "incomingId">) => void;
     update: (id: string, changes: Pick<Block, "theme" | "label" | "details">) => void;
     remove: (id: string) => void;

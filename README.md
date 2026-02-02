@@ -38,7 +38,7 @@ This is a work in progress with the following TODO's:
 * ✅ Use consistent casing in all form labels and E2E fixtures
 * ✅ Firefox: test canvas and `foreignObject`
 * ✅ Webkit: attempt to migrate away from [`foreignObject`](https://bugs.webkit.org/show_bug.cgi?id=23113)
-* Bug: should be able to also link step arrows when editing a step (no matter if it's new or not); implement some kind of "after_submit" hook which defines the new relations afterwards?
+* ✅ Bug: should be able to also link step arrows when editing a step (no matter if it's new or not); implement some kind of "after_submit" hook which defines the new relations afterwards?
 * Bug: when you have multiple "Filter" steps (use the seed example) and you click them in the editor, their form details dont update in between clicking
 * More e2e tests for the editor for both of the 2 bugs above
 * Add e2e tests for the configuration flow (change something -> update -> save/discard -> changes in schedules automatically reflected -> etc etc)
@@ -52,7 +52,7 @@ This is a work in progress with the following TODO's:
 ### Polish
 * Icons for each different step
 * Automatically include the application version
-* Background and footer link to org
+* Add a nice background and a footer link to the org
 
 ### Distribution
 * Create a shell script for building docker images with the appropriate toolset (only requirements: git + bash + docker)

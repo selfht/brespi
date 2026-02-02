@@ -299,6 +299,7 @@ export function pipelines$idPage() {
       } else {
         mainForm.setValue("steps", [...steps, step]);
       }
+      canvasListener.handleBlocksChange(CanvasEvent.relation, canvasApi.current!.list()); // Keep `step` relations up-to-date, after saving
       setStepForm((stepForm) => {
         if (stepForm) {
           canvasApi.current!.deselect(stepForm.id);
@@ -315,6 +316,7 @@ export function pipelines$idPage() {
           "steps",
           steps.filter((s) => s.id !== id),
         );
+        canvasListener.handleBlocksChange(CanvasEvent.relation, canvasApi.current!.list()); // Keep `step` relations up-to-date, after saving
         setStepForm(undefined);
         canvasApi.current!.remove(id);
       } else {
@@ -357,6 +359,7 @@ export function pipelines$idPage() {
       }
       // Relation events
       if (event === CanvasEvent.relation) {
+        // TODO ---- trigger this part of the code after creating/updating/deleting a step? below should give the latest status?
         mainForm.setValue(
           "steps",
           mainForm.getValues("steps").map((step): Step => {
@@ -514,12 +517,7 @@ export function pipelines$idPage() {
                     Full screen
                   </button>
                 </div>
-                <Canvas
-                  ref={canvasApi}
-                  interactivity={interactivity}
-                  onBlocksChange={canvasListener.handleBlocksChange}
-                  extraValidateArrow={() => !stepFormRef.current} // no linking during form edits
-                />
+                <Canvas ref={canvasApi} interactivity={interactivity} onBlocksChange={canvasListener.handleBlocksChange} />
               </div>
             </div>
             {/* DETAILS */}

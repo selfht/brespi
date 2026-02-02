@@ -2,6 +2,7 @@ import { Step } from "@/models/Step";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormElements } from "../FormElements";
 import { FormHelper } from "../FormHelper";
+import { useEffect } from "react";
 
 const { summary, Field, Label, Description } = FormHelper.meta({
   summary: "Used for filtering artifacts by name matching.",
@@ -24,12 +25,21 @@ const { summary, Field, Label, Description } = FormHelper.meta({
     },
   },
 });
+
 type Form = {
   [Field.filterCriteria_method]: "exact" | "glob" | "regex";
   [Field.filterCriteria_name]: string;
   [Field.filterCriteria_nameGlob]: string;
   [Field.filterCriteria_nameRegex]: string;
 };
+function defaultValues(existing: Step.Filter | undefined): Form {
+  return {
+    [Field.filterCriteria_method]: existing?.filterCriteria.method ?? "exact",
+    [Field.filterCriteria_name]: existing?.filterCriteria.method === "exact" ? existing.filterCriteria.name : "",
+    [Field.filterCriteria_nameGlob]: existing?.filterCriteria.method === "glob" ? existing.filterCriteria.nameGlob : "",
+    [Field.filterCriteria_nameRegex]: existing?.filterCriteria.method === "regex" ? existing.filterCriteria.nameRegex : "",
+  };
+}
 
 type Props = {
   id: string;
@@ -40,14 +50,10 @@ type Props = {
   className?: string;
 };
 export function FilterForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
-    defaultValues: {
-      [Field.filterCriteria_method]: existing?.filterCriteria.method ?? "exact",
-      [Field.filterCriteria_name]: existing?.filterCriteria.method === "exact" ? existing.filterCriteria.name : "",
-      [Field.filterCriteria_nameGlob]: existing?.filterCriteria.method === "glob" ? existing.filterCriteria.nameGlob : "",
-      [Field.filterCriteria_nameRegex]: existing?.filterCriteria.method === "regex" ? existing.filterCriteria.nameRegex : "",
-    } satisfies Form,
+  const { register, handleSubmit, formState, watch, setError, clearErrors, reset } = useForm<Form>({
+    defaultValues: defaultValues(existing),
   });
+  useEffect(() => reset(defaultValues(existing)), [existing]);
   const submit: SubmitHandler<Form> = async (form) => {
     await FormHelper.snoozeBeforeSubmit();
     try {
