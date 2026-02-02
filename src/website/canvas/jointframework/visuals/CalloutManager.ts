@@ -1,6 +1,6 @@
 import { dia } from "@joint/core";
 import { Block } from "../../Block";
-import { CalloutStyling } from "../constants/CalloutStyling";
+import { Color } from "../../../Color";
 import { Sizing } from "../constants/Sizing";
 
 export type CalloutData = Pick<
@@ -14,8 +14,25 @@ export type CalloutData = Pick<
 
 export class CalloutManager {
   /**
+   * Color helpers for callout styling.
+   */
+  private static readonly colors = {
+    background: () => Color.gray(800),
+    valueBackground: () => `color-mix(in srgb, ${Color.gray(400)} 20%, transparent)`,
+    forTheme: (theme: Block["theme"]): { border: string; label: string } => {
+      const map: Record<Block["theme"], { border: string; label: string }> = {
+        default: { border: Color.info(), label: Color.gray(400) },
+        success: { border: Color.green(500), label: Color.green(300) },
+        error: { border: Color.red(500), label: Color.red(300) },
+        busy: { border: Color.info(), label: Color.gray(400) },
+        unused: { border: Color.dim(), label: Color.gray(400) },
+      };
+      return map[theme];
+    },
+  };
+
+  /**
    * Text measurement using canvas (works synchronously).
-   * Shared across all instances.
    */
   private static readonly measureText = (() => {
     const canvas = document.createElement("canvas");
@@ -154,7 +171,7 @@ export class CalloutManager {
 
   private renderCallout(data: CalloutData, width: number): SVGGElement {
     const { theme, label, details } = data;
-    const colors = CalloutStyling.COLORS[theme];
+    const themeColors = CalloutManager.colors.forTheme(theme);
     const contentWidth = width - Sizing.CALLOUT_PADDING * 2 - Sizing.CALLOUT_BORDER_WIDTH * 2;
 
     // Compute layout
@@ -212,8 +229,8 @@ export class CalloutManager {
     bg.setAttribute("width", String(width));
     bg.setAttribute("height", String(totalHeight));
     bg.setAttribute("rx", String(Sizing.CALLOUT_BORDER_RADIUS));
-    bg.setAttribute("fill", "#1f2937");
-    bg.setAttribute("stroke", colors.border);
+    bg.setAttribute("fill", CalloutManager.colors.background());
+    bg.setAttribute("stroke", themeColors.border);
     bg.setAttribute("stroke-width", String(Sizing.CALLOUT_BORDER_WIDTH));
     group.appendChild(bg);
 
@@ -221,7 +238,7 @@ export class CalloutManager {
     const labelText = this.createSvgElement("text");
     labelText.setAttribute("x", String(Sizing.CALLOUT_PADDING + Sizing.CALLOUT_BORDER_WIDTH));
     labelText.setAttribute("y", String(labelY + Sizing.CALLOUT_LABEL_FONT_SIZE * 0.85));
-    labelText.setAttribute("fill", colors.label);
+    labelText.setAttribute("fill", themeColors.label);
     labelText.setAttribute("font-size", String(Sizing.CALLOUT_LABEL_FONT_SIZE));
     labelText.setAttribute("font-weight", "300");
     labelText.setAttribute("font-family", "system-ui, sans-serif");
@@ -286,7 +303,7 @@ export class CalloutManager {
               bgRect.setAttribute("width", String(lineWidth));
               bgRect.setAttribute("height", String(Sizing.CALLOUT_VALUE_FONT_SIZE * Sizing.CALLOUT_LINE_HEIGHT));
               bgRect.setAttribute("rx", "3");
-              bgRect.setAttribute("fill", "rgba(156, 163, 175, 0.2)");
+              bgRect.setAttribute("fill", CalloutManager.colors.valueBackground());
               group.appendChild(bgRect);
             }
 
@@ -294,7 +311,7 @@ export class CalloutManager {
             const valueText = this.createSvgElement("text");
             valueText.setAttribute("x", String(Sizing.CALLOUT_PADDING + Sizing.CALLOUT_BORDER_WIDTH + 16));
             valueText.setAttribute("y", String(lineY + Sizing.CALLOUT_VALUE_FONT_SIZE * 0.85));
-            valueText.setAttribute("fill", item.isAbsent ? "#9ca3af" : "white");
+            valueText.setAttribute("fill", item.isAbsent ? Color.gray(400) : "white");
             valueText.setAttribute("font-size", String(Sizing.CALLOUT_VALUE_FONT_SIZE));
             valueText.setAttribute("font-family", "monospace");
             if (item.isAbsent) {
@@ -318,7 +335,7 @@ export class CalloutManager {
             bgRect.setAttribute("width", String(lineWidth));
             bgRect.setAttribute("height", String(Sizing.CALLOUT_VALUE_FONT_SIZE * Sizing.CALLOUT_LINE_HEIGHT));
             bgRect.setAttribute("rx", "3");
-            bgRect.setAttribute("fill", "rgba(156, 163, 175, 0.2)");
+            bgRect.setAttribute("fill", CalloutManager.colors.valueBackground());
             group.appendChild(bgRect);
           }
 
@@ -326,7 +343,7 @@ export class CalloutManager {
           const valueText = this.createSvgElement("text");
           valueText.setAttribute("x", String(Sizing.CALLOUT_PADDING + Sizing.CALLOUT_BORDER_WIDTH));
           valueText.setAttribute("y", String(lineY + Sizing.CALLOUT_VALUE_FONT_SIZE * 0.85));
-          valueText.setAttribute("fill", detail.isAbsent ? "#9ca3af" : "white");
+          valueText.setAttribute("fill", detail.isAbsent ? Color.gray(400) : "white");
           valueText.setAttribute("font-size", String(Sizing.CALLOUT_VALUE_FONT_SIZE));
           valueText.setAttribute("font-family", "monospace");
           if (detail.isAbsent) {

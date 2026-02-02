@@ -1,8 +1,9 @@
 import { dia, shapes } from "@joint/core";
 import { Block } from "../Block";
+import { Color } from "../../Color";
+import { Sizing } from "./constants/Sizing";
 import { StylingHelper } from "./visuals/BlockStylingHelper";
 import { JointBlock } from "./models/JointBlock";
-import { Sizing } from "./constants/Sizing";
 
 // SVG spinner constants
 const SPINNER_SIZE = 20;
@@ -101,7 +102,7 @@ export function createCell(block: JointBlock) {
           cy: SPINNER_SIZE / 2,
           r: SPINNER_RADIUS,
           fill: "none",
-          stroke: "#3b82f6", // c-info color
+          stroke: Color.info(),
           strokeWidth: SPINNER_STROKE_WIDTH,
           strokeDasharray: SPINNER_DASH_ARRAY,
           strokeLinecap: "round",
