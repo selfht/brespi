@@ -47,6 +47,7 @@ This is a work in progress with the following TODO's:
 * Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
 * Refactor so the backend ALWAYS uses TZ=UTC for it's PlainDateTime objects ... but provide an environment option BRESPI_MANAGED_STORAGE_VERSIONING_TIMEZONE with a default of UTC (if people wanna see their versions in a particular timestamp) --- but the internal default for PlainDateTime should be UTC always
 * Allow env var references on all text fields via the ${...} syntax (on the right side; give an overview of detected env vars in orange; this also requires updating descriptions)
+* Add a handful of "managed storage" folders to the regression suite, and implement a test to detect it when compatibility accidentally breaks
 * Handle TODO comments
 
 ### Polish
