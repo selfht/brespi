@@ -59,3 +59,88 @@ test("creates and deletes a simple backup pipeline", async ({ page }) => {
   // then (the configuration is in sync again)
   await expect(outOfSyncLocator).not.toBeVisible();
 });
+
+test("different step forms of the same type have their values reset upon focus", async ({ page }) => {
+  const testCases = [
+    { id: "A", glob: "*ABC*" },
+    { id: "B", glob: "*DEF*" },
+    { id: "C", glob: "*GHI*" },
+  ];
+  // given
+  const { stepLocators } = await PipelineFlow.create(page, {
+    name: "Test Pipeline",
+    steps: testCases.map(({ id, glob }, index) => ({
+      id,
+      previousId: index > 0 ? testCases[index - 1].id : undefined,
+      type: "Filter",
+      filterCriteriaMethod: "glob",
+      filterCriteriaNameGlob: glob,
+    })),
+  });
+  // when
+  await page.getByRole("button", { name: "Edit" }).click();
+  for (const { id, glob } of testCases) {
+    await stepLocators.get(id)!.click();
+    await expect(page.getByLabel("Name glob")).toHaveValue(glob);
+  }
+});
+
+test("relation links can be created when a step form is open", async ({ page }) => {
+  // given (a pipeline where the steps aren't linked)
+  await PipelineFlow.Subroutine.navigateToNewPipelineScreen(page);
+  const unlinkedStepLocators = await PipelineFlow.Subroutine.insertSteps(page, [
+    {
+      id: "A",
+      type: "Compression",
+    },
+    {
+      id: "B",
+      type: "Decompression",
+    },
+  ]);
+
+  // when (entering "form mode" for a particular step)
+  await unlinkedStepLocators.get("A")!.click();
+  await expect(page.getByRole("button", { name: "Update step" })).toBeVisible();
+  // when (drawing an arrow)
+  await PipelineFlow.Subroutine.drawRelationArrow(page, unlinkedStepLocators, {
+    from: "A",
+    to: "B",
+  });
+  await page.getByRole("button", { name: "Cancel" }).last().click();
+
+  // then (no errors after saving, because the steps have been linked)
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("button", { name: "Execute" })).toBeVisible();
+});
+
+test("relation links can be deleted when a step form is open", async ({ page }) => {
+  // given (a valid saved pipeline)
+  await PipelineFlow.Subroutine.navigateToNewPipelineScreen(page);
+  const { stepLocators } = await PipelineFlow.create(page, {
+    name: "Valid pipeline",
+    steps: [
+      {
+        id: "A",
+        type: "Compression",
+      },
+      {
+        id: "B",
+        previousId: "A",
+        type: "Decompression",
+      },
+    ],
+  });
+
+  // when (entering "form mode" for a particular step)
+  await page.getByRole("button", { name: "Edit" }).click();
+  await stepLocators.get("A")!.click();
+  await expect(page.getByRole("button", { name: "Update step" })).toBeVisible();
+  // when (removing the arrow relation)
+  await PipelineFlow.Subroutine.cancelRelationArrow(page, stepLocators, { to: "B" });
+  await page.getByRole("button", { name: "Cancel" }).last().click();
+
+  // then (an error when saving, because the steps aren't linked anymore)
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("PipelineError::too_many_starting_steps")).toBeVisible();
+});

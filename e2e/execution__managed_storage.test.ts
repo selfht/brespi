@@ -161,7 +161,7 @@ async function performHappyFlowTest({ page, listStorageEntries, pipelineStep }: 
   await writeTestFiles(inputDir, fruits);
 
   // when (write to managed storage; first time)
-  const writePipelineId = await createWritePipeline(page, { inputDir, writeStep: pipelineStep.write });
+  const { id: writePipelineId } = await createWritePipeline(page, { inputDir, writeStep: pipelineStep.write });
   await PipelineFlow.execute(page);
   // then (artifacts are stored)
   await verifyStorage({
@@ -171,7 +171,7 @@ async function performHappyFlowTest({ page, listStorageEntries, pipelineStep }: 
   });
 
   // when (retrieving these artifacts)
-  const readPipelineId = await createReadPipeline(page, { readStep: pipelineStep.read, outputDir });
+  const { id: readPipelineId } = await createReadPipeline(page, { readStep: pipelineStep.read, outputDir });
   await PipelineFlow.execute(page);
   // then (we get the exact same files back)
   const firstRetrieval = await verifyIdenticalFolderContent({ inputDir, outputDir });

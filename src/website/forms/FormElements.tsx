@@ -83,12 +83,12 @@ export namespace FormElements {
         <div className="flex gap-4">
           {!formState.isSubmitting && <Button onClick={onCancel}>Cancel</Button>}
           <Button disabled={formState.isSubmitting} onClick={onSubmit} theme="success">
-            {formState.isSubmitting ? <Spinner className="border-c-success" /> : existing ? "Update Step" : "Add Step"}
+            {formState.isSubmitting ? <Spinner className="border-c-success" /> : existing ? "Update step" : "Add step"}
           </Button>
         </div>
         {existing && !formState.isSubmitting && (
           <Button className="border-c-error! text-c-error hover:bg-c-error/30" onClick={() => onDelete(existing.id)}>
-            Delete Step
+            Delete step
           </Button>
         )}
       </div>
