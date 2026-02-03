@@ -15,7 +15,7 @@ describe("regression suite management", async () => {
   });
 });
 
-export namespace regressionSuiteManagement {
+export namespace RegressionSuiteManagement {
   export type ConfigurationJson = {
     filename: string;
     json: any;
