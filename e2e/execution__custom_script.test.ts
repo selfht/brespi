@@ -1,13 +1,13 @@
 import test, { expect, Page } from "@playwright/test";
 import { readdir } from "fs/promises";
 import { dirname, join } from "path";
-import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
+import { FSBoundary } from "./boundaries/FSBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { Common } from "./common/Common";
 import { PipelineFlow } from "./flows/PipelineFlow";
 
-const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
-const outputDir = FilesystemBoundary.SCRATCH_PAD.join("output");
+const inputDir = FSBoundary.SCRATCH_PAD.join("input");
+const outputDir = FSBoundary.SCRATCH_PAD.join("output");
 
 test.beforeEach(async ({ request, page }) => {
   await ResetBoundary.reset(request);
@@ -22,7 +22,7 @@ test("executes a transformer script which merges files", async ({ page }) => {
   await Common.writeFile(fileB, "This is line B\n");
   const fileC = join(inputDir, "C.txt");
   await Common.writeFile(fileC, "This is line C\n");
-  const script = FilesystemBoundary.SCRATCH_PAD.join("merge.sh");
+  const script = FSBoundary.SCRATCH_PAD.join("merge.sh");
   await Common.writeExecutableFile(script).withContents(`
       #!/bin/bash
       cat $BRESPI_ARTIFACTS_IN/* > $BRESPI_ARTIFACTS_OUT/ABC.txt
@@ -42,7 +42,7 @@ test("executes with the 'passthrough' option active", async ({ page }) => {
   await Common.writeFile(fileA, "This is line A\n");
   const fileB = join(inputDir, "B.txt");
   await Common.writeFile(fileB, "This is line B\n");
-  const script = FilesystemBoundary.SCRATCH_PAD.join("pass.sh");
+  const script = FSBoundary.SCRATCH_PAD.join("pass.sh");
   await Common.writeExecutableFile(script).withContents(`
       #!/bin/bash
       echo "I was here!" > evidence.txt
@@ -59,7 +59,7 @@ test("executes with the 'passthrough' option active", async ({ page }) => {
 
 test("shows an error when script execution fails", async ({ page }) => {
   // given
-  const script = FilesystemBoundary.SCRATCH_PAD.join("script.sh");
+  const script = FSBoundary.SCRATCH_PAD.join("script.sh");
   await Common.writeExecutableFile(script).withContents(`
       #!/bin/bash
       echo "Thriving in STDOUT ..."

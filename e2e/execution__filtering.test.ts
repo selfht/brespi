@@ -1,7 +1,7 @@
 import { Step } from "@/models/Step";
 import test, { expect, Page } from "@playwright/test";
 import { join } from "path";
-import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
+import { FSBoundary } from "./boundaries/FSBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { S3Boundary } from "./boundaries/S3Boundary";
 import { Common } from "./common/Common";
@@ -13,8 +13,8 @@ type TestCase = {
   expectedArtifacts: string[];
 };
 
-const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
-const outputDir = FilesystemBoundary.SCRATCH_PAD.join("output");
+const inputDir = FSBoundary.SCRATCH_PAD.join("input");
+const outputDir = FSBoundary.SCRATCH_PAD.join("output");
 
 test.beforeEach(async ({ request, page }) => {
   await ResetBoundary.reset(request);
@@ -82,7 +82,7 @@ async function performFilterTest({ page, createPipelineFn, testCase }: Options) 
   await createPipelineFn(page, testCase.filterCriteria);
   await PipelineFlow.execute(page);
   // then
-  const filteredArtifacts = await FilesystemBoundary.listFlattenedFolderEntries(outputDir);
+  const filteredArtifacts = await FSBoundary.listFlattenedFolderEntries(outputDir);
   expect(filteredArtifacts.sort()).toEqual(testCase.expectedArtifacts);
 }
 
@@ -121,7 +121,7 @@ async function createStandaloneFilterPipeline(page: Page, filterCriteria: Pipeli
 }
 
 async function createFilesystemReadFilterPipeline(page: Page, filterCriteria: PipelineOptions) {
-  const temporaryStorageFolder = FilesystemBoundary.SCRATCH_PAD.join("temporary-storage");
+  const temporaryStorageFolder = FSBoundary.SCRATCH_PAD.join("temporary-storage");
   return await PipelineFlow.create(page, {
     name: "Filesystem Read Filter",
     steps: [

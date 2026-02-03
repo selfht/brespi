@@ -1,18 +1,18 @@
 import test, { expect } from "@playwright/test";
 import { mkdir, readFile, writeFile } from "fs/promises";
 import { join } from "path";
-import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
+import { FSBoundary } from "./boundaries/FSBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { Common } from "./common/Common";
 import { PipelineFlow } from "./flows/PipelineFlow";
 
 const path = {
-  originalFile: FilesystemBoundary.SCRATCH_PAD.join("original.txt"),
-  forwardProcessingDir: FilesystemBoundary.SCRATCH_PAD.join("forward"),
+  originalFile: FSBoundary.SCRATCH_PAD.join("original.txt"),
+  forwardProcessingDir: FSBoundary.SCRATCH_PAD.join("forward"),
   get forwardProcessingFile() {
     return join(this.forwardProcessingDir, "original.txt.tar.gz.enc");
   },
-  reverseProcessingDir: FilesystemBoundary.SCRATCH_PAD.join("backward"),
+  reverseProcessingDir: FSBoundary.SCRATCH_PAD.join("backward"),
   get reverseProcessingFile() {
     return join(this.reverseProcessingDir, "original.txt");
   },
@@ -92,7 +92,7 @@ test("compression and encryption are reversible", async ({ page }) => {
 
 test("shows an error when trying to decompress a directory", async ({ page }) => {
   // given
-  const dir = FilesystemBoundary.SCRATCH_PAD.join("folderboy");
+  const dir = FSBoundary.SCRATCH_PAD.join("folderboy");
   await mkdir(dir);
   // when
   await PipelineFlow.create(page, {
@@ -122,9 +122,9 @@ test("shows an error when trying to decompress a directory", async ({ page }) =>
 
 test("shows an error when trying to decrypt a corrupted file", async ({ page }) => {
   // given
-  const file = FilesystemBoundary.SCRATCH_PAD.join("file.txt");
+  const file = FSBoundary.SCRATCH_PAD.join("file.txt");
   await Common.writeFile(file, "This is my file!");
-  const corruptingScript = FilesystemBoundary.SCRATCH_PAD.join("corrupting.sh");
+  const corruptingScript = FSBoundary.SCRATCH_PAD.join("corrupting.sh");
   await Common.writeExecutableFile(corruptingScript).withContents(`
       #!/bin/bash
       # Get the encrypted file (there's exactly 1 file)

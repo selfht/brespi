@@ -21,7 +21,7 @@ export namespace NotificationFlow {
     for (const [key, enabled] of Object.entries(events)) {
       await page.getByLabel(key).setChecked(enabled);
     }
-    await save(page);
+    await submitSave(page);
   }
 
   type UpdateOptions = {
@@ -47,11 +47,28 @@ export namespace NotificationFlow {
         await page.getByLabel(key).setChecked(enabled);
       }
     }
-    await save(page);
+    await submitSave(page);
   }
 
-  async function save(page: Page) {
-    await page.getByRole("button", { name: "Save", exact: true }).click();
-    await expect(page.getByRole("button", { name: "Save", exact: true })).not.toBeVisible();
+  type RemoveOptions = {
+    index: number;
+  };
+  export async function remove(page: Page, { index }: RemoveOptions) {
+    await page.getByRole("link", { name: "Notifications", exact: true }).click();
+    await page.getByTestId("policy-row").nth(index).getByRole("button", { name: "Edit" }).click();
+    await submitDelete(page);
+  }
+
+  async function submitSave(page: Page) {
+    const saveButton = page.getByRole("button", { name: "Save", exact: true });
+    await saveButton.click();
+    await expect(saveButton).not.toBeVisible();
+  }
+
+  async function submitDelete(page: Page) {
+    page.once("dialog", (dialog) => dialog.accept());
+    const deleteButton = page.getByRole("button", { name: "Delete", exact: true });
+    await deleteButton.click();
+    await expect(deleteButton).not.toBeVisible();
   }
 }

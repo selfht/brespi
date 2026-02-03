@@ -1,5 +1,5 @@
 import test, { expect } from "@playwright/test";
-import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
+import { FSBoundary } from "./boundaries/FSBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { Common } from "./common/Common";
 import { NotificationFlow } from "./flows/NotificationFlow";
@@ -14,7 +14,7 @@ test.beforeEach(async ({ request, page }) => {
 for (const variant of ["successful pipeline", "failing pipeline"] as const) {
   test(`delivers a custom_script notification for a ${variant}`, async ({ page }) => {
     // given
-    const scriptPath = FilesystemBoundary.SCRATCH_PAD.join("notify.sh");
+    const scriptPath = FSBoundary.SCRATCH_PAD.join("notify.sh");
     await Common.writeExecutableFile(scriptPath).withContents(`
         #!/bin/bash
         echo "$BRESPI_PIPELINE_NAME" >> notification.txt

@@ -160,8 +160,10 @@ export namespace PipelineFlow {
         throw new Error("Cannot execute pipeline; no active pipeline view is open, and no id was supplied");
       }
     }
+    page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await page.getByRole("button", { name: "Delete", exact: true }).click();
+    await expect(page.getByRole("link", { name: "New pipeline ..." })).toBeVisible();
   }
 
   type ExecuteOptions = {

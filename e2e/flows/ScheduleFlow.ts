@@ -12,7 +12,7 @@ export namespace ScheduleFlow {
     await page.getByLabel("Active").setChecked(active, { force: true }); // Force, because it's hidden (opaque)
     await page.getByLabel("Pipeline").selectOption(pipelineName);
     await page.getByLabel("Cron").fill(cron);
-    await save(page);
+    await submitSave(page);
   }
 
   type UpdateOptions = {
@@ -27,11 +27,26 @@ export namespace ScheduleFlow {
     if (active !== undefined) await page.getByLabel("Active").setChecked(active, { force: true }); // Force, because it's hidden (opaque)
     if (pipelineName !== undefined) await page.getByLabel("Pipeline").selectOption(pipelineName);
     if (cron !== undefined) await page.getByLabel("Cron").fill(cron);
-    await save(page);
+    await submitSave(page);
   }
 
-  async function save(page: Page) {
+  type RemoveOptions = {
+    index: number;
+  };
+  export async function remove(page: Page, { index }: RemoveOptions) {
+    await page.getByRole("link", { name: "Schedules", exact: true }).click();
+    await page.getByTestId("schedule-row").nth(index).getByRole("button", { name: "Edit" }).click();
+    await submitDelete(page);
+  }
+
+  async function submitSave(page: Page) {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await expect(page.getByRole("button", { name: "Save", exact: true })).not.toBeVisible();
+  }
+
+  async function submitDelete(page: Page) {
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Delete", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Delete", exact: true })).not.toBeVisible();
   }
 }

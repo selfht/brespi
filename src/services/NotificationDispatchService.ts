@@ -1,6 +1,5 @@
 import { NotificationError } from "@/errors/NotificationError";
 import { Event } from "@/events/Event";
-import { assertNever } from "@/helpers/assertNever";
 import { CommandRunner } from "@/helpers/CommandRunner";
 import { EventSubscription } from "@/models/EventSubscription";
 import { NotificationChannel } from "@/models/NotificationChannel";
@@ -42,7 +41,7 @@ export class NotificationDispatchService {
           break;
         }
         default: {
-          assertNever(policy.channel);
+          policy.channel satisfies never;
         }
       }
     } catch (e) {
@@ -134,7 +133,7 @@ durationMs: ${details.duration.total("milliseconds")}
         break;
       }
       default: {
-        assertNever(details);
+        details satisfies never;
       }
     }
     await CommandRunner.run({

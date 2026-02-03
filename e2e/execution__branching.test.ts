@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { basename, dirname, join } from "path";
-import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
+import { FSBoundary } from "./boundaries/FSBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { S3Boundary } from "./boundaries/S3Boundary";
 import { Common } from "./common/Common";
@@ -12,10 +12,10 @@ test.beforeEach(async ({ request, page }) => {
 });
 
 test("creates and executes a branched pipeline", async ({ page }) => {
-  const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
+  const inputDir = FSBoundary.SCRATCH_PAD.join("input");
   const outputDir = {
-    filesystemA: FilesystemBoundary.SCRATCH_PAD.join("filesystemA"),
-    filesystemB: FilesystemBoundary.SCRATCH_PAD.join("filesystemB"),
+    filesystemA: FSBoundary.SCRATCH_PAD.join("filesystemA"),
+    filesystemB: FSBoundary.SCRATCH_PAD.join("filesystemB"),
     bucketX: "bucketX",
     bucketY: "bucketY",
   };
@@ -91,6 +91,6 @@ test("creates and executes a branched pipeline", async ({ page }) => {
 });
 
 async function listParentDirectoryButOnlyShowOwnPaths(ownPath: string) {
-  const entries = await FilesystemBoundary.listFlattenedFolderEntries(dirname(ownPath));
+  const entries = await FSBoundary.listFlattenedFolderEntries(dirname(ownPath));
   return entries.filter((e) => e.startsWith(basename(ownPath)));
 }

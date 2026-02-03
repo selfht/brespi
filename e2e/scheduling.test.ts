@@ -1,5 +1,5 @@
 import test, { expect, Page } from "@playwright/test";
-import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
+import { FSBoundary } from "./boundaries/FSBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { Common } from "./common/Common";
 import { PipelineFlow } from "./flows/PipelineFlow";
@@ -12,8 +12,8 @@ test.beforeEach(async ({ request, page }) => {
 
 test("executes a pipeline every second while active", async ({ page }) => {
   // given
-  const scriptPath = FilesystemBoundary.SCRATCH_PAD.join("simple.sh");
-  const outputDir = FilesystemBoundary.SCRATCH_PAD.join("output");
+  const scriptPath = FSBoundary.SCRATCH_PAD.join("simple.sh");
+  const outputDir = FSBoundary.SCRATCH_PAD.join("output");
   await Common.writeExecutableFile(scriptPath).withContents(`
       #!/bin/bash
       echo "Hello World" > "$BRESPI_ARTIFACTS_OUT/greetings.txt"
@@ -28,7 +28,7 @@ test("executes a pipeline every second while active", async ({ page }) => {
   // when
   await ScheduleFlow.create(page, {
     pipelineName: name,
-    cron: "* * * * * *", // do something every second
+    cron: "* * * * * *", // every second
     active: true,
   });
   await page.goto("pipelines");

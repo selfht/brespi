@@ -26,6 +26,15 @@ export namespace Common {
     return await fsp.readFile(path, { encoding: "utf-8" });
   }
 
+  export async function existingFile(path: string) {
+    try {
+      await fsp.access(path);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   export async function writeFile(path: string, contents: string) {
     await fsp.mkdir(dirname(path), { recursive: true });
     await fsp.writeFile(path, contents);

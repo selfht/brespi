@@ -64,7 +64,7 @@ export function configurationPage() {
           <div>
             <p>
               The current configuration (below) has <span className="text-white font-bold">unsaved changes</span> and doesn't match{" "}
-              <code className="text-white text-sm p-2 bg-black/20 rounded-lg text-shadow-lg ">{O_BRESPI_CONFIGURATION}</code>.
+              <code className="text-white text-sm p-2 bg-black/20 rounded-lg text-shadow-lg ">{O_BRESPI_CONFIGURATION}</code>
             </p>
             <p>Restarting Brespi discards these unsaved changes.</p>
             <div className="mt-12 flex gap-2">

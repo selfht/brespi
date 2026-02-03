@@ -1,7 +1,7 @@
 import test, { expect, Page } from "@playwright/test";
 import { mkdir, readdir, readFile } from "fs/promises";
 import { dirname, join } from "path";
-import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
+import { FSBoundary } from "./boundaries/FSBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
 import { S3Boundary } from "./boundaries/S3Boundary";
 import { Common } from "./common/Common";
@@ -35,10 +35,10 @@ const Constant = {
 };
 
 const createFilesystemConfig = (): AdapterConfig => {
-  const storageFolder = FilesystemBoundary.SCRATCH_PAD.join("storage", Constant.namespace);
+  const storageFolder = FSBoundary.SCRATCH_PAD.join("storage", Constant.namespace);
   return {
     name: "filesystem",
-    listStorageEntries: () => FilesystemBoundary.listFlattenedFolderEntries(dirname(storageFolder)),
+    listStorageEntries: () => FSBoundary.listFlattenedFolderEntries(dirname(storageFolder)),
     writeStorageEntry: (path, content) => Common.writeFile(join(dirname(storageFolder), path), content),
     pipelineStep: {
       read: {
@@ -154,8 +154,8 @@ type PerformHappyFlowTest = {
 };
 async function performHappyFlowTest({ page, listStorageEntries, pipelineStep }: PerformHappyFlowTest) {
   // given
-  const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
-  const outputDir = FilesystemBoundary.SCRATCH_PAD.join("output");
+  const inputDir = FSBoundary.SCRATCH_PAD.join("input");
+  const outputDir = FSBoundary.SCRATCH_PAD.join("output");
   expect(await listStorageEntries()).toHaveLength(0);
   const fruits = ["Apple.txt", "Banana.txt", "Coconut.txt"];
   await writeTestFiles(inputDir, fruits);
@@ -208,7 +208,7 @@ async function performRetentionTest({ page, listStorageEntries, pipelineStep }: 
   const retentionMaxVersions = 3;
   const numberOfVersionsToTryAndStore = 8;
 
-  const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
+  const inputDir = FSBoundary.SCRATCH_PAD.join("input");
   const range = (start: number, endInclusive: number) => {
     const result: number[] = [];
     for (let num = start; num <= endInclusive; num++) {
@@ -255,7 +255,7 @@ async function performCorruptWriteTest(options: PerformErrorFlowTest) {
   expect(await options.listStorageEntries()).toEqual([join(Constant.namespace, "__brespi_manifest__.json")]);
 
   await createWritePipeline(options.page, {
-    inputDir: FilesystemBoundary.SCRATCH_PAD.join(),
+    inputDir: FSBoundary.SCRATCH_PAD.join(),
     writeStep: options.pipelineStep.write,
   });
   await PipelineFlow.execute(options.page, { expectedOutcome: "error" });
@@ -268,7 +268,7 @@ async function performCorruptManifestReadTest(options: PerformErrorFlowTest) {
   await options.writeStorageEntry(join(Constant.namespace, "__brespi_manifest__.json"), JSON.stringify({ iam: "corrupted" }));
   await createReadPipeline(options.page, {
     readStep: options.pipelineStep.read!,
-    outputDir: FilesystemBoundary.SCRATCH_PAD.join(),
+    outputDir: FSBoundary.SCRATCH_PAD.join(),
   });
   await PipelineFlow.execute(options.page, { expectedOutcome: "error" });
   await expect(options.page.getByText(Constant.manifestCorruptionError)).toBeVisible();
@@ -284,7 +284,7 @@ async function performCorruptListingReadTest(options: PerformErrorFlowTest) {
   await options.writeStorageEntry(listingPath, "i am also corrupted");
   await createReadPipeline(options.page, {
     readStep: options.pipelineStep.read!,
-    outputDir: FilesystemBoundary.SCRATCH_PAD.join(),
+    outputDir: FSBoundary.SCRATCH_PAD.join(),
   });
   await PipelineFlow.execute(options.page, { expectedOutcome: "error" });
   await expect(options.page.getByText(Constant.listingCorruptionError)).toBeVisible();
@@ -350,7 +350,7 @@ async function verifyIdenticalFolderContent({ inputDir, outputDir }: VerifyIdent
 }
 
 async function setupStorageWithFiles({ page, listStorageEntries, pipelineStep }: PerformErrorFlowTest) {
-  const inputDir = FilesystemBoundary.SCRATCH_PAD.join("input");
+  const inputDir = FSBoundary.SCRATCH_PAD.join("input");
   const testFiles = ["Apple.txt", "Banana.txt", "Coconut.txt"];
 
   for (const testFile of testFiles) {

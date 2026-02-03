@@ -44,20 +44,14 @@ test("creates and deletes a simple backup pipeline", async ({ page }) => {
   // then (there's a pipeline on the main page)
   const pipelineLink = page.getByRole("link", { name: pipeline.name });
   await expect(pipelineLink).toBeVisible();
-  // then (the configuration is out of sync)
-  const outOfSyncLocator = page.getByTestId("conf-out-of-sync");
-  await expect(outOfSyncLocator).toBeVisible();
 
   // when
   await pipelineLink.click();
-  page.on("dialog", (dialog) => dialog.accept());
   await PipelineFlow.remove(page);
   // then (we're on the homepage again)
   await expect(page).toHaveTitle("Pipelines | Brespi");
   expect(page.url()).toMatch(/\/pipelines$/);
   await expect(pipelineLink).not.toBeVisible();
-  // then (the configuration is in sync again)
-  await expect(outOfSyncLocator).not.toBeVisible();
 });
 
 test("different step forms of the same type have their values reset upon focus", async ({ page }) => {

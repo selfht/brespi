@@ -1,7 +1,7 @@
 import { mkdir, readdir, rm } from "fs/promises";
 import path, { join } from "path";
 
-export namespace FilesystemBoundary {
+export namespace FSBoundary {
   export const SCRATCH_PAD = class {
     public static readonly root = path.join("opt", "e2e-test", "scratchpad");
 

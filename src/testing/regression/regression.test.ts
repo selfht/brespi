@@ -1,7 +1,7 @@
 import { Configuration } from "@/models/Configuration";
 import { describe, expect, it } from "bun:test";
 import { TestUtils } from "../TestUtils.test";
-import { regressionSuiteManagement } from "./regressionSuiteManagement.test";
+import { regressionSuiteManagement } from "./rsm";
 
 describe("regression", () => {
   describe("configuration parsing", async () => {

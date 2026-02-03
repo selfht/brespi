@@ -1,5 +1,5 @@
 import test, { expect, Page } from "@playwright/test";
-import { FilesystemBoundary } from "./boundaries/FilesystemBoundary";
+import { FSBoundary } from "./boundaries/FSBoundary";
 import { MariadbBoundary } from "./boundaries/MariadbBoundary";
 import { PostgresqlBoundary } from "./boundaries/PostgresqlBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
@@ -64,7 +64,7 @@ for (const createConfig of [createPostgresqlConfig, createMariadbConfig]) {
 
     test("performs the backup of two databases", async ({ page }) => {
       // given
-      const backupDir = FilesystemBoundary.SCRATCH_PAD.join("backups");
+      const backupDir = FSBoundary.SCRATCH_PAD.join("backups");
       await config.boundary.setup({
         database: Database.e2e_movies,
         tables: [
@@ -126,7 +126,7 @@ for (const createConfig of [createPostgresqlConfig, createMariadbConfig]) {
       await createBackupPipeline(page, config, { backupDir, databases: Object.values(Database) });
       await PipelineFlow.execute(page);
       // then
-      const entries = await FilesystemBoundary.listFlattenedFolderEntries(backupDir);
+      const entries = await FSBoundary.listFlattenedFolderEntries(backupDir);
       Object.values(Database).forEach((db) => {
         expect(entries).toContainEqual(expect.stringMatching(new RegExp(`${db}${config.fileExtension}$`)));
       });
@@ -148,7 +148,7 @@ for (const createConfig of [createPostgresqlConfig, createMariadbConfig]) {
           },
         ],
       });
-      const backupDir = FilesystemBoundary.SCRATCH_PAD.join("backups");
+      const backupDir = FSBoundary.SCRATCH_PAD.join("backups");
       const initialData = await config.boundary.queryAll({ database, table: "films" });
       expect(initialData.length).toBeGreaterThan(0);
 
