@@ -1,11 +1,11 @@
-import { Configuration } from "@/models/Configuration";
 import { ServerError } from "@/errors/ServerError";
 import { Event } from "@/events/Event";
 import { EventBus } from "@/events/EventBus";
 import { Mutex } from "@/helpers/Mutex";
 import { ZodProblem } from "@/helpers/ZodIssues";
-import { NotificationChannel } from "@/models/NotificationChannel";
+import { Configuration } from "@/models/Configuration";
 import { EventSubscription } from "@/models/EventSubscription";
+import { NotificationChannel } from "@/models/NotificationChannel";
 import { NotificationPolicy } from "@/models/NotificationPolicy";
 import { NotificationRepository } from "@/repositories/NotificationRepository";
 import { Temporal } from "@js-temporal/polyfill";

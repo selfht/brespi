@@ -43,20 +43,29 @@ describe("resource sorting", async () => {
   const collection = TestUtils.createCollection<TestCase>("type", [
     {
       type: "pipelines",
-      createFn: (index) => pipelineService.create({ name: `${index}`, steps: [TestFixture.createStep(Step.Type.postgresql_backup)] }),
+      createFn: (index) =>
+        pipelineService.create({
+          name: `${index}`,
+          steps: [TestFixture.createStep(Step.Type.postgresql_backup)],
+        }),
       queryFn: () => pipelineService.query(),
       retrieveIndexFn: (resource) => Number((resource as Pipeline).name),
       sortDirectlyFn: (r1, r2) => Pipeline.sortNewToOld(r1 as Pipeline, r2 as Pipeline),
     },
     {
       type: "schedules",
-      createFn: (index) => scheduleService.create({ active: true, cron: "* * * * *", pipelineId: `${index}` }),
+      createFn: (index) =>
+        scheduleService.create({
+          active: true,
+          cron: "* * * * *",
+          pipelineId: `${index}`,
+        }),
       queryFn: () => scheduleService.query(),
       retrieveIndexFn: (resource) => Number((resource as Schedule).pipelineId),
       sortDirectlyFn: (r1, r2) => Schedule.sortNewToOld(r1 as Schedule, r2 as Schedule),
     },
     {
-      type: "notificationPolicies",
+      type: "policies",
       createFn: (index) =>
         notificationService.createPolicy({
           active: true,
@@ -71,17 +80,17 @@ describe("resource sorting", async () => {
   it.each(collection.testCases)("queries '%s' from new to old", async (tc) => {
     const { createFn, queryFn, retrieveIndexFn, sortDirectlyFn } = collection.get(tc);
     // given
-    const count = 50;
-    for (let i = 0; i < count; i++) {
+    const range = { min: 0, max: 49 } as const;
+    for (let i = range.min; i <= range.max; i++) {
       await createFn(i);
     }
     // when
-    const queryResults = await queryFn();
-    const sortResults = queryResults.toSorted(sortDirectlyFn);
-    for (let i = 0; i < count; i++) {
+    const queriedResults = await queryFn();
+    const sortedResults = queriedResults.toSorted(sortDirectlyFn);
+    for (let i = range.min; i <= range.max; i++) {
       // then
-      expect(retrieveIndexFn(queryResults[i])).toEqual(count - 1 - i);
-      expect(retrieveIndexFn(sortResults[i])).toEqual(count - 1 - i);
+      expect(retrieveIndexFn(queriedResults[i])).toEqual(range.max - i);
+      expect(retrieveIndexFn(sortedResults[i])).toEqual(range.max - i);
     }
   });
 });
