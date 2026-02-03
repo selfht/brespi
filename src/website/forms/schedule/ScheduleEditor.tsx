@@ -64,12 +64,12 @@ export function ScheduleEditor({ className, gridClassName, existing, pipelines, 
   const cron = watch(ScheduleEditor.Field.cron);
   const active = watch(ScheduleEditor.Field.active);
   return (
-    <div className={clsx(className, "border-t border-b border-c-info bg-black")}>
+    <div className={clsx(className, "border-t border-b border-c-accent bg-black")}>
       <fieldset disabled={formState.isSubmitting} className={clsx(gridClassName)}>
         <Toggle id={ScheduleEditor.Field.active} className="ml-2 " {...register(ScheduleEditor.Field.active)} />
         <select
           id={ScheduleEditor.Field.pipelineId}
-          className="text-lg p-2 -ml-3 mr-10 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
+          className="text-lg p-2 -ml-3 mr-10 border-2 border-c-dim rounded-lg focus:border-c-accent outline-none!"
           {...register(ScheduleEditor.Field.pipelineId)}
         >
           <option value="" disabled>
@@ -84,7 +84,7 @@ export function ScheduleEditor({ className, gridClassName, existing, pipelines, 
         <input
           id={ScheduleEditor.Field.cron}
           type="text"
-          className="font-mono p-2 -ml-3 mr-10 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
+          className="font-mono p-2 -ml-3 mr-10 border-2 border-c-dim rounded-lg focus:border-c-accent outline-none!"
           placeholder="E.g.: 0 12 * * FRI"
           {...register(ScheduleEditor.Field.cron)}
         />

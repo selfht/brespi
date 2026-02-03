@@ -48,7 +48,7 @@ export namespace FormElements {
             <div className="mb-2 text-lg">{children}</div>
             {Object.entries(fieldDescriptions).length > 0 ? (
               fieldCurrentlyActive ? (
-                <p className="text-c-info">{fieldDescriptions[fieldCurrentlyActive]}</p>
+                <p className="text-c-accent">{fieldDescriptions[fieldCurrentlyActive]}</p>
               ) : (
                 <p className="text-sm italic">Select a field on the left for more information.</p>
               )
@@ -177,7 +177,7 @@ export namespace FormElements {
         <label
           htmlFor={fieldStr}
           className={clsx("w-72 text-lg cursor-pointer select-none", {
-            "underline underline-offset-4 decoration-3 decoration-c-info": field === activeField,
+            "underline underline-offset-4 decoration-3 decoration-c-accent": field === activeField,
           })}
           ref={labelRef}
         >
@@ -187,7 +187,7 @@ export namespace FormElements {
           <input
             type="text"
             id={fieldStr}
-            className="rounded flex-1 p-2 bg-c-dim/20 font-mono focus:outline-2 focus:outline-c-info"
+            className="rounded flex-1 p-2 bg-c-dim/20 font-mono focus:outline-2 focus:outline-c-accent"
             onFocus={activateField}
             {...register(fieldPath)}
           />
@@ -196,7 +196,7 @@ export namespace FormElements {
           <input
             type="number"
             id={fieldStr}
-            className="rounded flex-1 p-2 bg-c-dim/20 font-mono focus:outline-2 focus:outline-c-info"
+            className="rounded flex-1 p-2 bg-c-dim/20 font-mono focus:outline-2 focus:outline-c-accent"
             onFocus={activateField}
             {...register(fieldPath, { valueAsNumber: true })}
           />
@@ -204,7 +204,7 @@ export namespace FormElements {
         {input.type === "select" && (
           <select
             id={fieldStr}
-            className="rounded flex-1 p-2 bg-c-dim/20 font-mono focus:outline-2 focus:outline-c-info"
+            className="rounded flex-1 p-2 bg-c-dim/20 font-mono focus:outline-2 focus:outline-c-accent"
             onFocus={activateField}
             {...register(fieldPath)}
           >

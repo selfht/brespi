@@ -54,7 +54,7 @@ export function configurationPage() {
               <p>
                 The current configuration is either empty or matches <code className="text-white">{O_BRESPI_CONFIGURATION}</code>
               </p>
-              <Button theme="info" onClick={copyToClipboard}>
+              <Button theme="accent" onClick={copyToClipboard}>
                 Copy current configuration
               </Button>
             </div>
@@ -74,7 +74,7 @@ export function configurationPage() {
               <Button theme="error" disabled={busy} onClick={() => handleChanges("discard")}>
                 Discard changes
               </Button>
-              <Button theme="info" className="ml-auto" onClick={copyToClipboard}>
+              <Button theme="accent" className="ml-auto" onClick={copyToClipboard}>
                 Copy current configuration
               </Button>
             </div>

@@ -21,10 +21,10 @@ export class CalloutManager {
     valueBackground: () => `color-mix(in srgb, ${Color.gray(400)} 20%, transparent)`,
     forTheme: (theme: Block["theme"]): { border: string; label: string } => {
       const map: Record<Block["theme"], { border: string; label: string }> = {
-        default: { border: Color.info(), label: Color.gray(400) },
+        default: { border: Color.accent(), label: Color.gray(400) },
         success: { border: Color.green(500), label: Color.green(300) },
         error: { border: Color.red(500), label: Color.red(300) },
-        busy: { border: Color.info(), label: Color.gray(400) },
+        busy: { border: Color.accent(), label: Color.gray(400) },
         unused: { border: Color.dim(), label: Color.gray(400) },
       };
       return map[theme];

@@ -102,7 +102,7 @@ export function createCell(block: JointBlock) {
           cy: SPINNER_SIZE / 2,
           r: SPINNER_RADIUS,
           fill: "none",
-          stroke: Color.info(),
+          stroke: Color.accent(),
           strokeWidth: SPINNER_STROKE_WIDTH,
           strokeDasharray: SPINNER_DASH_ARRAY,
           strokeLinecap: "round",

@@ -4,7 +4,7 @@ import { Icon } from "./Icon";
 
 type Props = ComponentProps<"button"> & {
   icon?: Icon.Props["variant"];
-  theme?: "success" | "error" | "info";
+  theme?: "success" | "error" | "accent";
 };
 export function Button({ icon, theme, className, children, ...props }: Props) {
   return (
@@ -17,7 +17,7 @@ export function Button({ icon, theme, className, children, ...props }: Props) {
         {
           "border-c-success/80! text-c-success hover:bg-c-success/30": theme === "success",
           "border-c-error! text-c-error hover:bg-c-error/30": theme === "error",
-          "border-c-info! text-white hover:bg-c-info/30": theme === "info",
+          "border-c-accent! text-white hover:bg-c-accent/30": theme === "accent",
         },
         className,
       )}

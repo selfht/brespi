@@ -401,7 +401,7 @@ export function pipelines$idPage() {
           "w-screen overflow-x-hidden overflow-y-auto": isFullScreen,
         })}
         borderClassName={clsx({
-          "border-c-info bg-c-info": interactivity === Interactivity.editing && !isFullScreen,
+          "border-c-accent bg-c-accent": interactivity === Interactivity.editing && !isFullScreen,
           "border-none": isFullScreen,
         })}
       >
@@ -536,7 +536,7 @@ export function pipelines$idPage() {
                     <div className="font-extralight text-c-dim mt-3">{bg.categoryLabel}</div>
                     <div className="flex flex-wrap gap-2 mt-6">
                       {bg.steps.map((step) => (
-                        <Button key={step.type} onClick={() => stepFormApi.show(step.type)} icon="new" className="border-c-info!">
+                        <Button key={step.type} onClick={() => stepFormApi.show(step.type)} icon="new" className="border-c-accent!">
                           {step.typeLabel}
                         </Button>
                       ))}

@@ -16,17 +16,17 @@ export function ExecutionDetails({ execution }: Props) {
     <div className="flex flex-col gap-4">
       <div>
         <p className="font-semibold">Started</p>
-        <code className="text-c-info">{Prettify.timestamp(execution.startedAt)}</code>
+        <code className="text-c-accent">{Prettify.timestamp(execution.startedAt)}</code>
       </div>
       {execution.result && (
         <>
           <div>
             <p className="font-semibold">Completed</p>
-            <code className="text-c-info">{Prettify.timestamp(execution.result.completedAt)}</code>
+            <code className="text-c-accent">{Prettify.timestamp(execution.result.completedAt)}</code>
           </div>
           <div>
             <p className="font-semibold">Duration</p>
-            <code className="text-c-info">{Prettify.duration(execution.result.duration)}</code>
+            <code className="text-c-accent">{Prettify.duration(execution.result.duration)}</code>
           </div>
         </>
       )}

@@ -8,10 +8,10 @@ export namespace StylingHelper {
 
     const catalogue = {
       default: "fill-c-canvasblock-default-inner stroke-c-canvasblock-default-outer",
-      selected: "fill-c-dark stroke-c-info",
+      selected: "fill-c-dark stroke-c-accent",
       success: "fill-green-300 stroke-green-500",
       error: "fill-red-300 stroke-red-500",
-      busy: "fill-gray-100 stroke-c-info",
+      busy: "fill-gray-100 stroke-c-accent",
       unused: "fill-c-canvasblock-unused-inner stroke-c-canvasblock-unused-outer",
     } satisfies { selected: string } & Record<typeof theme, string>;
 

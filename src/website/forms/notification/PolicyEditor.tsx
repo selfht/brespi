@@ -82,7 +82,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
   const channelType = form.watch(Field.channel);
   return (
     <FormProvider {...form}>
-      <div className={clsx(className, "border-t border-b border-c-info bg-black")}>
+      <div className={clsx(className, "border-t border-b border-c-accent bg-black")}>
         <fieldset disabled={form.formState.isSubmitting} className={clsx(gridClassName, "items-start!")}>
           {/* Active */}
           <Toggle id={Field.active} className="mt-1.5 ml-2" {...form.register(Field.active)} />
@@ -90,7 +90,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
           <div className="min-w-0 mr-10">
             <select
               id={Field.channel}
-              className="w-full text-lg p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none! mb-3"
+              className="w-full text-lg p-2 border-2 border-c-dim rounded-lg focus:border-c-accent outline-none! mb-3"
               {...form.register(Field.channel)}
             >
               <option value="" disabled>
@@ -107,7 +107,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
                 <input
                   id={Field.slack_webhookUrlReference}
                   type="text"
-                  className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
+                  className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-accent outline-none!"
                   placeholder="MY_SLACK_WEBHOOK_URL"
                   {...form.register(Field.slack_webhookUrlReference)}
                 />
@@ -121,7 +121,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
                 <input
                   id={Field.customScript_path}
                   type="text"
-                  className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-info outline-none!"
+                  className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-accent outline-none!"
                   placeholder="/scripts/notify.sh"
                   {...form.register(Field.customScript_path)}
                 />

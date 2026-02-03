@@ -146,7 +146,7 @@ export function schedulesPage() {
                 })}
               >
                 <Icon className="size-8 ml-2" variant="new" />
-                <div className="col-span-4 text-start text-lg underline underline-offset-2 decoration-2 decoration-c-info">
+                <div className="col-span-4 text-start text-lg underline underline-offset-2 decoration-2 decoration-c-accent">
                   New Schedule ...
                 </div>
               </button>

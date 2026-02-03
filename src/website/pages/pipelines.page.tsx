@@ -78,7 +78,7 @@ export function pipelinesPage() {
               <ExecutionIcon variant={icon} />
               <div>
                 <h3
-                  className={clsx("text-lg font-medium", titleUnderline && "underline underline-offset-2 decoration-2 decoration-c-info")}
+                  className={clsx("text-lg font-medium", titleUnderline && "underline underline-offset-2 decoration-2 decoration-c-accent")}
                 >
                   {title}
                 </h3>

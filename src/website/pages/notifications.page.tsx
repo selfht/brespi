@@ -114,7 +114,7 @@ export function notificationsPage() {
                 })}
               >
                 <Icon className="size-8 ml-2" variant="new" />
-                <div className="col-span-3 text-start text-lg underline underline-offset-2 decoration-2 decoration-c-info">
+                <div className="col-span-3 text-start text-lg underline underline-offset-2 decoration-2 decoration-c-accent">
                   New Policy ...
                 </div>
               </button>
@@ -155,7 +155,7 @@ export function notificationsPage() {
                           return (
                             <span
                               key={sub.type}
-                              className={clsx("border-2 rounded-lg p-2", policy.active ? "border-c-info" : "border-c-dim text-c-dim")}
+                              className={clsx("border-2 rounded-lg p-2", policy.active ? "border-c-accent" : "border-c-dim text-c-dim")}
                             >
                               <span className="font-bold">{sub.type}</span>
                             </span>
