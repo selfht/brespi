@@ -53,4 +53,8 @@ export namespace NotificationPolicy {
         ),
     )
     .ensureTypeMatchesSchema();
+
+  export const sortNewToOld = ({ id: p1 }: NotificationPolicy, { id: p2 }: NotificationPolicy): number => {
+    return p2.localeCompare(p1); // uuid v7
+  };
 }

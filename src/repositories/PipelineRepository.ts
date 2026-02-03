@@ -6,7 +6,8 @@ export class PipelineRepository {
   public constructor(private readonly configuration: ConfigurationRepository) {}
 
   public async query(): Promise<Pipeline[]> {
-    return await this.configuration.read(({ pipelines }) => pipelines);
+    const { pipelines } = await this.configuration.read();
+    return pipelines.sort(Pipeline.sortNewToOld);
   }
 
   public findById(id: string): Promise<Pipeline | undefined> {

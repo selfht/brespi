@@ -35,6 +35,10 @@ export namespace Schedule {
     )
     .ensureTypeMatchesSchema();
 
+  export const sortNewToOld = ({ id: s1 }: Schedule, { id: s2 }: Schedule): number => {
+    return s2.localeCompare(s1); // uuid v7
+  };
+
   export type Metadata = {
     id: string;
     object: "schedule.metadata";

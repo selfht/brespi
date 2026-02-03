@@ -31,7 +31,7 @@ export class NotificationRepository {
 
   public async queryPolicies(): Promise<NotificationPolicy[]> {
     const { notificationPolicies } = await this.configuration.read();
-    return await this.dualRepoHelper.joinMetadata(notificationPolicies);
+    return (await this.dualRepoHelper.joinMetadata(notificationPolicies)).sort(NotificationPolicy.sortNewToOld);
   }
 
   public async createPolicy(policy: NotificationPolicy): Promise<NotificationPolicy> {

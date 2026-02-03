@@ -32,7 +32,7 @@ export class ScheduleRepository {
     if (q) {
       schedules = schedules.filter((s) => s.pipelineId === q.pipelineId);
     }
-    return await this.dualRepoHelper.joinMetadata(schedules);
+    return (await this.dualRepoHelper.joinMetadata(schedules)).sort(Schedule.sortNewToOld);
   }
 
   public async create(schedule: Schedule): Promise<Schedule> {

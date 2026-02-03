@@ -1,7 +1,7 @@
 import { AdapterService } from "@/adapters/AdapterService";
 import { FilterCapability } from "@/capabilities/filter/FilterCapability";
 import { ManagedStorageCapability } from "@/capabilities/managedstorage/ManagedStorageCapability";
-import { initializeSqlite } from "@/drizzle/sqlite";
+import { initializeSqlite, Sqlite } from "@/drizzle/sqlite";
 import { Env } from "@/Env";
 import { EventBus } from "@/events/EventBus";
 import { TempDestination } from "@/helpers/TempDestination";
@@ -13,6 +13,7 @@ import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { ScheduleRepository } from "@/repositories/ScheduleRepository";
 import { ExecutionService } from "@/services/ExecutionService";
 import { NotificationDispatchService } from "@/services/NotificationDispatchService";
+import { StepService } from "@/services/StepService";
 import { OmitBetter } from "@/types/OmitBetter";
 import { jest, mock, Mock } from "bun:test";
 import { mkdir, rm } from "fs/promises";
@@ -31,14 +32,18 @@ export namespace TestEnvironment {
     scratchpad: string;
 
     // Reals
+    sqlite: Sqlite;
+    eventBus: EventBus;
     configurationRepository: ConfigurationRepository;
     pipelineRepository: PipelineRepository;
     executionRepository: ExecutionRepository;
     scheduleRepository: ScheduleRepository;
     notificationRepository: NotificationRepository;
-    eventBus: EventBus;
 
     // Mocks
+    stepServiceMock: Mocked<StepService>;
+    pipelineRepositoryMock: Mocked<PipelineRepository>;
+    configurationRepositoryMock: Mocked<ConfigurationRepository>;
     executionServiceMock: Mocked<ExecutionService>;
     adapterServiceMock: Mocked<AdapterService>;
     notificationDispatchServiceMock: Mocked<NotificationDispatchService>;
@@ -123,6 +128,24 @@ export namespace TestEnvironment {
     const eventBus = new EventBus();
 
     // Mocks
+    const stepServiceMock = registerMockObject<StepService>({
+      validate: mock(),
+    });
+    const pipelineRepositoryMock = registerMockObject<PipelineRepository>({
+      query: mock(),
+      findById: mock(),
+      create: mock(),
+      update: mock(),
+      delete: mock(),
+    });
+    const configurationRepositoryMock = registerMockObject<ConfigurationRepository>({
+      initializeFromDisk: mock(),
+      subscribe: mock(),
+      read: mock(),
+      write: mock(),
+      saveChanges: mock(),
+      discardChanges: mock(),
+    });
     const executionServiceMock = registerMockObject<ExecutionService>({
       registerSocket: mock(),
       unregisterSocket: mock(),
@@ -180,13 +203,17 @@ export namespace TestEnvironment {
       env,
       scratchpad,
       // reals
+      sqlite,
+      eventBus,
       configurationRepository,
       pipelineRepository,
       executionRepository,
       scheduleRepository,
       notificationRepository,
-      eventBus,
       // mocks
+      stepServiceMock,
+      pipelineRepositoryMock,
+      configurationRepositoryMock,
       executionServiceMock,
       adapterServiceMock,
       notificationDispatchServiceMock,

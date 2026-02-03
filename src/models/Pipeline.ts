@@ -20,4 +20,8 @@ export namespace Pipeline {
       }),
     )
     .ensureTypeMatchesSchema();
+
+  export const sortNewToOld = ({ id: p1 }: Pipeline, { id: p2 }: Pipeline): number => {
+    return p2.localeCompare(p1); // uuid v7
+  };
 }
