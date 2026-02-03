@@ -299,7 +299,9 @@ export function pipelines$idPage() {
       } else {
         mainForm.setValue("steps", [...steps, step]);
       }
-      canvasListener.handleBlocksChange(CanvasEvent.relation, canvasApi.current!.list()); // Keep `step` relations up-to-date, after saving
+      // Re-assign `step` relations after saving
+      canvasListener.handleBlocksChange(CanvasEvent.relation, canvasApi.current!.list());
+      // Update state and canvas
       setStepForm((stepForm) => {
         if (stepForm) {
           canvasApi.current!.deselect(stepForm.id);
@@ -316,7 +318,9 @@ export function pipelines$idPage() {
           "steps",
           steps.filter((s) => s.id !== id),
         );
-        canvasListener.handleBlocksChange(CanvasEvent.relation, canvasApi.current!.list()); // Keep `step` relations up-to-date, after saving
+        // Re-assign `step` relations after saving
+        canvasListener.handleBlocksChange(CanvasEvent.relation, canvasApi.current!.list());
+        // Update state and canvas
         setStepForm(undefined);
         canvasApi.current!.remove(id);
       } else {
