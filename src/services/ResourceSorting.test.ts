@@ -1,5 +1,4 @@
-import { Class } from "@/types/Class";
-import { beforeAll, beforeEach, describe, expect, it } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { NotificationService } from "./NotificationService";
 import { PipelineService } from "./PipelineService";
 import { ScheduleService } from "./ScheduleService";
@@ -12,18 +11,13 @@ import { Pipeline } from "@/models/Pipeline";
 import { Schedule } from "@/models/Schedule";
 import { NotificationPolicy } from "@/models/NotificationPolicy";
 
-type TestCaseBuilder<T extends string, C extends Class, CF extends keyof InstanceType<C>, QF extends keyof InstanceType<C>> = {
-  type: T;
-  createInputFn: (index: number) => Parameters<InstanceType<C>[CF]>[0];
-  parseInputFn: (resource: Awaited<ReturnType<InstanceType<C>[CF]>>) => number;
-  createFn: InstanceType<C>[CF];
-  queryFn: InstanceType<C>[QF];
-  sortFn: (r1: Awaited<ReturnType<InstanceType<C>[CF]>>, r2: Awaited<ReturnType<InstanceType<C>[CF]>>) => number;
+type TestCase = {
+  type: string;
+  createFn: (index: number) => Promise<unknown>;
+  queryFn: () => Promise<unknown[]>;
+  retrieveIndexFn: (resource: unknown) => number;
+  sortDirectlyFn: (r1: unknown, r2: unknown) => number;
 };
-type TestCase =
-  | TestCaseBuilder<"pipelines", typeof PipelineService, "create", "query">
-  | TestCaseBuilder<"schedules", typeof ScheduleService, "create", "query">
-  | TestCaseBuilder<"notificationPolicies", typeof NotificationService, "createPolicy", "queryPolicies">;
 
 describe("resource sorting", async () => {
   const context = await TestEnvironment.initialize();
@@ -49,78 +43,45 @@ describe("resource sorting", async () => {
   const collection = TestUtils.createCollection<TestCase>("type", [
     {
       type: "pipelines",
-      createInputFn: (index) => ({ name: `${index}`, steps: [TestFixture.createStep(Step.Type.postgresql_backup)] }),
-      parseInputFn: (resource) => Number(resource.name),
-      createFn: (input) => pipelineService.create(input),
+      createFn: (index) => pipelineService.create({ name: `${index}`, steps: [TestFixture.createStep(Step.Type.postgresql_backup)] }),
       queryFn: () => pipelineService.query(),
-      sortFn: Pipeline.sortNewToOld,
+      retrieveIndexFn: (resource) => Number((resource as Pipeline).name),
+      sortDirectlyFn: (r1, r2) => Pipeline.sortNewToOld(r1 as Pipeline, r2 as Pipeline),
     },
     {
       type: "schedules",
-      createInputFn: (index) => ({ active: true, cron: "* * * * *", pipelineId: `${index}` }),
-      parseInputFn: (resource) => Number(resource.pipelineId),
-      createFn: (input) => scheduleService.create(input),
+      createFn: (index) => scheduleService.create({ active: true, cron: "* * * * *", pipelineId: `${index}` }),
       queryFn: () => scheduleService.query(),
-      sortFn: Schedule.sortNewToOld,
+      retrieveIndexFn: (resource) => Number((resource as Schedule).pipelineId),
+      sortDirectlyFn: (r1, r2) => Schedule.sortNewToOld(r1 as Schedule, r2 as Schedule),
     },
     {
       type: "notificationPolicies",
-      createInputFn: (index) => ({ active: true, channel: { type: "custom_script", path: `${index}` }, eventSubscriptions: [] }),
-      parseInputFn: (resource) => Number((resource.channel as NotificationChannel.CustomScript).path),
-      createFn: (input) => notificationService.createPolicy(input),
+      createFn: (index) =>
+        notificationService.createPolicy({
+          active: true,
+          channel: { type: "custom_script", path: `${index}` },
+          eventSubscriptions: [],
+        }),
       queryFn: () => notificationService.queryPolicies(),
-      sortFn: NotificationPolicy.sortNewToOld,
+      retrieveIndexFn: (resource) => Number(((resource as NotificationPolicy).channel as NotificationChannel.CustomScript).path),
+      sortDirectlyFn: (r1, r2) => NotificationPolicy.sortNewToOld(r1 as NotificationPolicy, r2 as NotificationPolicy),
     },
   ]);
   it.each(collection.testCases)("queries '%s' from new to old", async (tc) => {
-    const testCase = collection.get(tc);
+    const { createFn, queryFn, retrieveIndexFn, sortDirectlyFn } = collection.get(tc);
     // given
-    const range = { min: 0, max: 49 } as const;
-    for (let i = range.min; i <= range.max; i++) {
-      // when
-      switch (testCase.type) {
-        case "pipelines": {
-          await testCase.createFn(testCase.createInputFn(i));
-          break;
-        }
-        case "schedules": {
-          await testCase.createFn(testCase.createInputFn(i));
-          break;
-        }
-        case "notificationPolicies": {
-          await testCase.createFn(testCase.createInputFn(i));
-          break;
-        }
-        default: {
-          testCase satisfies never;
-        }
-      }
+    const count = 50;
+    for (let i = 0; i < count; i++) {
+      await createFn(i);
     }
-    // then
-    for (let i = range.min; i <= range.max; i++) {
-      switch (testCase.type) {
-        case "pipelines": {
-          const results = await testCase.queryFn();
-          const markerProperty = testCase.parseInputFn(results[i]);
-          expect(markerProperty).toEqual(range.max - i);
-          break;
-        }
-        case "schedules": {
-          const results = await testCase.queryFn();
-          const markerProperty = testCase.parseInputFn(results[i]);
-          expect(markerProperty).toEqual(range.max - i);
-          break;
-        }
-        case "notificationPolicies": {
-          const results = await testCase.queryFn();
-          const markerProperty = testCase.parseInputFn(results[i]);
-          expect(markerProperty).toEqual(range.max - i);
-          break;
-        }
-        default: {
-          testCase satisfies never;
-        }
-      }
+    // when
+    const queryResults = await queryFn();
+    const sortResults = queryResults.toSorted(sortDirectlyFn);
+    for (let i = 0; i < count; i++) {
+      // then
+      expect(retrieveIndexFn(queryResults[i])).toEqual(count - 1 - i);
+      expect(retrieveIndexFn(sortResults[i])).toEqual(count - 1 - i);
     }
   });
 });
