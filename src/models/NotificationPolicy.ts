@@ -14,6 +14,29 @@ export namespace NotificationPolicy {
     channel: NotificationChannel;
     eventSubscriptions: EventSubscription[];
   };
+  export namespace Core {
+    export const parse = ZodParser.forType<Core>()
+      .ensureSchemaMatchesType(() =>
+        z
+          .object({
+            id: z.string(),
+            object: z.literal("notification_policy"),
+            channel: NotificationChannel.parse.SCHEMA,
+            eventSubscriptions: z.array(EventSubscription.parse.SCHEMA),
+          })
+          .refine(
+            ({ eventSubscriptions }) => {
+              const counts = new Map<EventSubscription.Type, number>();
+              for (const { type } of eventSubscriptions) {
+                counts.set(type, (counts.get(type) ?? 0) + 1);
+              }
+              return counts.values().every((occurrences) => occurrences <= 1);
+            },
+            { error: "multiple_subscriptions_per_event_type" },
+          ),
+      )
+      .ensureTypeMatchesSchema();
+  }
 
   export type Metadata = {
     id: string;
@@ -33,24 +56,11 @@ export namespace NotificationPolicy {
 
   export const parse = ZodParser.forType<NotificationPolicy>()
     .ensureSchemaMatchesType(() =>
-      z
-        .object({
-          id: z.string(),
-          object: z.literal("notification_policy"),
-          channel: NotificationChannel.parse.SCHEMA,
-          eventSubscriptions: z.array(EventSubscription.parse.SCHEMA),
+      Core.parse.SCHEMA.and(
+        z.object({
           active: z.boolean(),
-        })
-        .refine(
-          ({ eventSubscriptions }) => {
-            const counts = new Map<EventSubscription.Type, number>();
-            for (const { type } of eventSubscriptions) {
-              counts.set(type, (counts.get(type) ?? 0) + 1);
-            }
-            return counts.values().every((occurrences) => occurrences <= 1);
-          },
-          { error: "multiple_subscriptions_per_event_type" },
-        ),
+        }),
+      ),
     )
     .ensureTypeMatchesSchema();
 

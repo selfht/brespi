@@ -47,7 +47,7 @@ export abstract class AbstractAdapter {
     return value;
   }
 
-  protected requireArtifactType(requiredType: Artifact["type"], ...artifacts: Artifact[]): void {
+  protected requireArtifactType(requiredType: Artifact["type"], ...artifacts: Array<Pick<Artifact, "type" | "name">>): void {
     const badArtifact = artifacts.find((a) => a.type !== requiredType);
     if (badArtifact) {
       throw ExecutionError.artifact_type_invalid({ name: badArtifact.name, type: badArtifact.type, requiredType });

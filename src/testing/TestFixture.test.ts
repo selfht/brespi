@@ -27,32 +27,37 @@ function deepMerge<T extends object>(target: T, source: DeepPartial<T>): T {
 }
 
 export namespace TestFixture {
-  export function createExecutionStartedEvent(overrides: DeepPartial<Event.ExecutionStarted> = {}): Event.ExecutionStarted {
-    const defaults: Event.ExecutionStarted = {
-      id: Bun.randomUUIDv7(),
-      object: "event",
-      published: Temporal.Now.plainDateTimeISO(),
-      type: Event.Type.execution_started,
-      data: {
-        trigger: "schedule",
-        execution: createExecution({ result: null }),
-      },
-    };
-    return deepMerge(defaults, overrides);
-  }
-
-  export function createExecutionCompletedEvent(overrides: DeepPartial<Event.ExecutionCompleted> = {}): Event.ExecutionCompleted {
-    const defaults: Event.ExecutionCompleted = {
-      id: Bun.randomUUIDv7(),
-      object: "event",
-      published: Temporal.Now.plainDateTimeISO(),
-      type: Event.Type.execution_completed,
-      data: {
-        trigger: "schedule",
-        execution: createExecution(),
-      },
-    };
-    return deepMerge(defaults, overrides);
+  export function createEvent<T extends Event.Type>(
+    type: T,
+    overrides = {} as DeepPartial<Extract<Event, { type: T }>>,
+  ): Extract<Event, { type: T }> {
+    if (type === Event.Type.execution_started) {
+      const defaults: Event.ExecutionStarted = {
+        id: Bun.randomUUIDv7(),
+        object: "event",
+        published: Temporal.Now.plainDateTimeISO(),
+        type: Event.Type.execution_started,
+        data: {
+          trigger: "schedule",
+          execution: createExecution({ result: null }),
+        },
+      };
+      return deepMerge(defaults, overrides as DeepPartial<Event.ExecutionStarted>) as Extract<Event, { type: T }>;
+    }
+    if (type === Event.Type.execution_completed) {
+      const defaults: Event.ExecutionCompleted = {
+        id: Bun.randomUUIDv7(),
+        object: "event",
+        published: Temporal.Now.plainDateTimeISO(),
+        type: Event.Type.execution_completed,
+        data: {
+          trigger: "schedule",
+          execution: createExecution(),
+        },
+      };
+      return deepMerge(defaults, overrides as DeepPartial<Event.ExecutionCompleted>) as Extract<Event, { type: T }>;
+    }
+    throw new Error(`No fixture implemented for ${type}`);
   }
 
   export function createExecution(overrides: DeepPartial<Execution> = {}): Execution {

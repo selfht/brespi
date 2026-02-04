@@ -18,7 +18,11 @@ export class FilesystemAdapter extends AbstractAdapter {
     super(env);
   }
 
-  public async write(artifacts: Artifact[], step: Step.FilesystemWrite, trail: StepWithRuntime[]): Promise<AdapterResult> {
+  public async write(
+    artifacts: Array<Pick<Artifact, "type" | "name" | "path">>,
+    step: Step.FilesystemWrite,
+    trail: StepWithRuntime[],
+  ): Promise<AdapterResult> {
     await mkdir(step.folderPath, { recursive: true });
     if (step.managedStorage) {
       this.requireArtifactType("file", ...artifacts);

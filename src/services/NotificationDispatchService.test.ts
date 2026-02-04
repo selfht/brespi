@@ -40,19 +40,19 @@ describe(NotificationDispatchService.name, async () => {
     const collection = TestUtils.createCollection<TestCase>("description", [
       tc({
         description: "execution_started",
-        event: TestFixture.createExecutionStartedEvent({ data: { execution: { pipelineId: PIPELINE_ID } } }),
+        event: TestFixture.createEvent(Event.Type.execution_started, { data: { execution: { pipelineId: PIPELINE_ID } } }),
         expectation: (e) => new RegExp(`${e.data.execution.pipelineId}`, "is"),
       }),
       tc({
         description: "execution_completed / success",
-        event: TestFixture.createExecutionCompletedEvent({
+        event: TestFixture.createEvent(Event.Type.execution_completed, {
           data: { execution: { pipelineId: PIPELINE_ID, result: { outcome: Outcome.success } } },
         }),
         expectation: (e) => new RegExp(`succeeded.*${e.data.execution.pipelineId}`, "is"),
       }),
       tc({
         description: "execution_completed / failure",
-        event: TestFixture.createExecutionCompletedEvent({
+        event: TestFixture.createEvent(Event.Type.execution_completed, {
           data: { execution: { pipelineId: PIPELINE_ID, result: { outcome: Outcome.error } } },
         }),
         expectation: (e) => new RegExp(`failed.*${e.data.execution.pipelineId}`, "is"),
@@ -93,7 +93,9 @@ describe(NotificationDispatchService.name, async () => {
           },
         ],
       };
-      const event = TestFixture.createExecutionCompletedEvent({ data: { execution: { result: { outcome: Outcome.success } } } });
+      const event = TestFixture.createEvent(Event.Type.execution_completed, {
+        data: { execution: { result: { outcome: Outcome.success } } },
+      });
 
       // when
       const errorSpy = spyOn(console, "error");
@@ -123,7 +125,7 @@ describe(NotificationDispatchService.name, async () => {
     const collection = TestUtils.createCollection<TestCase>("description", [
       tc({
         description: "execution_started",
-        event: TestFixture.createExecutionStartedEvent({ data: { execution: { pipelineId: PIPELINE_ID } } }),
+        event: TestFixture.createEvent(Event.Type.execution_started, { data: { execution: { pipelineId: PIPELINE_ID } } }),
         expectationFn: (e) => ({
           BRESPI_EVENT: e.type,
           BRESPI_PIPELINE_ID: PIPELINE_ID,
@@ -132,7 +134,7 @@ describe(NotificationDispatchService.name, async () => {
       }),
       tc({
         description: "execution_completed",
-        event: TestFixture.createExecutionCompletedEvent({
+        event: TestFixture.createEvent(Event.Type.execution_completed, {
           data: { execution: { pipelineId: PIPELINE_ID, result: { outcome: Outcome.success } } },
         }),
         expectationFn: (e) => ({
@@ -174,7 +176,9 @@ describe(NotificationDispatchService.name, async () => {
     it("logs an error when script execution fails", async () => {
       // given
       const policy = customScriptPolicy("/nonexistent/path/to/script.sh");
-      const event = TestFixture.createExecutionCompletedEvent({ data: { execution: { result: { outcome: Outcome.success } } } });
+      const event = TestFixture.createEvent(Event.Type.execution_completed, {
+        data: { execution: { result: { outcome: Outcome.success } } },
+      });
 
       // when
       const errorSpy = spyOn(console, "error");

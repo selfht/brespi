@@ -1,16 +1,66 @@
+import { FilesystemAdapter } from "@/adapters/filesystem/FilesystemAdapter";
+import { FilterCapability } from "@/capabilities/filter/FilterCapability";
+import { ManagedStorageCapability } from "@/capabilities/managedstorage/ManagedStorageCapability";
 import * as schema from "@/drizzle/schema";
 import { $action, $execution, $notificationPolicyMetadata, $scheduleMetadata } from "@/drizzle/schema";
 import { initializeSqlite, Sqlite } from "@/drizzle/sqlite";
 import { Env } from "@/Env";
-import { describe, test } from "bun:test";
+import { Artifact } from "@/models/Artifact";
+import { Configuration as ModelConfiguration } from "@/models/Configuration";
+import { Step } from "@/models/Step";
+import { StepWithRuntime } from "@/models/StepWithRuntime";
+import { ActionConverter } from "@/repositories/converters/ActionConverter";
+import { ExecutionConverter } from "@/repositories/converters/ExecutionConverter";
+import { NotificationPolicyMetadataConverter } from "@/repositories/converters/NotificationPolicyMetadataConverter";
+import { ScheduleMetadataConverter } from "@/repositories/converters/ScheduleMetadataConverter";
+import { test } from "bun:test";
 import { getTableName, InferInsertModel } from "drizzle-orm";
+import { mkdir, rm } from "fs/promises";
 import { basename, dirname, join } from "path";
+import { TestFixture } from "../TestFixture.test";
 
-describe("regression suite management", async () => {
-  test.skip("manually update the regression suite", async () => {
-    // This is a playground where the regression suite can be manually updated
-  });
+test.only("regression suite management", async () => {
+  // This is a playground where the regression suite can be manually updated
+  // See below for some examples
+  await Example.database();
 });
+
+const Example = {
+  async configuration() {
+    await RegressionSuite.Configuration.writeJson("configuration_99.json", {
+      pipelines: [
+        {
+          id: Bun.randomUUIDv7(),
+          object: "pipeline",
+          name: "Example",
+          steps: [TestFixture.createStep(Step.Type.custom_script)],
+        },
+      ],
+      schedules: [],
+      notificationPolicies: [],
+    });
+  },
+  async database() {
+    await RegressionSuite.Database.insertIntoRegressionDatabase({
+      $execution: [TestFixture.createExecution()].map((e) => ExecutionConverter.convert(e)),
+      $action: [].map((a) => ActionConverter.convert(a)),
+      $scheduleMetadata: [].map((s) => ScheduleMetadataConverter.convert(s)),
+      $notificationPolicyMetadata: [].map((n) => NotificationPolicyMetadataConverter.convert(n)),
+    });
+  },
+  async managedStorage() {
+    await RegressionSuite.ManagedStorage.appendToStorageRoot("managed_storage_root_01", [
+      {
+        artifactNames: ["webshop.sql.tar.gz.enc", "crm.sql.tar.gz.enc"],
+        trail: [
+          { ...TestFixture.createStep(Step.Type.mariadb_backup), runtime: { driver: "1.0.0" } },
+          { ...TestFixture.createStep(Step.Type.compression), runtime: null },
+          { ...TestFixture.createStep(Step.Type.encryption), runtime: null },
+        ],
+      },
+    ]);
+  },
+};
 
 export namespace RegressionSuite {
   const suitePath = join(import.meta.dir, "suite");
@@ -18,15 +68,15 @@ export namespace RegressionSuite {
    * Helper functions for reading/writing configurations
    */
   export namespace Configuration {
-    export type ConfigurationJson = {
+    type JsonResult = {
       filename: string;
       json: any;
     };
-    export async function readJsons(): Promise<ConfigurationJson[]> {
+    export async function readJsons(): Promise<JsonResult[]> {
       const glob = new Bun.Glob("*.json");
       const files = await Array.fromAsync(glob.scan({ cwd: suitePath, absolute: true }));
       const output = await Promise.all(
-        [...files].map<Promise<ConfigurationJson>>(async (file) => ({
+        [...files].map<Promise<JsonResult>>(async (file) => ({
           filename: basename(file),
           json: await Bun.file(file).json(),
         })),
@@ -36,13 +86,10 @@ export namespace RegressionSuite {
       }
       return output;
     }
-    export async function writeJsons(input: ConfigurationJson[]): Promise<void> {
-      await Promise.all(
-        input.map(async ({ filename, json }) => {
-          const path = join(suitePath, filename);
-          await Bun.write(path, JSON.stringify(json, null, 2));
-        }),
-      );
+
+    export async function writeJson(filename: string, configuration: ModelConfiguration.Core): Promise<void> {
+      const path = join(suitePath, filename);
+      await Bun.write(path, JSON.stringify(configuration, null, 2));
     }
   }
 
@@ -81,7 +128,7 @@ export namespace RegressionSuite {
       await Bun.write(databaseCopyPath, file);
       return await initializeSqlite({ X_BRESPI_DATABASE: databaseCopyPath } as Env.Private);
     }
-    export async function updateRegressionDatabase({
+    export async function insertIntoRegressionDatabase({
       $execution: executions,
       $action: actions,
       $scheduleMetadata: scheduleMetadatas,
@@ -106,6 +153,53 @@ export namespace RegressionSuite {
       }
       sqlite.close();
       return databasePath;
+    }
+  }
+
+  /**
+   * Helper functions for reading/writing managed storage roots
+   */
+  export namespace ManagedStorage {
+    export async function getStorageRootPaths(): Promise<string[]> {
+      return [];
+    }
+
+    type Listing = {
+      artifactNames: string[];
+      trail: StepWithRuntime[];
+    };
+    export async function appendToStorageRoot(rootName: string, rootContents: Listing[]) {
+      const env = { O_BRESPI_VERSION: "0.0.0", O_BRESPI_COMMIT: "0000000000000000000000000000000000000000" } as Env.Private;
+      const filesystemAdapter = new FilesystemAdapter(env, new ManagedStorageCapability(env), new FilterCapability());
+      for (const { artifactNames, trail } of rootContents) {
+        const tempDir = join(suitePath, "tmp");
+        await mkdir(tempDir);
+        try {
+          const temporaryArtifacts: Array<Pick<Artifact, "type" | "name" | "path">> = [];
+          await Promise.all(
+            artifactNames.map(async (name) => {
+              const path = join(tempDir, name);
+              await Bun.write(path, `Contents for ${name}`);
+              temporaryArtifacts.push({ type: "file", name, path });
+            }),
+          );
+          await filesystemAdapter.write(
+            temporaryArtifacts,
+            {
+              id: "x",
+              type: Step.Type.filesystem_write,
+              object: "step",
+              previousId: null,
+              folderPath: join(suitePath, rootName),
+              retention: null,
+              managedStorage: true,
+            },
+            trail,
+          );
+        } finally {
+          await rm(tempDir, { force: true, recursive: true });
+        }
+      }
     }
   }
 }

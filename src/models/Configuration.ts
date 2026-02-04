@@ -12,7 +12,7 @@ export namespace Configuration {
   export type Core = {
     pipelines: Pipeline[];
     schedules: Schedule.Core[];
-    notificationPolicies: NotificationPolicy[];
+    notificationPolicies: NotificationPolicy.Core[];
   };
   export namespace Core {
     export function empty(): Core {
@@ -27,7 +27,7 @@ export namespace Configuration {
         z.object({
           pipelines: z.array(Pipeline.parse.SCHEMA),
           schedules: z.array(Schedule.Core.parse.SCHEMA),
-          notificationPolicies: z.array(NotificationPolicy.parse.SCHEMA),
+          notificationPolicies: z.array(NotificationPolicy.Core.parse.SCHEMA),
         }),
       )
       .ensureTypeMatchesSchema();
