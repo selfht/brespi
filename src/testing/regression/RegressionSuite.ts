@@ -15,7 +15,7 @@ describe("regression suite management", async () => {
 export namespace RegressionSuite {
   const suitePath = join(import.meta.dir, "suite");
   /**
-   * Helper functions for reading/writing configuration
+   * Helper functions for reading/writing configurations
    */
   export namespace Configuration {
     export type ConfigurationJson = {
@@ -47,7 +47,7 @@ export namespace RegressionSuite {
   }
 
   /**
-   * Helper functions for reading/writing configuration
+   * Helper functions for reading/writing the regression database
    */
   export namespace Database {
     type Schema = typeof schema;
