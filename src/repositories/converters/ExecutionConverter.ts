@@ -43,7 +43,7 @@ export namespace ExecutionConverter {
               duration: Temporal.Duration.from({ milliseconds: db.resultDurationMs }),
               completedAt: Temporal.PlainDateTime.from(db.resultCompletedAt),
             }
-          : null,
+          : undefined,
     };
   }
 }

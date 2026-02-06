@@ -10,16 +10,16 @@ export type Action = {
   executionId: string;
   stepId: string;
   stepType: string;
-  previousStepId: string | null;
-  startedAt: Temporal.PlainDateTime | null;
-  result: {
+  previousStepId?: string;
+  startedAt?: Temporal.PlainDateTime;
+  result?: {
     outcome: Outcome;
     duration: Temporal.Duration;
     completedAt: Temporal.PlainDateTime;
     consumed: Action.ArtifactSummary[];
     produced: Action.ArtifactSummary[];
-    errorMessage: string | null;
-  } | null;
+    errorMessage?: string;
+  };
 };
 
 export namespace Action {
@@ -37,11 +37,11 @@ export namespace Action {
         executionId: z.string(),
         stepId: z.string(),
         stepType: z.string(),
-        previousStepId: z.string().nullable(),
+        previousStepId: z.string().optional(),
         startedAt: z
           .string()
           .transform((x) => Temporal.PlainDateTime.from(x))
-          .nullable(),
+          .optional(),
         result: z
           .object({
             outcome: z.enum(Outcome),
@@ -49,9 +49,9 @@ export namespace Action {
             completedAt: z.string().transform((x) => Temporal.PlainDateTime.from(x)),
             consumed: z.array(artifactSummarySchema),
             produced: z.array(artifactSummarySchema),
-            errorMessage: z.string().nullable(),
+            errorMessage: z.string().optional(),
           })
-          .nullable(),
+          .optional(),
       }),
     )
     .ensureTypeMatchesSchema();

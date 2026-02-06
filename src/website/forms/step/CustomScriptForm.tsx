@@ -54,7 +54,7 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
     try {
       await onSave({
         id,
-        previousId: existing?.previousId || null,
+        previousId: existing?.previousId,
         object: "step",
         type: Step.Type.custom_script,
         path: form[Field.path],

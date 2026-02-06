@@ -119,12 +119,12 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
     try {
       await onSave({
         id,
-        previousId: existing?.previousId || null,
+        previousId: existing?.previousId,
         object: "step",
         type: Step.Type.s3_download,
         connection: {
           bucket: form[Field.connection_bucket],
-          region: form[Field.connection_region] || null,
+          region: form[Field.connection_region] || undefined,
           endpoint: form[Field.connection_endpoint],
           accessKeyReference: form[Field.connection_accessKeyReference],
           secretKeyReference: form[Field.connection_secretKeyReference],
@@ -141,7 +141,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
               : form[Field.filterCriteria_method] === "glob"
                 ? { method: "glob", nameGlob: form[Field.filterCriteria_nameGlob] }
                 : { method: "regex", nameRegex: form[Field.filterCriteria_nameRegex] }
-            : null,
+            : undefined,
       });
     } catch (error) {
       setError("root", {
@@ -241,7 +241,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
             onActiveFieldChange={setActiveField}
             input={{ type: "yesno" }}
           />
-          {filterCriteria === "true" ? (
+          {filterCriteria === "true" && (
             <>
               <FormElements.LabeledInput
                 field={Field.filterCriteria_method}
@@ -282,7 +282,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
                 />
               )}
             </>
-          ) : null}
+          )}
         </fieldset>
         <FormElements.ButtonBar
           className="mt-12"

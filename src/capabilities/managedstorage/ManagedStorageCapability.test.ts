@@ -217,6 +217,30 @@ describe(ManagedStorageCapability.name, async () => {
       expect(insertableArtifacts).toHaveLength(1);
       expect(insertableArtifacts[0].destinationPath).toMatch(expectation.destinationPathMatcher);
     });
+
+    it("throws an error when one of the artifacts doesn't exist", async () => {
+      // given
+      const { filesystem, ...readWriteFns } = createReadWriteFns();
+      const { options } = await ensureExistingBaseline({
+        mutexKey: [],
+        artifacts: [{ name: "Apple", path: "irrelevant" }],
+        trail: [],
+        base: "/irrelevant",
+        ...readWriteFns,
+      });
+      // when
+      const action = () =>
+        capability.insert({
+          ...options,
+          artifacts: [{ name: "Apple", path: "/something/nonexistent" }],
+        });
+      // then
+      expect(action()).rejects.toEqual(
+        expect.objectContaining({
+          message: expect.stringContaining("artifact could not be read"),
+        }),
+      );
+    });
   });
 
   describe("select", () => {

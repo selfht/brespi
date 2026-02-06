@@ -7,7 +7,6 @@
       "steps": [
         {
           "id": "u8ha0p",
-          "previousId": null,
           "object": "step",
           "type": "postgresql_backup",
           "connectionReference": "PG_CONNECTION_STRING",

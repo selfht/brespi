@@ -100,7 +100,7 @@ export function PostgresqlBackupForm({ id, existing, onSave, onDelete, onCancel,
     try {
       await onSave({
         id,
-        previousId: existing?.previousId || null,
+        previousId: existing?.previousId,
         object: "step",
         type: Step.Type.postgresql_backup,
         connectionReference: form[Field.connectionReference],

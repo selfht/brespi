@@ -7,7 +7,6 @@
       "steps": [
         {
           "id": "oujhtv",
-          "previousId": null,
           "object": "step",
           "type": "filesystem_read",
           "path": "/data/raw",
@@ -33,8 +32,7 @@
           "object": "step",
           "type": "filesystem_write",
           "folderPath": "/data/processed",
-          "managedStorage": false,
-          "retention": null
+          "managedStorage": false
         }
       ]
     }

@@ -60,7 +60,7 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
     try {
       await onSave({
         id,
-        previousId: existing?.previousId || null,
+        previousId: existing?.previousId,
         object: "step",
         type: Step.Type.filesystem_write,
         folderPath: form[Field.folderPath],
@@ -68,7 +68,7 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
         retention:
           form[Field.retentionPolicy] === "last_n_versions"
             ? { policy: "last_n_versions", maxVersions: form[Field.retentionMaxVersions] }
-            : null,
+            : undefined,
       });
     } catch (error) {
       setError("root", {

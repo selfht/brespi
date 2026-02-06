@@ -142,7 +142,6 @@ describe(ExecutionService.name, async () => {
       pipelineId: "123",
       startedAt: Temporal.Now.plainDateTimeISO(),
       actions: [],
-      result: null,
     });
     // when
     const action = () => service.create({ pipelineId: "123", trigger: "ad_hoc" });
@@ -165,7 +164,7 @@ describe(ExecutionService.name, async () => {
       steps: steps.map((type, index) =>
         TestFixture.createStep(type, {
           id: `${index}`,
-          previousId: index > 0 ? `${index - 1}` : null,
+          previousId: index > 0 ? `${index - 1}` : undefined,
         }),
       ),
       ...overrides,

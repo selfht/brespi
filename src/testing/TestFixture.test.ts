@@ -39,7 +39,7 @@ export namespace TestFixture {
         type: Event.Type.execution_started,
         data: {
           trigger: "schedule",
-          execution: createExecution({ result: null }),
+          execution: createExecution({ result: undefined }),
         },
       };
       return deepMerge(defaults, overrides as DeepPartial<Event.ExecutionStarted>) as Extract<Event, { type: T }>;
@@ -83,7 +83,6 @@ export namespace TestFixture {
     const common = Object.assign(
       {
         id: Bun.randomUUIDv7(),
-        previousId: null,
         object: "step" as const,
       },
       overrides,
@@ -93,8 +92,6 @@ export namespace TestFixture {
         const step: Step.FilesystemRead = {
           type: Step.Type.filesystem_read,
           path: "/tmp/test",
-          managedStorage: null,
-          filterCriteria: null,
           ...common,
         };
         return step as Extract<Step, { type: T }>;
@@ -104,7 +101,6 @@ export namespace TestFixture {
           type: Step.Type.filesystem_write,
           folderPath: "/app/opt/files",
           managedStorage: false,
-          retention: null,
           ...common,
         };
         return step as Extract<Step, { type: T }>;
@@ -192,12 +188,10 @@ export namespace TestFixture {
           connection: {
             bucket: "bucko",
             endpoint: "http://s3:4566",
-            region: null,
             accessKeyReference: "MY_S3_ACCESS_KEY",
             secretKeyReference: "MY_S3_SECRET_KEY",
           },
           basePrefix: "/backups",
-          retention: null,
           ...common,
         };
         return step as Extract<Step, { type: T }>;
@@ -208,7 +202,6 @@ export namespace TestFixture {
           connection: {
             bucket: "bucko",
             endpoint: "http://s3:4566",
-            region: null,
             accessKeyReference: "MY_S3_ACCESS_KEY",
             secretKeyReference: "MY_S3_SECRET_KEY",
           },
@@ -216,7 +209,6 @@ export namespace TestFixture {
           managedStorage: {
             target: "latest",
           },
-          filterCriteria: null,
           ...common,
         };
         return step as Extract<Step, { type: T }>;

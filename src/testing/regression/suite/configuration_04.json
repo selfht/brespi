@@ -7,7 +7,6 @@
       "steps": [
         {
           "id": "1twp52",
-          "previousId": null,
           "object": "step",
           "type": "s3_download",
           "connection": {
@@ -20,8 +19,7 @@
           "basePrefix": "postgresql/production",
           "managedStorage": {
             "target": "latest"
-          },
-          "filterCriteria": null
+          }
         },
         {
           "id": "d5223a",

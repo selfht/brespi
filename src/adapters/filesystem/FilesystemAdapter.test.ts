@@ -24,12 +24,12 @@ describe(FilesystemAdapter.name, async () => {
     // when
     const step: Step.FilesystemWrite = {
       id: Generate.shortRandomString(),
-      previousId: null,
+      previousId: undefined,
       type: Step.Type.filesystem_write,
       object: "step",
       folderPath,
       managedStorage: false,
-      retention: null,
+      retention: undefined,
     };
     await adapter.write(artifacts, step, []);
     // then
@@ -45,12 +45,12 @@ describe(FilesystemAdapter.name, async () => {
     // when
     const step: Step.FilesystemWrite = {
       id: Generate.shortRandomString(),
-      previousId: null,
+      previousId: undefined,
       type: Step.Type.filesystem_write,
       object: "step",
       folderPath,
       managedStorage: false,
-      retention: null,
+      retention: undefined,
     };
     await adapter.write(artifacts, step, []);
     // then
@@ -73,12 +73,12 @@ describe(FilesystemAdapter.name, async () => {
     const artifacts = await context.createArtifacts("f:Otto-Override.txt");
     const step: Step.FilesystemWrite = {
       id: Generate.shortRandomString(),
-      previousId: null,
+      previousId: undefined,
       type: Step.Type.filesystem_write,
       object: "step",
       folderPath: destinationDir,
       managedStorage: false,
-      retention: null,
+      retention: undefined,
     };
     await adapter.write(artifacts, step, []);
 
@@ -107,12 +107,12 @@ describe(FilesystemAdapter.name, async () => {
     const artifacts = await context.createArtifacts("f:irrelevant.txt");
     const step: Step.FilesystemWrite = {
       id: Generate.shortRandomString(),
-      previousId: null,
+      previousId: undefined,
       type: Step.Type.filesystem_write,
       object: "step",
       folderPath: destinationDir,
       managedStorage: true,
-      retention: null,
+      retention: undefined,
     };
     await adapter.write(artifacts, step, []);
 

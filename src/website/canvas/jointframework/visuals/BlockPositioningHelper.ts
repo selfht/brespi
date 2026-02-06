@@ -6,7 +6,7 @@ import { Sizing } from "../constants/Sizing";
 
 export namespace PositioningHelper {
   export function performSmartPositioning(blocks: Block[], paperDimensions: Dimensions): JointBlock[] {
-    const childrenMap = new Map<string | null, Block[]>();
+    const childrenMap = new Map<string | undefined, Block[]>();
     blocks.forEach((block) => {
       const parent = block.incomingId;
       if (!childrenMap.has(parent)) {
@@ -26,7 +26,7 @@ export namespace PositioningHelper {
       };
     };
 
-    const startingBlocks = blocks.filter((b) => b.incomingId === null);
+    const startingBlocks = blocks.filter((b) => !b.incomingId);
     const trees: Tree[] = startingBlocks.map(buildTree);
 
     const grid: Block[][] = [];

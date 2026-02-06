@@ -46,7 +46,7 @@ export class RestrictedService {
         steps: [
           {
             id: "A",
-            previousId: null,
+            previousId: undefined,
             object: "step",
             type: Step.Type.postgresql_backup,
             connectionReference: "MY_POSTGRESQL_URL",
@@ -77,14 +77,14 @@ export class RestrictedService {
         steps: [
           {
             id: "A",
-            previousId: null,
+            previousId: undefined,
             object: "step",
             type: Step.Type.filesystem_read,
             path: "opt/backups_postgresql",
             managedStorage: {
               target: "latest",
             },
-            filterCriteria: null,
+            filterCriteria: undefined,
           },
           {
             id: "B",
@@ -164,7 +164,7 @@ export class RestrictedService {
         steps: [
           {
             id: "A",
-            previousId: null,
+            previousId: undefined,
             object: "step",
             type: Step.Type.mariadb_backup,
             connectionReference: "MY_MARIADB_URL",
@@ -195,14 +195,14 @@ export class RestrictedService {
         steps: [
           {
             id: "A",
-            previousId: null,
+            previousId: undefined,
             object: "step",
             type: Step.Type.filesystem_read,
             path: "opt/backups_mariadb",
             managedStorage: {
               target: "latest",
             },
-            filterCriteria: null,
+            filterCriteria: undefined,
           },
           {
             id: "B",

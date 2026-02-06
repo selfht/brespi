@@ -21,7 +21,6 @@
         "method": "all"
       },
       "id": "019c2cb3-0c13-7000-9970-dc8c7d4c9b62",
-      "previousId": null,
       "object": "step",
       "runtime": {
         "driver": "1.0.0"
@@ -34,9 +33,7 @@
         "level": 9
       },
       "id": "019c2cb3-0c13-7001-bcb8-759f922f8b76",
-      "previousId": null,
-      "object": "step",
-      "runtime": null
+      "object": "step"
     },
     {
       "type": "encryption",
@@ -45,9 +42,7 @@
         "implementation": "aes256cbc"
       },
       "id": "019c2cb3-0c13-7002-b1e4-acf9d4f813ca",
-      "previousId": null,
-      "object": "step",
-      "runtime": null
+      "object": "step"
     }
   ],
   "brespi": {

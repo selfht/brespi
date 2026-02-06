@@ -10,11 +10,11 @@ export type Execution = {
   pipelineId: string;
   startedAt: Temporal.PlainDateTime;
   actions: Action[];
-  result: {
+  result?: {
     outcome: Outcome;
     duration: Temporal.Duration;
     completedAt: Temporal.PlainDateTime;
-  } | null;
+  };
 };
 
 export namespace Execution {
@@ -32,7 +32,7 @@ export namespace Execution {
             outcome: z.enum(Outcome),
             completedAt: z.string().transform((x) => Temporal.PlainDateTime.from(x)),
           })
-          .nullable(),
+          .optional(),
       }),
     )
     .ensureTypeMatchesSchema();

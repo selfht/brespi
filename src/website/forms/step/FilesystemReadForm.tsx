@@ -90,7 +90,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
     try {
       await onSave({
         id,
-        previousId: existing?.previousId || null,
+        previousId: existing?.previousId,
         object: "step",
         type: Step.Type.filesystem_read,
         path: form[Field.path],
@@ -99,7 +99,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
             ? form[Field.managedStorage_target] === "latest"
               ? { target: "latest" }
               : { target: "specific", version: form[Field.managedStorage_version] }
-            : null,
+            : undefined,
         filterCriteria:
           form[Field.filterCriteria] === "true"
             ? form[Field.filterCriteria_method] === "exact"
@@ -107,7 +107,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
               : form[Field.filterCriteria_method] === "glob"
                 ? { method: "glob", nameGlob: form[Field.filterCriteria_nameGlob] }
                 : { method: "regex", nameRegex: form[Field.filterCriteria_nameRegex] }
-            : null,
+            : undefined,
       });
     } catch (error) {
       setError("root", {

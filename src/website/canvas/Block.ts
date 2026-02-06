@@ -1,6 +1,6 @@
 export type Block = {
   id: string;
-  incomingId: string | null;
+  incomingId?: string;
   theme: "default" | "success" | "error" | "busy" | "unused";
   label: string;
   details: Block.Details | null;

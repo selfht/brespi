@@ -90,12 +90,12 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
     try {
       await onSave({
         id,
-        previousId: existing?.previousId || null,
+        previousId: existing?.previousId,
         object: "step",
         type: Step.Type.s3_upload,
         connection: {
           bucket: form[Field.connection_bucket],
-          region: form[Field.connection_region] || null,
+          region: form[Field.connection_region] || undefined,
           endpoint: form[Field.connection_endpoint],
           accessKeyReference: form[Field.connection_accessKeyReference],
           secretKeyReference: form[Field.connection_secretKeyReference],
@@ -104,7 +104,7 @@ export function S3UploadForm({ id, existing, onSave, onDelete, onCancel, classNa
         retention:
           form[Field.retentionPolicy] === "last_n_versions"
             ? { policy: "last_n_versions", maxVersions: form[Field.retentionMaxVersions] }
-            : null,
+            : undefined,
       });
     } catch (error) {
       setError("root", {

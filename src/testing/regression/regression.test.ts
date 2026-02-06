@@ -45,7 +45,7 @@ describe("regression", () => {
     });
   });
 
-  describe.only("managed storage listing", async () => {
+  describe("managed storage listing", async () => {
     const collection = TestUtils.createCollection("name", await RegressionSuite.ManagedStorage.getStorageRootCopies());
     it.each(collection.testCases)("%s", async (testCase) => {
       // given
@@ -61,10 +61,8 @@ describe("regression", () => {
       const readLatestArtifacts = async () => {
         const { artifacts } = await filesystemAdapter.read({
           id: "-",
-          previousId: null,
           object: "step",
           type: Step.Type.filesystem_read,
-          filterCriteria: null,
           path,
           managedStorage: { target: "latest" },
         });
@@ -79,12 +77,10 @@ describe("regression", () => {
         await RegressionSuite.ManagedStorage.saveTemporaryArtifacts(["lemons.txt", "apples.txt", "oranges.txt"]),
         {
           id: "-",
-          previousId: null,
           object: "step",
           type: Step.Type.filesystem_write,
           folderPath: path,
           managedStorage: true,
-          retention: null,
         },
         [],
       );

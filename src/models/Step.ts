@@ -50,7 +50,7 @@ export namespace Step {
 
   type Common = {
     id: string;
-    previousId: string | null;
+    previousId?: string;
     object: "step";
   };
 
@@ -70,7 +70,7 @@ export namespace Step {
 
   export type S3Connection = {
     bucket: string;
-    region: string | null;
+    region?: string;
     endpoint: string;
     accessKeyReference: string;
     secretKeyReference: string;
@@ -130,21 +130,21 @@ export namespace Step {
     type: Type.filesystem_write;
     folderPath: string;
     managedStorage: boolean;
-    retention: Retention | null;
+    retention?: Retention;
   };
 
   export type FilesystemRead = Common & {
     type: Type.filesystem_read;
     path: string;
-    managedStorage: ManagedStorage | null;
-    filterCriteria: FilterCriteria | null;
+    managedStorage?: ManagedStorage;
+    filterCriteria?: FilterCriteria;
   };
 
   export type S3Upload = Common & {
     type: Type.s3_upload;
     connection: S3Connection;
     basePrefix: string;
-    retention: Retention | null;
+    retention?: Retention;
   };
 
   export type S3Download = Common & {
@@ -152,7 +152,7 @@ export namespace Step {
     connection: S3Connection;
     basePrefix: string;
     managedStorage: ManagedStorage;
-    filterCriteria: FilterCriteria | null;
+    filterCriteria?: FilterCriteria;
   };
 
   export type PostgresqlBackup = Common & {
@@ -226,7 +226,7 @@ export namespace Step {
       const subSchema = {
         common: {
           id: z.string(),
-          previousId: z.string().nullable(),
+          previousId: z.string().optional(),
           object: z.literal("step"),
         },
         managedStorage: z.union([
@@ -244,7 +244,7 @@ export namespace Step {
         ]),
         s3Connection: z.object({
           bucket: z.string(),
-          region: z.string().nullable(),
+          region: z.string().optional(),
           endpoint: z.string(),
           accessKeyReference: z.string(),
           secretKeyReference: z.string(),
@@ -316,7 +316,7 @@ export namespace Step {
             type: z.literal(Type.filesystem_write),
             folderPath: z.string(),
             managedStorage: z.boolean(),
-            retention: subSchema.retention.nullable(),
+            retention: subSchema.retention.optional(),
           } satisfies SubSchema<Step.FilesystemWrite>)
           .refine(
             ({ managedStorage, retention }) => {
@@ -333,8 +333,8 @@ export namespace Step {
             ...subSchema.common,
             type: z.literal(Type.filesystem_read),
             path: z.string(),
-            managedStorage: subSchema.managedStorage.nullable(),
-            filterCriteria: subSchema.filterCriteria.nullable(),
+            managedStorage: subSchema.managedStorage.optional(),
+            filterCriteria: subSchema.filterCriteria.optional(),
           } satisfies SubSchema<Step.FilesystemRead>)
           .refine(
             ({ managedStorage, filterCriteria }) => {
@@ -351,7 +351,7 @@ export namespace Step {
           type: z.literal(Type.s3_upload),
           connection: subSchema.s3Connection,
           basePrefix: z.string(),
-          retention: subSchema.retention.nullable(),
+          retention: subSchema.retention.optional(),
         } satisfies SubSchema<Step.S3Upload>),
 
         z.object({
@@ -360,7 +360,7 @@ export namespace Step {
           connection: subSchema.s3Connection,
           basePrefix: z.string(),
           managedStorage: subSchema.managedStorage,
-          filterCriteria: subSchema.filterCriteria.nullable(),
+          filterCriteria: subSchema.filterCriteria.optional(),
         } satisfies SubSchema<Step.S3Download>),
 
         z.object({

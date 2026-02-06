@@ -24,8 +24,8 @@ export class ExecutionRepository {
     return executions.map(ExecutionConverter.convert);
   }
 
-  public async queryMostRecentExecutions(q: { pipelineIds: string[] }): Promise<Map<string, Execution | null>> {
-    const result = new Map<string, Execution | null>(q.pipelineIds.map((id) => [id, null]));
+  public async queryMostRecentExecutions(q: { pipelineIds: string[] }): Promise<Map<string, Execution | undefined>> {
+    const result = new Map<string, Execution | undefined>(q.pipelineIds.map((id) => [id, undefined]));
     if (q.pipelineIds.length === 0) {
       return result;
     }

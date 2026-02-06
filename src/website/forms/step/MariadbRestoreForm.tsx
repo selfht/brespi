@@ -76,7 +76,7 @@ export function MariadbRestoreForm({ id, existing, onSave, onDelete, onCancel, c
     try {
       await onSave({
         id,
-        previousId: existing?.previousId || null,
+        previousId: existing?.previousId,
         object: "step",
         type: Step.Type.mariadb_restore,
         connectionReference: form[Field.connectionReference],

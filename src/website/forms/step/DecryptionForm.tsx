@@ -47,7 +47,7 @@ export function DecryptionForm({ id, existing, onSave, onDelete, onCancel, class
     try {
       await onSave({
         id,
-        previousId: existing?.previousId || null,
+        previousId: existing?.previousId,
         object: "step",
         type: Step.Type.decryption,
         keyReference: form[Field.keyReference],

@@ -73,7 +73,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
             x: position.x,
             y: position.y,
           },
-          incomingId: incomingLink ? (incomingLink.source().id as string) : null,
+          incomingId: incomingLink ? (incomingLink.source().id as string) : undefined,
         };
       });
       blocksRef.current = updatedBlocks;
@@ -130,7 +130,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
         if (subject.id === target.id) {
           return false; // No cycles (this includes self-linking)
         }
-        if (subject.incomingId === null) {
+        if (!subject.incomingId) {
           break;
         }
         subjectId = subject.incomingId;
@@ -180,7 +180,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
       const panPosition = paperRef.current!.translate();
       const newBlock: JointBlock = {
         ...block,
-        incomingId: null,
+        incomingId: undefined,
         coordinates: PositioningHelper.findNewSpot(
           blocksRef.current,
           {

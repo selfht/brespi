@@ -7,12 +7,9 @@
       "steps": [
         {
           "id": "vuz4yx",
-          "previousId": null,
           "object": "step",
           "type": "filesystem_read",
-          "path": "/var/data/application",
-          "managedStorage": null,
-          "filterCriteria": null
+          "path": "/var/data/application"
         },
         {
           "id": "7xypof",

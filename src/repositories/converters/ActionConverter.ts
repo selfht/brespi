@@ -19,7 +19,7 @@ export namespace ActionConverter {
       executionId: model.executionId,
       stepId: model.stepId,
       stepType: model.stepType,
-      previousStepId: model.previousStepId,
+      previousStepId: model.previousStepId ?? null,
       startedAt: model.startedAt?.toString() ?? null,
       resultOutcome: model.result?.outcome ?? null,
       resultDurationMs: model.result ? Math.round(model.result.duration.total({ unit: "milliseconds" })) : null,
@@ -37,8 +37,8 @@ export namespace ActionConverter {
       executionId: db.executionId,
       stepId: db.stepId,
       stepType: db.stepType,
-      previousStepId: db.previousStepId,
-      startedAt: db.startedAt ? Temporal.PlainDateTime.from(db.startedAt) : null,
+      previousStepId: db.previousStepId ?? undefined,
+      startedAt: db.startedAt ? Temporal.PlainDateTime.from(db.startedAt) : undefined,
       result:
         db.resultOutcome && db.resultDurationMs !== null && db.resultCompletedAt
           ? {
@@ -47,9 +47,9 @@ export namespace ActionConverter {
               completedAt: Temporal.PlainDateTime.from(db.resultCompletedAt),
               consumed: db.resultArtifactsConsumed ? JSON.parse(db.resultArtifactsConsumed) : [],
               produced: db.resultArtifactsProduced ? JSON.parse(db.resultArtifactsProduced) : [],
-              errorMessage: db.resultErrorMessage,
+              errorMessage: db.resultErrorMessage ?? undefined,
             }
-          : null,
+          : undefined,
     };
   }
 }

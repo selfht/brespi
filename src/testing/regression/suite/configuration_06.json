@@ -7,7 +7,6 @@
       "steps": [
         {
           "id": "fu0lzo",
-          "previousId": null,
           "object": "step",
           "type": "s3_download",
           "connection": {
@@ -51,8 +50,7 @@
             "accessKeyReference": "AWS_DEST_ACCESS_KEY",
             "secretKeyReference": "AWS_DEST_SECRET_KEY"
           },
-          "basePrefix": "replicated/data",
-          "retention": null
+          "basePrefix": "replicated/data"
         }
       ]
     }

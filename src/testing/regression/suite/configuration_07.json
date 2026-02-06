@@ -7,14 +7,12 @@
       "steps": [
         {
           "id": "whdwju",
-          "previousId": null,
           "object": "step",
           "type": "filesystem_read",
           "path": "/backups/mariadb",
           "managedStorage": {
             "target": "latest"
-          },
-          "filterCriteria": null
+          }
         },
         {
           "id": "43n7g1",

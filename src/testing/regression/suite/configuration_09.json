@@ -7,7 +7,6 @@
       "steps": [
         {
           "id": "6ypcop",
-          "previousId": null,
           "object": "step",
           "type": "postgresql_backup",
           "connectionReference": "PG_PROD_CONNECTION",
@@ -37,7 +36,6 @@
           "type": "s3_upload",
           "connection": {
             "bucket": "db-backups",
-            "region": null,
             "endpoint": "https://minio.internal:9000",
             "accessKeyReference": "MINIO_ACCESS_KEY",
             "secretKeyReference": "MINIO_SECRET_KEY"
@@ -57,7 +55,6 @@
       "steps": [
         {
           "id": "8awlc7",
-          "previousId": null,
           "object": "step",
           "type": "mariadb_backup",
           "connectionReference": "MARIA_PROD_CONNECTION",
@@ -85,7 +82,6 @@
           "type": "s3_upload",
           "connection": {
             "bucket": "db-backups",
-            "region": null,
             "endpoint": "https://minio.internal:9000",
             "accessKeyReference": "MINIO_ACCESS_KEY",
             "secretKeyReference": "MINIO_SECRET_KEY"

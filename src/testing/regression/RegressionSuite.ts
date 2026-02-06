@@ -53,8 +53,8 @@ const Example = {
         artifactNames: ["webshop.sql.tar.gz.enc", "crm.sql.tar.gz.enc"],
         trail: [
           { ...TestFixture.createStep(Step.Type.mariadb_backup), runtime: { driver: "1.0.0" } },
-          { ...TestFixture.createStep(Step.Type.compression), runtime: null },
-          { ...TestFixture.createStep(Step.Type.encryption), runtime: null },
+          { ...TestFixture.createStep(Step.Type.compression) },
+          { ...TestFixture.createStep(Step.Type.encryption) },
         ],
       },
     ]);
@@ -228,9 +228,7 @@ export namespace RegressionSuite {
             id: "x",
             type: Step.Type.filesystem_write,
             object: "step",
-            previousId: null,
             folderPath: rootPath,
-            retention: null,
             managedStorage: true,
           },
           trail,

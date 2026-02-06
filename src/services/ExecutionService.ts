@@ -91,10 +91,7 @@ export class ExecutionService {
         stepId: step.id,
         stepType: step.type,
         previousStepId: step.previousId,
-        startedAt: null,
-        result: null,
       })),
-      result: null,
     };
     if (!(await this.executionRepository.create(execution))) {
       throw ExecutionError.already_exists();
@@ -114,7 +111,7 @@ export class ExecutionService {
 
   private async execute(executionId: string, pipeline: Pipeline): Promise<Execution> {
     // Build a map to find children of each step
-    const childrenMap = new Map<string | null, Step[]>();
+    const childrenMap = new Map<string | undefined, Step[]>();
     for (const step of pipeline.steps) {
       if (!childrenMap.has(step.previousId)) {
         childrenMap.set(step.previousId, []);
@@ -122,8 +119,8 @@ export class ExecutionService {
       childrenMap.get(step.previousId)!.push(step);
     }
 
-    // Find root step (the one with previousId === null)
-    const [startingStep] = childrenMap.get(null) || [];
+    // Find root step (the one with no previousId)
+    const [startingStep] = childrenMap.get(undefined) || [];
     if (!startingStep) {
       throw new Error("Illegal state: missing starting step");
     }
@@ -165,7 +162,7 @@ export class ExecutionService {
     step: Step;
     input: Artifact[];
     trail: StepWithRuntime[];
-    childrenMap: Map<string | null, Step[]>;
+    childrenMap: Map<string | undefined, Step[]>;
     mutex: Mutex;
   }): Promise<void> {
     const startedAt = Temporal.Now.plainDateTimeISO();
@@ -179,13 +176,13 @@ export class ExecutionService {
     let output: Artifact[] = [];
     let outputTrail: StepWithRuntime[] = [];
     let outcome: Outcome;
-    let errorMessage: string | null;
+    let errorMessage: string | undefined;
     try {
       const { artifacts, runtime } = await this.adapterService.submit(input, step, trail);
       output = this.ensureUniqueArtifactNames(artifacts);
       outputTrail = [...trail, { ...step, runtime }];
       outcome = Outcome.success;
-      errorMessage = null;
+      errorMessage = undefined;
     } catch (e) {
       output = [];
       outcome = Outcome.error;

@@ -59,7 +59,7 @@ export function FilterForm({ id, existing, onSave, onDelete, onCancel, className
     try {
       await onSave({
         id,
-        previousId: existing?.previousId || null,
+        previousId: existing?.previousId,
         object: "step",
         type: Step.Type.filter,
         filterCriteria:

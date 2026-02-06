@@ -25,7 +25,6 @@
         "method": "all"
       },
       "id": "019c2cb3-0c18-7000-8d16-b5cec686c55e",
-      "previousId": null,
       "object": "step",
       "runtime": {
         "driver": "16.2"
@@ -38,9 +37,7 @@
         "level": 6
       },
       "id": "019c2cb3-0c18-7001-b495-80197ff914d1",
-      "previousId": null,
-      "object": "step",
-      "runtime": null
+      "object": "step"
     }
   ],
   "brespi": {

@@ -19,7 +19,7 @@ describe(S3Adapter.name, async () => {
 
   const connection: Step.S3Connection = {
     bucket: "irrelevant",
-    region: null,
+    region: undefined,
     endpoint: "http://irrelevant",
     secretKeyReference: "SECRET_KEY",
     accessKeyReference: "ACCESS_KEY",
