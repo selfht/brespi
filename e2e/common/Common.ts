@@ -5,7 +5,7 @@ import { dirname } from "path";
 export namespace Common {
   export const Regex = {
     RANDOM: /\w+/.source,
-    TIMESTAMP: /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+/.source,
+    TIMESTAMP: /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+[+-]\d{2}:\d{2}/.source,
   };
 
   export function extractCurrentPipelineIdFromUrl(page: Page): string | undefined {

@@ -1,11 +1,11 @@
 import { mkdir } from "fs/promises";
 import { initializeSqlite } from "./drizzle/sqlite";
 import { Env } from "./Env";
+import { BasicAuthMiddleware } from "./middleware/basicauth/BasicAuthMiddleware";
 import { ConfigurationRepository } from "./repositories/ConfigurationRepository";
 import { Server } from "./Server";
 import { ServerRegistry } from "./ServerRegistry";
 import { CleanupService } from "./services/CleanupService";
-import { BasicAuthMiddleware } from "./middleware/basicauth/BasicAuthMiddleware";
 
 /**
  * Initialize the env configuration

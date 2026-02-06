@@ -1,6 +1,7 @@
 import { Temporal } from "@js-temporal/polyfill";
 import { isAbsolute, join } from "path";
 import { z } from "zod/v4";
+import { TimeZone } from "./helpers/TimeZone";
 
 export namespace Env {
   const baseEnv = z.object({
@@ -8,9 +9,18 @@ export namespace Env {
     O_BRESPI_STAGE: z.enum(["development", "production"]),
     O_BRESPI_COMMIT: z.string().default("0000000000000000000000000000000000000000"),
     O_BRESPI_VERSION: z.string().default("0.0.0"),
+    X_BRESPI_MANAGED_STORAGE_VERSIONING_TIMEZONE: z
+      .string()
+      .default("UTC")
+      .refine((tz) => TimeZone.check(tz), {
+        error: "invalid_timezone",
+      }),
     X_BRESPI_ENABLE_RESTRICTED_ENTPOINTS: z.enum(["true", "false"]).default("false"),
   });
-  export function initialize(environment = Bun.env as z.output<typeof baseEnv>) {
+  export function initialize(timezone = Temporal.Now.timeZoneId() as "UTC", environment = Bun.env as z.output<typeof baseEnv>) {
+    if (timezone !== "UTC") {
+      throw new Error(`Invalid timezone: ${timezone}`);
+    }
     return baseEnv
       .transform((env) => ({
         ...env,

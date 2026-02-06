@@ -1,6 +1,6 @@
 import { ZodParser } from "@/helpers/ZodParser";
-import { Temporal } from "@js-temporal/polyfill";
 import z from "zod/v4";
+import { Version } from "./Version";
 
 export type Manifest = {
   object: "manifest";
@@ -20,7 +20,7 @@ export namespace Manifest {
      * Sort from most to least recent (new to old)
      */
     export function sort({ version: t1 }: Item, { version: t2 }: Item) {
-      return -Temporal.PlainDateTime.compare(Temporal.PlainDateTime.from(t1), Temporal.PlainDateTime.from(t2));
+      return -Version.compare(t1, t2);
     }
   }
 
@@ -37,17 +37,7 @@ export namespace Manifest {
         object: z.literal("manifest"),
         items: z.array(
           z.object({
-            version: z.string().refine(
-              (x) => {
-                try {
-                  Temporal.PlainDateTime.from(x);
-                  return true;
-                } catch {
-                  return false;
-                }
-              },
-              { error: "invalid_iso_timestamp" },
-            ),
+            version: z.string().refine((x) => Version.isValid(x), { error: "invalid_iso_timestamp" }),
             totalSize: z.number(),
             listingPath: z.string(),
           }),

@@ -1,0 +1,27 @@
+{
+  "object": "listing",
+  "artifacts": [
+    {
+      "path": "transactions.csv",
+      "size": 29
+    }
+  ],
+  "trail": [
+    {
+      "type": "compression",
+      "algorithm": {
+        "implementation": "targzip",
+        "level": 9
+      },
+      "id": "019c3396-a23d-7000-a73e-6638e34fa3b4",
+      "object": "step",
+      "runtime": {
+        "driver": "1.0.0"
+      }
+    }
+  ],
+  "brespi": {
+    "commit": "0000000000000000000000000000000000000000",
+    "version": "0.0.0"
+  }
+}

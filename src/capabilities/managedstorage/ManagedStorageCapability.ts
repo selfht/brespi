@@ -1,13 +1,13 @@
+import { Env } from "@/Env";
 import { ExecutionError } from "@/errors/ExecutionError";
 import { Mutex } from "@/helpers/Mutex";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { StepWithRuntime } from "@/models/StepWithRuntime";
-import { Temporal } from "@js-temporal/polyfill";
 import { join } from "path";
 import { Listing } from "./Listing";
 import { Manifest } from "./Manifest";
-import { Env } from "@/Env";
+import { Version } from "./Version";
 
 export class ManagedStorageCapability {
   public constructor(private readonly env: Env.Private) {}
@@ -166,8 +166,7 @@ export class ManagedStorageCapability {
   private async waitForAvailableTimestamp(manifest: Manifest): Promise<string> {
     const taken = manifest.items.map(({ version: isoTimestamp }) => isoTimestamp);
     while (true) {
-      const candidate = Temporal.Now.plainDateTimeISO();
-      const timestamp = candidate.toString({ fractionalSecondDigits: 3 });
+      const timestamp = Version.now(this.env.X_BRESPI_MANAGED_STORAGE_VERSIONING_TIMEZONE);
       if (!taken.includes(timestamp)) {
         return timestamp;
       }

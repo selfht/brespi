@@ -2,14 +2,14 @@
   "object": "manifest",
   "items": [
     {
-      "version": "2026-02-05T07:27:37.504",
+      "version": "2026-02-05T07:27:37.504+00:00",
       "totalSize": 35,
-      "listingPath": "2026-02-05T07:27:37.504/__brespi_listing_xcssve__.json"
+      "listingPath": "2026-02-05T07:27:37.504+00:00/__brespi_listing_xcssve__.json"
     },
     {
-      "version": "2026-02-05T07:27:37.502",
+      "version": "2026-02-05T07:27:37.502+00:00",
       "totalSize": 35,
-      "listingPath": "2026-02-05T07:27:37.502/__brespi_listing_ddyrg7__.json"
+      "listingPath": "2026-02-05T07:27:37.502+00:00/__brespi_listing_ddyrg7__.json"
     }
   ]
 }

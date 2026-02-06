@@ -90,11 +90,12 @@ export namespace TestEnvironment {
     // We'd have to make this root unique (with a random part) to support parallel unit tests,
     // but Bun is so fast it's not needed
     const unitTestRoot = join(cwd, "opt", "unit-test");
-    const env = Env.initialize({
+    const env = Env.initialize("UTC", {
       O_BRESPI_STAGE: "development",
       O_BRESPI_COMMIT: "0123456789abcdef0123456789abcdef01234567",
       O_BRESPI_VERSION: "0.0.0",
       X_BRESPI_ROOT: join(unitTestRoot, "brespi"),
+      X_BRESPI_MANAGED_STORAGE_VERSIONING_TIMEZONE: "UTC",
       X_BRESPI_ENABLE_RESTRICTED_ENTPOINTS: "false",
     });
 

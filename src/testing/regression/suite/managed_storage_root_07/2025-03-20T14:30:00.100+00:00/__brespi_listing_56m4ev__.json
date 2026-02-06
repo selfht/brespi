@@ -1,0 +1,29 @@
+{
+  "object": "listing",
+  "artifacts": [
+    {
+      "path": "report_en.pdf",
+      "size": 26
+    },
+    {
+      "path": "report_fr.pdf",
+      "size": 26
+    }
+  ],
+  "trail": [
+    {
+      "type": "custom_script",
+      "path": "/scripts/test.sh",
+      "passthrough": false,
+      "id": "019c3396-a23a-7000-b3de-e791b91d9a5b",
+      "object": "step",
+      "runtime": {
+        "driver": "1.0.0"
+      }
+    }
+  ],
+  "brespi": {
+    "commit": "0000000000000000000000000000000000000000",
+    "version": "0.0.0"
+  }
+}

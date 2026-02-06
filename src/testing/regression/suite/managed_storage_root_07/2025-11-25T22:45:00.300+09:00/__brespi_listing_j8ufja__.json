@@ -1,0 +1,35 @@
+{
+  "object": "listing",
+  "artifacts": [
+    {
+      "path": "inventory.xlsx",
+      "size": 27
+    },
+    {
+      "path": "shipments.csv",
+      "size": 26
+    },
+    {
+      "path": "audit_log.txt",
+      "size": 26
+    }
+  ],
+  "trail": [
+    {
+      "type": "encryption",
+      "keyReference": "MY_ENCRYPTION_KEY",
+      "algorithm": {
+        "implementation": "aes256cbc"
+      },
+      "id": "019c3396-a241-7000-b313-35bcf3b34b8c",
+      "object": "step",
+      "runtime": {
+        "driver": "1.0.0"
+      }
+    }
+  ],
+  "brespi": {
+    "commit": "0000000000000000000000000000000000000000",
+    "version": "0.0.0"
+  }
+}

@@ -1,11 +1,12 @@
 import { TestEnvironment } from "@/testing/TestEnvironment.test";
 import { TestUtils } from "@/testing/TestUtils.test";
 import { Temporal } from "@js-temporal/polyfill";
-import { beforeEach, describe, expect, it, spyOn } from "bun:test";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { join } from "path";
 import { Listing } from "./Listing";
 import { ManagedStorageCapability } from "./ManagedStorageCapability";
 import { Manifest } from "./Manifest";
+import { Version } from "./Version";
 
 describe(ManagedStorageCapability.name, async () => {
   let context!: TestEnvironment.Context;
@@ -18,7 +19,7 @@ describe(ManagedStorageCapability.name, async () => {
 
   const Regex = {
     RANDOM_ID: /\w+/.source,
-    TIMESTAMP: /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+/.source,
+    TIMESTAMP: /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+[+-]\d{2}:\d{2}/.source,
   };
 
   describe("insert", () => {
@@ -102,7 +103,7 @@ describe(ManagedStorageCapability.name, async () => {
         const existingManifest: Manifest = {
           object: "manifest",
           items: range.map((index) => ({
-            version: Temporal.Now.plainDateTimeISO().toString(),
+            version: Version.now("UTC"),
             totalSize: range.length,
             listingPath: `blabla-${index}`,
           })),
@@ -128,39 +129,6 @@ describe(ManagedStorageCapability.name, async () => {
           ]),
         );
       }
-    });
-
-    const truncateCollection = TestUtils.createCollection<{
-      timestamp: string;
-      expectedVersion: string;
-    }>("timestamp", [
-      { timestamp: "2018-01-13T15:19:36.469576466", expectedVersion: "2018-01-13T15:19:36.469" },
-      { timestamp: "2019-02-13T15:25:17.673917671", expectedVersion: "2019-02-13T15:25:17.673" },
-      { timestamp: "2020-03-13T15:25:49.66294966", expectedVersion: "2020-03-13T15:25:49.662" },
-      { timestamp: "2021-04-13T15:26:36.915996913", expectedVersion: "2021-04-13T15:26:36.915" },
-      { timestamp: "2022-05-13T15:26:00.481960477", expectedVersion: "2022-05-13T15:26:00.481" },
-      { timestamp: "2023-06-13T15:26:06.490966487", expectedVersion: "2023-06-13T15:26:06.490" },
-      { timestamp: "2024-07-13T15:26:11.887971885", expectedVersion: "2024-07-13T15:26:11.887" },
-      { timestamp: "2025-08-13T15:26:17.5", expectedVersion: "2025-08-13T15:26:17.500" },
-      { timestamp: "2026-09-13T15:26:22.113982111", expectedVersion: "2026-09-13T15:26:22.113" },
-    ]);
-    it.each(truncateCollection.testCases)("truncates generated timestamp into version with millisecond precision: %s", async (testCase) => {
-      const { timestamp, expectedVersion } = truncateCollection.get(testCase);
-      // given
-      spyOn(Temporal.Now, "plainDateTimeISO").mockReturnValue(Temporal.PlainDateTime.from(timestamp));
-      const { filesystem, ...readWriteFns } = createReadWriteFns();
-      // when
-      await capability.insert({
-        mutexKey: [],
-        base: "",
-        artifacts: [],
-        trail: [],
-        ...readWriteFns,
-      });
-      // then
-      const manifest = Manifest.parse(JSON.parse(filesystem["__brespi_manifest__.json"]));
-      const [version] = manifest.items.map(({ version }) => version);
-      expect(version).toEqual(expectedVersion);
     });
 
     const relativizeCollection = TestUtils.createCollection<{
@@ -244,22 +212,23 @@ describe(ManagedStorageCapability.name, async () => {
   });
 
   describe("select", () => {
+    const stripBrackets = (zdt: Temporal.ZonedDateTime) => zdt.toString().replace(/\[.*\]$/, "");
     const Timestamp = {
-      _now_: Temporal.Now.plainDateTimeISO(),
+      _now_: Temporal.Now.zonedDateTimeISO("UTC"),
       get VERY_LONG_AGO() {
-        return this._now_.subtract({ days: 365000 }).toString();
+        return stripBrackets(this._now_.subtract({ days: 365000 }));
       },
       get LAST_YEAR() {
-        return this._now_.subtract({ days: 365 }).toString();
+        return stripBrackets(this._now_.subtract({ days: 365 }));
       },
       get PRESENT() {
-        return this._now_.toString();
+        return stripBrackets(this._now_);
       },
       get NEXT_YEAR() {
-        return this._now_.add({ days: 365 }).toString();
+        return stripBrackets(this._now_.add({ days: 365 }));
       },
       get VERY_FAR_AWAY() {
-        return this._now_.add({ days: 365000 }).toString();
+        return stripBrackets(this._now_.add({ days: 365000 }));
       },
     };
 
