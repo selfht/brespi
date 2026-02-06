@@ -1,0 +1,53 @@
+{
+  "object": "listing",
+  "artifacts": [
+    {
+      "path": "analytics.sql.tar.gz",
+      "size": 33
+    }
+  ],
+  "trail": [
+    {
+      "type": "postgresql_backup",
+      "connectionReference": "MY_POSTGRESQL_URL",
+      "toolkit": {
+        "resolution": "automatic"
+      },
+      "databaseSelection": {
+        "method": "all"
+      },
+      "id": "019c2cb3-0c1b-7000-bc28-d7803f9475ee",
+      "previousId": null,
+      "object": "step",
+      "runtime": {
+        "driver": "15.4"
+      }
+    },
+    {
+      "type": "filter",
+      "filterCriteria": {
+        "method": "glob",
+        "nameGlob": "analytics*"
+      },
+      "id": "019c2cb3-0c1b-7001-86fc-49b6c1035881",
+      "previousId": null,
+      "object": "step",
+      "runtime": null
+    },
+    {
+      "type": "compression",
+      "algorithm": {
+        "implementation": "targzip",
+        "level": 9
+      },
+      "id": "019c2cb3-0c1b-7002-99e1-4c5558f383bf",
+      "previousId": null,
+      "object": "step",
+      "runtime": null
+    }
+  ],
+  "brespi": {
+    "commit": "0000000000000000000000000000000000000000",
+    "version": "0.0.0"
+  }
+}

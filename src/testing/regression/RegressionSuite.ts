@@ -15,14 +15,13 @@ import { NotificationPolicyMetadataConverter } from "@/repositories/converters/N
 import { ScheduleMetadataConverter } from "@/repositories/converters/ScheduleMetadataConverter";
 import { test } from "bun:test";
 import { getTableName, InferInsertModel } from "drizzle-orm";
-import { mkdir, rm } from "fs/promises";
+import { cp, mkdir } from "fs/promises";
 import { basename, dirname, join } from "path";
 import { TestFixture } from "../TestFixture.test";
 
-test.only("regression suite management", async () => {
+test.skip("regression suite management", async () => {
   // This is a playground where the regression suite can be manually updated
   // See below for some examples
-  await Example.database();
 });
 
 const Example = {
@@ -63,7 +62,18 @@ const Example = {
 };
 
 export namespace RegressionSuite {
-  const suitePath = join(import.meta.dir, "suite");
+  export const Path = {
+    suite: join(import.meta.dir, "suite"),
+    get suiteTmp() {
+      return join(this.suite, ".tmp");
+    },
+  };
+
+  const Prefix = {
+    configuration: "configuration_",
+    managedStorageRoot: "managed_storage_root_",
+  };
+
   /**
    * Helper functions for reading/writing configurations
    */
@@ -73,8 +83,8 @@ export namespace RegressionSuite {
       json: any;
     };
     export async function readJsons(): Promise<JsonResult[]> {
-      const glob = new Bun.Glob("*.json");
-      const files = await Array.fromAsync(glob.scan({ cwd: suitePath, absolute: true }));
+      const glob = new Bun.Glob(`${Prefix.configuration}*.json`);
+      const files = await Array.fromAsync(glob.scan({ cwd: Path.suite, absolute: true }));
       const output = await Promise.all(
         [...files].map<Promise<JsonResult>>(async (file) => ({
           filename: basename(file),
@@ -82,13 +92,13 @@ export namespace RegressionSuite {
         })),
       );
       if (output.length === 0) {
-        throw new Error(`Couldn't find configuration JSONs: ${suitePath}`);
+        throw new Error(`Couldn't find configuration JSONs: ${Path.suite}`);
       }
       return output;
     }
 
     export async function writeJson(filename: string, configuration: ModelConfiguration.Core): Promise<void> {
-      const path = join(suitePath, filename);
+      const path = join(Path.suite, filename);
       await Bun.write(path, JSON.stringify(configuration, null, 2));
     }
   }
@@ -118,13 +128,13 @@ export namespace RegressionSuite {
       }));
     }
 
-    const databasePath = join(suitePath, "db.sqlite");
+    const databasePath = join(Path.suite, "db.sqlite");
     export async function getRegressionDatabaseCopy(): Promise<Sqlite> {
       const file = Bun.file(databasePath);
       if (!(await file.exists())) {
         throw new Error(`Regression database not found: ${databasePath}`);
       }
-      const databaseCopyPath = join(dirname(databasePath), "dbcopy.sqlite");
+      const databaseCopyPath = join(Path.suiteTmp, "db.sqlite");
       await Bun.write(databaseCopyPath, file);
       return await initializeSqlite({ X_BRESPI_DATABASE: databaseCopyPath } as Env.Private);
     }
@@ -160,8 +170,45 @@ export namespace RegressionSuite {
    * Helper functions for reading/writing managed storage roots
    */
   export namespace ManagedStorage {
-    export async function getStorageRootPaths(): Promise<string[]> {
-      return [];
+    type StorageRoot = {
+      name: string;
+      path: string;
+    };
+    export async function getStorageRootCopies(): Promise<StorageRoot[]> {
+      const glob = new Bun.Glob(`${Prefix.managedStorageRoot}*/__brespi_manifest__.json`);
+      const manifestFiles = await Array.fromAsync(glob.scan({ cwd: Path.suite, absolute: true }));
+      const result = manifestFiles.map((manifestPath) => {
+        const rootPath = dirname(manifestPath);
+        return {
+          name: basename(rootPath),
+          path: rootPath,
+        };
+      });
+      if (result.length === 0) {
+        throw new Error(`Couldn't find storage roots: ${Path.suite}`);
+      }
+      const copiedResult: StorageRoot[] = await Promise.all(
+        result.map<Promise<StorageRoot>>(async ({ path, name }) => {
+          const newPath = join(Path.suiteTmp, name);
+          await cp(path, newPath, { recursive: true, force: true });
+          return { name, path: newPath };
+        }),
+      );
+      return copiedResult;
+    }
+
+    export async function saveTemporaryArtifacts(artifactNames: string[]): Promise<Array<Pick<Artifact, "type" | "name" | "path">>> {
+      return await Promise.all(
+        artifactNames.map(async (name) => {
+          const path = join(Path.suiteTmp, `artifactName-${Bun.randomUUIDv7()}`);
+          await Bun.write(path, `Contents for ${name}`);
+          return {
+            type: "file",
+            name,
+            path,
+          };
+        }),
+      );
     }
 
     type Listing = {
@@ -171,35 +218,33 @@ export namespace RegressionSuite {
     export async function appendToStorageRoot(rootName: string, rootContents: Listing[]) {
       const env = { O_BRESPI_VERSION: "0.0.0", O_BRESPI_COMMIT: "0000000000000000000000000000000000000000" } as Env.Private;
       const filesystemAdapter = new FilesystemAdapter(env, new ManagedStorageCapability(env), new FilterCapability());
+      const rootPath = join(Path.suite, rootName);
       for (const { artifactNames, trail } of rootContents) {
-        const tempDir = join(suitePath, "tmp");
-        await mkdir(tempDir);
-        try {
-          const temporaryArtifacts: Array<Pick<Artifact, "type" | "name" | "path">> = [];
-          await Promise.all(
-            artifactNames.map(async (name) => {
-              const path = join(tempDir, name);
-              await Bun.write(path, `Contents for ${name}`);
-              temporaryArtifacts.push({ type: "file", name, path });
-            }),
-          );
-          await filesystemAdapter.write(
-            temporaryArtifacts,
-            {
-              id: "x",
-              type: Step.Type.filesystem_write,
-              object: "step",
-              previousId: null,
-              folderPath: join(suitePath, rootName),
-              retention: null,
-              managedStorage: true,
-            },
-            trail,
-          );
-        } finally {
-          await rm(tempDir, { force: true, recursive: true });
-        }
+        await mkdir(Path.suiteTmp);
+        const temporaryArtifacts = await saveTemporaryArtifacts(artifactNames);
+        await filesystemAdapter.write(
+          temporaryArtifacts,
+          {
+            id: "x",
+            type: Step.Type.filesystem_write,
+            object: "step",
+            previousId: null,
+            folderPath: rootPath,
+            retention: null,
+            managedStorage: true,
+          },
+          trail,
+        );
       }
+      // Pretty-print all generated JSON files in the storage root
+      const glob = new Bun.Glob("**/*.json");
+      const jsonFiles = await Array.fromAsync(glob.scan({ cwd: rootPath, absolute: true }));
+      await Promise.all(
+        jsonFiles.map(async (filePath) => {
+          const json = await Bun.file(filePath).json();
+          await Bun.write(filePath, JSON.stringify(json, null, 2));
+        }),
+      );
     }
   }
 }

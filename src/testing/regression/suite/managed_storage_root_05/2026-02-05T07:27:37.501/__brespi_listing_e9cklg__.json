@@ -1,0 +1,52 @@
+{
+  "object": "listing",
+  "artifacts": [
+    {
+      "path": "inventory.sql.tar.gz",
+      "size": 33
+    },
+    {
+      "path": "suppliers.sql.tar.gz",
+      "size": 33
+    }
+  ],
+  "trail": [
+    {
+      "type": "mariadb_backup",
+      "connectionReference": "MY_MARIADB_URL",
+      "toolkit": {
+        "resolution": "manual",
+        "mariadb": "/usr/bin/mariadb",
+        "mariadb-dump": "/usr/bin/mariadb-dump"
+      },
+      "databaseSelection": {
+        "method": "include",
+        "inclusions": [
+          "inventory",
+          "suppliers"
+        ]
+      },
+      "id": "019c2cb3-0c1c-7000-ac36-7a04e39fc452",
+      "previousId": null,
+      "object": "step",
+      "runtime": {
+        "driver": "11.3.2"
+      }
+    },
+    {
+      "type": "compression",
+      "algorithm": {
+        "implementation": "targzip",
+        "level": 1
+      },
+      "id": "019c2cb3-0c1c-7001-87a6-85f0f20bb5a4",
+      "previousId": null,
+      "object": "step",
+      "runtime": null
+    }
+  ],
+  "brespi": {
+    "commit": "0000000000000000000000000000000000000000",
+    "version": "0.0.0"
+  }
+}

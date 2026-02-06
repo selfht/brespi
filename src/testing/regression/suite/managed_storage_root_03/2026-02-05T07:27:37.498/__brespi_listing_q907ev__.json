@@ -1,0 +1,47 @@
+{
+  "object": "listing",
+  "artifacts": [
+    {
+      "path": "application_logs.tar.gz.enc",
+      "size": 40
+    }
+  ],
+  "trail": [
+    {
+      "type": "filesystem_read",
+      "path": "/var/log/application",
+      "managedStorage": null,
+      "filterCriteria": null,
+      "id": "019c2cb3-0c1a-7000-9ac6-9666d094fa9f",
+      "previousId": null,
+      "object": "step",
+      "runtime": null
+    },
+    {
+      "type": "compression",
+      "algorithm": {
+        "implementation": "targzip",
+        "level": 9
+      },
+      "id": "019c2cb3-0c1a-7001-be6e-f094777e204b",
+      "previousId": null,
+      "object": "step",
+      "runtime": null
+    },
+    {
+      "type": "encryption",
+      "keyReference": "LOG_ENCRYPTION_KEY",
+      "algorithm": {
+        "implementation": "aes256cbc"
+      },
+      "id": "019c2cb3-0c1a-7002-b616-318a47c74f62",
+      "previousId": null,
+      "object": "step",
+      "runtime": null
+    }
+  ],
+  "brespi": {
+    "commit": "0000000000000000000000000000000000000000",
+    "version": "0.0.0"
+  }
+}

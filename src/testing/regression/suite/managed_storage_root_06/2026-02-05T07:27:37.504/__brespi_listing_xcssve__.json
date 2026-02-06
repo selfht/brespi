@@ -1,0 +1,53 @@
+{
+  "object": "listing",
+  "artifacts": [
+    {
+      "path": "main_db.sql.tar.gz.enc",
+      "size": 35
+    }
+  ],
+  "trail": [
+    {
+      "type": "postgresql_backup",
+      "connectionReference": "MY_POSTGRESQL_URL",
+      "toolkit": {
+        "resolution": "automatic"
+      },
+      "databaseSelection": {
+        "method": "all"
+      },
+      "id": "019c2cb3-0c1e-7003-8111-e0d0cee20149",
+      "previousId": null,
+      "object": "step",
+      "runtime": {
+        "driver": "14.0"
+      }
+    },
+    {
+      "type": "compression",
+      "algorithm": {
+        "implementation": "targzip",
+        "level": 9
+      },
+      "id": "019c2cb3-0c1e-7004-939c-fa7950f4392d",
+      "previousId": null,
+      "object": "step",
+      "runtime": null
+    },
+    {
+      "type": "encryption",
+      "keyReference": "PROD_ENCRYPTION_KEY",
+      "algorithm": {
+        "implementation": "aes256cbc"
+      },
+      "id": "019c2cb3-0c1e-7005-8531-81e33cc51b9d",
+      "previousId": null,
+      "object": "step",
+      "runtime": null
+    }
+  ],
+  "brespi": {
+    "commit": "0000000000000000000000000000000000000000",
+    "version": "0.0.0"
+  }
+}

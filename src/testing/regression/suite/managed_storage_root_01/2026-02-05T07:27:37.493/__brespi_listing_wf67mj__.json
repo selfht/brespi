@@ -1,0 +1,57 @@
+{
+  "object": "listing",
+  "artifacts": [
+    {
+      "path": "webshop.sql.tar.gz.enc",
+      "size": 35
+    },
+    {
+      "path": "crm.sql.tar.gz.enc",
+      "size": 31
+    }
+  ],
+  "trail": [
+    {
+      "type": "mariadb_backup",
+      "connectionReference": "MY_MARIADB_URL",
+      "toolkit": {
+        "resolution": "automatic"
+      },
+      "databaseSelection": {
+        "method": "all"
+      },
+      "id": "019c2cb3-0c13-7000-9970-dc8c7d4c9b62",
+      "previousId": null,
+      "object": "step",
+      "runtime": {
+        "driver": "1.0.0"
+      }
+    },
+    {
+      "type": "compression",
+      "algorithm": {
+        "implementation": "targzip",
+        "level": 9
+      },
+      "id": "019c2cb3-0c13-7001-bcb8-759f922f8b76",
+      "previousId": null,
+      "object": "step",
+      "runtime": null
+    },
+    {
+      "type": "encryption",
+      "keyReference": "MY_ENCRYPTION_KEY",
+      "algorithm": {
+        "implementation": "aes256cbc"
+      },
+      "id": "019c2cb3-0c13-7002-b1e4-acf9d4f813ca",
+      "previousId": null,
+      "object": "step",
+      "runtime": null
+    }
+  ],
+  "brespi": {
+    "commit": "0000000000000000000000000000000000000000",
+    "version": "0.0.0"
+  }
+}
