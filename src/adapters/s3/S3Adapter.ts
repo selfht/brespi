@@ -9,19 +9,21 @@ import { isAbsolute, join, relative } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 import { AdapterResult } from "../AdapterResult";
 import { BrespiS3Client } from "./BrespiS3Client";
+import { PropertyResolver } from "@/capabilities/propertyresolution/PropertyResolver";
 
 export class S3Adapter extends AbstractAdapter {
   public constructor(
     protected readonly env: Env.Private,
+    protected readonly propertyResolver: PropertyResolver,
     private readonly managedStorageCapability: ManagedStorageCapability,
     private readonly filterCapability: FilterCapability,
   ) {
-    super(env);
+    super(env, propertyResolver);
   }
 
   public async upload(artifacts: Artifact[], { basePrefix, ...step }: Step.S3Upload, trail: StepWithRuntime[]): Promise<AdapterResult> {
     this.requireArtifactType("file", ...artifacts);
-    const base = this.relativize(basePrefix);
+    const base = this.relativize(this.resolveString(basePrefix));
     const client = this.constructClient(step.connection);
     const mutexKey = this.mutexKey(base);
     const readWriteFns = this.createReadWriteFns(client);
@@ -54,7 +56,7 @@ export class S3Adapter extends AbstractAdapter {
   }
 
   public async download({ basePrefix, ...step }: Step.S3Download): Promise<AdapterResult> {
-    basePrefix = this.relativize(basePrefix);
+    basePrefix = this.relativize(this.resolveString(basePrefix));
     const client = this.constructClient(step.connection);
     // Find artifacts
     let { resolvedVersion, selectableArtifacts } = await this.managedStorageCapability.select({
@@ -96,12 +98,12 @@ export class S3Adapter extends AbstractAdapter {
   }
 
   private constructClient(connection: Step.S3Connection) {
-    const accessKeyId = this.readEnvironmentVariable(connection.accessKeyReference);
-    const secretAccessKey = this.readEnvironmentVariable(connection.secretKeyReference);
+    const accessKeyId = this.resolveString(connection.accessKey);
+    const secretAccessKey = this.resolveString(connection.secretKey);
     return new BrespiS3Client({
-      bucket: connection.bucket,
-      endpoint: connection.endpoint,
-      region: connection.region ?? undefined,
+      bucket: this.resolveString(connection.bucket),
+      endpoint: this.resolveString(connection.endpoint),
+      region: connection.region ? this.resolveString(connection.region) : undefined,
       accessKeyId,
       secretAccessKey,
     });

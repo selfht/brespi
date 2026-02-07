@@ -8,7 +8,7 @@ export type NotificationChannel =
 export namespace NotificationChannel {
   export type Slack = {
     type: "slack";
-    webhookUrlReference: string;
+    webhookUrl: string;
   };
   export type CustomScript = {
     type: "custom_script";
@@ -20,7 +20,7 @@ export namespace NotificationChannel {
       z.discriminatedUnion("type", [
         z.object({
           type: z.literal("slack"),
-          webhookUrlReference: z.string(),
+          webhookUrl: z.string(),
         }),
         z.object({
           type: z.literal("custom_script"),

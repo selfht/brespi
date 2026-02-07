@@ -76,7 +76,8 @@ export namespace PositioningHelper {
     return result;
   }
 
-  export function findNewSpot(blocks: Block[], paperDimensions: Dimensions, panPosition: Coordinates): Coordinates {
+  // TODO: implement
+  export function findNewSpot(blocks: JointBlock[], paperDimensions: Dimensions, panPosition: Coordinates): Coordinates {
     return {
       x: panPosition.x + 0.1 * paperDimensions.width,
       y: panPosition.y + 0.7 * paperDimensions.height,

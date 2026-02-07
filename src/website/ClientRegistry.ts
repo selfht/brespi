@@ -4,13 +4,14 @@ import { Class } from "@/types/Class";
 import { createContext } from "react";
 import { Yesttp } from "yesttp";
 import { ConfigurationClient } from "./clients/ConfigurationClient";
+import { DialogClient } from "./clients/DialogClient";
 import { ExecutionClient } from "./clients/ExecutionClient";
+import { NotificationClient } from "./clients/NotificationClient";
 import { PipelineClient } from "./clients/PipelineClient";
 import { RestrictedClient } from "./clients/RestrictedClient";
 import { ScheduleClient } from "./clients/ScheduleClient";
 import { SocketClient } from "./clients/SocketClient";
-import { StepClient } from "./clients/StepClient.ts";
-import { NotificationClient } from "./clients/NotificationClient";
+import { StepClient } from "./clients/StepClient";
 
 export class ClientRegistry {
   /**
@@ -48,6 +49,7 @@ export class ClientRegistry {
       },
     }));
     this.registry[SocketClient.name] = new SocketClient();
+    this.registry[DialogClient.name] = new DialogClient();
     this.registry[StepClient.name] = new StepClient(yesttp);
     this.registry[PipelineClient.name] = new PipelineClient(yesttp);
     this.registry[PipelineClient.name] = new PipelineClient(yesttp);

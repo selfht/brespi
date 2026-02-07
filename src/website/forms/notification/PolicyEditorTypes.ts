@@ -2,7 +2,7 @@ export namespace PolicyEditorTypes {
   export enum Field {
     active = "active",
     channel = "channel",
-    slack_webhookUrlReference = "slack_webhookUrlReference",
+    slack_webhookUrl = "slack_webhookUrl",
     customScript_path = "customScript_path",
     // execution_started subscription
     subscription_executionStarted_enabled = "subscription_executionStarted_enabled",
@@ -17,7 +17,7 @@ export namespace PolicyEditorTypes {
   export type Form = {
     [Field.active]: boolean;
     [Field.channel]: "" | "slack" | "custom_script";
-    [Field.slack_webhookUrlReference]: string;
+    [Field.slack_webhookUrl]: string;
     [Field.customScript_path]: string;
     // execution_started
     [Field.subscription_executionStarted_enabled]: boolean;

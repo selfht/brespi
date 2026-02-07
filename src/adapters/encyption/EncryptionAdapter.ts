@@ -6,17 +6,21 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypt
 import { createReadStream, createWriteStream } from "fs";
 import { pipeline } from "stream/promises";
 import { AbstractAdapter } from "../AbstractAdapter";
+import { PropertyResolver } from "@/capabilities/propertyresolution/PropertyResolver";
 
 export class EncryptionAdapter extends AbstractAdapter {
   private readonly EXTENSION = ".enc";
 
-  public constructor(protected readonly env: Env.Private) {
-    super(env);
+  public constructor(
+    protected readonly env: Env.Private,
+    protected readonly propertyResolver: PropertyResolver,
+  ) {
+    super(env, propertyResolver);
   }
 
   public async encrypt(artifact: Artifact, step: Step.Encryption): Promise<Artifact> {
     this.requireArtifactType("file", artifact);
-    const key = this.readEnvironmentVariable(step.keyReference);
+    const key = this.resolveString(step.key);
     const algorithm = this.translateAlgorithm(step.algorithm.implementation);
 
     const inputPath = artifact.path;
@@ -44,7 +48,7 @@ export class EncryptionAdapter extends AbstractAdapter {
 
   public async decrypt(artifact: Artifact, step: Step.Decryption): Promise<Artifact> {
     this.requireArtifactType("file", artifact);
-    const key = this.readEnvironmentVariable(step.keyReference);
+    const key = this.resolveString(step.key);
     const algorithm = this.translateAlgorithm(step.algorithm.implementation);
 
     const inputPath = artifact.path;

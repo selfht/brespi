@@ -32,11 +32,11 @@ type Props = {
   className?: string;
 };
 export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, setError, clearErrors, reset } = useForm<Form>({
+  const form = useForm<Form>({
     defaultValues: defaultValues(existing),
   });
-  useEffect(() => reset(defaultValues(existing)), [existing]);
-  const submit: SubmitHandler<Form> = async (form) => {
+  useEffect(() => form.reset(defaultValues(existing)), [existing]);
+  const submit: SubmitHandler<Form> = async (values) => {
     await FormHelper.snoozeBeforeSubmit();
     try {
       await onSave({
@@ -45,11 +45,11 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
         object: "step",
         type: Step.Type.decompression,
         algorithm: {
-          implementation: form[Field.algorithm_implementation],
+          implementation: values[Field.algorithm_implementation],
         },
       });
     } catch (error) {
-      setError("root", {
+      form.setError("root", {
         message: FormHelper.formatError(error),
       });
     }
@@ -59,11 +59,11 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
   return (
     <FormElements.Container className={className}>
       <FormElements.Left>
-        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
+        <fieldset disabled={form.formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.algorithm_implementation}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "select", options: ["targzip"] }}
@@ -72,16 +72,15 @@ export function DecompressionForm({ id, existing, onSave, onDelete, onCancel, cl
         <FormElements.ButtonBar
           className="mt-12"
           existing={existing}
-          formState={formState}
-          onSubmit={handleSubmit(submit)}
+          formState={form.formState}
+          onSubmit={form.handleSubmit(submit)}
           onDelete={onDelete}
           onCancel={onCancel}
         />
       </FormElements.Left>
       <FormElements.Right
+        form={form} //
         stepType={Step.Type.decompression}
-        formState={formState}
-        clearErrors={clearErrors}
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >

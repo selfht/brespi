@@ -18,7 +18,7 @@ type DatabaseBoundary = {
 type DatabaseConfig = {
   name: string;
   boundary: DatabaseBoundary;
-  connectionReference: string;
+  connection: string;
   backupStepType: "PostgreSQL Backup" | "MariaDB Backup";
   restoreStepType: "PostgreSQL Restore" | "MariaDB Restore";
   fileExtension: string;
@@ -32,7 +32,7 @@ enum Database {
 const createPostgresqlConfig = (): DatabaseConfig => ({
   name: "postgresql",
   boundary: PostgresqlBoundary,
-  connectionReference: "MY_POSTGRESQL_URL",
+  connection: "${MY_POSTGRESQL_URL}",
   backupStepType: "PostgreSQL Backup",
   restoreStepType: "PostgreSQL Restore",
   fileExtension: ".dump",
@@ -41,7 +41,7 @@ const createPostgresqlConfig = (): DatabaseConfig => ({
 const createMariadbConfig = (): DatabaseConfig => ({
   name: "mariadb",
   boundary: MariadbBoundary,
-  connectionReference: "MY_MARIADB_URL",
+  connection: "${MY_MARIADB_URL}",
   backupStepType: "MariaDB Backup",
   restoreStepType: "MariaDB Restore",
   fileExtension: ".sql",
@@ -189,7 +189,7 @@ async function createBackupPipeline(page: Page, config: DatabaseConfig, { backup
       {
         id: "A",
         type: config.backupStepType,
-        connectionReference: config.connectionReference,
+        connection: config.connection,
         databaseSelectionStrategy: "include",
         databaseSelectionInclusions: databases.join(","),
       },
@@ -233,7 +233,7 @@ async function createRestorePipeline(page: Page, config: DatabaseConfig, { backu
         previousId: "C",
         type: config.restoreStepType,
         database,
-        connectionReference: config.connectionReference,
+        connection: config.connection,
       },
     ],
   });

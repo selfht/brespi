@@ -45,11 +45,11 @@ type Props = {
   className?: string;
 };
 export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, watch, setError, clearErrors, reset } = useForm<Form>({
+  const form = useForm<Form>({
     defaultValues: defaultValues(existing),
   });
-  useEffect(() => reset(defaultValues(existing)), [existing]);
-  const submit: SubmitHandler<Form> = async (form) => {
+  useEffect(() => form.reset(defaultValues(existing)), [existing]);
+  const submit: SubmitHandler<Form> = async (values) => {
     await FormHelper.snoozeBeforeSubmit();
     try {
       await onSave({
@@ -57,11 +57,11 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
         previousId: existing?.previousId,
         object: "step",
         type: Step.Type.custom_script,
-        path: form[Field.path],
-        passthrough: form[Field.passthrough] === "true",
+        path: values[Field.path],
+        passthrough: values[Field.passthrough] === "true",
       });
     } catch (error) {
-      setError("root", {
+      form.setError("root", {
         message: FormHelper.formatError(error),
       });
     }
@@ -71,11 +71,11 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
   return (
     <FormElements.Container className={className}>
       <FormElements.Left>
-        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
+        <fieldset disabled={form.formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.path}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "text" }}
@@ -83,7 +83,7 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
           <FormElements.LabeledInput
             field={Field.passthrough}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "yesno" }}
@@ -92,16 +92,15 @@ export function CustomScriptForm({ id, existing, onSave, onDelete, onCancel, cla
         <FormElements.ButtonBar
           className="mt-12"
           existing={existing}
-          formState={formState}
-          onSubmit={handleSubmit(submit)}
+          formState={form.formState}
+          onSubmit={form.handleSubmit(submit)}
           onDelete={onDelete}
           onCancel={onCancel}
         />
       </FormElements.Left>
       <FormElements.Right
+        form={form} //
         stepType={Step.Type.custom_script}
-        formState={formState}
-        clearErrors={clearErrors}
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >

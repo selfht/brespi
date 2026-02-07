@@ -47,14 +47,14 @@ export namespace StepDetails {
       case Step.Type.encryption: {
         const F = EncryptionForm.Field;
         return performLabeling<typeof F>(EncryptionForm.Label, {
-          [F.keyReference]: step.keyReference,
+          [F.key]: step.key,
           [F.algorithm_implementation]: step.algorithm.implementation,
         });
       }
       case Step.Type.decryption: {
         const F = DecryptionForm.Field;
         return performLabeling<typeof F>(DecryptionForm.Label, {
-          [F.keyReference]: step.keyReference,
+          [F.key]: step.key,
           [F.algorithm_implementation]: step.algorithm.implementation,
         });
       }
@@ -112,8 +112,8 @@ export namespace StepDetails {
           [F.basePrefix]: step.basePrefix,
           [F.connection_region]: step.connection.region,
           [F.connection_endpoint]: step.connection.endpoint,
-          [F.connection_accessKeyReference]: step.connection.accessKeyReference,
-          [F.connection_secretKeyReference]: step.connection.secretKeyReference,
+          [F.connection_accessKey]: step.connection.accessKey,
+          [F.connection_secretKey]: step.connection.secretKey,
           [F.managedStorage]: true,
           [F.retentionPolicy]: step.retention ? step.retention.policy : "none",
           [F.retentionMaxVersions]: step.retention?.policy === "last_n_versions" ? step.retention.maxVersions : undefined,
@@ -126,8 +126,8 @@ export namespace StepDetails {
           [F.basePrefix]: step.basePrefix,
           [F.connection_region]: step.connection.region,
           [F.connection_endpoint]: step.connection.endpoint,
-          [F.connection_accessKeyReference]: step.connection.accessKeyReference,
-          [F.connection_secretKeyReference]: step.connection.secretKeyReference,
+          [F.connection_accessKey]: step.connection.accessKey,
+          [F.connection_secretKey]: step.connection.secretKey,
           [F.managedStorage]: true,
           [F.managedStorage_target]: step.managedStorage.target,
           [F.managedStorage_version]: step.managedStorage.target === "specific" ? step.managedStorage.version : undefined,
@@ -141,7 +141,7 @@ export namespace StepDetails {
       case Step.Type.postgresql_backup: {
         const F = PostgresqlBackupForm.Field;
         return performLabeling<typeof F>(PostgresqlBackupForm.Label, {
-          [F.connectionReference]: step.connectionReference,
+          [F.connection]: step.connection,
           [F.toolkit_resolution]: step.toolkit.resolution,
           [F.toolkit_psql]: step.toolkit.resolution === "manual" ? step.toolkit.psql : undefined,
           [F.toolkit_pg_dump]: step.toolkit.resolution === "manual" ? step.toolkit.pg_dump : undefined,
@@ -153,7 +153,7 @@ export namespace StepDetails {
       case Step.Type.postgresql_restore: {
         const F = PostgresqlRestoreForm.Field;
         return performLabeling<typeof F>(PostgresqlRestoreForm.Label, {
-          [F.connectionReference]: step.connectionReference,
+          [F.connection]: step.connection,
           [F.toolkit_resolution]: step.toolkit.resolution,
           [F.toolkit_psql]: step.toolkit.resolution === "manual" ? step.toolkit.psql : undefined,
           [F.toolkit_pg_restore]: step.toolkit.resolution === "manual" ? step.toolkit.pg_restore : undefined,
@@ -163,7 +163,7 @@ export namespace StepDetails {
       case Step.Type.mariadb_backup: {
         const F = MariadbBackupForm.Field;
         return performLabeling<typeof F>(MariadbBackupForm.Label, {
-          [F.connectionReference]: step.connectionReference,
+          [F.connection]: step.connection,
           [F.toolkit_resolution]: step.toolkit.resolution,
           [F.toolkit_mariadb]: step.toolkit.resolution === "manual" ? step.toolkit.mariadb : undefined,
           [F.toolkit_mariadb_dump]: step.toolkit.resolution === "manual" ? step.toolkit["mariadb-dump"] : undefined,
@@ -175,7 +175,7 @@ export namespace StepDetails {
       case Step.Type.mariadb_restore: {
         const F = MariadbRestoreForm.Field;
         return performLabeling<typeof F>(MariadbRestoreForm.Label, {
-          [F.connectionReference]: step.connectionReference,
+          [F.connection]: step.connection,
           [F.toolkit_resolution]: step.toolkit.resolution,
           [F.toolkit_mariadb]: step.toolkit.resolution === "manual" ? step.toolkit.mariadb : undefined,
           [F.database]: step.database,

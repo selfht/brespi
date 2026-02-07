@@ -10,7 +10,12 @@ describe(S3Adapter.name, async () => {
 
   beforeEach(async () => {
     context = await TestEnvironment.initialize();
-    adapter = new S3Adapter(context.env, context.managedStorageCapabilityMock.cast(), context.filterCapabilityMock.cast());
+    adapter = new S3Adapter(
+      context.env,
+      context.propertyResolver,
+      context.managedStorageCapabilityMock.cast(),
+      context.filterCapabilityMock.cast(),
+    );
     context.patchEnvironmentVariables({
       ACCESS_KEY: "kim",
       SECRET_KEY: "possible",
@@ -21,8 +26,8 @@ describe(S3Adapter.name, async () => {
     bucket: "irrelevant",
     region: undefined,
     endpoint: "http://irrelevant",
-    secretKeyReference: "SECRET_KEY",
-    accessKeyReference: "ACCESS_KEY",
+    secretKey: "${SECRET_KEY}",
+    accessKey: "${ACCESS_KEY}",
   };
 
   type TestCase = {

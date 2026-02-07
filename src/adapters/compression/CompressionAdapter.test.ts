@@ -10,7 +10,7 @@ describe(CompressionAdapter.name, async () => {
 
   beforeEach(async () => {
     context = await TestEnvironment.initialize();
-    adapter = new CompressionAdapter(context.env);
+    adapter = new CompressionAdapter(context.env, context.propertyResolver);
   });
 
   it("should respect and retain the original artifact name when compressing/decompressing a folder", async () => {

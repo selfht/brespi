@@ -1,6 +1,8 @@
 import { Step } from "@/models/Step";
-import { StepClient } from "@/website/clients/StepClient.ts";
+import { DialogClient } from "@/website/clients/DialogClient";
+import { StepClient } from "@/website/clients/StepClient";
 import { useRegistry } from "@/website/hooks/useRegistry";
+import { Route } from "@/website/Route";
 import { JSX } from "react/jsx-dev-runtime";
 import { CompressionForm } from "./CompressionForm";
 import { CustomScriptForm } from "./CustomScriptForm";
@@ -30,9 +32,52 @@ type Props = {
 };
 export function StepForm({ type, existing, onSave, ...props }: Props): JSX.Element {
   const stepClient = useRegistry(StepClient);
+  const dialogClient = useRegistry(DialogClient);
   const validateAndSave = async (step: Step) => {
-    await stepClient.validate(step);
-    onSave(step);
+    const { warningFieldLabels } = await stepClient.validate(step);
+    if (
+      warningFieldLabels.length === 0 ||
+      (await dialogClient.confirm({
+        warning: { title: "insecure plaintext configuration" },
+        render({ yesNoButtons }) {
+          const pluralS = warningFieldLabels.length === 1 ? "" : ("s" as const);
+          return (
+            <div>
+              <p>You've assigned a plaintext value to the following field{pluralS}:</p>
+              <ul className="mt-4 list-disc list-inside text-c-error font-bold text-lg">
+                {warningFieldLabels.map((label) => (
+                  <li key={label}>{label}</li>
+                ))}
+              </ul>
+              <p className="mt-4">
+                This is considered insecure, because the corresponding value(s) are about to be included as-is in the{" "}
+                <a
+                  href={`/${Route.configuration()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold underline underline-offset-2 decoration-2 decoration-c-accent"
+                >
+                  main configuration object
+                </a>{" "}
+                (click to open a new tab).
+              </p>
+              <p className="mt-4">
+                In order to fix this, please consider using <span className="text-c-warning font-mono">{`\${REFERENCE}`}</span> notation for
+                these field(s), which will see their values resolved via environment variables or property files at the time of execution.
+              </p>
+              {yesNoButtons({
+                noLabel: "Cancel and Fix",
+                noTheme: "success",
+                yesLabel: "Continue and Ignore",
+                yesTheme: "error",
+              })}
+            </div>
+          );
+        },
+      }))
+    ) {
+      onSave(step);
+    }
   };
   switch (type) {
     case Step.Type.compression:

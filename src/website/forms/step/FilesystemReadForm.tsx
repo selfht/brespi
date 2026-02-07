@@ -81,11 +81,11 @@ type Props = {
   className?: string;
 };
 export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, watch, setError, clearErrors, reset } = useForm<Form>({
+  const form = useForm<Form>({
     defaultValues: defaultValues(existing),
   });
-  useEffect(() => reset(defaultValues(existing)), [existing]);
-  const submit: SubmitHandler<Form> = async (form) => {
+  useEffect(() => form.reset(defaultValues(existing)), [existing]);
+  const submit: SubmitHandler<Form> = async (values) => {
     await FormHelper.snoozeBeforeSubmit();
     try {
       await onSave({
@@ -93,44 +93,44 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
         previousId: existing?.previousId,
         object: "step",
         type: Step.Type.filesystem_read,
-        path: form[Field.path],
+        path: values[Field.path],
         managedStorage:
-          form[Field.managedStorage] === "true"
-            ? form[Field.managedStorage_target] === "latest"
+          values[Field.managedStorage] === "true"
+            ? values[Field.managedStorage_target] === "latest"
               ? { target: "latest" }
-              : { target: "specific", version: form[Field.managedStorage_version] }
+              : { target: "specific", version: values[Field.managedStorage_version] }
             : undefined,
         filterCriteria:
-          form[Field.filterCriteria] === "true"
-            ? form[Field.filterCriteria_method] === "exact"
-              ? { method: "exact", name: form[Field.filterCriteria_name] }
-              : form[Field.filterCriteria_method] === "glob"
-                ? { method: "glob", nameGlob: form[Field.filterCriteria_nameGlob] }
-                : { method: "regex", nameRegex: form[Field.filterCriteria_nameRegex] }
+          values[Field.filterCriteria] === "true"
+            ? values[Field.filterCriteria_method] === "exact"
+              ? { method: "exact", name: values[Field.filterCriteria_name] }
+              : values[Field.filterCriteria_method] === "glob"
+                ? { method: "glob", nameGlob: values[Field.filterCriteria_nameGlob] }
+                : { method: "regex", nameRegex: values[Field.filterCriteria_nameRegex] }
             : undefined,
       });
     } catch (error) {
-      setError("root", {
+      form.setError("root", {
         message: FormHelper.formatError(error),
       });
     }
   };
 
-  const managedStorage = watch(Field.managedStorage);
-  const managedStorageSelectionTarget = watch(Field.managedStorage_target);
-  const filterCriteria = watch(Field.filterCriteria);
-  const filterCriteriaMethod = watch(Field.filterCriteria_method);
+  const managedStorage = form.watch(Field.managedStorage);
+  const managedStorageSelectionTarget = form.watch(Field.managedStorage_target);
+  const filterCriteria = form.watch(Field.filterCriteria);
+  const filterCriteriaMethod = form.watch(Field.filterCriteria_method);
   const filterCriteriaMethodOptions: Array<typeof filterCriteriaMethod> = ["exact", "glob", "regex"];
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
       <FormElements.Left>
-        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
+        <fieldset disabled={form.formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.path}
             label={managedStorage === "true" ? `Folder ${Label[Field.path].toLowerCase()}` : Label[Field.path]}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "text" }}
@@ -138,7 +138,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
           <FormElements.LabeledInput
             field={Field.managedStorage}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "yesno" }}
@@ -148,7 +148,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
               <FormElements.LabeledInput
                 field={Field.managedStorage_target}
                 labels={Label}
-                register={register}
+                register={form.register}
                 activeField={activeField}
                 onActiveFieldChange={setActiveField}
                 input={{ type: "select", options: ["latest", "specific"] }}
@@ -157,7 +157,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
                 <FormElements.LabeledInput
                   field={Field.managedStorage_version}
                   labels={Label}
-                  register={register}
+                  register={form.register}
                   activeField={activeField}
                   onActiveFieldChange={setActiveField}
                   input={{ type: "text" }}
@@ -166,7 +166,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
               <FormElements.LabeledInput
                 field={Field.filterCriteria}
                 labels={Label}
-                register={register}
+                register={form.register}
                 activeField={activeField}
                 onActiveFieldChange={setActiveField}
                 input={{ type: "yesno" }}
@@ -176,7 +176,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
                   <FormElements.LabeledInput
                     field={Field.filterCriteria_method}
                     labels={Label}
-                    register={register}
+                    register={form.register}
                     activeField={activeField}
                     onActiveFieldChange={setActiveField}
                     input={{ type: "select", options: filterCriteriaMethodOptions }}
@@ -185,7 +185,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
                     <FormElements.LabeledInput
                       field={Field.filterCriteria_name}
                       labels={Label}
-                      register={register}
+                      register={form.register}
                       activeField={activeField}
                       onActiveFieldChange={setActiveField}
                       input={{ type: "text" }}
@@ -195,7 +195,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
                     <FormElements.LabeledInput
                       field={Field.filterCriteria_nameGlob}
                       labels={Label}
-                      register={register}
+                      register={form.register}
                       activeField={activeField}
                       onActiveFieldChange={setActiveField}
                       input={{ type: "text" }}
@@ -205,7 +205,7 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
                     <FormElements.LabeledInput
                       field={Field.filterCriteria_nameRegex}
                       labels={Label}
-                      register={register}
+                      register={form.register}
                       activeField={activeField}
                       onActiveFieldChange={setActiveField}
                       input={{ type: "text" }}
@@ -219,16 +219,15 @@ export function FilesystemReadForm({ id, existing, onSave, onDelete, onCancel, c
         <FormElements.ButtonBar
           className="mt-12"
           existing={existing}
-          formState={formState}
-          onSubmit={handleSubmit(submit)}
+          formState={form.formState}
+          onSubmit={form.handleSubmit(submit)}
           onDelete={onDelete}
           onCancel={onCancel}
         />
       </FormElements.Left>
       <FormElements.Right
+        form={form} //
         stepType={Step.Type.filesystem_read}
-        formState={formState}
-        clearErrors={clearErrors}
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >

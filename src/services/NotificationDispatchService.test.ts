@@ -19,7 +19,7 @@ describe(NotificationDispatchService.name, async () => {
 
   beforeEach(async () => {
     context = await TestEnvironment.initialize();
-    service = new NotificationDispatchService(context.pipelineRepository, context.yesttpMock.cast());
+    service = new NotificationDispatchService(context.propertyResolver, context.pipelineRepository, context.yesttpMock.cast());
     await context.pipelineRepository.create({
       id: PIPELINE_ID,
       object: "pipeline",
@@ -64,7 +64,7 @@ describe(NotificationDispatchService.name, async () => {
       context.patchEnvironmentVariables({ MY_SLACK_WEBHOOK: "https://hooks.slack.com/test" });
 
       // when
-      const policy = slackPolicy("MY_SLACK_WEBHOOK");
+      const policy = slackPolicy("${MY_SLACK_WEBHOOK}");
       await service.dispatch(policy, event);
 
       // then
@@ -84,7 +84,7 @@ describe(NotificationDispatchService.name, async () => {
         active: true,
         channel: {
           type: "slack",
-          webhookUrlReference: "NONEXISTENT_WEBHOOK_VAR",
+          webhookUrl: "${NONEXISTENT_WEBHOOK_VAR}",
         },
         eventSubscriptions: [
           {
@@ -197,12 +197,12 @@ describe(NotificationDispatchService.name, async () => {
     });
   });
 
-  function slackPolicy(webhookUrlReference: string): NotificationPolicy {
+  function slackPolicy(webhookUrl: string): NotificationPolicy {
     return {
       id: Bun.randomUUIDv7(),
       object: "notification_policy",
       active: true,
-      channel: { type: "slack", webhookUrlReference },
+      channel: { type: "slack", webhookUrl },
       eventSubscriptions: [{ type: Event.Type.execution_completed, triggers: ["schedule"] }],
     };
   }

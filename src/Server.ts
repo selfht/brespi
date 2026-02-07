@@ -9,6 +9,7 @@ import { Configuration } from "./models/Configuration";
 import { Execution } from "./models/Execution";
 import { NotificationPolicy } from "./models/NotificationPolicy";
 import { Schedule } from "./models/Schedule";
+import { StepWarning } from "./models/StepWarning";
 import { ConfigurationService } from "./services/ConfigurationService";
 import { ExecutionService } from "./services/ExecutionService";
 import { NotificationService } from "./services/NotificationService";
@@ -114,14 +115,18 @@ export class Server {
         },
 
         /**
-         * Steps & Pipelines
+         * Steps
          */
         "/api/steps/validate": {
           POST: this.handleRoute(async (request) => {
-            this.stepService.validate(await request.json());
-            return new Response();
+            const warning: StepWarning = this.stepService.validate(await request.json());
+            return Response.json(warning);
           }),
         },
+
+        /**
+         * Pipelines
+         */
         "/api/pipelines": {
           GET: this.handleRoute(async () => {
             const pipelines: PipelineView[] = await this.pipelineService.query();

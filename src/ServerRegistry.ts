@@ -10,6 +10,7 @@ import { S3Adapter } from "./adapters/s3/S3Adapter";
 import { ScriptAdapter } from "./adapters/scripting/ScriptAdapter";
 import { FilterCapability } from "./capabilities/filter/FilterCapability";
 import { ManagedStorageCapability } from "./capabilities/managedstorage/ManagedStorageCapability";
+import { PropertyResolver } from "./capabilities/propertyresolution/PropertyResolver";
 import { Sqlite } from "./drizzle/sqlite";
 import { Env } from "./Env";
 import { EventBus } from "./events/EventBus";
@@ -43,19 +44,22 @@ export class ServerRegistry {
     private readonly env: Env.Private,
     private readonly sqlite: Sqlite,
   ) {
+    // Resolvers
+    const { propertyResolver } = this.register({ PropertyResolver }, []);
+
     // Capabilities
     const { filterCapability } = this.register({ FilterCapability }, []);
     const { managedStorageCapability } = this.register({ ManagedStorageCapability }, [env]);
 
     // Adapters
-    const { compressionAdapter } = this.register({ CompressionAdapter }, [env]);
-    const { encryptionAdapter } = this.register({ EncryptionAdapter }, [env]);
-    const { filterAdapter } = this.register({ FilterAdapter }, [env, filterCapability]);
-    const { scriptAdapter } = this.register({ ScriptAdapter }, [env]);
-    const { filesystemAdapter } = this.register({ FilesystemAdapter }, [env, managedStorageCapability, filterCapability]);
-    const { s3Adapter } = this.register({ S3Adapter }, [env, managedStorageCapability, filterCapability]);
-    const { postgresqlAdapter } = this.register({ PostgresqlAdapter }, [env]);
-    const { mariadbAdapter } = this.register({ MariadbAdapter }, [env]);
+    const { compressionAdapter } = this.register({ CompressionAdapter }, [env, propertyResolver]);
+    const { encryptionAdapter } = this.register({ EncryptionAdapter }, [env, propertyResolver]);
+    const { filterAdapter } = this.register({ FilterAdapter }, [env, propertyResolver, filterCapability]);
+    const { scriptAdapter } = this.register({ ScriptAdapter }, [env, propertyResolver]);
+    const { filesystemAdapter } = this.register({ FilesystemAdapter }, [env, propertyResolver, managedStorageCapability, filterCapability]);
+    const { s3Adapter } = this.register({ S3Adapter }, [env, propertyResolver, managedStorageCapability, filterCapability]);
+    const { postgresqlAdapter } = this.register({ PostgresqlAdapter }, [env, propertyResolver]);
+    const { mariadbAdapter } = this.register({ MariadbAdapter }, [env, propertyResolver]);
     const { adapterService } = this.register({ AdapterService }, [
       filesystemAdapter,
       compressionAdapter,
@@ -89,7 +93,7 @@ export class ServerRegistry {
       eventBus,
     ]);
     const { scheduleService } = this.register({ ScheduleService }, [eventBus, scheduleRepository, pipelineRepository, executionService]);
-    const { notificationDispatchService } = this.register({ NotificationDispatchService }, [pipelineRepository]);
+    const { notificationDispatchService } = this.register({ NotificationDispatchService }, [propertyResolver, pipelineRepository]);
     const { notificationService } = this.register({ NotificationService }, [eventBus, notificationRepository, notificationDispatchService]);
     const { restrictedService } = this.register({ RestrictedService }, [
       sqlite,

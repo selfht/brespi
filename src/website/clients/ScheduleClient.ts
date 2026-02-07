@@ -31,6 +31,7 @@ export class ScheduleClient {
     return Schedule.parse(body);
   }
 
+  // TODO: move this logic to the backend and then perform client-side timezone translation on the returned timestamps
   public nextCronEvaluations({ expression, amount }: { expression: string; amount: number }): Temporal.PlainDateTime[] | undefined {
     let cron: Cron | undefined = undefined;
     try {

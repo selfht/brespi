@@ -19,7 +19,7 @@ describe(NotificationService.name, async () => {
   it("dispatches a notification when event type and trigger match", async () => {
     // given
     const policy = await createPolicy({
-      channel: { type: "slack", webhookUrlReference: "SLACK_WEBHOOK" },
+      channel: { type: "slack", webhookUrl: "${SLACK_WEBHOOK}" },
       eventSubscriptions: [
         {
           type: Event.Type.execution_completed,
@@ -48,7 +48,7 @@ describe(NotificationService.name, async () => {
   it("does not dispatch when event type matches but trigger does not", async () => {
     // given
     await createPolicy({
-      channel: { type: "slack", webhookUrlReference: "SLACK_WEBHOOK" },
+      channel: { type: "slack", webhookUrl: "${SLACK_WEBHOOK}" },
       eventSubscriptions: [
         {
           type: Event.Type.execution_completed,
@@ -71,7 +71,7 @@ describe(NotificationService.name, async () => {
   it("does not dispatch when event type does not match", async () => {
     // given
     await createPolicy({
-      channel: { type: "slack", webhookUrlReference: "SLACK_WEBHOOK" },
+      channel: { type: "slack", webhookUrl: "${SLACK_WEBHOOK}" },
       eventSubscriptions: [
         {
           type: Event.Type.execution_started,
@@ -94,7 +94,7 @@ describe(NotificationService.name, async () => {
   it("dispatches to multiple policies when both match", async () => {
     // given
     const policy1 = await createPolicy({
-      channel: { type: "slack", webhookUrlReference: "SLACK_WEBHOOK" },
+      channel: { type: "slack", webhookUrl: "${SLACK_WEBHOOK}" },
       eventSubscriptions: [
         {
           type: Event.Type.execution_completed,
@@ -140,7 +140,7 @@ describe(NotificationService.name, async () => {
   it("dispatches when a policy has multiple triggers and one matches", async () => {
     // given
     await createPolicy({
-      channel: { type: "slack", webhookUrlReference: "SLACK_WEBHOOK" },
+      channel: { type: "slack", webhookUrl: "${SLACK_WEBHOOK}" },
       eventSubscriptions: [
         {
           type: Event.Type.execution_completed,

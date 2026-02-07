@@ -23,7 +23,7 @@ test.describe("pipelines affects configuration and sync status", () => {
         steps: [
           {
             type: "Encryption",
-            keyReference: "IRRELEVANT",
+            key: "${IRRELEVANT}",
           },
         ],
       });

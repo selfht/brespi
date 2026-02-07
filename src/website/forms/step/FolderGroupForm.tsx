@@ -18,7 +18,7 @@ type Props = {
   className?: string;
 };
 export function FolderGroupForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { handleSubmit, formState, setError, clearErrors } = useForm<Form>();
+  const form = useForm<Form>();
   const submit: SubmitHandler<Form> = async () => {
     await FormHelper.snoozeBeforeSubmit();
     try {
@@ -29,7 +29,7 @@ export function FolderGroupForm({ id, existing, onSave, onDelete, onCancel, clas
         type: Step.Type.folder_group,
       });
     } catch (error) {
-      setError("root", {
+      form.setError("root", {
         message: FormHelper.formatError(error),
       });
     }
@@ -39,13 +39,13 @@ export function FolderGroupForm({ id, existing, onSave, onDelete, onCancel, clas
       <FormElements.Left>
         <FormElements.ButtonBar
           existing={existing}
-          formState={formState}
-          onSubmit={handleSubmit(submit)}
+          formState={form.formState}
+          onSubmit={form.handleSubmit(submit)}
           onDelete={onDelete}
           onCancel={onCancel}
         />
       </FormElements.Left>
-      <FormElements.Right stepType={Step.Type.folder_group} formState={formState} clearErrors={clearErrors} fieldDescriptions={Description}>
+      <FormElements.Right form={form} stepType={Step.Type.folder_group} fieldDescriptions={Description}>
         {summary}
       </FormElements.Right>
     </FormElements.Container>

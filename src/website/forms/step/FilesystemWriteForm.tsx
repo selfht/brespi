@@ -51,11 +51,11 @@ type Props = {
   className?: string;
 };
 export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, watch, setError, clearErrors, reset } = useForm<Form>({
+  const form = useForm<Form>({
     defaultValues: defaultValues(existing),
   });
-  useEffect(() => reset(defaultValues(existing)), [existing]);
-  const submit: SubmitHandler<Form> = async (form) => {
+  useEffect(() => form.reset(defaultValues(existing)), [existing]);
+  const submit: SubmitHandler<Form> = async (values) => {
     await FormHelper.snoozeBeforeSubmit();
     try {
       await onSave({
@@ -63,31 +63,31 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
         previousId: existing?.previousId,
         object: "step",
         type: Step.Type.filesystem_write,
-        folderPath: form[Field.folderPath],
-        managedStorage: form[Field.managedStorage] === "true",
+        folderPath: values[Field.folderPath],
+        managedStorage: values[Field.managedStorage] === "true",
         retention:
-          form[Field.retentionPolicy] === "last_n_versions"
-            ? { policy: "last_n_versions", maxVersions: form[Field.retentionMaxVersions] }
+          values[Field.retentionPolicy] === "last_n_versions"
+            ? { policy: "last_n_versions", maxVersions: values[Field.retentionMaxVersions] }
             : undefined,
       });
     } catch (error) {
-      setError("root", {
+      form.setError("root", {
         message: FormHelper.formatError(error),
       });
     }
   };
 
-  const managedStorage = watch(Field.managedStorage);
-  const retentionPolicy = watch(Field.retentionPolicy);
+  const managedStorage = form.watch(Field.managedStorage);
+  const retentionPolicy = form.watch(Field.retentionPolicy);
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
       <FormElements.Left>
-        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
+        <fieldset disabled={form.formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.folderPath}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "text" }}
@@ -95,7 +95,7 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
           <FormElements.LabeledInput
             field={Field.managedStorage}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "yesno" }}
@@ -105,7 +105,7 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
               <FormElements.LabeledInput
                 field={Field.retentionPolicy}
                 labels={Label}
-                register={register}
+                register={form.register}
                 activeField={activeField}
                 onActiveFieldChange={setActiveField}
                 input={{
@@ -117,7 +117,7 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
                 <FormElements.LabeledInput
                   field={Field.retentionMaxVersions}
                   labels={Label}
-                  register={register}
+                  register={form.register}
                   activeField={activeField}
                   onActiveFieldChange={setActiveField}
                   input={{ type: "number" }}
@@ -129,16 +129,15 @@ export function FilesystemWriteForm({ id, existing, onSave, onDelete, onCancel, 
         <FormElements.ButtonBar
           className="mt-12"
           existing={existing}
-          formState={formState}
-          onSubmit={handleSubmit(submit)}
+          formState={form.formState}
+          onSubmit={form.handleSubmit(submit)}
           onDelete={onDelete}
           onCancel={onCancel}
         />
       </FormElements.Left>
       <FormElements.Right
+        form={form} //
         stepType={Step.Type.filesystem_write}
-        formState={formState}
-        clearErrors={clearErrors}
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >

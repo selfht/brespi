@@ -17,7 +17,7 @@
   "trail": [
     {
       "type": "postgresql_backup",
-      "connectionReference": "MY_POSTGRESQL_URL",
+      "connection": "${MY_POSTGRESQL_URL}",
       "toolkit": {
         "resolution": "automatic"
       },

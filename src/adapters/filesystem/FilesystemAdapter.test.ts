@@ -14,7 +14,12 @@ describe(FilesystemAdapter.name, async () => {
 
   beforeEach(async () => {
     context = await TestEnvironment.initialize();
-    adapter = new FilesystemAdapter(context.env, new ManagedStorageCapability(context.env), new FilterCapability());
+    adapter = new FilesystemAdapter(
+      context.env,
+      context.propertyResolver,
+      new ManagedStorageCapability(context.env),
+      new FilterCapability(),
+    );
   });
 
   it("writes files to a directory", async () => {

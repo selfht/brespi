@@ -9,8 +9,8 @@ export namespace PipelineFlow {
   export type StepOptions =
     | (StepCommon & { type: "Compression"; level?: string })
     | (StepCommon & { type: "Decompression" })
-    | (StepCommon & { type: "Encryption"; keyReference?: string })
-    | (StepCommon & { type: "Decryption"; keyReference?: string })
+    | (StepCommon & { type: "Encryption"; key?: string })
+    | (StepCommon & { type: "Decryption"; key?: string })
     | (StepCommon & { type: "Folder Flatten" })
     | (StepCommon & { type: "Folder Group" })
     | (StepCommon & {
@@ -50,8 +50,8 @@ export namespace PipelineFlow {
         baseFolder?: string;
         endpoint?: string;
         region?: string;
-        accessKeyReference?: string;
-        secretKeyReference?: string;
+        accessKey?: string;
+        secretKey?: string;
         retention?: "none" | "last_n_versions";
         retentionMaxVersions?: number;
       })
@@ -61,8 +61,8 @@ export namespace PipelineFlow {
         baseFolder?: string;
         endpoint?: string;
         region?: string;
-        accessKeyReference?: string;
-        secretKeyReference?: string;
+        accessKey?: string;
+        secretKey?: string;
         managedStorageSelectionTarget?: "latest" | "specific";
         managedStorageSelectionVersion?: string;
         filterCriteria?: "true" | "false";
@@ -73,26 +73,26 @@ export namespace PipelineFlow {
       })
     | (StepCommon & {
         type: "PostgreSQL Backup";
-        connectionReference?: string;
+        connection?: string;
         databaseSelectionStrategy?: "all" | "include" | "exclude";
         databaseSelectionInclusions?: string;
         databaseSelectionExclusions?: string;
       })
     | (StepCommon & {
         type: "PostgreSQL Restore";
-        connectionReference?: string;
+        connection?: string;
         database?: string;
       })
     | (StepCommon & {
         type: "MariaDB Backup";
-        connectionReference?: string;
+        connection?: string;
         databaseSelectionStrategy?: "all" | "include" | "exclude";
         databaseSelectionInclusions?: string;
         databaseSelectionExclusions?: string;
       })
     | (StepCommon & {
         type: "MariaDB Restore";
-        connectionReference?: string;
+        connection?: string;
         database?: string;
       });
 
@@ -160,9 +160,9 @@ export namespace PipelineFlow {
         throw new Error("Cannot execute pipeline; no active pipeline view is open, and no id was supplied");
       }
     }
-    page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await page.getByRole("button", { name: "Delete", exact: true }).click();
+    await page.getByRole("button", { name: "Yes, delete", exact: true }).click(); // Pop-up
     await expect(page.getByRole("link", { name: "New pipeline ..." })).toBeVisible();
   }
 
@@ -270,11 +270,11 @@ export namespace PipelineFlow {
           return await findCurrentlyActiveStepId(page);
         }
         case "Encryption": {
-          if (step.keyReference) await page.getByLabel("Key reference").fill(step.keyReference);
+          if (step.key) await page.getByLabel("Key").fill(step.key);
           return await findCurrentlyActiveStepId(page);
         }
         case "Decryption": {
-          if (step.keyReference) await page.getByLabel("Key reference").fill(step.keyReference);
+          if (step.key) await page.getByLabel("Key").fill(step.key);
           return await findCurrentlyActiveStepId(page);
         }
         case "Folder Flatten": {
@@ -335,8 +335,8 @@ export namespace PipelineFlow {
           if (step.baseFolder) await page.getByLabel("Base prefix").fill(step.baseFolder);
           if (step.endpoint) await page.getByLabel("Endpoint").fill(step.endpoint);
           if (step.region) await page.getByLabel("Region").fill(step.region);
-          if (step.accessKeyReference) await page.getByLabel("Access key reference").fill(step.accessKeyReference);
-          if (step.secretKeyReference) await page.getByLabel("Secret key reference").fill(step.secretKeyReference);
+          if (step.accessKey) await page.getByLabel("Access key").fill(step.accessKey);
+          if (step.secretKey) await page.getByLabel("Secret key").fill(step.secretKey);
           if (step.retention) await page.getByLabel("Retention policy").selectOption(step.retention);
           if (step.retentionMaxVersions) await page.getByLabel("Retention: max versions").fill(String(step.retentionMaxVersions));
           return await findCurrentlyActiveStepId(page);
@@ -346,8 +346,8 @@ export namespace PipelineFlow {
           if (step.baseFolder) await page.getByLabel("Base prefix").fill(step.baseFolder);
           if (step.endpoint) await page.getByLabel("Endpoint").fill(step.endpoint);
           if (step.region) await page.getByLabel("Region").fill(step.region);
-          if (step.accessKeyReference) await page.getByLabel("Access key reference").fill(step.accessKeyReference);
-          if (step.secretKeyReference) await page.getByLabel("Secret key reference").fill(step.secretKeyReference);
+          if (step.accessKey) await page.getByLabel("Access key").fill(step.accessKey);
+          if (step.secretKey) await page.getByLabel("Secret key").fill(step.secretKey);
           if (step.managedStorageSelectionTarget) {
             await page.getByLabel("Managed storage: target").selectOption(step.managedStorageSelectionTarget);
             if (step.managedStorageSelectionTarget === "specific" && step.managedStorageSelectionVersion) {
@@ -368,7 +368,7 @@ export namespace PipelineFlow {
           return await findCurrentlyActiveStepId(page);
         }
         case "PostgreSQL Backup": {
-          if (step.connectionReference) await page.getByLabel("Connection reference").fill(step.connectionReference);
+          if (step.connection) await page.getByLabel("Connection").fill(step.connection);
           if (step.databaseSelectionStrategy) {
             await page.getByLabel("Database selection method").selectOption(step.databaseSelectionStrategy);
             if (step.databaseSelectionStrategy === "include" && step.databaseSelectionInclusions) {
@@ -380,12 +380,12 @@ export namespace PipelineFlow {
           return await findCurrentlyActiveStepId(page);
         }
         case "PostgreSQL Restore": {
-          if (step.connectionReference) await page.getByLabel("Connection reference").fill(step.connectionReference);
+          if (step.connection) await page.getByLabel("Connection").fill(step.connection);
           if (step.database) await page.getByLabel("Database").fill(step.database);
           return await findCurrentlyActiveStepId(page);
         }
         case "MariaDB Backup": {
-          if (step.connectionReference) await page.getByLabel("Connection reference").fill(step.connectionReference);
+          if (step.connection) await page.getByLabel("Connection").fill(step.connection);
           if (step.databaseSelectionStrategy) {
             await page.getByLabel("Database selection method").selectOption(step.databaseSelectionStrategy);
             if (step.databaseSelectionStrategy === "include" && step.databaseSelectionInclusions) {
@@ -397,7 +397,7 @@ export namespace PipelineFlow {
           return await findCurrentlyActiveStepId(page);
         }
         case "MariaDB Restore": {
-          if (step.connectionReference) await page.getByLabel("Connection reference").fill(step.connectionReference);
+          if (step.connection) await page.getByLabel("Connection").fill(step.connection);
           if (step.database) await page.getByLabel("Database").fill(step.database);
           return await findCurrentlyActiveStepId(page);
         }

@@ -9,6 +9,7 @@ import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { rm } from "fs/promises";
 import { TestUtils } from "../TestUtils.test";
 import { RegressionSuite } from "./RegressionSuite";
+import { PropertyResolver } from "@/capabilities/propertyresolution/PropertyResolver";
 
 describe("regression", () => {
   let database!: Sqlite;
@@ -55,7 +56,12 @@ describe("regression", () => {
         O_BRESPI_COMMIT: "1234567",
         X_BRESPI_TMP_ROOT: RegressionSuite.Path.suiteTmp,
       } as Env.Private;
-      const filesystemAdapter = new FilesystemAdapter(env, new ManagedStorageCapability(env), new FilterCapability());
+      const filesystemAdapter = new FilesystemAdapter(
+        env,
+        new PropertyResolver(),
+        new ManagedStorageCapability(env),
+        new FilterCapability(),
+      );
 
       // when
       const readLatestArtifacts = async () => {

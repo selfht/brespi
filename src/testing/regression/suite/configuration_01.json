@@ -50,14 +50,12 @@
       "object": "notification_policy",
       "channel": {
         "type": "slack",
-        "webhookUrlReference": "SLACK_WEBHOOK_URL"
+        "webhookUrl": "${SLACK_WEBHOOK_URL}"
       },
       "eventSubscriptions": [
         {
           "type": "execution_completed",
-          "triggers": [
-            "schedule"
-          ]
+          "triggers": ["schedule"]
         }
       ],
       "active": true

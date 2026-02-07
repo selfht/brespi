@@ -7,7 +7,6 @@ export class ExecutionError {
   public static readonly already_executing: Exception.Fn<{ id: string }>;
   // adapters
   public static readonly unknown: Exception.Fn;
-  public static readonly environment_variable_missing: Exception.Fn<{ name: string }>;
   public static readonly algorithm_unsupported: Exception.Fn<{ algorithm: string }>;
   // artifacts, files & folder
   public static readonly artifact_type_invalid: Exception.Fn<{ name: string; type: string; requiredType: string }>;

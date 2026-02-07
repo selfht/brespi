@@ -18,7 +18,7 @@ type Props = {
   className?: string;
 };
 export function FolderFlattenForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { handleSubmit, formState, setError, clearErrors } = useForm<Form>();
+  const form = useForm<Form>();
   const submit: SubmitHandler<Form> = async () => {
     await FormHelper.snoozeBeforeSubmit();
     try {
@@ -29,7 +29,7 @@ export function FolderFlattenForm({ id, existing, onSave, onDelete, onCancel, cl
         type: Step.Type.folder_flatten,
       });
     } catch (error) {
-      setError("root", {
+      form.setError("root", {
         message: FormHelper.formatError(error),
       });
     }
@@ -39,16 +39,15 @@ export function FolderFlattenForm({ id, existing, onSave, onDelete, onCancel, cl
       <FormElements.Left>
         <FormElements.ButtonBar
           existing={existing}
-          formState={formState}
-          onSubmit={handleSubmit(submit)}
+          formState={form.formState}
+          onSubmit={form.handleSubmit(submit)}
           onDelete={onDelete}
           onCancel={onCancel}
         />
       </FormElements.Left>
       <FormElements.Right
+        form={form} //
         stepType={Step.Type.folder_flatten}
-        formState={formState}
-        clearErrors={clearErrors}
         fieldDescriptions={Description}
       >
         {summary}

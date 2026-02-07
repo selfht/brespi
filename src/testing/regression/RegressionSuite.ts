@@ -19,6 +19,7 @@ import { getTableName, InferInsertModel } from "drizzle-orm";
 import { cp, mkdir } from "fs/promises";
 import { basename, dirname, join } from "path";
 import { TestFixture } from "../TestFixture.test";
+import { PropertyResolver } from "@/capabilities/propertyresolution/PropertyResolver";
 
 test.skip("regression suite management", async () => {
   const { rm } = await import("fs/promises");
@@ -32,9 +33,7 @@ test.skip("regression suite management", async () => {
   await RegressionSuite.ManagedStorage.appendToStorageRoot("managed_storage_root_07", [
     {
       artifactNames: ["report_en.pdf", "report_fr.pdf"],
-      trail: [
-        { ...TestFixture.createStep(Step.Type.custom_script), runtime: { driver: "1.0.0" } },
-      ],
+      trail: [{ ...TestFixture.createStep(Step.Type.custom_script), runtime: { driver: "1.0.0" } }],
     },
   ]);
 
@@ -44,9 +43,7 @@ test.skip("regression suite management", async () => {
   await RegressionSuite.ManagedStorage.appendToStorageRoot("managed_storage_root_07", [
     {
       artifactNames: ["transactions.csv"],
-      trail: [
-        { ...TestFixture.createStep(Step.Type.compression), runtime: { driver: "1.0.0" } },
-      ],
+      trail: [{ ...TestFixture.createStep(Step.Type.compression), runtime: { driver: "1.0.0" } }],
     },
   ]);
 
@@ -56,9 +53,7 @@ test.skip("regression suite management", async () => {
   await RegressionSuite.ManagedStorage.appendToStorageRoot("managed_storage_root_07", [
     {
       artifactNames: ["inventory.xlsx", "shipments.csv", "audit_log.txt"],
-      trail: [
-        { ...TestFixture.createStep(Step.Type.encryption), runtime: { driver: "1.0.0" } },
-      ],
+      trail: [{ ...TestFixture.createStep(Step.Type.encryption), runtime: { driver: "1.0.0" } }],
     },
   ]);
 
@@ -259,7 +254,12 @@ export namespace RegressionSuite {
     };
     export async function appendToStorageRoot(rootName: string, rootContents: Listing[]) {
       const env = { O_BRESPI_VERSION: "0.0.0", O_BRESPI_COMMIT: "0000000000000000000000000000000000000000" } as Env.Private;
-      const filesystemAdapter = new FilesystemAdapter(env, new ManagedStorageCapability(env), new FilterCapability());
+      const filesystemAdapter = new FilesystemAdapter(
+        env,
+        new PropertyResolver(),
+        new ManagedStorageCapability(env),
+        new FilterCapability(),
+      );
       const rootPath = join(Path.suite, rootName);
       for (const { artifactNames, trail } of rootContents) {
         await mkdir(Path.suiteTmp);

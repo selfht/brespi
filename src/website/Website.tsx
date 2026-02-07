@@ -1,32 +1,35 @@
 import { useEffect, useState } from "react";
 import { createBrowserRouter, replace, RouterProvider } from "react-router";
 import { ClientRegistry } from "./ClientRegistry";
+import { DialogClient } from "./clients/DialogClient";
 import { SocketClient } from "./clients/SocketClient";
+import { DialogManager } from "./comps/DialogManager";
 import { configurationPage } from "./pages/configuration.page";
 import { notificationsPage } from "./pages/notifications.page";
-import { pipelinesPage } from "./pages/pipelines.page";
 import { pipelines$idPage } from "./pages/pipelines.$id.page";
+import { pipelinesPage } from "./pages/pipelines.page";
 import { schedulesPage } from "./pages/schedules.page";
+import { Route } from "./Route";
 
 const router = createBrowserRouter([
   {
-    path: "pipelines",
+    path: Route.pipelines(),
     Component: pipelinesPage,
   },
   {
-    path: "pipelines/:id",
+    path: Route.pipelines(":id"),
     Component: pipelines$idPage,
   },
   {
-    path: "schedules",
+    path: Route.schedules(),
     Component: schedulesPage,
   },
   {
-    path: "notifications",
+    path: Route.notifications(),
     Component: notificationsPage,
   },
   {
-    path: "configuration",
+    path: Route.configuration(),
     Component: configurationPage,
   },
   {
@@ -47,6 +50,7 @@ export function Website() {
     return (
       <ClientRegistry.Context.Provider value={clientRegistry}>
         <RouterProvider router={router} />
+        <DialogManager ref={(m) => clientRegistry.get(DialogClient).initialize(m)} />
       </ClientRegistry.Context.Provider>
     );
   }

@@ -9,7 +9,7 @@
           "id": "6ypcop",
           "object": "step",
           "type": "postgresql_backup",
-          "connectionReference": "PG_PROD_CONNECTION",
+          "connection": "${PG_PROD_CONNECTION}",
           "toolkit": {
             "resolution": "manual",
             "psql": "/usr/local/bin/psql",
@@ -37,8 +37,8 @@
           "connection": {
             "bucket": "db-backups",
             "endpoint": "https://minio.internal:9000",
-            "accessKeyReference": "MINIO_ACCESS_KEY",
-            "secretKeyReference": "MINIO_SECRET_KEY"
+            "accessKey": "${MINIO_ACCESS_KEY}",
+            "secretKey": "${MINIO_SECRET_KEY}"
           },
           "basePrefix": "postgresql",
           "retention": {
@@ -57,7 +57,7 @@
           "id": "8awlc7",
           "object": "step",
           "type": "mariadb_backup",
-          "connectionReference": "MARIA_PROD_CONNECTION",
+          "connection": "${MARIA_PROD_CONNECTION}",
           "toolkit": {
             "resolution": "automatic"
           },
@@ -83,8 +83,8 @@
           "connection": {
             "bucket": "db-backups",
             "endpoint": "https://minio.internal:9000",
-            "accessKeyReference": "MINIO_ACCESS_KEY",
-            "secretKeyReference": "MINIO_SECRET_KEY"
+            "accessKey": "${MINIO_ACCESS_KEY}",
+            "secretKey": "${MINIO_SECRET_KEY}"
           },
           "basePrefix": "mariadb",
           "retention": {
@@ -115,14 +115,12 @@
       "object": "notification_policy",
       "channel": {
         "type": "slack",
-        "webhookUrlReference": "SLACK_INFRA_WEBHOOK"
+        "webhookUrl": "${SLACK_INFRA_WEBHOOK}"
       },
       "eventSubscriptions": [
         {
           "type": "execution_completed",
-          "triggers": [
-            "schedule"
-          ]
+          "triggers": ["schedule"]
         }
       ],
       "active": true
@@ -137,9 +135,7 @@
       "eventSubscriptions": [
         {
           "type": "execution_completed",
-          "triggers": [
-            "schedule"
-          ]
+          "triggers": ["schedule"]
         }
       ],
       "active": true

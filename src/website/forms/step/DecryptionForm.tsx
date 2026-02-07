@@ -7,9 +7,9 @@ import { useEffect } from "react";
 const { summary, Field, Label, Description } = FormHelper.meta({
   summary: "Used for decrypting file artifacts.",
   fields: {
-    keyReference: {
-      label: "Key reference",
-      description: "Specifies which environment variable contains the decryption key.",
+    key: {
+      label: "Key",
+      description: "Specifies the decryption key.",
     },
     algorithm_implementation: {
       label: "Algorithm",
@@ -19,12 +19,12 @@ const { summary, Field, Label, Description } = FormHelper.meta({
 });
 
 type Form = {
-  [Field.keyReference]: string;
+  [Field.key]: string;
   [Field.algorithm_implementation]: "aes256cbc";
 };
 function defaultValues(existing: Step.Decryption | undefined): Form {
   return {
-    [Field.keyReference]: existing?.keyReference ?? "",
+    [Field.key]: existing?.key ?? "",
     [Field.algorithm_implementation]: existing?.algorithm.implementation ?? "aes256cbc",
   };
 }
@@ -38,11 +38,11 @@ type Props = {
   className?: string;
 };
 export function DecryptionForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, setError, clearErrors, reset } = useForm<Form>({
+  const form = useForm<Form>({
     defaultValues: defaultValues(existing),
   });
-  useEffect(() => reset(defaultValues(existing)), [existing]);
-  const submit: SubmitHandler<Form> = async (form) => {
+  useEffect(() => form.reset(defaultValues(existing)), [existing]);
+  const submit: SubmitHandler<Form> = async (values) => {
     await FormHelper.snoozeBeforeSubmit();
     try {
       await onSave({
@@ -50,13 +50,13 @@ export function DecryptionForm({ id, existing, onSave, onDelete, onCancel, class
         previousId: existing?.previousId,
         object: "step",
         type: Step.Type.decryption,
-        keyReference: form[Field.keyReference],
+        key: values[Field.key],
         algorithm: {
-          implementation: form[Field.algorithm_implementation],
+          implementation: values[Field.algorithm_implementation],
         },
       });
     } catch (error) {
-      setError("root", {
+      form.setError("root", {
         message: FormHelper.formatError(error),
       });
     }
@@ -66,11 +66,11 @@ export function DecryptionForm({ id, existing, onSave, onDelete, onCancel, class
   return (
     <FormElements.Container className={className}>
       <FormElements.Left>
-        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
+        <fieldset disabled={form.formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
-            field={Field.keyReference}
+            field={Field.key}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "text" }}
@@ -78,7 +78,7 @@ export function DecryptionForm({ id, existing, onSave, onDelete, onCancel, class
           <FormElements.LabeledInput
             field={Field.algorithm_implementation}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "select", options: ["aes256cbc"] }}
@@ -87,16 +87,15 @@ export function DecryptionForm({ id, existing, onSave, onDelete, onCancel, class
         <FormElements.ButtonBar
           className="mt-12"
           existing={existing}
-          formState={formState}
-          onSubmit={handleSubmit(submit)}
+          formState={form.formState}
+          onSubmit={form.handleSubmit(submit)}
           onDelete={onDelete}
           onCancel={onCancel}
         />
       </FormElements.Left>
       <FormElements.Right
+        form={form} //
         stepType={Step.Type.decryption}
-        formState={formState}
-        clearErrors={clearErrors}
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >

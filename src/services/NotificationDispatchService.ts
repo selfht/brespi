@@ -1,3 +1,4 @@
+import { PropertyResolver } from "@/capabilities/propertyresolution/PropertyResolver";
 import { NotificationError } from "@/errors/NotificationError";
 import { Event } from "@/events/Event";
 import { CommandRunner } from "@/helpers/CommandRunner";
@@ -25,6 +26,7 @@ type EventDetails =
 
 export class NotificationDispatchService {
   public constructor(
+    private readonly propertyResolver: PropertyResolver,
     private readonly pipelineRepository: PipelineRepository,
     private readonly yesttp = new Yesttp(),
   ) {}
@@ -83,10 +85,7 @@ export class NotificationDispatchService {
   }
 
   private async dispatchToSlack(channel: NotificationChannel.Slack, details: EventDetails) {
-    const webhookUrl = Bun.env[channel.webhookUrlReference];
-    if (!webhookUrl) {
-      throw new Error(`Slack webhook URL not found in environment variable: ${channel.webhookUrlReference}`);
-    }
+    const webhookUrl = this.propertyResolver.resolve(channel.webhookUrl);
     let text: string;
     switch (details.event) {
       case Event.Type.execution_started: {
@@ -136,9 +135,10 @@ durationMs: ${details.duration.total("milliseconds")}
         details satisfies never;
       }
     }
+    const scriptPath = this.propertyResolver.resolve(channel.path);
     await CommandRunner.run({
-      cmd: ["bash", "-c", `./${basename(channel.path)}`],
-      cwd: dirname(channel.path),
+      cmd: ["bash", "-c", `./${basename(scriptPath)}`],
+      cwd: dirname(scriptPath),
       env: {
         ...Bun.env,
         ...envVars,

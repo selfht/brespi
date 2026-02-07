@@ -16,6 +16,7 @@ import { Block } from "../canvas/Block";
 import { Canvas } from "../canvas/Canvas";
 import { CanvasEvent } from "../canvas/CanvasEvent";
 import { Interactivity } from "../canvas/Interactivity";
+import { DialogClient } from "../clients/DialogClient";
 import { ExecutionClient } from "../clients/ExecutionClient";
 import { PipelineClient } from "../clients/PipelineClient";
 import { SocketClient } from "../clients/SocketClient";
@@ -50,6 +51,7 @@ export function pipelines$idPage() {
   const pipelineClient = useRegistry(PipelineClient);
   const executionClient = useRegistry(ExecutionClient);
   const socketClient = useRegistry(SocketClient);
+  const dialogClient = useRegistry(DialogClient);
 
   /**
    * Data
@@ -240,10 +242,22 @@ export function pipelines$idPage() {
       }
     },
     async delete() {
-      mainForm.clearErrors("root");
-      await FormHelper.snoozeBeforeSubmit();
       try {
-        if (confirm("Are you sure about deleting this pipeline?")) {
+        mainForm.clearErrors("root");
+        await FormHelper.snoozeBeforeSubmit();
+        if (
+          await dialogClient.confirm({
+            warning: true,
+            render({ yesNoButtons }) {
+              return (
+                <div>
+                  <p>Are you sure about deleting this pipeline?</p>
+                  {yesNoButtons({ noLabel: "No, cancel", yesLabel: "Yes, delete" })}
+                </div>
+              );
+            },
+          })
+        ) {
           await pipelineClient.delete(id!);
           navigate("/pipelines", { replace: true });
         }
@@ -540,7 +554,13 @@ export function pipelines$idPage() {
                     <div className="font-extralight text-c-dim mt-3">{bg.categoryLabel}</div>
                     <div className="flex flex-wrap gap-2 mt-6">
                       {bg.steps.map((step) => (
-                        <Button key={step.type} onClick={() => stepFormApi.show(step.type)} icon="new" className="border-c-accent!">
+                        <Button
+                          key={step.type}
+                          data-testid="new-step-button"
+                          onClick={() => stepFormApi.show(step.type)}
+                          icon="new"
+                          className="border-c-accent!"
+                        >
                           {step.typeLabel}
                         </Button>
                       ))}
@@ -666,10 +686,10 @@ namespace Internal {
     ];
     const typeOrder: Step.Type[] = [
       // Producers
-      Step.Type.filesystem_read,
-      Step.Type.s3_download,
       Step.Type.postgresql_backup,
       Step.Type.mariadb_backup,
+      Step.Type.filesystem_read,
+      Step.Type.s3_download,
       // Transformers
       Step.Type.compression,
       Step.Type.decompression,
@@ -680,10 +700,10 @@ namespace Internal {
       Step.Type.filter,
       Step.Type.custom_script,
       // Consumers
-      Step.Type.filesystem_write,
-      Step.Type.s3_upload,
       Step.Type.postgresql_restore,
       Step.Type.mariadb_restore,
+      Step.Type.filesystem_write,
+      Step.Type.s3_upload,
     ];
 
     Object.values(Step.Type).map((type) => {

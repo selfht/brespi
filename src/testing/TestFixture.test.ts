@@ -129,7 +129,7 @@ export namespace TestFixture {
       case Step.Type.encryption: {
         const step: Step.Encryption = {
           type: Step.Type.encryption,
-          keyReference: "MY_ENCRYPTION_KEY",
+          key: "${MY_ENCRYPTION_KEY}",
           algorithm: {
             implementation: "aes256cbc",
           },
@@ -140,7 +140,7 @@ export namespace TestFixture {
       case Step.Type.decryption: {
         const step: Step.Decryption = {
           type: Step.Type.decryption,
-          keyReference: "MY_ENCRYPTION_KEY",
+          key: "${MY_ENCRYPTION_KEY}",
           algorithm: {
             implementation: "aes256cbc",
           },
@@ -188,8 +188,8 @@ export namespace TestFixture {
           connection: {
             bucket: "bucko",
             endpoint: "http://s3:4566",
-            accessKeyReference: "MY_S3_ACCESS_KEY",
-            secretKeyReference: "MY_S3_SECRET_KEY",
+            accessKey: "${MY_S3_ACCESS_KEY}",
+            secretKey: "${MY_S3_SECRET_KEY}",
           },
           basePrefix: "/backups",
           ...common,
@@ -202,8 +202,8 @@ export namespace TestFixture {
           connection: {
             bucket: "bucko",
             endpoint: "http://s3:4566",
-            accessKeyReference: "MY_S3_ACCESS_KEY",
-            secretKeyReference: "MY_S3_SECRET_KEY",
+            accessKey: "${MY_S3_ACCESS_KEY}",
+            secretKey: "${MY_S3_SECRET_KEY}",
           },
           basePrefix: "/backups",
           managedStorage: {
@@ -216,7 +216,7 @@ export namespace TestFixture {
       case Step.Type.postgresql_backup: {
         const step: Step.PostgresqlBackup = {
           type: Step.Type.postgresql_backup,
-          connectionReference: "MY_POSTGRESQL_URL",
+          connection: "${MY_POSTGRESQL_URL}",
           toolkit: { resolution: "automatic" },
           databaseSelection: {
             method: "all",
@@ -228,7 +228,7 @@ export namespace TestFixture {
       case Step.Type.postgresql_restore: {
         const step: Step.PostgresqlRestore = {
           type: Step.Type.postgresql_restore,
-          connectionReference: "MY_POSTGRESQL_URL",
+          connection: "${MY_POSTGRESQL_URL}",
           toolkit: { resolution: "automatic" },
           database: "test_db",
           ...common,
@@ -238,7 +238,7 @@ export namespace TestFixture {
       case Step.Type.mariadb_backup: {
         const step: Step.MariadbBackup = {
           type: Step.Type.mariadb_backup,
-          connectionReference: "MY_MARIADB_URL",
+          connection: "${MY_MARIADB_URL}",
           toolkit: { resolution: "automatic" },
           databaseSelection: {
             method: "all",
@@ -250,7 +250,7 @@ export namespace TestFixture {
       case Step.Type.mariadb_restore: {
         const step: Step.MariadbRestore = {
           type: Step.Type.mariadb_restore,
-          connectionReference: "MY_MARIADB_URL",
+          connection: "${MY_MARIADB_URL}",
           toolkit: { resolution: "automatic" },
           database: "test_db",
           ...common,

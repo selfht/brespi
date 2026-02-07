@@ -1,3 +1,4 @@
+import { PropertyResolver } from "@/capabilities/propertyresolution/PropertyResolver";
 import { Env } from "@/Env";
 import { ExecutionError } from "@/errors/ExecutionError";
 import { Artifact } from "@/models/Artifact";
@@ -9,8 +10,11 @@ import { AbstractAdapter } from "../AbstractAdapter";
 export class CompressionAdapter extends AbstractAdapter {
   private readonly EXTENSION = ".tar.gz";
 
-  public constructor(protected readonly env: Env.Private) {
-    super(env);
+  public constructor(
+    protected readonly env: Env.Private,
+    protected readonly propertyResolver: PropertyResolver,
+  ) {
+    super(env, propertyResolver);
   }
 
   /**

@@ -6,6 +6,7 @@ import newSvg from "../images/new.svg";
 import playSvg from "../images/play.svg";
 import successSvg from "../images/success.svg";
 import trashcanSvg from "../images/trashcan.svg";
+import warningSvg from "../images/warning.svg";
 import { Spinner } from "./Spinner";
 
 type V = Icon.Props["variant"];
@@ -16,6 +17,7 @@ const images: Record<V, JSX.Element> = {
   play: <img src={playSvg} />,
   trashcan: <img src={trashcanSvg} />,
   close: <img src={closeSvg} />,
+  warning: <img src={warningSvg} />,
   loading: <Spinner />,
 };
 
@@ -32,7 +34,7 @@ export function Icon({ variant, className }: Icon.Props) {
 
 export namespace Icon {
   export type Props = {
-    variant: "success" | "error" | "new" | "play" | "trashcan" | "close" | "loading";
+    variant: "success" | "error" | "new" | "play" | "trashcan" | "close" | "warning" | "loading";
     className?: string;
   };
 

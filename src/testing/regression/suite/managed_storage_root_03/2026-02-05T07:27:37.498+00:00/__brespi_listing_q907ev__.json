@@ -24,7 +24,7 @@
     },
     {
       "type": "encryption",
-      "keyReference": "LOG_ENCRYPTION_KEY",
+      "key": "${LOG_ENCRYPTION_KEY}",
       "algorithm": {
         "implementation": "aes256cbc"
       },

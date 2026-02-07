@@ -13,8 +13,8 @@
             "bucket": "company-backups",
             "region": "us-east-1",
             "endpoint": "https://s3.us-east-1.amazonaws.com",
-            "accessKeyReference": "AWS_ACCESS_KEY_ID",
-            "secretKeyReference": "AWS_SECRET_ACCESS_KEY"
+            "accessKey": "${AWS_ACCESS_KEY_ID}",
+            "secretKey": "${AWS_SECRET_ACCESS_KEY}"
           },
           "basePrefix": "postgresql/production",
           "managedStorage": {
@@ -26,7 +26,7 @@
           "previousId": "1twp52",
           "object": "step",
           "type": "decryption",
-          "keyReference": "BACKUP_ENCRYPTION_KEY",
+          "key": "${BACKUP_ENCRYPTION_KEY}",
           "algorithm": {
             "implementation": "aes256cbc"
           }
@@ -55,7 +55,7 @@
           "previousId": "g6v3sn",
           "object": "step",
           "type": "postgresql_restore",
-          "connectionReference": "PG_STAGING_CONNECTION",
+          "connection": "${PG_STAGING_CONNECTION}",
           "toolkit": {
             "resolution": "automatic"
           },
@@ -76,9 +76,7 @@
       "eventSubscriptions": [
         {
           "type": "execution_completed",
-          "triggers": [
-            "ad_hoc"
-          ]
+          "triggers": ["ad_hoc"]
         }
       ],
       "active": true

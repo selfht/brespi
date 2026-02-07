@@ -9,7 +9,7 @@
           "id": "moc0hd",
           "object": "step",
           "type": "mariadb_backup",
-          "connectionReference": "MARIA_CONNECTION_STRING",
+          "connection": "${MARIA_CONNECTION_STRING}",
           "toolkit": {
             "resolution": "manual",
             "mariadb": "/usr/bin/mariadb",
@@ -17,10 +17,7 @@
           },
           "databaseSelection": {
             "method": "include",
-            "inclusions": [
-              "app_production",
-              "app_analytics"
-            ]
+            "inclusions": ["app_production", "app_analytics"]
           }
         },
         {

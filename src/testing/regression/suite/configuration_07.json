@@ -28,7 +28,7 @@
           "previousId": "43n7g1",
           "object": "step",
           "type": "mariadb_restore",
-          "connectionReference": "MARIA_STAGING_CONNECTION",
+          "connection": "${MARIA_STAGING_CONNECTION}",
           "toolkit": {
             "resolution": "automatic"
           },
@@ -44,22 +44,16 @@
       "object": "notification_policy",
       "channel": {
         "type": "slack",
-        "webhookUrlReference": "SLACK_DBA_CHANNEL"
+        "webhookUrl": "${SLACK_DBA_CHANNEL}"
       },
       "eventSubscriptions": [
         {
           "type": "execution_started",
-          "triggers": [
-            "ad_hoc",
-            "schedule"
-          ]
+          "triggers": ["ad_hoc", "schedule"]
         },
         {
           "type": "execution_completed",
-          "triggers": [
-            "ad_hoc",
-            "schedule"
-          ]
+          "triggers": ["ad_hoc", "schedule"]
         }
       ],
       "active": true

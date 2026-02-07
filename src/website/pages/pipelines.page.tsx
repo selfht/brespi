@@ -7,13 +7,14 @@ import { Temporal } from "@js-temporal/polyfill";
 import clsx from "clsx";
 import { useEffect } from "react";
 import { Link } from "react-router";
+import { DialogClient } from "../clients/DialogClient";
 import { PipelineClient } from "../clients/PipelineClient";
 import { SocketClient } from "../clients/SocketClient";
 import { ErrorDump } from "../comps/ErrorDump";
+import { ExecutionIcon } from "../comps/ExecutionIcon";
 import { Paper } from "../comps/Paper";
 import { Skeleton } from "../comps/Skeleton";
 import { Spinner } from "../comps/Spinner";
-import { ExecutionIcon } from "../comps/ExecutionIcon";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRegistry } from "../hooks/useRegistry";
 import { useYesQuery } from "../hooks/useYesQuery";
@@ -52,6 +53,20 @@ export function pipelinesPage() {
     const token = setInterval(() => query.reload(), interval.total("milliseconds"));
     return () => clearInterval(token);
   }, [isSomePipelineExecuting]);
+
+  const dialogClient = useRegistry(DialogClient);
+  const doConfirm = async () => {
+    const result = await dialogClient.confirm({
+      render({ yesNoButtons }) {
+        return (
+          <div>
+            <p>Are you sure about deleting this?</p>
+            {yesNoButtons()}
+          </div>
+        );
+      },
+    });
+  };
 
   return (
     <Skeleton>

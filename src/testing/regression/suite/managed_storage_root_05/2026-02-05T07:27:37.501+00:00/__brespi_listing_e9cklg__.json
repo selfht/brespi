@@ -13,7 +13,7 @@
   "trail": [
     {
       "type": "mariadb_backup",
-      "connectionReference": "MY_MARIADB_URL",
+      "connection": "${MY_MARIADB_URL}",
       "toolkit": {
         "resolution": "manual",
         "mariadb": "/usr/bin/mariadb",
@@ -21,10 +21,7 @@
       },
       "databaseSelection": {
         "method": "include",
-        "inclusions": [
-          "inventory",
-          "suppliers"
-        ]
+        "inclusions": ["inventory", "suppliers"]
       },
       "id": "019c2cb3-0c1c-7000-ac36-7a04e39fc452",
       "object": "step",

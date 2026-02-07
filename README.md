@@ -8,6 +8,7 @@ This is a work in progress with the following TODO's:
 * ✅ Add pagination to the execution overview
 * ✅ Add support for MariaDB backups and restores
 * ✅ Provide runtime information when appropriate for specific steps
+* ✅ Setup strategy for dealing with different PostgreSQL/MariaDB versions and corresponding dump/restore tools
 
 ### Configuration
 * ✅ Describe the red circle, and the entire configuration mechanism in general
@@ -48,17 +49,16 @@ This is a work in progress with the following TODO's:
 * ✅ Refactor `null` into `undefined` or optional, so options can be added without requiring migrations
 * ✅ Refactor so the backend ALWAYS uses TZ=UTC for it's PlainDateTime objects ... but provide an environment option BRESPI_MANAGED_STORAGE_VERSIONING_TIMEZONE with a default of UTC (if people wanna see their versions in a particular timestamp) --- but the internal default for PlainDateTime should be UTC always
 * ✅ Check if the `*Converter` classes can be made part of the Drizzle entity definition
-* Allow env var references on all text fields via the ${...} syntax (on the right side; give an overview of detected env vars in orange; this also requires updating descriptions)
+* ✅ Allow env var references on all text fields via the ${...} syntax (on the right side; give an overview of detected env vars in orange; this also requires updating descriptions)
 * Handle TODO comments
 
 ### Polish
 * Icons for each different step
-* Automatically include the application version
 * Add a nice background and a footer link to the org
 
 ### Distribution
+* Automatically include the application version
 * Create a shell script for building docker images with the appropriate toolset (only requirements: git + bash + docker)
-* ✅ Setup strategy for dealing with different PostgreSQL/MariaDB versions and corresponding dump/restore tools
 * Write a README.md, CONTRIBUTING.md and LICENSE.md
 
 ### Marketing

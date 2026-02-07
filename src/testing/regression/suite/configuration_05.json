@@ -101,14 +101,12 @@
       "object": "notification_policy",
       "channel": {
         "type": "slack",
-        "webhookUrlReference": "SLACK_ALERTS"
+        "webhookUrl": "${SLACK_ALERTS}"
       },
       "eventSubscriptions": [
         {
           "type": "execution_completed",
-          "triggers": [
-            "schedule"
-          ]
+          "triggers": ["schedule"]
         }
       ],
       "active": true

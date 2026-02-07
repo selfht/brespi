@@ -23,13 +23,13 @@ const { summary, Field, Label, Description } = FormHelper.meta({
       label: "Endpoint",
       description: "Specifies the S3 endpoint URL.",
     },
-    connection_accessKeyReference: {
-      label: "Access key reference",
-      description: "Specifies which environment variable contains the S3 access key.",
+    connection_accessKey: {
+      label: "Access key",
+      description: "Specifies the S3 access key.",
     },
-    connection_secretKeyReference: {
-      label: "Secret key reference",
-      description: "Specifies which environment variable contains the S3 secret key.",
+    connection_secretKey: {
+      label: "Secret key",
+      description: "Specifies the S3 secret key.",
     },
     managedStorage: {
       label: "Use managed storage?",
@@ -71,8 +71,8 @@ type Form = {
   [Field.basePrefix]: string;
   [Field.connection_region]: string;
   [Field.connection_endpoint]: string;
-  [Field.connection_accessKeyReference]: string;
-  [Field.connection_secretKeyReference]: string;
+  [Field.connection_accessKey]: string;
+  [Field.connection_secretKey]: string;
   [Field.managedStorage]: "true";
   [Field.managedStorage_target]: "latest" | "specific";
   [Field.managedStorage_version]: string;
@@ -88,8 +88,8 @@ function defaultValues(existing: Step.S3Download | undefined): Form {
     [Field.basePrefix]: existing?.basePrefix ?? "",
     [Field.connection_region]: existing?.connection.region ?? "",
     [Field.connection_endpoint]: existing?.connection.endpoint ?? "",
-    [Field.connection_accessKeyReference]: existing?.connection.accessKeyReference ?? "",
-    [Field.connection_secretKeyReference]: existing?.connection.secretKeyReference ?? "",
+    [Field.connection_accessKey]: existing?.connection.accessKey ?? "",
+    [Field.connection_secretKey]: existing?.connection.secretKey ?? "",
     [Field.managedStorage]: "true",
     [Field.managedStorage_target]: existing?.managedStorage.target ?? "latest",
     [Field.managedStorage_version]: existing?.managedStorage.target === "specific" ? existing.managedStorage.version : "",
@@ -110,11 +110,11 @@ type Props = {
   className?: string;
 };
 export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, watch, setError, clearErrors, reset } = useForm<Form>({
+  const form = useForm<Form>({
     defaultValues: defaultValues(existing),
   });
-  useEffect(() => reset(defaultValues(existing)), [existing]);
-  const submit: SubmitHandler<Form> = async (form) => {
+  useEffect(() => form.reset(defaultValues(existing)), [existing]);
+  const submit: SubmitHandler<Form> = async (values) => {
     await FormHelper.snoozeBeforeSubmit();
     try {
       await onSave({
@@ -123,46 +123,46 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
         object: "step",
         type: Step.Type.s3_download,
         connection: {
-          bucket: form[Field.connection_bucket],
-          region: form[Field.connection_region] || undefined,
-          endpoint: form[Field.connection_endpoint],
-          accessKeyReference: form[Field.connection_accessKeyReference],
-          secretKeyReference: form[Field.connection_secretKeyReference],
+          bucket: values[Field.connection_bucket],
+          region: values[Field.connection_region] || undefined,
+          endpoint: values[Field.connection_endpoint],
+          accessKey: values[Field.connection_accessKey],
+          secretKey: values[Field.connection_secretKey],
         },
-        basePrefix: form[Field.basePrefix],
+        basePrefix: values[Field.basePrefix],
         managedStorage:
-          form[Field.managedStorage_target] === "latest"
+          values[Field.managedStorage_target] === "latest"
             ? { target: "latest" }
-            : { target: "specific", version: form[Field.managedStorage_version] },
+            : { target: "specific", version: values[Field.managedStorage_version] },
         filterCriteria:
-          form[Field.filterCriteria] === "true"
-            ? form[Field.filterCriteria_method] === "exact"
-              ? { method: "exact", name: form[Field.filterCriteria_name] }
-              : form[Field.filterCriteria_method] === "glob"
-                ? { method: "glob", nameGlob: form[Field.filterCriteria_nameGlob] }
-                : { method: "regex", nameRegex: form[Field.filterCriteria_nameRegex] }
+          values[Field.filterCriteria] === "true"
+            ? values[Field.filterCriteria_method] === "exact"
+              ? { method: "exact", name: values[Field.filterCriteria_name] }
+              : values[Field.filterCriteria_method] === "glob"
+                ? { method: "glob", nameGlob: values[Field.filterCriteria_nameGlob] }
+                : { method: "regex", nameRegex: values[Field.filterCriteria_nameRegex] }
             : undefined,
       });
     } catch (error) {
-      setError("root", {
+      form.setError("root", {
         message: FormHelper.formatError(error),
       });
     }
   };
 
-  const managedStorageSelectionTarget = watch(Field.managedStorage_target);
-  const filterCriteria = watch(Field.filterCriteria);
-  const filterCriteriaMethod = watch(Field.filterCriteria_method);
+  const managedStorageSelectionTarget = form.watch(Field.managedStorage_target);
+  const filterCriteria = form.watch(Field.filterCriteria);
+  const filterCriteriaMethod = form.watch(Field.filterCriteria_method);
   const filterCriteriaMethodOptions: Array<typeof filterCriteriaMethod> = ["exact", "glob", "regex"];
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
       <FormElements.Left>
-        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
+        <fieldset disabled={form.formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
             field={Field.connection_bucket}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "text" }}
@@ -170,7 +170,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           <FormElements.LabeledInput
             field={Field.basePrefix}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "text" }}
@@ -178,7 +178,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           <FormElements.LabeledInput
             field={Field.connection_region}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "text" }}
@@ -186,23 +186,23 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           <FormElements.LabeledInput
             field={Field.connection_endpoint}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "text" }}
           />
           <FormElements.LabeledInput
-            field={Field.connection_accessKeyReference}
+            field={Field.connection_accessKey}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "text" }}
           />
           <FormElements.LabeledInput
-            field={Field.connection_secretKeyReference}
+            field={Field.connection_secretKey}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "text" }}
@@ -210,7 +210,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           <FormElements.LabeledInput
             field={Field.managedStorage}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "yes" }}
@@ -218,7 +218,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           <FormElements.LabeledInput
             field={Field.managedStorage_target}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "select", options: ["latest", "specific"] }}
@@ -227,7 +227,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
             <FormElements.LabeledInput
               field={Field.managedStorage_version}
               labels={Label}
-              register={register}
+              register={form.register}
               activeField={activeField}
               onActiveFieldChange={setActiveField}
               input={{ type: "text" }}
@@ -236,7 +236,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
           <FormElements.LabeledInput
             field={Field.filterCriteria}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "yesno" }}
@@ -246,7 +246,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
               <FormElements.LabeledInput
                 field={Field.filterCriteria_method}
                 labels={Label}
-                register={register}
+                register={form.register}
                 activeField={activeField}
                 onActiveFieldChange={setActiveField}
                 input={{ type: "select", options: filterCriteriaMethodOptions }}
@@ -255,7 +255,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
                 <FormElements.LabeledInput
                   field={Field.filterCriteria_name}
                   labels={Label}
-                  register={register}
+                  register={form.register}
                   activeField={activeField}
                   onActiveFieldChange={setActiveField}
                   input={{ type: "text" }}
@@ -265,7 +265,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
                 <FormElements.LabeledInput
                   field={Field.filterCriteria_nameGlob}
                   labels={Label}
-                  register={register}
+                  register={form.register}
                   activeField={activeField}
                   onActiveFieldChange={setActiveField}
                   input={{ type: "text" }}
@@ -275,7 +275,7 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
                 <FormElements.LabeledInput
                   field={Field.filterCriteria_nameRegex}
                   labels={Label}
-                  register={register}
+                  register={form.register}
                   activeField={activeField}
                   onActiveFieldChange={setActiveField}
                   input={{ type: "text" }}
@@ -287,16 +287,15 @@ export function S3DownloadForm({ id, existing, onSave, onDelete, onCancel, class
         <FormElements.ButtonBar
           className="mt-12"
           existing={existing}
-          formState={formState}
-          onSubmit={handleSubmit(submit)}
+          formState={form.formState}
+          onSubmit={form.handleSubmit(submit)}
           onDelete={onDelete}
           onCancel={onCancel}
         />
       </FormElements.Left>
       <FormElements.Right
+        form={form} //
         stepType={Step.Type.s3_download}
-        formState={formState}
-        clearErrors={clearErrors}
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >

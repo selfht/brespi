@@ -11,7 +11,7 @@ describe(EncryptionAdapter.name, async () => {
   const keyRef = "UNIT_TEST_KEY";
   beforeEach(async () => {
     context = await TestEnvironment.initialize();
-    adapter = new EncryptionAdapter(context.env);
+    adapter = new EncryptionAdapter(context.env, context.propertyResolver);
     context.patchEnvironmentVariables({
       [keyRef]: "secret-symmetric-key",
     });
@@ -64,7 +64,7 @@ describe(EncryptionAdapter.name, async () => {
   const fixture = {
     encryption() {
       return {
-        keyReference: "UNIT_TEST_KEY",
+        key: `\${${keyRef}}`,
         algorithm: {
           implementation: "aes256cbc",
         },
@@ -72,7 +72,7 @@ describe(EncryptionAdapter.name, async () => {
     },
     decryption() {
       return {
-        keyReference: "UNIT_TEST_KEY",
+        key: `\${${keyRef}}`,
         algorithm: {
           implementation: "aes256cbc",
         },

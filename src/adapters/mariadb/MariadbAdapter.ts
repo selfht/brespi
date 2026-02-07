@@ -8,16 +8,20 @@ import { join } from "path";
 import { z } from "zod/v4";
 import { AbstractAdapter } from "../AbstractAdapter";
 import { AdapterResult } from "../AdapterResult";
+import { PropertyResolver } from "@/capabilities/propertyresolution/PropertyResolver";
 
 export class MariadbAdapter extends AbstractAdapter {
   private readonly EXTENSION = ".sql";
 
-  public constructor(protected readonly env: Env.Private) {
-    super(env);
+  public constructor(
+    protected readonly env: Env.Private,
+    protected readonly propertyResolver: PropertyResolver,
+  ) {
+    super(env, propertyResolver);
   }
 
   public async backup(step: Step.MariadbBackup): Promise<AdapterResult> {
-    const { username, password, host, port } = UrlParser.mariadb(this.readEnvironmentVariable(step.connectionReference));
+    const { username, password, host, port } = UrlParser.mariadb(this.resolveString(step.connection));
     const { toolkit } = step;
     const tempDir = await this.createTmpDestination();
     try {
@@ -32,14 +36,18 @@ export class MariadbAdapter extends AbstractAdapter {
           MARIADB_PORT: port,
           BACKUP_ROOT: tempDir,
           SELECTION_MODE: step.databaseSelection.method,
-          ...(step.databaseSelection.method === "include" ? { DB_INCLUSIONS: step.databaseSelection.inclusions.join(" ") } : {}),
-          ...(step.databaseSelection.method === "exclude" ? { DB_EXCLUSIONS: step.databaseSelection.exclusions.join(" ") } : {}),
+          ...(step.databaseSelection.method === "include"
+            ? { DB_INCLUSIONS: step.databaseSelection.inclusions.map((db) => this.resolveString(db)).join(" ") }
+            : {}),
+          ...(step.databaseSelection.method === "exclude"
+            ? { DB_EXCLUSIONS: step.databaseSelection.exclusions.map((db) => this.resolveString(db)).join(" ") }
+            : {}),
           ...(toolkit.resolution === "automatic"
             ? { TOOLKIT_RESOLUTION: "automatic" }
             : {
                 TOOLKIT_RESOLUTION: "manual",
-                TOOLKIT_MARIADB: toolkit.mariadb,
-                TOOLKIT_MARIADB_DUMP: toolkit["mariadb-dump"],
+                TOOLKIT_MARIADB: this.resolveString(toolkit.mariadb),
+                TOOLKIT_MARIADB_DUMP: this.resolveString(toolkit["mariadb-dump"]),
               }),
         },
       });
@@ -87,7 +95,7 @@ export class MariadbAdapter extends AbstractAdapter {
     this.requireArtifactSize(artifacts, { min: 1, max: 1 });
     const artifact = artifacts[0];
     this.requireArtifactType("file", artifact);
-    const { username, password, host, port } = UrlParser.mariadb(this.readEnvironmentVariable(step.connectionReference));
+    const { username, password, host, port } = UrlParser.mariadb(this.resolveString(step.connection));
     const { toolkit } = step;
     try {
       const { stdout } = await this.runCommand({
@@ -99,12 +107,12 @@ export class MariadbAdapter extends AbstractAdapter {
           MARIADB_HOST: host,
           MARIADB_PORT: port,
           RESTORE_FILE: artifact.path,
-          DATABASE: step.database,
+          DATABASE: this.resolveString(step.database),
           ...(toolkit.resolution === "automatic"
             ? { TOOLKIT_RESOLUTION: "automatic" }
             : {
                 TOOLKIT_RESOLUTION: "manual",
-                TOOLKIT_MARIADB: toolkit.mariadb,
+                TOOLKIT_MARIADB: this.resolveString(toolkit.mariadb),
               }),
         },
       });

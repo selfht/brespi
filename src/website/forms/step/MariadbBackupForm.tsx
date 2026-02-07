@@ -7,15 +7,15 @@ import { useEffect } from "react";
 const { summary, Field, Label, Description } = FormHelper.meta({
   summary: (
     <>
-      Used for creating MariaDB backups using <FormElements.Code>mariadb-dump</FormElements.Code>.
+      Used for creating MariaDB backups using <FormElements.Code summary>mariadb-dump</FormElements.Code>.
     </>
   ),
   fields: {
-    connectionReference: {
-      label: "Connection reference",
+    connection: {
+      label: "Connection",
       description: (
         <>
-          Specifies which environment variable contains the MariaDB connection string in the format{" "}
+          Specifies the MariaDB connection string in the format{" "}
           <FormElements.Code break>mariadb://username:password@hostname:3306</FormElements.Code> or{" "}
           <FormElements.Code break>mysql://username:password@hostname:3306</FormElements.Code>.
         </>
@@ -61,7 +61,7 @@ const { summary, Field, Label, Description } = FormHelper.meta({
 });
 
 type Form = {
-  [Field.connectionReference]: string;
+  [Field.connection]: string;
   [Field.toolkit_resolution]: "automatic" | "manual";
   [Field.toolkit_mariadb]: string;
   [Field.toolkit_mariadb_dump]: string;
@@ -71,7 +71,7 @@ type Form = {
 };
 function defaultValues(existing: Step.MariadbBackup | undefined): Form {
   return {
-    [Field.connectionReference]: existing?.connectionReference ?? "",
+    [Field.connection]: existing?.connection ?? "",
     [Field.toolkit_resolution]: existing?.toolkit.resolution ?? "automatic",
     [Field.toolkit_mariadb]: existing?.toolkit.resolution === "manual" ? existing.toolkit.mariadb : "",
     [Field.toolkit_mariadb_dump]: existing?.toolkit.resolution === "manual" ? existing.toolkit["mariadb-dump"] : "",
@@ -92,11 +92,11 @@ type Props = {
   className?: string;
 };
 export function MariadbBackupForm({ id, existing, onSave, onDelete, onCancel, className }: Props) {
-  const { register, handleSubmit, formState, watch, setError, clearErrors, reset } = useForm<Form>({
+  const form = useForm<Form>({
     defaultValues: defaultValues(existing),
   });
-  useEffect(() => reset(defaultValues(existing)), [existing]);
-  const submit: SubmitHandler<Form> = async (form) => {
+  useEffect(() => form.reset(defaultValues(existing)), [existing]);
+  const submit: SubmitHandler<Form> = async (values) => {
     await FormHelper.snoozeBeforeSubmit();
     try {
       await onSave({
@@ -104,48 +104,48 @@ export function MariadbBackupForm({ id, existing, onSave, onDelete, onCancel, cl
         previousId: existing?.previousId,
         object: "step",
         type: Step.Type.mariadb_backup,
-        connectionReference: form[Field.connectionReference],
+        connection: values[Field.connection],
         toolkit:
-          form[Field.toolkit_resolution] === "automatic"
+          values[Field.toolkit_resolution] === "automatic"
             ? { resolution: "automatic" }
             : {
                 resolution: "manual",
-                mariadb: form[Field.toolkit_mariadb],
-                "mariadb-dump": form[Field.toolkit_mariadb_dump],
+                mariadb: values[Field.toolkit_mariadb],
+                "mariadb-dump": values[Field.toolkit_mariadb_dump],
               },
         databaseSelection:
-          form[Field.databaseSelection_strategy] === "all"
+          values[Field.databaseSelection_strategy] === "all"
             ? {
                 method: "all",
               }
-            : form[Field.databaseSelection_strategy] === "include"
+            : values[Field.databaseSelection_strategy] === "include"
               ? {
                   method: "include",
-                  inclusions: form[Field.databaseSelection_inclusions].split(",").filter(Boolean),
+                  inclusions: values[Field.databaseSelection_inclusions].split(",").filter(Boolean),
                 }
               : {
                   method: "exclude",
-                  exclusions: form[Field.databaseSelection_exclusions].split(",").filter(Boolean),
+                  exclusions: values[Field.databaseSelection_exclusions].split(",").filter(Boolean),
                 },
       });
     } catch (error) {
-      setError("root", {
+      form.setError("root", {
         message: FormHelper.formatError(error),
       });
     }
   };
 
-  const toolkitResolution = watch(Field.toolkit_resolution);
-  const databaseSelectionStrategy = watch(Field.databaseSelection_strategy);
+  const toolkitResolution = form.watch(Field.toolkit_resolution);
+  const databaseSelectionStrategy = form.watch(Field.databaseSelection_strategy);
   const { activeField, setActiveField } = FormElements.useActiveField<Form>();
   return (
     <FormElements.Container className={className}>
       <FormElements.Left>
-        <fieldset disabled={formState.isSubmitting} className="flex flex-col gap-4">
+        <fieldset disabled={form.formState.isSubmitting} className="flex flex-col gap-4">
           <FormElements.LabeledInput
-            field={Field.connectionReference}
+            field={Field.connection}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "text" }}
@@ -153,7 +153,7 @@ export function MariadbBackupForm({ id, existing, onSave, onDelete, onCancel, cl
           <FormElements.LabeledInput
             field={Field.toolkit_resolution}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "select", options: ["automatic", "manual"] }}
@@ -163,7 +163,7 @@ export function MariadbBackupForm({ id, existing, onSave, onDelete, onCancel, cl
               <FormElements.LabeledInput
                 field={Field.toolkit_mariadb}
                 labels={Label}
-                register={register}
+                register={form.register}
                 activeField={activeField}
                 onActiveFieldChange={setActiveField}
                 input={{ type: "text" }}
@@ -171,7 +171,7 @@ export function MariadbBackupForm({ id, existing, onSave, onDelete, onCancel, cl
               <FormElements.LabeledInput
                 field={Field.toolkit_mariadb_dump}
                 labels={Label}
-                register={register}
+                register={form.register}
                 activeField={activeField}
                 onActiveFieldChange={setActiveField}
                 input={{ type: "text" }}
@@ -181,7 +181,7 @@ export function MariadbBackupForm({ id, existing, onSave, onDelete, onCancel, cl
           <FormElements.LabeledInput
             field={Field.databaseSelection_strategy}
             labels={Label}
-            register={register}
+            register={form.register}
             activeField={activeField}
             onActiveFieldChange={setActiveField}
             input={{ type: "select", options: ["all", "include", "exclude"] }}
@@ -190,7 +190,7 @@ export function MariadbBackupForm({ id, existing, onSave, onDelete, onCancel, cl
             <FormElements.LabeledInput
               field={Field.databaseSelection_inclusions}
               labels={Label}
-              register={register}
+              register={form.register}
               activeField={activeField}
               onActiveFieldChange={setActiveField}
               input={{ type: "text" }}
@@ -200,7 +200,7 @@ export function MariadbBackupForm({ id, existing, onSave, onDelete, onCancel, cl
             <FormElements.LabeledInput
               field={Field.databaseSelection_exclusions}
               labels={Label}
-              register={register}
+              register={form.register}
               activeField={activeField}
               onActiveFieldChange={setActiveField}
               input={{ type: "text" }}
@@ -210,16 +210,15 @@ export function MariadbBackupForm({ id, existing, onSave, onDelete, onCancel, cl
         <FormElements.ButtonBar
           className="mt-12"
           existing={existing}
-          formState={formState}
-          onSubmit={handleSubmit(submit)}
+          formState={form.formState}
+          onSubmit={form.handleSubmit(submit)}
           onDelete={onDelete}
           onCancel={onCancel}
         />
       </FormElements.Left>
       <FormElements.Right
+        form={form} //
         stepType={Step.Type.mariadb_backup}
-        formState={formState}
-        clearErrors={clearErrors}
         fieldDescriptions={Description}
         fieldCurrentlyActive={activeField}
       >

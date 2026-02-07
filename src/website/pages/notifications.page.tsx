@@ -143,7 +143,7 @@ export function notificationsPage() {
                   {/* Channel */}
                   <div className="min-w-0 mr-10">
                     <div className="truncate text-lg font-medium">{channelTranslation[policy.channel.type]}</div>
-                    {policy.channel.type === "slack" && <div className="truncate text-c-dim">{policy.channel.webhookUrlReference}</div>}
+                    {policy.channel.type === "slack" && <div className="truncate text-c-dim">{policy.channel.webhookUrl}</div>}
                     {policy.channel.type === "custom_script" && <div className="truncate text-c-dim">{policy.channel.path}</div>}
                   </div>
                   {/* Events */}

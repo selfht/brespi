@@ -1,6 +1,7 @@
 import { AdapterService } from "@/adapters/AdapterService";
 import { FilterCapability } from "@/capabilities/filter/FilterCapability";
 import { ManagedStorageCapability } from "@/capabilities/managedstorage/ManagedStorageCapability";
+import { PropertyResolver } from "@/capabilities/propertyresolution/PropertyResolver";
 import { initializeSqlite, Sqlite } from "@/drizzle/sqlite";
 import { Env } from "@/Env";
 import { EventBus } from "@/events/EventBus";
@@ -39,6 +40,7 @@ export namespace TestEnvironment {
     executionRepository: ExecutionRepository;
     scheduleRepository: ScheduleRepository;
     notificationRepository: NotificationRepository;
+    propertyResolver: PropertyResolver;
 
     // Mocks
     stepServiceMock: Mocked<StepService>;
@@ -49,6 +51,7 @@ export namespace TestEnvironment {
     notificationDispatchServiceMock: Mocked<NotificationDispatchService>;
     filterCapabilityMock: Mocked<FilterCapability>;
     managedStorageCapabilityMock: Mocked<ManagedStorageCapability>;
+    propertyResolverMock: Mocked<PropertyResolver>;
     yesttpMock: Mocked<Yesttp>;
 
     // Context-bound helpers
@@ -120,13 +123,14 @@ export namespace TestEnvironment {
     }
 
     // Reals
+    const eventBus = new EventBus();
     const configurationRepository = new ConfigurationRepository(env);
     await configurationRepository.initializeFromDisk();
     const pipelineRepository = new PipelineRepository(configurationRepository);
     const executionRepository = new ExecutionRepository(sqlite);
     const scheduleRepository = new ScheduleRepository(configurationRepository, sqlite);
     const notificationRepository = new NotificationRepository(configurationRepository, sqlite);
-    const eventBus = new EventBus();
+    const propertyResolver = new PropertyResolver();
 
     // Mocks
     const stepServiceMock = registerMockObject<StepService>({
@@ -167,6 +171,9 @@ export namespace TestEnvironment {
       insert: mock(),
       select: mock(),
       clean: mock(),
+    });
+    const propertyResolverMock = registerMockObject<PropertyResolver>({
+      resolve: mock(),
     });
     const yesttpMock = registerMockObject<Yesttp>({
       get: mock(),
@@ -211,6 +218,7 @@ export namespace TestEnvironment {
       executionRepository,
       scheduleRepository,
       notificationRepository,
+      propertyResolver,
       // mocks
       stepServiceMock,
       pipelineRepositoryMock,
@@ -220,7 +228,9 @@ export namespace TestEnvironment {
       notificationDispatchServiceMock,
       filterCapabilityMock,
       managedStorageCapabilityMock,
+      propertyResolverMock,
       yesttpMock,
+      // helpers
       createArtifacts,
       patchEnvironmentVariables,
     };

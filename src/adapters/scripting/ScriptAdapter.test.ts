@@ -11,7 +11,7 @@ describe(ScriptAdapter.name, async () => {
 
   beforeEach(async () => {
     context = await TestEnvironment.initialize();
-    adapter = new ScriptAdapter(context.env);
+    adapter = new ScriptAdapter(context.env, context.propertyResolver);
   });
 
   it("executes a bash passthrough script", async () => {

@@ -45,8 +45,8 @@ export namespace ScheduleFlow {
   }
 
   async function submitDelete(page: Page) {
-    page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Delete", exact: true }).click();
+    await page.getByRole("button", { name: "Yes, delete", exact: true }).click(); // Pop-up
     await expect(page.getByRole("button", { name: "Delete", exact: true })).not.toBeVisible();
   }
 }

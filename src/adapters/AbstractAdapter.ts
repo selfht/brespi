@@ -1,3 +1,4 @@
+import { PropertyResolver } from "@/capabilities/propertyresolution/PropertyResolver";
 import { Env } from "@/Env";
 import { Exception } from "@/errors/exception/Exception";
 import { ExecutionError } from "@/errors/ExecutionError";
@@ -7,7 +8,10 @@ import { Artifact } from "@/models/Artifact";
 import { mkdir, stat } from "fs/promises";
 
 export abstract class AbstractAdapter {
-  protected constructor(protected readonly env: Env.Private) {}
+  protected constructor(
+    protected readonly env: Env.Private,
+    protected readonly propertyResolver: PropertyResolver,
+  ) {}
 
   protected async runCommand(options: CommandRunner.Options) {
     const { exitCode, ...result } = await CommandRunner.run(options);
@@ -39,12 +43,12 @@ export abstract class AbstractAdapter {
     return destinationPath;
   }
 
-  protected readEnvironmentVariable(reference: string): string {
-    const value = process.env[reference];
-    if (!value) {
-      throw ExecutionError.environment_variable_missing({ name: reference });
-    }
-    return value;
+  /**
+   * Resolve property references in a string (e.g., "${VAR}" or "prefix_${VAR}_suffix").
+   * For v1: this is a pass-through. Actual resolution will be implemented later.
+   */
+  protected resolveString(input: string): string {
+    return this.propertyResolver.resolve(input);
   }
 
   protected requireArtifactType(requiredType: Artifact["type"], ...artifacts: Array<Pick<Artifact, "type" | "name">>): void {

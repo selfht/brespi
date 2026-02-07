@@ -49,7 +49,7 @@ export class RestrictedService {
             previousId: undefined,
             object: "step",
             type: Step.Type.postgresql_backup,
-            connectionReference: "MY_POSTGRESQL_URL",
+            connection: "${MY_POSTGRESQL_URL}",
             toolkit: {
               resolution: "automatic",
             },
@@ -91,7 +91,7 @@ export class RestrictedService {
             previousId: "hbnijprgbhjg",
             object: "step",
             type: Step.Type.postgresql_restore,
-            connectionReference: "MY_POSTGRESQL_URL",
+            connection: "${MY_POSTGRESQL_URL}",
             toolkit: {
               resolution: "automatic",
             },
@@ -132,7 +132,7 @@ export class RestrictedService {
             previousId: "ytnzxdfmegvi",
             object: "step",
             type: Step.Type.postgresql_restore,
-            connectionReference: "MY_POSTGRESQL_URL",
+            connection: "${MY_POSTGRESQL_URL}",
             toolkit: {
               resolution: "automatic",
             },
@@ -143,7 +143,7 @@ export class RestrictedService {
             previousId: "khtdstqezwyh",
             object: "step",
             type: Step.Type.postgresql_restore,
-            connectionReference: "MY_POSTGRESQL_URL",
+            connection: "${MY_POSTGRESQL_URL}",
             toolkit: {
               resolution: "automatic",
             },
@@ -167,7 +167,7 @@ export class RestrictedService {
             previousId: undefined,
             object: "step",
             type: Step.Type.mariadb_backup,
-            connectionReference: "MY_MARIADB_URL",
+            connection: "${MY_MARIADB_URL}",
             toolkit: {
               resolution: "automatic",
             },
@@ -209,7 +209,7 @@ export class RestrictedService {
             previousId: "hbnijprgbhjg",
             object: "step",
             type: Step.Type.mariadb_restore,
-            connectionReference: "MY_MARIADB_URL",
+            connection: "${MY_MARIADB_URL}",
             toolkit: {
               resolution: "automatic",
             },
@@ -250,7 +250,7 @@ export class RestrictedService {
             previousId: "ytnzxdfmegvi",
             object: "step",
             type: Step.Type.mariadb_restore,
-            connectionReference: "MY_MARIADB_URL",
+            connection: "${MY_MARIADB_URL}",
             toolkit: {
               resolution: "automatic",
             },
@@ -261,7 +261,7 @@ export class RestrictedService {
             previousId: "khtdstqezwyh",
             object: "step",
             type: Step.Type.mariadb_restore,
-            connectionReference: "MY_MARIADB_URL",
+            connection: "${MY_MARIADB_URL}",
             toolkit: {
               resolution: "automatic",
             },
@@ -288,7 +288,7 @@ export class RestrictedService {
       active: false,
       channel: {
         type: "slack",
-        webhookUrlReference: "MY_SLACK_WEBHOOK_URL",
+        webhookUrl: "${MY_SLACK_WEBHOOK_URL}",
       },
       eventSubscriptions: [
         { type: Event.Type.execution_started, triggers: ["ad_hoc", "schedule"] },

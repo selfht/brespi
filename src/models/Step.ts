@@ -72,8 +72,8 @@ export namespace Step {
     bucket: string;
     region?: string;
     endpoint: string;
-    accessKeyReference: string;
-    secretKeyReference: string;
+    accessKey: string;
+    secretKey: string;
   };
 
   export type Compression = Common & {
@@ -93,7 +93,7 @@ export namespace Step {
 
   export type Encryption = Common & {
     type: Type.encryption;
-    keyReference: string;
+    key: string;
     algorithm: {
       implementation: "aes256cbc";
     };
@@ -101,7 +101,7 @@ export namespace Step {
 
   export type Decryption = Common & {
     type: Type.decryption;
-    keyReference: string;
+    key: string;
     algorithm: {
       implementation: "aes256cbc";
     };
@@ -157,7 +157,7 @@ export namespace Step {
 
   export type PostgresqlBackup = Common & {
     type: Type.postgresql_backup;
-    connectionReference: string;
+    connection: string;
     toolkit:
       | { resolution: "automatic" } //
       | { resolution: "manual"; psql: string; pg_dump: string };
@@ -169,7 +169,7 @@ export namespace Step {
 
   export type PostgresqlRestore = Common & {
     type: Type.postgresql_restore;
-    connectionReference: string;
+    connection: string;
     toolkit:
       | { resolution: "automatic" } //
       | { resolution: "manual"; psql: string; pg_restore: string };
@@ -178,7 +178,7 @@ export namespace Step {
 
   export type MariadbBackup = Common & {
     type: Type.mariadb_backup;
-    connectionReference: string;
+    connection: string;
     toolkit:
       | { resolution: "automatic" } //
       | { resolution: "manual"; mariadb: string; "mariadb-dump": string };
@@ -190,7 +190,7 @@ export namespace Step {
 
   export type MariadbRestore = Common & {
     type: Type.mariadb_restore;
-    connectionReference: string;
+    connection: string;
     toolkit:
       | { resolution: "automatic" } //
       | { resolution: "manual"; mariadb: string };
@@ -246,8 +246,8 @@ export namespace Step {
           bucket: z.string(),
           region: z.string().optional(),
           endpoint: z.string(),
-          accessKeyReference: z.string(),
-          secretKeyReference: z.string(),
+          accessKey: z.string(),
+          secretKey: z.string(),
         } satisfies SubSchema<S3Connection>),
       };
 
@@ -272,7 +272,7 @@ export namespace Step {
         z.object({
           ...subSchema.common,
           type: z.literal(Type.encryption),
-          keyReference: z.string(),
+          key: z.string(),
           algorithm: z.object({
             implementation: z.literal("aes256cbc"),
           }),
@@ -281,7 +281,7 @@ export namespace Step {
         z.object({
           ...subSchema.common,
           type: z.literal(Type.decryption),
-          keyReference: z.string(),
+          key: z.string(),
           algorithm: z.object({
             implementation: z.literal("aes256cbc"),
           }),
@@ -366,7 +366,7 @@ export namespace Step {
         z.object({
           ...subSchema.common,
           type: z.literal(Type.postgresql_backup),
-          connectionReference: z.string(),
+          connection: z.string(),
           toolkit: z.union([
             z.object({ resolution: z.literal("automatic") }),
             z.object({
@@ -385,7 +385,7 @@ export namespace Step {
         z.object({
           ...subSchema.common,
           type: z.literal(Type.postgresql_restore),
-          connectionReference: z.string(),
+          connection: z.string(),
           toolkit: z.union([
             z.object({ resolution: z.literal("automatic") }),
             z.object({
@@ -400,7 +400,7 @@ export namespace Step {
         z.object({
           ...subSchema.common,
           type: z.literal(Type.mariadb_backup),
-          connectionReference: z.string(),
+          connection: z.string(),
           toolkit: z.union([
             z.object({ resolution: z.literal("automatic") }),
             z.object({
@@ -419,7 +419,7 @@ export namespace Step {
         z.object({
           ...subSchema.common,
           type: z.literal(Type.mariadb_restore),
-          connectionReference: z.string(),
+          connection: z.string(),
           toolkit: z.union([
             z.object({ resolution: z.literal("automatic") }),
             z.object({

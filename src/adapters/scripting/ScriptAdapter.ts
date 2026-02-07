@@ -1,20 +1,25 @@
+import { PropertyResolver } from "@/capabilities/propertyresolution/PropertyResolver";
 import { Env } from "@/Env";
+import { ExecutionError } from "@/errors/ExecutionError";
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
 import { readdir, rename, rm } from "fs/promises";
 import { basename, dirname, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 import { AdapterResult } from "../AdapterResult";
-import { ExecutionError } from "@/errors/ExecutionError";
 
 export class ScriptAdapter extends AbstractAdapter {
-  public constructor(protected readonly env: Env.Private) {
-    super(env);
+  public constructor(
+    protected readonly env: Env.Private,
+    protected readonly propertyResolver: PropertyResolver,
+  ) {
+    super(env, propertyResolver);
   }
 
   public async execute(artifacts: Artifact[], step: Step.CustomScript): Promise<AdapterResult> {
+    const scriptPath = this.resolveString(step.path);
     if (step.passthrough) {
-      await this.executeScript(step.path);
+      await this.executeScript(scriptPath);
       return AdapterResult.create(artifacts);
     }
     const [artifactsIn, artifactsOut] = await Promise.all([
@@ -23,7 +28,7 @@ export class ScriptAdapter extends AbstractAdapter {
     ]);
     try {
       await this.moveArtifacts(artifacts, artifactsIn);
-      await this.executeScript(step.path, {
+      await this.executeScript(scriptPath, {
         BRESPI_ARTIFACTS_IN: artifactsIn,
         BRESPI_ARTIFACTS_OUT: artifactsOut,
       });

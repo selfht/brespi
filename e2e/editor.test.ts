@@ -16,7 +16,7 @@ test("creates and deletes a simple backup pipeline", async ({ page }) => {
       {
         id: "A",
         type: "PostgreSQL Backup",
-        connectionReference: "MY_POSTGRESQL_URL",
+        connection: "${MY_POSTGRESQL_URL}",
       },
       {
         previousId: "A",
@@ -27,7 +27,7 @@ test("creates and deletes a simple backup pipeline", async ({ page }) => {
         previousId: "B",
         id: "C",
         type: "Encryption",
-        keyReference: "MY_ENCRYPTION_KEY",
+        key: "${MY_ENCRYPTION_KEY}",
       },
       {
         previousId: "C",
@@ -137,4 +137,57 @@ test("relation links can be deleted when a step form is open", async ({ page }) 
   // then (an error when saving, because the steps aren't linked anymore)
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("PipelineError::too_many_starting_steps")).toBeVisible();
+});
+
+test("sensitive fields show warnings for plaintext values", async ({ page }) => {
+  const expectedSensitiveFields: Record<string, string[]> = {
+    "PostgreSQL Backup": ["Connection"],
+    "PostgreSQL Restore": ["Connection"],
+    "MariaDB Backup": ["Connection"],
+    "MariaDB Restore": ["Connection"],
+    "S3 Download": ["Secret key"],
+    "S3 Upload": ["Secret key"],
+    Encryption: ["Key"],
+    Decryption: ["Key"],
+  };
+
+  // given
+  await PipelineFlow.Subroutine.navigateToNewPipelineScreen(page);
+  await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
+
+  for (const stepButton of await page.getByTestId("new-step-button").all()) {
+    const stepType = (await stepButton.textContent())!;
+    const sensitiveFields = expectedSensitiveFields[stepType] || [];
+
+    // when
+    await stepButton.click();
+    await expect(page.getByRole("button", { name: "Add step" })).toBeVisible();
+    for (const fieldLabel of await page.getByTestId("step-field-label").all()) {
+      await fieldLabel.click();
+      const warning = page.getByText("This field is considered sensitive");
+
+      // then (each sensitive field shows a preliminary warning before clicking "save")
+      if (sensitiveFields.includes((await fieldLabel.textContent())!)) {
+        await expect(warning).toBeVisible();
+        await page.keyboard.type("${MY_REF}");
+        await expect(page.getByText("Property reference: MY_REF")).toBeVisible();
+      } else {
+        await expect(warning).not.toBeVisible();
+      }
+    }
+    await page.getByRole("button", { name: "Cancel" }).last().click();
+
+    // when
+    await stepButton.click();
+    await page.getByRole("button", { name: "Add step" }).click();
+    if (sensitiveFields.length > 0) {
+      // then (a dialog is shown when trying to save without using references)
+      await expect(page.getByRole("heading", { name: "Warning: insecure plaintext configuration" })).toBeVisible();
+      for (const sensitiveField of sensitiveFields) {
+        await expect(page.getByRole("dialog").getByText(sensitiveField)).toBeVisible();
+      }
+      await page.getByRole("button", { name: "Continue and Ignore" }).click();
+    }
+    await expect(stepButton).toBeVisible();
+  }
 });

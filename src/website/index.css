@@ -74,8 +74,9 @@
     /* Colors */
     --color-c-primary: #d4d4d4;
     --color-c-success: #b8ffba;
+    --color-c-warning: #efb41b;
     --color-c-error: #ff6464;
-    --color-c-accent: #8585f6;
+    --color-c-accent: #9090e8;
     --color-c-dim: #979797;
     --color-c-dark: #2d2c32;
     --color-c-canvasblock-default-inner: #b0cee6;

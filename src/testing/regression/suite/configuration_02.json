@@ -9,17 +9,13 @@
           "id": "u8ha0p",
           "object": "step",
           "type": "postgresql_backup",
-          "connectionReference": "PG_CONNECTION_STRING",
+          "connection": "${PG_CONNECTION_STRING}",
           "toolkit": {
             "resolution": "automatic"
           },
           "databaseSelection": {
             "method": "exclude",
-            "exclusions": [
-              "postgres",
-              "template0",
-              "template1"
-            ]
+            "exclusions": ["postgres", "template0", "template1"]
           }
         },
         {
@@ -37,7 +33,7 @@
           "previousId": "c52lsh",
           "object": "step",
           "type": "encryption",
-          "keyReference": "BACKUP_ENCRYPTION_KEY",
+          "key": "${BACKUP_ENCRYPTION_KEY}",
           "algorithm": {
             "implementation": "aes256cbc"
           }
@@ -51,8 +47,8 @@
             "bucket": "company-backups",
             "region": "us-east-1",
             "endpoint": "https://s3.us-east-1.amazonaws.com",
-            "accessKeyReference": "AWS_ACCESS_KEY_ID",
-            "secretKeyReference": "AWS_SECRET_ACCESS_KEY"
+            "accessKey": "${AWS_ACCESS_KEY_ID}",
+            "secretKey": "${AWS_SECRET_ACCESS_KEY}"
           },
           "basePrefix": "postgresql/production",
           "retention": {
@@ -77,21 +73,16 @@
       "object": "notification_policy",
       "channel": {
         "type": "slack",
-        "webhookUrlReference": "SLACK_OPS_WEBHOOK"
+        "webhookUrl": "${SLACK_OPS_WEBHOOK}"
       },
       "eventSubscriptions": [
         {
           "type": "execution_started",
-          "triggers": [
-            "ad_hoc"
-          ]
+          "triggers": ["ad_hoc"]
         },
         {
           "type": "execution_completed",
-          "triggers": [
-            "ad_hoc",
-            "schedule"
-          ]
+          "triggers": ["ad_hoc", "schedule"]
         }
       ],
       "active": true

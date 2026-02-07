@@ -66,9 +66,9 @@ export namespace NotificationFlow {
   }
 
   async function submitDelete(page: Page) {
-    page.once("dialog", (dialog) => dialog.accept());
     const deleteButton = page.getByRole("button", { name: "Delete", exact: true });
     await deleteButton.click();
+    await page.getByRole("button", { name: "Yes, delete", exact: true }).click(); // Pop-up
     await expect(deleteButton).not.toBeVisible();
   }
 }

@@ -1,5 +1,6 @@
 import { Pipeline } from "@/models/Pipeline";
 import { Schedule } from "@/models/Schedule";
+import { DialogClient } from "@/website/clients/DialogClient";
 import { ScheduleClient } from "@/website/clients/ScheduleClient";
 import { Button } from "@/website/comps/Button";
 import { CronEvaluations } from "@/website/comps/CronEvaluations";
@@ -17,6 +18,7 @@ type Form = {
 };
 export function ScheduleEditor({ className, gridClassName, existing, pipelines, onSave, onDelete, onCancel }: Props) {
   const scheduleClient = useRegistry(ScheduleClient);
+  const dialogClient = useRegistry(DialogClient);
   const { register, handleSubmit, formState, watch, setError, clearErrors } = useForm<Form>({
     defaultValues: {
       [ScheduleEditor.Field.pipelineId]: existing?.pipelineId ?? "",
@@ -50,7 +52,20 @@ export function ScheduleEditor({ className, gridClassName, existing, pipelines, 
     try {
       clearErrors();
       await FormHelper.snoozeBeforeSubmit();
-      if (existing && confirm("Are you sure about deleting this schedule?")) {
+      if (
+        existing &&
+        (await dialogClient.confirm({
+          warning: true,
+          render({ yesNoButtons }) {
+            return (
+              <div>
+                <p>Are you sure about deleting this schedule?</p>
+                {yesNoButtons({ noLabel: "No, cancel", yesLabel: "Yes, delete" })}
+              </div>
+            );
+          },
+        }))
+      ) {
         const schedule = await scheduleClient.delete(existing.id);
         onDelete(schedule);
       }

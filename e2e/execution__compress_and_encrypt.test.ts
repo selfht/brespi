@@ -45,7 +45,7 @@ test("compression and encryption are reversible", async ({ page }) => {
         previousId: "B",
         id: "C",
         type: "Encryption",
-        keyReference: "MY_ENCRYPTION_KEY",
+        key: "${MY_ENCRYPTION_KEY}",
       },
       {
         previousId: "C",
@@ -71,7 +71,7 @@ test("compression and encryption are reversible", async ({ page }) => {
         previousId: "A",
         id: "B",
         type: "Decryption",
-        keyReference: "MY_ENCRYPTION_KEY",
+        key: "${MY_ENCRYPTION_KEY}",
       },
       {
         previousId: "B",
@@ -145,7 +145,7 @@ test("shows an error when trying to decrypt a corrupted file", async ({ page }) 
         previousId: "A",
         id: "B",
         type: "Encryption",
-        keyReference: "MY_ENCRYPTION_KEY",
+        key: "${MY_ENCRYPTION_KEY}",
       },
       {
         previousId: "B",
@@ -157,7 +157,7 @@ test("shows an error when trying to decrypt a corrupted file", async ({ page }) 
       {
         previousId: "C",
         type: "Decryption",
-        keyReference: "MY_ENCRYPTION_KEY",
+        key: "${MY_ENCRYPTION_KEY}",
       },
     ],
   });

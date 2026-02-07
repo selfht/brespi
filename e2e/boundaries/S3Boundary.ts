@@ -5,8 +5,8 @@ export namespace S3Boundary {
     bucket: "bucko",
     region: "eu-central-1",
     endpoint: "http://s3:4566",
-    accessKeyReference: "MY_S3_ACCESS_KEY",
-    secretKeyReference: "MY_S3_SECRET_KEY",
+    accessKey: "${MY_S3_ACCESS_KEY}",
+    secretKey: "${MY_S3_SECRET_KEY}",
   };
 
   const client = new S3Client({

@@ -8,14 +8,16 @@ import { copyFile, cp, mkdir, readdir, rename, rm } from "fs/promises";
 import { basename, join } from "path";
 import { AbstractAdapter } from "../AbstractAdapter";
 import { AdapterResult } from "../AdapterResult";
+import { PropertyResolver } from "@/capabilities/propertyresolution/PropertyResolver";
 
 export class FilesystemAdapter extends AbstractAdapter {
   public constructor(
     protected readonly env: Env.Private,
+    protected readonly propertyResolver: PropertyResolver,
     private readonly managedStorageCapability: ManagedStorageCapability,
     private readonly filterCapability: FilterCapability,
   ) {
-    super(env);
+    super(env, propertyResolver);
   }
 
   public async write(
@@ -23,10 +25,11 @@ export class FilesystemAdapter extends AbstractAdapter {
     step: Step.FilesystemWrite,
     trail: StepWithRuntime[],
   ): Promise<AdapterResult> {
-    await mkdir(step.folderPath, { recursive: true });
+    const folderPath = this.resolveString(step.folderPath);
+    await mkdir(folderPath, { recursive: true });
     if (step.managedStorage) {
       this.requireArtifactType("file", ...artifacts);
-      const base = step.folderPath;
+      const base = folderPath;
       const mutexKey = this.mutexKey(base);
       const readWriteFns = this.createReadWriteFns();
 
@@ -54,7 +57,7 @@ export class FilesystemAdapter extends AbstractAdapter {
       }
     } else {
       for (const artifact of artifacts) {
-        const destinationPath = join(step.folderPath, artifact.name);
+        const destinationPath = join(folderPath, artifact.name);
         if (artifact.type === "file") {
           await copyFile(artifact.path, destinationPath);
         } else if (artifact.type === "directory") {
@@ -66,11 +69,12 @@ export class FilesystemAdapter extends AbstractAdapter {
   }
 
   public async read(step: Step.FilesystemRead): Promise<AdapterResult> {
+    const path = this.resolveString(step.path);
     if (step.managedStorage) {
       // Find artifacts
       let { resolvedVersion, selectableArtifacts } = await this.managedStorageCapability.select({
-        mutexKey: this.mutexKey(step.path),
-        base: step.path,
+        mutexKey: this.mutexKey(path),
+        base: path,
         configuration: step.managedStorage,
         ...this.createReadWriteFns(),
       });
@@ -94,13 +98,13 @@ export class FilesystemAdapter extends AbstractAdapter {
       return AdapterResult.create(artifacts, { version: resolvedVersion });
     } else {
       const { outputId, outputPath } = this.generateArtifactDestination();
-      const stats = await this.requireFilesystemExistence(step.path);
-      await cp(step.path, outputPath, { recursive: true });
+      const stats = await this.requireFilesystemExistence(path);
+      await cp(path, outputPath, { recursive: true });
       return AdapterResult.create({
         id: outputId,
         type: stats.type,
         path: outputPath,
-        name: basename(step.path),
+        name: basename(path),
       });
     }
   }

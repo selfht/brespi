@@ -17,7 +17,7 @@
   "trail": [
     {
       "type": "encryption",
-      "keyReference": "MY_ENCRYPTION_KEY",
+      "key": "${MY_ENCRYPTION_KEY}",
       "algorithm": {
         "implementation": "aes256cbc"
       },

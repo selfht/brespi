@@ -1,11 +1,13 @@
 import { Step } from "@/models/Step";
 import clsx from "clsx";
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { FieldValues, FormState, Path, UseFormRegister } from "react-hook-form";
+import { FieldValues, FormState, Path, UseFormRegister, UseFormReturn } from "react-hook-form";
+import { StepClient } from "../clients/StepClient";
 import { Button } from "../comps/Button";
 import { Icon } from "../comps/Icon";
 import { Spinner } from "../comps/Spinner";
 import { StepDescription } from "../details/StepDescription";
+import { useRegistry } from "../hooks/useRegistry";
 
 export namespace FormElements {
   type ContainerProps = {
@@ -25,20 +27,27 @@ export namespace FormElements {
 
   type RightProps = {
     stepType: Step.Type;
-    formState: FormState<{}>;
-    clearErrors: () => unknown;
+    form: UseFormReturn<any>;
     children?: ReactNode;
     className?: string;
     fieldDescriptions: Record<string, ReactNode>;
     fieldCurrentlyActive?: string;
   };
-  export function Right({ stepType, formState, clearErrors, children, className, fieldDescriptions, fieldCurrentlyActive }: RightProps) {
+  export function Right({ stepType, form, children, className, fieldDescriptions, fieldCurrentlyActive }: RightProps) {
+    const stepClient = useRegistry(StepClient);
+    const isSensitiveFieldCurrentlyActive = stepClient
+      .getSensitiveFieldIds(stepType)
+      .sensitiveFieldIds.includes(fieldCurrentlyActive as string);
+
+    const activeFieldValue = form.watch(fieldCurrentlyActive || "");
+    const activeFieldReferences = stepClient.extractReferences(activeFieldValue).map(({ variable }) => variable);
+
     return (
       <div className={clsx("flex-1 pl-3 border-l-2 border-c-dim/20", className)}>
-        {formState.errors.root?.message ? (
+        {form.formState.errors.root?.message ? (
           <div className="self-stretch border-3 border-c-error p-3 rounded-lg flex justify-between items-start">
-            <pre className="text-c-error min-w-0 whitespace-pre-wrap break-all">{formState.errors.root.message}</pre>
-            <button className="cursor-pointer" onClick={() => clearErrors()}>
+            <pre className="text-c-error min-w-0 whitespace-pre-wrap break-all">{form.formState.errors.root.message}</pre>
+            <button className="cursor-pointer" onClick={() => form.clearErrors()}>
               <Icon variant="close" className="size-5" />
             </button>
           </div>
@@ -48,9 +57,22 @@ export namespace FormElements {
             <div className="mb-2 text-lg">{children}</div>
             {Object.entries(fieldDescriptions).length > 0 ? (
               fieldCurrentlyActive ? (
-                <p className="text-c-accent">{fieldDescriptions[fieldCurrentlyActive]}</p>
+                <>
+                  <p className="text-c-accent">{fieldDescriptions[fieldCurrentlyActive]}</p>
+                  {activeFieldReferences.length > 0 ? (
+                    <p className="mt-2 text-c-warning text-sm">
+                      Property reference{activeFieldReferences.length === 1 ? "" : "s"}:{" "}
+                      <span className="font-mono font-bold">{activeFieldReferences.join(", ")}</span>
+                    </p>
+                  ) : isSensitiveFieldCurrentlyActive ? (
+                    <p className="mt-2 text-c-warning text-sm">
+                      This field is considered sensitive; by using <span className="font-mono">$&#123;REFERENCE&#125;</span> notation, its
+                      value will resolve via environment variables or property files at the moment of execution.
+                    </p>
+                  ) : null}
+                </>
               ) : (
-                <p className="text-sm italic">Select a field on the left for more information.</p>
+                <p className="italic text-c-accent">Select a field on the left for more information.</p>
               )
             ) : (
               <p className="text-sm italic">This step has no configurable fields.</p>
@@ -63,10 +85,11 @@ export namespace FormElements {
 
   type CodeProps = {
     children: string;
+    summary?: boolean;
     break?: boolean;
   };
-  export function Code({ children, break: breakAll = true }: CodeProps) {
-    return <code className={clsx("text-c-dim whitespace-normal", { "break-all": breakAll })}>{children}</code>;
+  export function Code({ children, summary = false, break: breakAll = true }: CodeProps) {
+    return <code className={clsx("whitespace-normal", summary ? "text-c-dim" : "font-bold", { "break-all": breakAll })}>{children}</code>;
   }
 
   type ButtonBarProps = {
@@ -176,6 +199,7 @@ export namespace FormElements {
       <div className="flex items-center">
         <label
           htmlFor={fieldStr}
+          data-testid="step-field-label"
           className={clsx("w-72 text-lg cursor-pointer select-none", {
             "underline underline-offset-4 decoration-3 decoration-c-accent": field === activeField,
           })}

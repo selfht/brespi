@@ -3,6 +3,7 @@ import { EventSubscription } from "@/models/EventSubscription";
 import { NotificationChannel } from "@/models/NotificationChannel";
 import { NotificationPolicy } from "@/models/NotificationPolicy";
 import { OmitBetter } from "@/types/OmitBetter";
+import { DialogClient } from "@/website/clients/DialogClient";
 import { NotificationClient } from "@/website/clients/NotificationClient";
 import { Button } from "@/website/comps/Button";
 import { Toggle } from "@/website/comps/Toggle";
@@ -18,6 +19,7 @@ type Form = PolicyEditorTypes.Form;
 type Props = PolicyEditor.Props;
 export function PolicyEditor({ className, gridClassName, existing, onSave, onDelete, onCancel }: Props) {
   const notificationClient = useRegistry(NotificationClient);
+  const dialogClient = useRegistry(DialogClient);
 
   const form = useForm<Form>({
     defaultValues: Internal.buildDefaultValues(existing),
@@ -36,7 +38,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
         case "slack": {
           channel = {
             type: "slack",
-            webhookUrlReference: data[Field.slack_webhookUrlReference],
+            webhookUrl: data[Field.slack_webhookUrl],
           };
           break;
         }
@@ -56,6 +58,7 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
       const policy = existing
         ? await notificationClient.updatePolicy(existing.id, request)
         : await notificationClient.createPolicy(request);
+      // TODO: check if the slack webhook is plaintext, or reference as well
       onSave(policy);
     } catch (e) {
       form.setError("root", {
@@ -68,7 +71,20 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
     try {
       form.clearErrors();
       await FormHelper.snoozeBeforeSubmit();
-      if (existing && confirm("Are you sure about deleting this notification policy?")) {
+      if (
+        existing &&
+        (await dialogClient.confirm({
+          warning: true,
+          render({ yesNoButtons }) {
+            return (
+              <div>
+                <p>Are you sure about deleting this notification policy?</p>
+                {yesNoButtons({ noLabel: "No, cancel", yesLabel: "Yes, delete" })}
+              </div>
+            );
+          },
+        }))
+      ) {
         const policy = await notificationClient.deletePolicy(existing.id);
         onDelete(policy);
       }
@@ -101,15 +117,15 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
             </select>
             {channelType === "slack" && (
               <>
-                <label htmlFor={Field.slack_webhookUrlReference} className="block text-c-dim text-sm mb-1">
-                  Specify the environment variable containing the Slack webhook URL
+                <label htmlFor={Field.slack_webhookUrl} className="block text-c-dim text-sm mb-1">
+                  Specify the Slack webhook URL, either directly or as a $&#123;REFERENCE&#125;
                 </label>
                 <input
-                  id={Field.slack_webhookUrlReference}
+                  id={Field.slack_webhookUrl}
                   type="text"
                   className="w-full font-mono p-2 border-2 border-c-dim rounded-lg focus:border-c-accent outline-none!"
-                  placeholder="MY_SLACK_WEBHOOK_URL"
-                  {...form.register(Field.slack_webhookUrlReference)}
+                  placeholder="${MY_SLACK_WEBHOOK_URL}"
+                  {...form.register(Field.slack_webhookUrl)}
                 />
               </>
             )}
@@ -167,7 +183,7 @@ namespace Internal {
     return {
       [Field.active]: existing?.active ?? true,
       [Field.channel]: existing?.channel.type ?? "",
-      [Field.slack_webhookUrlReference]: existing?.channel.type === "slack" ? existing.channel.webhookUrlReference : "",
+      [Field.slack_webhookUrl]: existing?.channel.type === "slack" ? existing.channel.webhookUrl : "",
       [Field.customScript_path]: existing?.channel.type === "custom_script" ? existing.channel.path : "",
       // execution_started
       [Field.subscription_executionStarted_enabled]: Boolean(executionStarted),
