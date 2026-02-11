@@ -96,18 +96,6 @@ export namespace PipelineFlow {
         database?: string;
       });
 
-  const Config = {
-    DRAG_STEPS_TO_PREVENT_CLICK_INTERPRETATION: 30,
-    Grid: {
-      START_X: 80,
-      START_Y: 50,
-      MAX_COLUMNS: 4,
-      COLUMN_SPACING: 180,
-      MAX_ROWS: 3,
-      ROW_SPACING: 120,
-    },
-  };
-
   type StepLocators = Map<string, Locator>;
 
   export type CreateOptions = {
@@ -115,12 +103,6 @@ export namespace PipelineFlow {
     steps: StepOptions[];
   };
   export async function create(page: Page, options: CreateOptions): Promise<{ id: string; stepLocators: StepLocators }> {
-    const maxSteps = Config.Grid.MAX_COLUMNS * Config.Grid.MAX_ROWS;
-    if (options.steps.length > maxSteps) {
-      throw new Error(
-        `Unsupported: Pipeline has ${options.steps.length} steps, but maximum supported is ${maxSteps} (${Config.Grid.MAX_COLUMNS}x${Config.Grid.MAX_ROWS} grid)`,
-      );
-    }
     // Navigate to pipeline editor
     await Subroutine.navigateToNewPipelineScreen(page);
     // Track locators for the canvas and individual steps blocks (for arrow drawing)
@@ -213,7 +195,6 @@ export namespace PipelineFlow {
     }
 
     export async function insertSteps(page: Page, steps: StepOptions[]): Promise<StepLocators> {
-      const canvas = page.getByTestId("canvas");
       const stepLocators = new Map<string, Locator>();
       // Add and position each step
       for (let index = 0; index < steps.length; index++) {
@@ -225,20 +206,14 @@ export namespace PipelineFlow {
 
         const stepLocator = page.getByTestId(stepRef);
         stepLocators.set(stepId, stepLocator);
-
-        const column = index % Config.Grid.MAX_COLUMNS;
-        const row = Math.floor(index / Config.Grid.MAX_COLUMNS);
-        const x = Config.Grid.START_X + column * Config.Grid.COLUMN_SPACING;
-        const y = Config.Grid.START_Y + row * Config.Grid.ROW_SPACING;
-        await stepLocator.dragTo(canvas, {
-          targetPosition: { x, y },
-          steps: Config.DRAG_STEPS_TO_PREVENT_CLICK_INTERPRETATION,
-        });
       }
+      await expect(page.getByText("Artifact transformers")).toBeVisible();
       return stepLocators;
     }
 
     export async function drawRelationArrow(page: Page, stepLocators: StepLocators, { from, to }: { from: string; to: string }) {
+      const DRAG_STEPS_TO_PREVENT_CLICK_INTERPRETATION = 30;
+
       const fromLocator = stepLocators.get(from);
       const toLocator = stepLocators.get(to);
       if (!fromLocator || !toLocator) {
@@ -246,7 +221,7 @@ export namespace PipelineFlow {
       }
       // Drag from previous step's output to current step's input
       await fromLocator.getByTestId("output").dragTo(toLocator.getByTestId("input"), {
-        steps: Config.DRAG_STEPS_TO_PREVENT_CLICK_INTERPRETATION,
+        steps: DRAG_STEPS_TO_PREVENT_CLICK_INTERPRETATION,
       });
     }
 

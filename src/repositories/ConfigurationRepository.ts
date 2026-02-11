@@ -49,7 +49,6 @@ export class ConfigurationRepository {
     return configuration as T;
   }
 
-  // TODO: rollback in `finally` if there's an error? make this method atomic?
   public async write<T extends { configuration: Configuration.Core }>(fn: (configuration: Configuration) => T | Promise<T>): Promise<T> {
     const { release } = await this.mutex.acquire();
     try {

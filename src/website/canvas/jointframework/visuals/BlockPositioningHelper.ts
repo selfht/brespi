@@ -76,11 +76,59 @@ export namespace PositioningHelper {
     return result;
   }
 
-  // TODO: implement
-  export function findNewSpot(blocks: JointBlock[], paperDimensions: Dimensions, panPosition: Coordinates): Coordinates {
+  export function findNewSpot(
+    blocks: Array<Pick<JointBlock, "id" | "coordinates">>,
+    paperDimensions: Dimensions,
+    panPosition: Coordinates,
+  ): Coordinates {
+    const fullBlockWidth = Sizing.BLOCK_WIDTH + 2 * (Sizing.CONNECTOR_WIDTH + Sizing.CONNECTOR_OFFSET);
+    const paddingX = 20;
+    const paddingY = 35;
+    const cellWidth = fullBlockWidth + paddingX;
+    const cellHeight = Sizing.BLOCK_HEIGHT + paddingY;
+
+    const marginX = 40;
+    const marginTop = 10;
+    const marginBottom = 30;
+    const areaX = panPosition.x + marginX;
+    const areaWidth = paperDimensions.width - 2 * marginX;
+    const areaHeight = paperDimensions.height - marginTop - marginBottom;
+    const areaBottom = panPosition.y + paperDimensions.height - marginBottom;
+
+    const columns = Math.max(1, Math.floor(areaWidth / cellWidth));
+    const rows = Math.max(1, Math.floor(areaHeight / cellHeight));
+
+    // Anchor grid to the bottom of the area so the bottom row is stable
+    const cellY = (row: number) => areaBottom - (rows - row) * cellHeight;
+
+    const isOccupied = (x: number, y: number): boolean => {
+      return blocks.some(
+        (block) => Math.abs(block.coordinates.x - x) < fullBlockWidth && Math.abs(block.coordinates.y - y) < Sizing.BLOCK_HEIGHT,
+      );
+    };
+
+    // Scan bottom-left to top-right:
+    //   9  10 11 12
+    //   5  6  7  8
+    //   1  2  3  4
+    for (let row = rows - 1; row >= 0; row--) {
+      for (let col = 0; col < columns; col++) {
+        const x = areaX + col * cellWidth;
+        const y = cellY(row);
+
+        if (!isOccupied(x, y)) {
+          return { x, y };
+        }
+      }
+    }
+
+    // Grid is full — stack at bottom-left cell, cascading toward top-right
+    const gridCapacity = rows * columns;
+    const overflowIndex = Math.max(0, blocks.length - gridCapacity) + 1;
+    const offset = overflowIndex * 5;
     return {
-      x: panPosition.x + 0.1 * paperDimensions.width,
-      y: panPosition.y + 0.7 * paperDimensions.height,
+      x: areaX + offset,
+      y: cellY(rows - 1) - offset,
     };
   }
 }
