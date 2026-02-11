@@ -23,7 +23,6 @@ describe(StepClient.name, () => {
     expect(allSensitiveFieldIds).not.toBeEmpty();
   });
 
-  // TODO: deprecate TestUtils.createCollection
   for (const [type, dotPaths] of Object.entries(StepWarning.sensitiveFields())) {
     for (const dotPath of dotPaths) {
       it(`has a label for ${type}[${dotPath}]`, async () => {

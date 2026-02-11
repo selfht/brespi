@@ -1,5 +1,4 @@
 import { TestEnvironment } from "@/testing/TestEnvironment.test";
-import { TestUtils } from "@/testing/TestUtils.test";
 import { Temporal } from "@js-temporal/polyfill";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { join } from "path";
@@ -131,60 +130,34 @@ describe(ManagedStorageCapability.name, async () => {
       }
     });
 
-    const relativizeCollection = TestUtils.createCollection<{
+    const relativizeCases: Array<{
       base: string;
-      expectation: {
-        destinationPathMatcher: RegExp;
-      };
-    }>("base", [
-      {
-        base: "",
-        expectation: {
-          destinationPathMatcher: new RegExp(`^${Regex.TIMESTAMP}/.+`),
-        },
-      },
-      {
-        base: "backups",
-        expectation: {
-          destinationPathMatcher: new RegExp(`^backups/${Regex.TIMESTAMP}/.+`),
-        },
-      },
-      {
-        base: "/backups",
-        expectation: {
-          destinationPathMatcher: new RegExp(`^/backups/${Regex.TIMESTAMP}/.+`),
-        },
-      },
-      {
-        base: "backups/postgresql",
-        expectation: {
-          destinationPathMatcher: new RegExp(`^backups/postgresql/${Regex.TIMESTAMP}/.+`),
-        },
-      },
-      {
-        base: "/backups/postgresql",
-        expectation: {
-          destinationPathMatcher: new RegExp(`^/backups/postgresql/${Regex.TIMESTAMP}/.+`),
-        },
-      },
-    ]);
-    it.each(relativizeCollection.testCases)("relativizes generated files to base: %s", async (testCase) => {
-      const { base, expectation } = relativizeCollection.get(testCase);
-      // given
-      const { filesystem, ...readWriteFns } = createReadWriteFns();
-      const { options } = await ensureExistingBaseline({
-        mutexKey: [],
-        artifacts: [{ name: "Apple", path: "irrelevant" }],
-        trail: [],
-        base,
-        ...readWriteFns,
+      destinationPathMatcher: RegExp;
+    }> = [
+      { base: "", destinationPathMatcher: new RegExp(`^${Regex.TIMESTAMP}/.+`) },
+      { base: "backups", destinationPathMatcher: new RegExp(`^backups/${Regex.TIMESTAMP}/.+`) },
+      { base: "/backups", destinationPathMatcher: new RegExp(`^/backups/${Regex.TIMESTAMP}/.+`) },
+      { base: "backups/postgresql", destinationPathMatcher: new RegExp(`^backups/postgresql/${Regex.TIMESTAMP}/.+`) },
+      { base: "/backups/postgresql", destinationPathMatcher: new RegExp(`^/backups/postgresql/${Regex.TIMESTAMP}/.+`) },
+    ];
+    for (const { base, destinationPathMatcher } of relativizeCases) {
+      it(`relativizes generated files to base: ${base}`, async () => {
+        // given
+        const { filesystem, ...readWriteFns } = createReadWriteFns();
+        const { options } = await ensureExistingBaseline({
+          mutexKey: [],
+          artifacts: [{ name: "Apple", path: "irrelevant" }],
+          trail: [],
+          base,
+          ...readWriteFns,
+        });
+        // when
+        const { insertableArtifacts } = await capability.insert(options);
+        // then
+        expect(insertableArtifacts).toHaveLength(1);
+        expect(insertableArtifacts[0].destinationPath).toMatch(destinationPathMatcher);
       });
-      // when
-      const { insertableArtifacts } = await capability.insert(options);
-      // then
-      expect(insertableArtifacts).toHaveLength(1);
-      expect(insertableArtifacts[0].destinationPath).toMatch(expectation.destinationPathMatcher);
-    });
+    }
 
     it("throws an error when one of the artifacts doesn't exist", async () => {
       // given
@@ -474,96 +447,48 @@ describe(ManagedStorageCapability.name, async () => {
       );
     });
 
-    const collection = TestUtils.createCollection<{
+    const selectRelativizeCases: Array<{
       base: string;
-      manifest: {
-        singleListingPath: string;
-      };
-      expectation: {
-        listingPathPrefix: string;
-      };
-    }>("base", [
-      {
-        base: "",
-        manifest: {
-          singleListingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
-        },
-        expectation: {
-          listingPathPrefix: `${Timestamp.PRESENT}`,
-        },
-      },
-      {
-        base: "backups",
-        manifest: {
-          singleListingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
-        },
-        expectation: {
-          listingPathPrefix: `backups/${Timestamp.PRESENT}`,
-        },
-      },
-      {
-        base: "/backups",
-        manifest: {
-          singleListingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
-        },
-        expectation: {
-          listingPathPrefix: `/backups/${Timestamp.PRESENT}`,
-        },
-      },
-      {
-        base: "backups/postgresql",
-        manifest: {
-          singleListingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
-        },
-        expectation: {
-          listingPathPrefix: `backups/postgresql/${Timestamp.PRESENT}`,
-        },
-      },
-      {
-        base: "/backups/postgresql",
-        manifest: {
-          singleListingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
-        },
-        expectation: {
-          listingPathPrefix: `/backups/postgresql/${Timestamp.PRESENT}`,
-        },
-      },
-    ]);
-    it.each(collection.testCases)("relativizes selected artifacts to base prefix: %s", async (testCase) => {
-      const {
-        base,
-        manifest: { singleListingPath },
-        expectation,
-      } = collection.get(testCase);
-      // given
-      const { filesystem, ...readWriteFns } = createReadWriteFns();
-      persistInFilesystem({
-        base,
-        filesystem,
-        listingArtifacts: ["test-file.txt"],
-        manifest: {
-          object: "manifest",
-          items: [
-            {
-              version: Timestamp.PRESENT,
-              totalSize: 1,
-              listingPath: singleListingPath,
-            },
-          ],
-        },
+      listingPathPrefix: string;
+    }> = [
+      { base: "", listingPathPrefix: `${Timestamp.PRESENT}` },
+      { base: "backups", listingPathPrefix: `backups/${Timestamp.PRESENT}` },
+      { base: "/backups", listingPathPrefix: `/backups/${Timestamp.PRESENT}` },
+      { base: "backups/postgresql", listingPathPrefix: `backups/postgresql/${Timestamp.PRESENT}` },
+      { base: "/backups/postgresql", listingPathPrefix: `/backups/postgresql/${Timestamp.PRESENT}` },
+    ];
+    for (const { base, listingPathPrefix } of selectRelativizeCases) {
+      it(`relativizes selected artifacts to base prefix: ${base}`, async () => {
+        // given
+        const { filesystem, ...readWriteFns } = createReadWriteFns();
+        persistInFilesystem({
+          base,
+          filesystem,
+          listingArtifacts: ["test-file.txt"],
+          manifest: {
+            object: "manifest",
+            items: [
+              {
+                version: Timestamp.PRESENT,
+                totalSize: 1,
+                listingPath: `${Timestamp.PRESENT}/__brespi_listing__.json`,
+              },
+            ],
+          },
+        });
+        // when
+        const { selectableArtifacts } = await capability.select({
+          mutexKey: [],
+          base,
+          configuration: { target: "latest" },
+          ...readWriteFns,
+        });
+        // then
+        expect(selectableArtifacts).toHaveLength(1);
+        expect(selectableArtifacts[0].path).toEqual(`${listingPathPrefix}/test-file.txt`);
+        expect(selectableArtifacts[0].name).toEqual("test-file.txt");
       });
-      // when
-      const { selectableArtifacts } = await capability.select({
-        mutexKey: [],
-        base,
-        configuration: { target: "latest" },
-        ...readWriteFns,
-      });
-      // then
-      expect(selectableArtifacts).toHaveLength(1);
-      expect(selectableArtifacts[0].path).toEqual(`${expectation.listingPathPrefix}/test-file.txt`);
-      expect(selectableArtifacts[0].name).toEqual("test-file.txt");
-    });
+    }
   });
 
   function createReadWriteFns(): ManagedStorageCapability.ReadWriteFns & { filesystem: Record<string, string> } {

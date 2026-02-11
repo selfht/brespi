@@ -377,7 +377,6 @@ export function pipelines$idPage() {
       }
       // Relation events
       if (event === CanvasEvent.relation) {
-        // TODO ---- trigger this part of the code after creating/updating/deleting a step? below should give the latest status?
         mainForm.setValue(
           "steps",
           mainForm.getValues("steps").map((step): Step => {

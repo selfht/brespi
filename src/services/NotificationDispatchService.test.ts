@@ -4,7 +4,6 @@ import { NotificationPolicy } from "@/models/NotificationPolicy";
 import { Outcome } from "@/models/Outcome";
 import { TestEnvironment } from "@/testing/TestEnvironment.test";
 import { TestFixture } from "@/testing/TestFixture.test";
-import { TestUtils } from "@/testing/TestUtils.test";
 import { beforeEach, describe, expect, it, spyOn } from "bun:test";
 import { chmod } from "fs/promises";
 import { join } from "path";
@@ -37,7 +36,7 @@ describe(NotificationDispatchService.name, async () => {
     const tc = <E extends EventSubscription.EligibleEvent>(s: TestCase<E>): TestCase => {
       return s as unknown as TestCase;
     };
-    const collection = TestUtils.createCollection<TestCase>("description", [
+    const testCases: TestCase[] = [
       tc({
         description: "execution_started",
         event: TestFixture.createEvent(Event.Type.execution_started, { data: { execution: { pipelineId: PIPELINE_ID } } }),
@@ -57,24 +56,25 @@ describe(NotificationDispatchService.name, async () => {
         }),
         expectation: (e) => new RegExp(`failed.*${e.data.execution.pipelineId}`, "is"),
       }),
-    ]);
-    it.each(collection.testCases)("posts to slack: %s", async (testCase) => {
-      const { event, expectation } = collection.get(testCase);
-      // given
-      context.patchEnvironmentVariables({ MY_SLACK_WEBHOOK: "https://hooks.slack.com/test" });
+    ];
+    for (const { description, event, expectation } of testCases) {
+      it(`posts to slack: ${description}`, async () => {
+        // given
+        context.patchEnvironmentVariables({ MY_SLACK_WEBHOOK: "https://hooks.slack.com/test" });
 
-      // when
-      const policy = slackPolicy("${MY_SLACK_WEBHOOK}");
-      await service.dispatch(policy, event);
+        // when
+        const policy = slackPolicy("${MY_SLACK_WEBHOOK}");
+        await service.dispatch(policy, event);
 
-      // then
-      expect(context.yesttpMock.post).toHaveBeenCalledTimes(1);
-      expect(context.yesttpMock.post).toHaveBeenCalledWith("https://hooks.slack.com/test", {
-        body: {
-          text: expect.stringMatching(expectation(event)),
-        },
+        // then
+        expect(context.yesttpMock.post).toHaveBeenCalledTimes(1);
+        expect(context.yesttpMock.post).toHaveBeenCalledWith("https://hooks.slack.com/test", {
+          body: {
+            text: expect.stringMatching(expectation(event)),
+          },
+        });
       });
-    });
+    }
 
     it("logs an error when the webhook env var is missing", async () => {
       // given
@@ -122,7 +122,7 @@ describe(NotificationDispatchService.name, async () => {
       return s as unknown as TestCase;
     };
 
-    const collection = TestUtils.createCollection<TestCase>("description", [
+    const testCases: TestCase[] = [
       tc({
         description: "execution_started",
         event: TestFixture.createEvent(Event.Type.execution_started, { data: { execution: { pipelineId: PIPELINE_ID } } }),
@@ -145,33 +145,34 @@ describe(NotificationDispatchService.name, async () => {
           BRESPI_DURATION_MS: e.data.execution.result!.duration.total("milliseconds").toString(),
         }),
       }),
-    ]);
-    it.each(collection.testCases)("runs a script with correct environment variables: %s", async (testCase) => {
-      const { event, expectationFn } = collection.get(testCase);
-      const expectation = expectationFn(event);
-      // given
-      const outputPath = join(context.scratchpad, "output.txt");
-      const scriptPath = await saveScript(`
-        #!/bin/bash
-        env | grep ^BRESPI_ > ${outputPath}
-      `);
+    ];
+    for (const { description, event, expectationFn } of testCases) {
+      it(`runs a script with correct environment variables: ${description}`, async () => {
+        const expectation = expectationFn(event);
+        // given
+        const outputPath = join(context.scratchpad, "output.txt");
+        const scriptPath = await saveScript(`
+          #!/bin/bash
+          env | grep ^BRESPI_ > ${outputPath}
+        `);
 
-      // when
-      const policy = customScriptPolicy(scriptPath);
-      await service.dispatch(policy, event);
+        // when
+        const policy = customScriptPolicy(scriptPath);
+        await service.dispatch(policy, event);
 
-      // then
-      const output = await Bun.file(outputPath).text();
-      const outputEnvVarAssignmentCount = (output.match(/BRESPI_/g) || []).length;
-      const expectedEnvVarAssignmentCount = Object.entries(expectation).length;
-      expect(
-        outputEnvVarAssignmentCount,
-        `Expected ${expectedEnvVarAssignmentCount} but encountered ${outputEnvVarAssignmentCount} "BRESPI_" lines`,
-      ).toEqual(expectedEnvVarAssignmentCount);
-      Object.entries(expectation).forEach(([key, value]) => {
-        expect(output).toContain(`${key}=${value}`);
+        // then
+        const output = await Bun.file(outputPath).text();
+        const outputEnvVarAssignmentCount = (output.match(/BRESPI_/g) || []).length;
+        const expectedEnvVarAssignmentCount = Object.entries(expectation).length;
+        expect(
+          outputEnvVarAssignmentCount,
+          `Expected ${expectedEnvVarAssignmentCount} but encountered ${outputEnvVarAssignmentCount} "BRESPI_" lines`,
+        ).toEqual(expectedEnvVarAssignmentCount);
+        Object.entries(expectation).forEach(([key, value]) => {
+          expect(output).toContain(`${key}=${value}`);
+        });
       });
-    });
+    }
 
     it("logs an error when script execution fails", async () => {
       // given

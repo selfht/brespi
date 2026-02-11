@@ -1,9 +1,8 @@
-import { TestUtils } from "@/testing/TestUtils.test";
 import { describe, expect, it } from "bun:test";
 import { CommandRunner } from "./CommandRunner";
 
 describe(CommandRunner.name, () => {
-  const successCollection = TestUtils.createCollection<{
+  const testCases: Array<{
     description: string;
     cmd: string[];
     expectation: {
@@ -12,7 +11,7 @@ describe(CommandRunner.name, () => {
       stderr: string;
       stdallContains?: string[];
     };
-  }>("description", [
+  }> = [
     {
       description: "captures stdout only",
       cmd: ["sh", "-c", "echo 'hello stdout'"],
@@ -82,24 +81,23 @@ describe(CommandRunner.name, () => {
         stdallContains: ["A", "B", "C", "D", "E"],
       },
     },
-  ]);
-
-  it.each(successCollection.testCases)("%s", async (testCase) => {
-    // given
-    const { cmd, expectation } = successCollection.get(testCase);
-    // when
-    const result = await CommandRunner.run({ cmd });
-    // then
-    expect(result.exitCode).toBe(expectation.exitCode);
-    expect(result.stdout).toBe(expectation.stdout);
-    expect(result.stderr).toBe(expectation.stderr);
-    if (expectation.stdallContains) {
-      for (const str of expectation.stdallContains) {
-        expect(result.stdall).toContain(str);
+  ];
+  for (const { description, cmd, expectation } of testCases) {
+    it(description, async () => {
+      // when
+      const result = await CommandRunner.run({ cmd });
+      // then
+      expect(result.exitCode).toBe(expectation.exitCode);
+      expect(result.stdout).toBe(expectation.stdout);
+      expect(result.stderr).toBe(expectation.stderr);
+      if (expectation.stdallContains) {
+        for (const str of expectation.stdallContains) {
+          expect(result.stdall).toContain(str);
+        }
       }
-    }
-    expect(result.stdall.length).toBe(result.stdout.length + result.stderr.length);
-  });
+      expect(result.stdall.length).toBe(result.stdout.length + result.stderr.length);
+    });
+  }
 
   it("stdall contains all output from both streams", async () => {
     // given

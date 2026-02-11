@@ -1,4 +1,3 @@
-import { TestUtils } from "@/testing/TestUtils.test";
 import { Temporal } from "@js-temporal/polyfill";
 import { describe, expect, it } from "bun:test";
 import { Version } from "./Version";
@@ -27,10 +26,10 @@ describe("Temporal.Instant (behavior verification)", () => {
 });
 
 describe(Version.now.name, () => {
-  const truncateCollection = TestUtils.createCollection<{
+  const truncateCases: Array<{
     timestamp: string;
     expectedVersion: string;
-  }>("timestamp", [
+  }> = [
     { timestamp: "2018-01-13T15:19:36.469576466+00:00[UTC]", expectedVersion: "2018-01-13T15:19:36.469+00:00" },
     { timestamp: "2019-02-13T15:25:17.673917671+00:00[UTC]", expectedVersion: "2019-02-13T15:25:17.673+00:00" },
     { timestamp: "2020-03-13T15:25:49.66294966+00:00[UTC]", expectedVersion: "2020-03-13T15:25:49.662+00:00" },
@@ -41,14 +40,15 @@ describe(Version.now.name, () => {
     { timestamp: "2025-08-13T15:26:17.5+00:00[UTC]", expectedVersion: "2025-08-13T15:26:17.500+00:00" },
     { timestamp: "2026-09-13T15:26:22.113982111+00:00[UTC]", expectedVersion: "2026-09-13T15:26:22.113+00:00" },
     { timestamp: "2025-07-10T09:15:00.200123456-04:00[America/New_York]", expectedVersion: "2025-07-10T09:15:00.200-04:00" },
-  ]);
-  it.each(truncateCollection.testCases)("truncates to millisecond precision: %s", (testCase) => {
-    const { timestamp, expectedVersion } = truncateCollection.get(testCase);
-    // Simulate what Version.now does: given a ZonedDateTime, format as offset-only with 3 fractional digits
-    const zdt = Temporal.ZonedDateTime.from(timestamp);
-    const result = `${zdt.toPlainDateTime().toString({ fractionalSecondDigits: 3 })}${zdt.offset}`;
-    expect(result).toEqual(expectedVersion);
-  });
+  ];
+  for (const { timestamp, expectedVersion } of truncateCases) {
+    it(`truncates to millisecond precision: ${timestamp}`, () => {
+      // Simulate what Version.now does: given a ZonedDateTime, format as offset-only with 3 fractional digits
+      const zdt = Temporal.ZonedDateTime.from(timestamp);
+      const result = `${zdt.toPlainDateTime().toString({ fractionalSecondDigits: 3 })}${zdt.offset}`;
+      expect(result).toEqual(expectedVersion);
+    });
+  }
 
   it("produces offset-only format without timezone brackets", () => {
     const result = Version.now("UTC");

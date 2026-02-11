@@ -1,10 +1,9 @@
-import { TestUtils } from "@/testing/TestUtils.test";
 import { describe, expect, it } from "bun:test";
 import { UrlParser } from "./UrlParser";
 
 describe("UrlParser", () => {
   describe(UrlParser.postgresql.name, () => {
-    const successCollection = TestUtils.createCollection<{
+    const successCases: Array<{
       url: string;
       expectation: {
         username: string;
@@ -12,7 +11,7 @@ describe("UrlParser", () => {
         host: string;
         port?: string;
       };
-    }>("url", [
+    }> = [
       {
         url: "postgresql://kim:possible@magicalhost.com:9482/database",
         expectation: {
@@ -109,59 +108,59 @@ describe("UrlParser", () => {
           port: "5432",
         },
       },
-    ]);
-    it.each(successCollection.testCases)("%s", async (testCase) => {
-      const { url, expectation } = successCollection.get(testCase);
-      // when
-      const parts = UrlParser.postgresql(url);
-      // then
-      expect(parts).toEqual(expectation);
-    });
+    ];
+    for (const { url, expectation } of successCases) {
+      it(url, async () => {
+        // when
+        const parts = UrlParser.postgresql(url);
+        // then
+        expect(parts).toEqual(expectation);
+      });
+    }
 
-    const errorCollection = TestUtils.createCollection<{
+    const errorCases: Array<{
       description: string;
       url: string;
-      expectation: {
-        error: string;
-      };
-    }>("description", [
+      error: string;
+    }> = [
       {
         description: "missing username",
         url: "postgresql://:password@host.com:5432",
-        expectation: { error: "Username is required in connection URL" },
+        error: "Username is required in connection URL",
       },
       {
         description: "missing password",
         url: "postgresql://user@host.com:5432",
-        expectation: { error: "Password is required in connection URL" },
+        error: "Password is required in connection URL",
       },
       {
         description: "missing host",
         url: "postgresql://user:pass@:5432",
-        expectation: { error: "Invalid URL format" },
+        error: "Invalid URL format",
       },
       {
         description: "invalid protocol",
         url: "mariadb://user:pass@host.com:3306",
-        expectation: { error: "Invalid protocol: mariadb:. Expected 'postgresql:' or 'postgres:'" },
+        error: "Invalid protocol: mariadb:. Expected 'postgresql:' or 'postgres:'",
       },
       {
         description: "invalid URL",
         url: "not a url at all",
-        expectation: { error: "Invalid URL format" },
+        error: "Invalid URL format",
       },
-    ]);
-    it.each(errorCollection.testCases)("error: %s", async (testCase) => {
-      const { url, expectation } = errorCollection.get(testCase);
-      // when
-      const action = () => UrlParser.postgresql(url);
-      // then
-      expect(action).toThrow(expectation.error);
-    });
+    ];
+    for (const { description, url, error } of errorCases) {
+      it(`error: ${description}`, async () => {
+        // when
+        const action = () => UrlParser.postgresql(url);
+        // then
+        expect(action).toThrow(error);
+      });
+    }
   });
 
   describe(UrlParser.mariadb.name, () => {
-    const successCollection = TestUtils.createCollection<{
+    const successCases: Array<{
       url: string;
       expectation: {
         username: string;
@@ -169,7 +168,7 @@ describe("UrlParser", () => {
         host: string;
         port?: string;
       };
-    }>("url", [
+    }> = [
       {
         url: "mariadb://kim:possible@magicalhost.com:3306/database",
         expectation: {
@@ -266,54 +265,54 @@ describe("UrlParser", () => {
           port: "3306",
         },
       },
-    ]);
-    it.each(successCollection.testCases)("%s", async (testCase) => {
-      const { url, expectation } = successCollection.get(testCase);
-      // when
-      const parts = UrlParser.mariadb(url);
-      // then
-      expect(parts).toEqual(expectation);
-    });
+    ];
+    for (const { url, expectation } of successCases) {
+      it(url, async () => {
+        // when
+        const parts = UrlParser.mariadb(url);
+        // then
+        expect(parts).toEqual(expectation);
+      });
+    }
 
-    const errorCollection = TestUtils.createCollection<{
+    const errorCases: Array<{
       description: string;
       url: string;
-      expectation: {
-        error: string;
-      };
-    }>("description", [
+      error: string;
+    }> = [
       {
         description: "missing username",
         url: "mariadb://:password@host.com:3306",
-        expectation: { error: "Username is required in connection URL" },
+        error: "Username is required in connection URL",
       },
       {
         description: "missing password",
         url: "mariadb://user@host.com:3306",
-        expectation: { error: "Password is required in connection URL" },
+        error: "Password is required in connection URL",
       },
       {
         description: "missing host",
         url: "mariadb://user:pass@:3306",
-        expectation: { error: "Invalid URL format" },
+        error: "Invalid URL format",
       },
       {
         description: "invalid protocol",
         url: "postgresql://user:pass@host.com:5432",
-        expectation: { error: "Invalid protocol: postgresql:. Expected 'mariadb:' or 'mysql:'" },
+        error: "Invalid protocol: postgresql:. Expected 'mariadb:' or 'mysql:'",
       },
       {
         description: "invalid URL",
         url: "not a url at all",
-        expectation: { error: "Invalid URL format" },
+        error: "Invalid URL format",
       },
-    ]);
-    it.each(errorCollection.testCases)("error: %s", async (testCase) => {
-      const { url, expectation } = errorCollection.get(testCase);
-      // when
-      const action = () => UrlParser.mariadb(url);
-      // then
-      expect(action).toThrow(expectation.error);
-    });
+    ];
+    for (const { description, url, error } of errorCases) {
+      it(`error: ${description}`, async () => {
+        // when
+        const action = () => UrlParser.mariadb(url);
+        // then
+        expect(action).toThrow(error);
+      });
+    }
   });
 });

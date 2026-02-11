@@ -58,7 +58,6 @@ export function PolicyEditor({ className, gridClassName, existing, onSave, onDel
       const policy = existing
         ? await notificationClient.updatePolicy(existing.id, request)
         : await notificationClient.createPolicy(request);
-      // TODO: check if the slack webhook is plaintext, or reference as well
       onSave(policy);
     } catch (e) {
       form.setError("root", {

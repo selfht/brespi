@@ -3,7 +3,6 @@ import { NotificationService } from "./NotificationService";
 import { PipelineService } from "./PipelineService";
 import { ScheduleService } from "./ScheduleService";
 import { TestEnvironment } from "@/testing/TestEnvironment.test";
-import { TestUtils } from "@/testing/TestUtils.test";
 import { NotificationChannel } from "@/models/NotificationChannel";
 import { TestFixture } from "@/testing/TestFixture.test";
 import { Step } from "@/models/Step";
@@ -40,7 +39,7 @@ describe("resource sorting", async () => {
     context.notificationDispatchServiceMock.cast(),
   );
 
-  const collection = TestUtils.createCollection<TestCase>("type", [
+  const testCases: TestCase[] = [
     {
       type: "pipelines",
       createFn: (index) =>
@@ -76,21 +75,22 @@ describe("resource sorting", async () => {
       retrieveIndexFn: (resource) => Number(((resource as NotificationPolicy).channel as NotificationChannel.CustomScript).path),
       sortDirectlyFn: (r1, r2) => NotificationPolicy.sortNewToOld(r1 as NotificationPolicy, r2 as NotificationPolicy),
     },
-  ]);
-  it.each(collection.testCases)("queries '%s' from new to old", async (tc) => {
-    const { createFn, queryFn, retrieveIndexFn, sortDirectlyFn } = collection.get(tc);
-    // given
-    const range = { min: 0, max: 49 } as const;
-    for (let i = range.min; i <= range.max; i++) {
-      await createFn(i);
-    }
-    // when
-    const queriedResults = await queryFn();
-    const sortedResults = queriedResults.toSorted(sortDirectlyFn);
-    for (let i = range.min; i <= range.max; i++) {
-      // then
-      expect(retrieveIndexFn(queriedResults[i])).toEqual(range.max - i);
-      expect(retrieveIndexFn(sortedResults[i])).toEqual(range.max - i);
-    }
-  });
+  ];
+  for (const { type, createFn, queryFn, retrieveIndexFn, sortDirectlyFn } of testCases) {
+    it(`queries '${type}' from new to old`, async () => {
+      // given
+      const range = { min: 0, max: 49 } as const;
+      for (let i = range.min; i <= range.max; i++) {
+        await createFn(i);
+      }
+      // when
+      const queriedResults = await queryFn();
+      const sortedResults = queriedResults.toSorted(sortDirectlyFn);
+      for (let i = range.min; i <= range.max; i++) {
+        // then
+        expect(retrieveIndexFn(queriedResults[i])).toEqual(range.max - i);
+        expect(retrieveIndexFn(sortedResults[i])).toEqual(range.max - i);
+      }
+    });
+  }
 });

@@ -1,4 +1,3 @@
-import { TestUtils } from "@/testing/TestUtils.test";
 import { Class } from "@/types/Class";
 import { describe, expect, it } from "bun:test";
 import { readdir } from "fs/promises";

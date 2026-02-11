@@ -1,6 +1,5 @@
 import { Artifact } from "@/models/Artifact";
 import { Step } from "@/models/Step";
-import { TestUtils } from "@/testing/TestUtils.test";
 import { describe, expect, it } from "bun:test";
 import { FilterCapability } from "./FilterCapability";
 
@@ -8,12 +7,12 @@ describe(FilterCapability.name, () => {
   const capability = new FilterCapability();
 
   describe("exact filtering", () => {
-    const collection = TestUtils.createCollection<{
+    const testCases: Array<{
       description: string;
       artifacts: string[];
       name: string;
       expectation: string[];
-    }>("description", [
+    }> = [
       {
         description: "matches exact name",
         artifacts: ["backup-db", "backup-files", "backup-db-copy"],
@@ -32,25 +31,26 @@ describe(FilterCapability.name, () => {
         name: "backup",
         expectation: ["backup", "backup"],
       },
-    ]);
-    it.each(collection.testCases)("%s", async (testCase) => {
-      const { artifacts, name, expectation } = collection.get(testCase);
-      // when
-      const filtered = applyFilter(artifacts, {
-        method: "exact",
-        name,
+    ];
+    for (const { description, artifacts, name, expectation } of testCases) {
+      it(description, async () => {
+        // when
+        const filtered = applyFilter(artifacts, {
+          method: "exact",
+          name,
+        });
+        // then
+        expect(filtered).toEqual(expectation);
       });
-      // then
-      expect(filtered).toEqual(expectation);
-    });
+    }
   });
 
   describe("glob filtering", () => {
-    const collection = TestUtils.createCollection<{
+    const testCases: Array<{
       pattern: string;
       artifacts: string[];
       expectation: string[];
-    }>("pattern", [
+    }> = [
       // Simple tests
       { pattern: "*ll*", artifacts: ["hello", "goodbye"], expectation: ["hello"] },
       { pattern: "*e*", artifacts: ["hello", "goodbye"], expectation: ["hello", "goodbye"] },
@@ -100,26 +100,27 @@ describe(FilterCapability.name, () => {
       // Edge cases
       { pattern: "", artifacts: ["", "something"], expectation: [""] },
       { pattern: "???", artifacts: ["abc", "ab", "abcd"], expectation: ["abc"] },
-    ]);
-    it.each(collection.testCases)("matches: %s", async (testCase) => {
-      const { artifacts, pattern, expectation } = collection.get(testCase);
-      // when
-      const filtered = applyFilter(artifacts, {
-        method: "glob",
-        nameGlob: pattern,
+    ];
+    for (const { pattern, artifacts, expectation } of testCases) {
+      it(`matches: ${pattern}`, async () => {
+        // when
+        const filtered = applyFilter(artifacts, {
+          method: "glob",
+          nameGlob: pattern,
+        });
+        // then
+        expect(filtered).toEqual(expectation);
       });
-      // then
-      expect(filtered).toEqual(expectation);
-    });
+    }
   });
 
   describe("regex filtering", () => {
-    const collection = TestUtils.createCollection<{
+    const testCases: Array<{
       description: string;
       artifacts: string[];
       nameRegex: string;
       expectation: string[];
-    }>("description", [
+    }> = [
       {
         description: "matches with simple regex",
         artifacts: ["backup-01", "backup-02", "restore-01"],
@@ -144,17 +145,18 @@ describe(FilterCapability.name, () => {
         nameRegex: "backup",
         expectation: ["backup-db", "db-backup"],
       },
-    ]);
-    it.each(collection.testCases)("%s", async (testCase) => {
-      const { artifacts, nameRegex, expectation } = collection.get(testCase);
-      // when
-      const filtered = applyFilter(artifacts, {
-        method: "regex",
-        nameRegex,
+    ];
+    for (const { description, artifacts, nameRegex, expectation } of testCases) {
+      it(description, async () => {
+        // when
+        const filtered = applyFilter(artifacts, {
+          method: "regex",
+          nameRegex,
+        });
+        // then
+        expect(filtered).toEqual(expectation);
       });
-      // then
-      expect(filtered).toEqual(expectation);
-    });
+    }
   });
 
   function applyFilter(artifacts: string[], criteria: Step.FilterCriteria): string[] {
