@@ -12,34 +12,52 @@ type Props = {
 export function CronEvaluations({ className, expression }: Props) {
   expression = expression.trim();
   const scheduleClient = useRegistry(ScheduleClient);
+  const [evaluations, setEvaluations] = useState<Temporal.PlainDateTime[]>([]);
 
-  const [evaluations, setEvaluations] = useState<Temporal.PlainDateTime[]>();
   useEffect(() => {
-    if (expression) {
-      scheduleClient.nextCronEvaluations({ expression, amount: 10 }).then(setEvaluations);
+    if (!expression) {
+      setEvaluations([]);
+      return;
     }
-  }, [expression]);
 
-  useEffect(() => {
-    const validateList = () =>
+    let cancelled = false;
+    let fetching = false;
+
+    const fetchBatch = async () => {
+      if (fetching) return;
+      fetching = true;
+      try {
+        const result = await scheduleClient.nextCronEvaluations({ expression, amount: 100 });
+        if (!cancelled) setEvaluations(result ?? []);
+      } finally {
+        fetching = false;
+      }
+    };
+
+    setEvaluations([]);
+    fetchBatch();
+
+    const token = setInterval(() => {
+      if (cancelled) return;
+      const now = Temporal.Now.plainDateTimeISO();
       setEvaluations((current) => {
-        const now = Temporal.Now.plainDateTimeISO();
-        return current?.filter((e) => Temporal.PlainDateTime.compare(e, now) > 0);
+        const filtered = current.filter((e) => Temporal.PlainDateTime.compare(e, now) > 0);
+        if (filtered.length > 0 && filtered.length < 8) {
+          fetchBatch();
+        }
+        return filtered.length !== current.length ? filtered : current;
       });
-    const token = setInterval(validateList, 100);
-    return () => clearInterval(token);
-  }, []);
+    }, 100);
 
-  const requiresRefresh = !evaluations || evaluations.length < 5;
-  useEffect(() => {
-    if (expression && requiresRefresh) {
-      scheduleClient.nextCronEvaluations({ expression, amount: 10 }).then(setEvaluations);
-    }
-  }, [expression, requiresRefresh]);
+    return () => {
+      cancelled = true;
+      clearInterval(token);
+    };
+  }, [expression]);
 
   return (
     <div className={clsx(className, "flex flex-col items-start gap-1")}>
-      {evaluations?.slice(0, 3).map((nextCronEvaluation, index) => (
+      {evaluations.slice(0, 3).map((nextCronEvaluation, index) => (
         <div
           key={nextCronEvaluation.toString()}
           className="truncate"
