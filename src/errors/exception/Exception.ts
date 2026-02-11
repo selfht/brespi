@@ -5,11 +5,22 @@ import { Json } from "@/types/Json";
 export class Exception<D extends Record<string, Json> = Record<string, Json>> extends Error {
   public static readonly NAMESPACE = "@brespi/Exception";
 
-  public static initializeFields(klass: Class) {
-    const group = klass.name;
-    for (const key of Object.keys(klass)) {
+  public static initializeFields(klass: Class & { _NAME_: string }) {
+    const group = klass._NAME_;
+    for (const key of Object.keys(klass).filter((key) => key !== ("_NAME_" satisfies keyof typeof klass))) {
+      const problem = `${group}::${key}`;
+      const exceptionFn = (details?: Record<string, Json>) => new Exception(problem, details);
+      exceptionFn.matches = (otherProblem: unknown) => {
+        if (typeof otherProblem === "string") {
+          return otherProblem === problem;
+        }
+        if (ProblemDetails.isInstance(otherProblem)) {
+          return otherProblem.problem === problem;
+        }
+        return false;
+      };
       Object.assign(klass, {
-        [key]: ((details?: Record<string, Json>) => new Exception(`${group}::${key}`, details)) satisfies Exception.Fn,
+        [key]: exceptionFn satisfies Exception.Fn,
       });
     }
   }
@@ -32,9 +43,10 @@ export class Exception<D extends Record<string, Json> = Record<string, Json>> ex
 }
 
 export namespace Exception {
+  type WithMatcher<T> = T & { matches(otherProblem: unknown): boolean };
   export type Fn<T extends Record<string, Json> | void = void> = T extends void
-    ? (details?: Record<string, Json>) => Exception
-    : (details: T) => Exception;
+    ? WithMatcher<(details?: Record<string, Json>) => Exception>
+    : WithMatcher<(details: T) => Exception>;
 
   export function isInstance<D extends Record<string, Json>>(e: any, specific: Exception.Fn<D>): e is Exception<D>;
   export function isInstance(e: any): e is Exception;

@@ -19,6 +19,7 @@ import { ScheduleService } from "./services/ScheduleService";
 import { StepService } from "./services/StepService";
 import { Socket } from "./socket/Socket";
 import { PipelineView } from "./views/PipelineView";
+import { Temporal } from "@js-temporal/polyfill";
 
 export class Server {
   public constructor(
@@ -201,6 +202,12 @@ export class Server {
           DELETE: this.handleRoute(async (request) => {
             const schedule: Schedule = await this.scheduleService.delete(request.params.id);
             return Response.json(schedule);
+          }),
+        },
+        "/api/schedules/evaluate-cron-expression": {
+          POST: this.handleRoute(async (request) => {
+            const evaluations: Temporal.PlainDateTime[] = this.scheduleService.evaluateCronExpression(await request.json());
+            return Response.json(evaluations);
           }),
         },
 

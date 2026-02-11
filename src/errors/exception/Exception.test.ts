@@ -6,36 +6,50 @@ import { join } from "path";
 import { Exception } from "./Exception";
 
 describe(Exception.name, async () => {
-  const collection = TestUtils.createCollection("name", await findErrorClassesInParentFolder());
-  it.each(collection.testCases)("initializes the fields of %s", (testCase) => {
-    const { klass } = collection.get(testCase);
-    // given
-    const fields = Object.keys(klass);
-
-    // when
-    fields.forEach((field) => {
-      const exceptionFn = (klass as any)[field] as Exception.Fn;
-      expect(exceptionFn).toBeDefined();
-      const exception = exceptionFn();
-
+  for (const klass of await findErrorClassesInParentFolder()) {
+    const nameProperty = "_NAME_" as const;
+    it(`assigns a correct ${nameProperty} field to ${klass.name}`, () => {
+      // given
+      if (!(nameProperty in klass && typeof klass[nameProperty] === "string")) {
+        throw new Error(`Missing static ${nameProperty} string property`);
+      }
+      // when
+      const nameValue = klass[nameProperty];
       // then
-      expect(exception).toEqual(
-        expect.objectContaining({
-          problem: `${klass.name}::${field}`,
-        }),
-      );
+      expect(nameValue).toEqual(klass.name);
     });
-  });
+
+    it(`initializes the fields of ${klass.name}`, () => {
+      // given
+      const fields = Object.keys(klass);
+
+      // when
+      fields
+        .filter((key) => key !== nameProperty)
+        .forEach((field) => {
+          const exceptionFn = (klass as any)[field] as Exception.Fn;
+          expect(exceptionFn).toBeDefined();
+          const exception = exceptionFn();
+
+          // then
+          expect(exception).toEqual(
+            expect.objectContaining({
+              problem: `${klass.name}::${field}`,
+            }),
+          );
+        });
+    });
+  }
 
   async function findErrorClassesInParentFolder() {
-    const result: Array<{ klass: Class; name: string }> = [];
+    const result: Class[] = [];
     const errorEntries = await readdir(join(import.meta.dir, ".."));
     for (const errorEntry of errorEntries) {
       const match = errorEntry.match(/(\w+Error)\.ts/);
       if (match) {
         const klassName = match[1];
         const klass = await import(join("..", klassName)).then((m) => m[klassName]);
-        result.push({ klass, name: klass.name });
+        result.push(klass);
       }
     }
     expect(result.length).toBeGreaterThan(0);

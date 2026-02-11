@@ -1,6 +1,7 @@
 import { Exception } from "./exception/Exception";
 
 export class ExecutionError {
+  public static readonly _NAME_ = "ExecutionError";
   // general
   public static readonly not_found: Exception.Fn;
   public static readonly already_exists: Exception.Fn;

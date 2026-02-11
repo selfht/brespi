@@ -7,6 +7,7 @@ import { Configuration } from "@/models/Configuration";
 import { Schedule } from "@/models/Schedule";
 import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { ScheduleRepository } from "@/repositories/ScheduleRepository";
+import { Temporal } from "@js-temporal/polyfill";
 import { Cron } from "croner";
 import z from "zod/v4";
 import { ExecutionService } from "./ExecutionService";
@@ -71,6 +72,24 @@ export class ScheduleService {
     return schedule;
   }
 
+  public evaluateCronExpression(unknown: z.output<typeof ScheduleService.EvaluateCronExpression>): Temporal.PlainDateTime[] {
+    const { expression, amount } = ScheduleService.EvaluateCronExpression.parse(unknown);
+    let cron: Cron | undefined = undefined;
+    try {
+      cron = new Cron(expression);
+      const roundedNow = new Date(Math.floor(Date.now() / 1000) * 1000); // Round down to current second for stable results within the same second
+      return cron.nextRuns(amount, roundedNow).map((date) =>
+        Temporal.Instant.fromEpochMilliseconds(date.getTime())
+          .toZonedDateTimeISO(Temporal.Now.timeZoneId()) //
+          .toPlainDateTime(),
+      );
+    } catch (e) {
+      throw ScheduleError.invalid_cron_expression();
+    } finally {
+      cron?.stop();
+    }
+  }
+
   private async deleteForPipeline(pipelineId: string) {
     const schedules = await this.scheduleRepository.query({ pipelineId });
     for (const { id } of schedules) {
@@ -129,6 +148,14 @@ export namespace ScheduleService {
       pipelineId: z.string(),
       active: z.boolean(),
       cron: z.string(),
+    })
+    .catch((e) => {
+      throw ServerError.invalid_request_body(ZodProblem.issuesSummary(e));
+    });
+  export const EvaluateCronExpression = z
+    .object({
+      expression: z.string(),
+      amount: z.number(),
     })
     .catch((e) => {
       throw ServerError.invalid_request_body(ZodProblem.issuesSummary(e));

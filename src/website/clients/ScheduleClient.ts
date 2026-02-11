@@ -1,7 +1,7 @@
+import { ScheduleError } from "@/errors/ScheduleError";
 import { Schedule } from "@/models/Schedule";
 import { OmitBetter } from "@/types/OmitBetter";
 import { Temporal } from "@js-temporal/polyfill";
-import { Cron } from "croner";
 import { Yesttp } from "yesttp";
 
 export class ScheduleClient {
@@ -31,22 +31,32 @@ export class ScheduleClient {
     return Schedule.parse(body);
   }
 
-  // TODO: move this logic to the backend and then perform client-side timezone translation on the returned timestamps
-  public nextCronEvaluations({ expression, amount }: { expression: string; amount: number }): Temporal.PlainDateTime[] | undefined {
-    let cron: Cron | undefined = undefined;
+  public async nextCronEvaluations({
+    expression,
+    amount,
+  }: {
+    expression: string;
+    amount: number;
+  }): Promise<Temporal.PlainDateTime[] | undefined> {
     try {
-      cron = new Cron(expression);
-      // Round down to current second for stable results within the same second
-      const roundedNow = new Date(Math.floor(Date.now() / 1000) * 1000);
-      return cron.nextRuns(amount, roundedNow).map((date) =>
-        Temporal.Instant.fromEpochMilliseconds(date.getTime())
-          .toZonedDateTimeISO(Temporal.Now.timeZoneId()) //
-          .toPlainDateTime(),
-      );
+      const { body } = await this.yesttp.post<string[]>("/schedules/evaluate-cron-expression", {
+        body: { expression, amount },
+      });
+      const timestamps = body
+        .map((x) => Temporal.PlainDateTime.from(x))
+        .map(
+          (timestamp) =>
+            timestamp
+              .toZonedDateTime("UTC") // The timestamp is received in UTC
+              .withTimeZone(Temporal.Now.timeZoneId()) // We convert it to the browser timezone
+              .toPlainDateTime(), // And then we strip the timezone information
+        );
+      return timestamps;
     } catch (e) {
-      return undefined;
-    } finally {
-      cron?.stop();
+      if (ScheduleError.invalid_cron_expression.matches(e)) {
+        return undefined;
+      }
+      throw e;
     }
   }
 }
