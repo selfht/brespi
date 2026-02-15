@@ -504,7 +504,7 @@ export function pipelines$idPage() {
                     selectedExecution &&
                     selectedExecution.result &&
                     selectedExecution.result.outcome === Outcome.error,
-                  "bg-gray-200": interactivity === Interactivity.editing,
+                  "bg-indigo-50": interactivity === Interactivity.editing,
                 })}
               >
                 {mainForm.formState.errors.root?.message && (

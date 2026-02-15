@@ -1,4 +1,5 @@
-type Shade = 50 | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 | 950;
+const shades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
+type Shade = (typeof shades)[number];
 
 export class Color {
   // Custom colors
@@ -32,10 +33,10 @@ export class Color {
   }
 
   static {
-    Object.values(this).forEach((field) => {
-      if (typeof field === "function") {
+    Object.values(this).forEach((fieldFn) => {
+      if (typeof fieldFn === "function") {
         // check if there's any color which throws an error
-        field(100);
+        shades.forEach(fieldFn);
       }
     });
   }

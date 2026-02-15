@@ -55,6 +55,7 @@ This is a work in progress with the following TODO's:
 ### Polish
 * Icons for each different step
 * Add a nice background and a footer link to the org
+* Upgrade all dependencies
 
 ### Distribution
 * Automatically include the application version
