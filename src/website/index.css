@@ -126,9 +126,17 @@
 
     body {
         font-optical-sizing: auto;
-        @apply relative min-w-[320px] min-h-screen
-        font-f-everywhere text-c-primary
-        bg-[url('./images/background/grid.svg')] bg-center bg-size-[30px];
+        @apply relative min-w-[320px] min-h-screen font-f-everywhere text-c-primary;
+        background:
+            url("./images/background/grid.svg") center top / 30px,
+            conic-gradient(
+                from 180deg at 60% 0%,
+                white 0deg,
+                rgb(210 230 255 / 0.45) 90deg,
+                white 180deg,
+                rgb(210 230 255 / 0.35) 270deg,
+                white 360deg
+            );
     }
     #root {
         @apply u-root-grid;

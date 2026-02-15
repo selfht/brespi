@@ -53,8 +53,9 @@ This is a work in progress with the following TODO's:
 * ✅ Handle TODO comments
 
 ### Polish
-* Icons for each different step
-* Add a nice background and a footer link to the org
+* ✅ Icons for each different step
+* ✅ Add a nice background
+* Add a footer link
 * Upgrade all dependencies
 
 ### Distribution

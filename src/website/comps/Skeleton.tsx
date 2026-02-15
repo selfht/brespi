@@ -71,7 +71,7 @@ export namespace Skeleton {
     return (
       <footer className="u-root-grid-minus-gutters my-12 flex flex-col items-center gap-4">
         <div className="text-4xl font-extrabold italic text-c-dark">Brespi</div>
-        <div className="font-mono text-c-dim/60">
+        <div className="font-mono font-extralight text-c-dim/60">
           v{O_BRESPI_VERSION} / {O_BRESPI_COMMIT.slice(0, 7)}
         </div>
         {O_BRESPI_STAGE === "development" && (
