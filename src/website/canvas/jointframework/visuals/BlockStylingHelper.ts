@@ -2,7 +2,7 @@ import { dia } from "@joint/core";
 import { Block } from "../../Block";
 
 export namespace StylingHelper {
-  export function synchronizeBlockStylingWithCell(cell: dia.Cell, { theme, selected, handles }: Block): dia.Cell {
+  export function synchronizeBlockStylingWithCell(cell: dia.Cell, { visualTheme, selected, handles }: Block): dia.Cell {
     const hasInput = handles.includes(Block.Handle.input);
     const hasOutput = handles.includes(Block.Handle.output);
 
@@ -13,9 +13,9 @@ export namespace StylingHelper {
       error: "fill-red-300 stroke-red-500",
       busy: "fill-gray-100 stroke-c-accent",
       unused: "fill-c-canvasblock-unused-inner stroke-c-canvasblock-unused-outer",
-    } satisfies { selected: string } & Record<typeof theme, string>;
+    } satisfies { selected: string } & Record<typeof visualTheme, string>;
 
-    const activeStyle: "selected" | typeof theme = theme === "default" && selected ? "selected" : theme;
+    const activeStyle: "selected" | typeof visualTheme = visualTheme === "default" && selected ? "selected" : visualTheme;
 
     const className = {
       main: catalogue[activeStyle],
@@ -27,7 +27,8 @@ export namespace StylingHelper {
     cell.attr("body/class", className.main);
     (cell as dia.Element).portProp(Block.Handle.input, "attrs/rect/class", className.input);
     (cell as dia.Element).portProp(Block.Handle.output, "attrs/rect/class", className.output);
-    cell.attr("spinner/display", theme === "busy" ? "block" : "none");
+    cell.attr("spinner/display", visualTheme === "busy" ? "block" : "none");
+    cell.attr("stepIcon/display", visualTheme !== "busy" ? "block" : "none");
 
     return cell;
   }

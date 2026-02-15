@@ -9,7 +9,7 @@ export type CalloutData = Pick<
       details: Block.Details;
     }
   >,
-  "theme" | "label" | "details"
+  "visualTheme" | "label" | "details"
 >;
 
 export class CalloutManager {
@@ -17,10 +17,10 @@ export class CalloutManager {
    * Color helpers for callout styling.
    */
   private static readonly colors = {
-    background: () => Color.gray(800),
+    background: () => Color.dark(),
     valueBackground: () => `color-mix(in srgb, ${Color.gray(400)} 20%, transparent)`,
-    forTheme: (theme: Block["theme"]): { border: string; label: string } => {
-      const map: Record<Block["theme"], { border: string; label: string }> = {
+    forTheme: (theme: Block["visualTheme"]): { border: string; label: string } => {
+      const map: Record<Block["visualTheme"], { border: string; label: string }> = {
         default: { border: Color.accent(), label: Color.gray(400) },
         success: { border: Color.green(500), label: Color.green(300) },
         error: { border: Color.red(500), label: Color.red(300) },
@@ -170,8 +170,8 @@ export class CalloutManager {
   }
 
   private renderCallout(data: CalloutData, width: number): SVGGElement {
-    const { theme, label, details } = data;
-    const themeColors = CalloutManager.colors.forTheme(theme);
+    const { visualTheme, label, details } = data;
+    const themeColors = CalloutManager.colors.forTheme(visualTheme);
     const contentWidth = width - Sizing.CALLOUT_PADDING * 2 - Sizing.CALLOUT_BORDER_WIDTH * 2;
 
     // Compute layout

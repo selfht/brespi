@@ -8,6 +8,7 @@ import { Icon } from "../comps/Icon";
 import { Spinner } from "../comps/Spinner";
 import { StepDescription } from "../details/StepDescription";
 import { useRegistry } from "../hooks/useRegistry";
+import { Images } from "../images/Images";
 
 export namespace FormElements {
   type ContainerProps = {
@@ -53,7 +54,10 @@ export namespace FormElements {
           </div>
         ) : (
           <div className="flex flex-col items-start">
-            <h1 className="mb-4 text-2xl font-extralight text-c-dim">{StepDescription.forType(stepType)}</h1>
+            <div className="mb-4 flex items-center gap-3">
+              {Images.Step[stepType] && <img src={Images.Step[stepType]} className="h-10 w-14 object-contain" />}
+              <h1 className="text-2xl font-extralight text-c-dim">{StepDescription.forType(stepType)}</h1>
+            </div>
             <div className="mb-2 text-lg">{children}</div>
             {Object.entries(fieldDescriptions).length > 0 ? (
               fieldCurrentlyActive ? (

@@ -294,7 +294,8 @@ export function pipelines$idPage() {
       if (!existingStep) {
         canvasApi.current?.insert({
           id: stepId,
-          theme: "default",
+          visualIcon: type,
+          visualTheme: "default",
           label: StepDescription.forType(type),
           details: {},
           handles: Internal.convertTypeToHandles(type),
@@ -590,7 +591,8 @@ namespace Internal {
     return {
       id: step.id,
       incomingId: step.previousId,
-      theme: "default",
+      visualIcon: step.type,
+      visualTheme: "default",
       label: StepDescription.forType(step.type),
       details: StepDetails.get(step),
       handles: convertTypeToHandles(step.type),
@@ -601,7 +603,8 @@ namespace Internal {
     return {
       id: action.stepId,
       incomingId: action.previousStepId,
-      theme: !action.startedAt
+      visualIcon: action.stepType as Step.Type,
+      visualTheme: !action.startedAt
         ? "unused"
         : action.startedAt && !action.result
           ? "busy"
@@ -624,19 +627,19 @@ namespace Internal {
     return handles[Step.getCategory({ type })];
   }
 
-  type ActionStatusOverview = Map<string, Block["theme"]>;
+  type ActionStatusOverview = Map<string, Block["visualTheme"]>;
 
   function extractActionStatuses(execution: Execution): ActionStatusOverview {
     const actionsMap: ActionStatusOverview = new Map();
     execution.actions.forEach((action) => {
-      const theme: Block["theme"] = !action.startedAt
+      const visualTheme: Block["visualTheme"] = !action.startedAt
         ? "unused"
         : !action.result
           ? "busy"
           : action.result?.outcome === Outcome.success
             ? "success"
             : "error";
-      actionsMap.set(action.stepId, theme);
+      actionsMap.set(action.stepId, visualTheme);
     });
     return actionsMap;
   }

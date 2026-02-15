@@ -34,6 +34,7 @@ export class RestrictedService {
     await this.purge();
     const { backup: postgresql } = await this.createPostgresqlBackupAndRestore();
     const { backup: mariadb } = await this.createMariadbBackupAndRestore();
+    await this.createEverythingPipeline();
     await this.createSchedule(postgresql);
     await this.createSchedule(mariadb);
     await this.createSlackNotificationPolicy();
@@ -273,6 +274,174 @@ export class RestrictedService {
       restore: await restore(),
       backup: await backup(),
     };
+  }
+
+  private async createEverythingPipeline() {
+    await this.pipelineService.create({
+      name: "The-Everything-Pipeline",
+      steps: [
+        {
+          id: "vuyrysklhiwt",
+          object: "step",
+          type: Step.Type.mariadb_backup,
+          connection: "",
+          toolkit: {
+            resolution: "automatic",
+          },
+          databaseSelection: {
+            method: "all",
+          },
+        },
+        {
+          id: "blgivzxexrwu",
+          previousId: "vuyrysklhiwt",
+          object: "step",
+          type: Step.Type.mariadb_restore,
+          connection: "",
+          toolkit: {
+            resolution: "automatic",
+          },
+          database: "",
+        },
+        {
+          id: "woivjjqictlp",
+          previousId: "blgivzxexrwu",
+          object: "step",
+          type: Step.Type.postgresql_backup,
+          connection: "",
+          toolkit: {
+            resolution: "automatic",
+          },
+          databaseSelection: {
+            method: "all",
+          },
+        },
+        {
+          id: "mezdgpxhyqug",
+          previousId: "woivjjqictlp",
+          object: "step",
+          type: Step.Type.postgresql_restore,
+          connection: "",
+          toolkit: {
+            resolution: "automatic",
+          },
+          database: "",
+        },
+        {
+          id: "lcpahlzwahfr",
+          previousId: "kynhwokfgxuj",
+          object: "step",
+          type: Step.Type.filesystem_read,
+          path: "",
+        },
+        {
+          id: "kynhwokfgxuj",
+          previousId: "vuyrysklhiwt",
+          object: "step",
+          type: Step.Type.filesystem_write,
+          folderPath: "",
+          managedStorage: false,
+        },
+        {
+          id: "zorlwlxpgtlw",
+          previousId: "lcpahlzwahfr",
+          object: "step",
+          type: Step.Type.s3_upload,
+          connection: {
+            bucket: "",
+            endpoint: "",
+            accessKey: "",
+            secretKey: "",
+          },
+          basePrefix: "",
+        },
+        {
+          id: "pzgqfknwiqqy",
+          previousId: "zorlwlxpgtlw",
+          object: "step",
+          type: Step.Type.s3_download,
+          connection: {
+            bucket: "",
+            endpoint: "",
+            accessKey: "",
+            secretKey: "",
+          },
+          basePrefix: "",
+          managedStorage: {
+            target: "latest",
+          },
+        },
+        {
+          id: "ybejyolapxwj",
+          previousId: "vuyrysklhiwt",
+          object: "step",
+          type: Step.Type.compression,
+          algorithm: {
+            implementation: "targzip",
+            level: 9,
+          },
+        },
+        {
+          id: "czwjcjrflywe",
+          previousId: "ybejyolapxwj",
+          object: "step",
+          type: Step.Type.decompression,
+          algorithm: {
+            implementation: "targzip",
+          },
+        },
+        {
+          id: "inwyhlqpmhkz",
+          previousId: "czwjcjrflywe",
+          object: "step",
+          type: Step.Type.encryption,
+          key: "",
+          algorithm: {
+            implementation: "aes256cbc",
+          },
+        },
+        {
+          id: "kgjvphzfwgod",
+          previousId: "inwyhlqpmhkz",
+          object: "step",
+          type: Step.Type.decryption,
+          key: "",
+          algorithm: {
+            implementation: "aes256cbc",
+          },
+        },
+        {
+          id: "rqyghmfuyrua",
+          previousId: "ywcsyqlawrlw",
+          object: "step",
+          type: Step.Type.folder_flatten,
+        },
+        {
+          id: "ywcsyqlawrlw",
+          previousId: "vuyrysklhiwt",
+          object: "step",
+          type: Step.Type.folder_group,
+        },
+        {
+          id: "wbxjqcedkpgp",
+          previousId: "rqyghmfuyrua",
+          object: "step",
+          type: Step.Type.filter,
+          filterCriteria: {
+            method: "exact",
+            name: "",
+          },
+        },
+        {
+          id: "bkvoiikxiuui",
+          previousId: "wbxjqcedkpgp",
+          object: "step",
+          type: Step.Type.custom_script,
+          path: "",
+          passthrough: true,
+        },
+      ],
+    });
   }
 
   private async createSchedule({ id: pipelineId }: { id: string }) {

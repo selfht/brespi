@@ -1,7 +1,10 @@
+import { Step } from "@/models/Step";
+
 export type Block = {
   id: string;
   incomingId?: string;
-  theme: "default" | "success" | "error" | "busy" | "unused";
+  visualIcon: Step.Type;
+  visualTheme: "default" | "success" | "error" | "busy" | "unused";
   label: string;
   details: Block.Details | null;
   handles: Block.Handle[];

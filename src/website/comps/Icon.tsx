@@ -1,23 +1,17 @@
 import clsx from "clsx";
 import { cloneElement, JSX } from "react";
-import closeSvg from "../images/close.svg";
-import errorSvg from "../images/error.svg";
-import newSvg from "../images/new.svg";
-import playSvg from "../images/play.svg";
-import successSvg from "../images/success.svg";
-import trashcanSvg from "../images/trashcan.svg";
-import warningSvg from "../images/warning.svg";
+import { Images } from "../images/Images";
 import { Spinner } from "./Spinner";
 
 type V = Icon.Props["variant"];
 const images: Record<V, JSX.Element> = {
-  success: <img src={successSvg} />,
-  error: <img src={errorSvg} />,
-  new: <img src={newSvg} />,
-  play: <img src={playSvg} />,
-  trashcan: <img src={trashcanSvg} />,
-  close: <img src={closeSvg} />,
-  warning: <img src={warningSvg} />,
+  success: <img src={Images.Icon.success} />,
+  error: <img src={Images.Icon.error} />,
+  new: <img src={Images.Icon.new} />,
+  play: <img src={Images.Icon.play} />,
+  trashcan: <img src={Images.Icon.trashcan} />,
+  close: <img src={Images.Icon.close} />,
+  warning: <img src={Images.Icon.warning} />,
   loading: <Spinner />,
 };
 

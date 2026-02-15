@@ -9,7 +9,7 @@ export namespace Sizing {
   export const BLOCK_WIDTH = 60;
   export const BLOCK_HEIGHT = 45;
   export const BLOCK_BORDER_RADIUS = 8;
-  export const BLOCK_STROKE_WIDTH = 2;
+  export const BLOCK_STROKE_WIDTH = 1;
 
   /**
    * Input/Output connector (port) sizing
@@ -41,9 +41,23 @@ export namespace Sizing {
   export const CALLOUT_BORDER_WIDTH = 3;
 
   /**
+   * SVG spinner sizing
+   */
+  export const SPINNER_SIZE = 20;
+  export const SPINNER_STROKE_WIDTH = 2;
+  export const SPINNER_RADIUS = (SPINNER_SIZE - SPINNER_STROKE_WIDTH) / 2;
+  export const SPINNER_CIRCUMFERENCE = 2 * Math.PI * SPINNER_RADIUS;
+  export const SPINNER_DASH_ARRAY = `${SPINNER_CIRCUMFERENCE * 0.75} ${SPINNER_CIRCUMFERENCE * 0.25}`;
+
+  /**
+   * Step icon sizing
+   */
+  export const ICON_HEIGHT = 30;
+
+  /**
    * Link (connection arrow) styling
    */
-  export const LINK_STROKE_WIDTH = 2.5;
+  export const LINK_STROKE_WIDTH = 2;
 
   /**
    * Paper interaction thresholds

@@ -4,15 +4,10 @@ import { Color } from "../../Color";
 import { Sizing } from "./constants/Sizing";
 import { StylingHelper } from "./visuals/BlockStylingHelper";
 import { JointBlock } from "./models/JointBlock";
-
-// SVG spinner constants
-const SPINNER_SIZE = 20;
-const SPINNER_STROKE_WIDTH = 2;
-const SPINNER_RADIUS = (SPINNER_SIZE - SPINNER_STROKE_WIDTH) / 2;
-const SPINNER_CIRCUMFERENCE = 2 * Math.PI * SPINNER_RADIUS;
-const SPINNER_DASH_ARRAY = `${SPINNER_CIRCUMFERENCE * 0.75} ${SPINNER_CIRCUMFERENCE * 0.25}`;
+import { Images } from "../../images/Images";
 
 export function createCell(block: JointBlock) {
+  const iconUrl = Images.Step[block.visualIcon];
   const items: dia.Element.Port[] = [];
   const groups: Record<string, dia.Element.PortGroup> = {};
 
@@ -80,6 +75,7 @@ export function createCell(block: JointBlock) {
             },
           ],
         },
+        { tagName: "image", selector: "stepIcon" },
         { tagName: "text", selector: "label" },
       ],
       attrs: {
@@ -95,25 +91,34 @@ export function createCell(block: JointBlock) {
         },
         spinner: {
           display: "none",
-          transform: `translate(calc(0.5*w - ${SPINNER_SIZE / 2}), calc(0.5*h - ${SPINNER_SIZE / 2}))`,
+          transform: `translate(calc(0.5*w - ${Sizing.SPINNER_SIZE / 2}), calc(0.5*h - ${Sizing.SPINNER_SIZE / 2}))`,
         },
         spinnerCircle: {
-          cx: SPINNER_SIZE / 2,
-          cy: SPINNER_SIZE / 2,
-          r: SPINNER_RADIUS,
+          cx: Sizing.SPINNER_SIZE / 2,
+          cy: Sizing.SPINNER_SIZE / 2,
+          r: Sizing.SPINNER_RADIUS,
           fill: "none",
           stroke: Color.accent(),
-          strokeWidth: SPINNER_STROKE_WIDTH,
-          strokeDasharray: SPINNER_DASH_ARRAY,
+          strokeWidth: Sizing.SPINNER_STROKE_WIDTH,
+          strokeDasharray: Sizing.SPINNER_DASH_ARRAY,
           strokeLinecap: "round",
         },
         spinnerAnimation: {
           attributeName: "transform",
           type: "rotate",
-          from: `0 ${SPINNER_SIZE / 2} ${SPINNER_SIZE / 2}`,
-          to: `360 ${SPINNER_SIZE / 2} ${SPINNER_SIZE / 2}`,
+          from: `0 ${Sizing.SPINNER_SIZE / 2} ${Sizing.SPINNER_SIZE / 2}`,
+          to: `360 ${Sizing.SPINNER_SIZE / 2} ${Sizing.SPINNER_SIZE / 2}`,
           dur: "1s",
           repeatCount: "indefinite",
+        },
+        stepIcon: {
+          href: iconUrl ?? "",
+          display: "none",
+          width: Sizing.BLOCK_WIDTH,
+          height: Sizing.ICON_HEIGHT,
+          x: `calc(0.5*w - ${Sizing.BLOCK_WIDTH / 2})`,
+          y: `calc(0.5*h - ${Sizing.ICON_HEIGHT / 2})`,
+          preserveAspectRatio: "xMidYMid meet",
         },
         label: {
           text: block.label,

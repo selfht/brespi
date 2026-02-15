@@ -8,6 +8,16 @@ declare module "*.svg" {
   export = path;
 }
 
+declare module "*.PNG" {
+  const path: string;
+  export = path;
+}
+
+declare module "*.png" {
+  const path: string;
+  export = path;
+}
+
 declare module "*.module.css" {
   /**
    * A record of class names to their corresponding CSS module classes

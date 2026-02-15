@@ -79,11 +79,12 @@
     --color-c-accent: #9090e8;
     --color-c-dim: #979797;
     --color-c-dark: #2d2c32;
-    --color-c-canvasblock-default-inner: #b0cee6;
-    --color-c-canvasblock-default-outer: #6c9bc2;
-    --color-c-canvasblock-unused-inner: #f3f4f6;
-    --color-c-canvasblock-unused-outer: #979797;
+    --color-c-canvasblock-default-inner: white;
+    --color-c-canvasblock-default-outer: #9090e8;
+    --color-c-canvasblock-unused-inner: rgb(227 234 240);
+    --color-c-canvasblock-unused-outer: rgb(160 160 160);
 }
+
 /* DESKTOP FIRST / PART B -> https://stackoverflow.com/a/79607480 */
 @custom-variant 2xl (@media (max-width: 1535px));
 @custom-variant xl (@media (max-width: 1279px));
@@ -118,8 +119,10 @@
     }
 
     body {
-        @apply font-f-everywhere text-c-primary min-w-[320px] min-h-screen relative m-0;
         font-optical-sizing: auto;
+        @apply relative min-w-[320px] min-h-screen
+        font-f-everywhere text-c-primary
+        bg-[url('./images/background/grid.svg')] bg-center;
     }
     #root {
         @apply u-root-grid;

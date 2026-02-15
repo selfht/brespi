@@ -170,7 +170,8 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
     insert(block) {
       block = {
         id: block.id,
-        theme: block.theme,
+        visualTheme: block.visualTheme,
+        visualIcon: block.visualIcon,
         label: block.label,
         details: block.details,
         handles: block.handles,
@@ -204,7 +205,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
         throw new Error(`Could not find block or cell; block=${Boolean(block)}, cell=${Boolean(cell)}`);
       }
       changes = {
-        theme: changes.theme,
+        visualTheme: changes.visualTheme,
         label: changes.label,
         details: changes.details,
         // manually copy to prevent extra properties
@@ -214,7 +215,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
       if (block.selected && changes.details) {
         calloutManagerRef.current?.showDetails(cell, {
           label: changes.label,
-          theme: changes.theme,
+          visualTheme: changes.visualTheme,
           details: changes.details,
         });
       }
@@ -248,7 +249,7 @@ export function Canvas({ ref, interactivity, onBlocksChange = () => {}, extraVal
           const targetCell = graphRef.current!.getCell(id);
           if (targetCell && targetBlock.details) {
             calloutManagerRef.current?.showDetails(targetCell, {
-              theme: targetBlock.theme,
+              visualTheme: targetBlock.visualTheme,
               label: targetBlock.label,
               details: targetBlock.details,
             });
@@ -360,7 +361,7 @@ export namespace Canvas {
     // crud
     list: () => Block[];
     insert: (block: OmitBetter<Block, "incomingId">) => void;
-    update: (id: string, changes: Pick<Block, "theme" | "label" | "details">) => void;
+    update: (id: string, changes: Pick<Block, "visualTheme" | "label" | "details">) => void;
     remove: (id: string) => void;
     // selection
     select: (id: string) => void;
