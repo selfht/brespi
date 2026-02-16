@@ -41,13 +41,12 @@ export default defineConfig({
     },
   ],
 
-  /* Run your local dev server before starting the tests */
+  /* Build and start the production image before running tests */
   webServer: {
-    env: {
-      ...process.env,
-      START_COMMAND: "bun start:e2e",
-    },
-    command: "docker compose up",
+    command: [
+      "./brespi.sh image create --postgresql --mariadb --stage e2e", //
+      "docker compose -f compose-e2e.yaml up",
+    ].join(" && "),
     stdout: "pipe",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,

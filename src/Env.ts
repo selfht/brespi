@@ -2,13 +2,12 @@ import { Temporal } from "@js-temporal/polyfill";
 import { isAbsolute, join } from "path";
 import { z } from "zod/v4";
 import { TimeZone } from "./helpers/TimeZone";
+import packageJson from "../package.json";
 
 export namespace Env {
   const baseEnv = z.object({
     X_BRESPI_ROOT: z.string(),
-    O_BRESPI_STAGE: z.enum(["development", "production"]),
-    O_BRESPI_COMMIT: z.string().default("0000000000000000000000000000000000000000"),
-    O_BRESPI_VERSION: z.string().default("0.0.0"),
+    O_BRESPI_STAGE: z.enum(["development", "e2etest", "production"]),
     X_BRESPI_MANAGED_STORAGE_VERSIONING_TIMEZONE: z
       .string()
       .default("UTC")
@@ -30,6 +29,8 @@ export namespace Env {
         const data = "data";
         return {
           ...env,
+          O_BRESPI_COMMIT: packageJson.commit,
+          O_BRESPI_VERSION: packageJson.version,
           O_BRESPI_CONFIGURATION: join(env.X_BRESPI_ROOT, "config.json"),
           X_BRESPI_HTPASSWD: join(env.X_BRESPI_ROOT, ".htpasswd"),
           X_BRESPI_TMP_ROOT: join(env.X_BRESPI_ROOT, "tmp"),

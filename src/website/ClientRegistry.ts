@@ -12,6 +12,7 @@ import { RestrictedClient } from "./clients/RestrictedClient";
 import { ScheduleClient } from "./clients/ScheduleClient";
 import { SocketClient } from "./clients/SocketClient";
 import { StepClient } from "./clients/StepClient";
+import { OmitBetter } from "@/types/OmitBetter";
 
 export class ClientRegistry {
   /**
@@ -27,12 +28,17 @@ export class ClientRegistry {
   }
 
   private static printEnv(env: Env.Public) {
-    if (Object.entries(env).length > 0) {
-      const longestKey = Object.keys(env)
+    const envCopy: OmitBetter<Env.Public, "O_BRESPI_CONFIGURATION"> = {
+      O_BRESPI_STAGE: env.O_BRESPI_STAGE,
+      O_BRESPI_VERSION: env.O_BRESPI_VERSION,
+      O_BRESPI_COMMIT: env.O_BRESPI_COMMIT,
+    };
+    if (Object.entries(envCopy).length > 0) {
+      const longestKey = Object.keys(envCopy)
         .map((k) => k.length)
         .reduce((l1, l2) => Math.max(l1, l2));
       let result = ``;
-      Object.entries(env).forEach(([key, value]) => {
+      Object.entries(envCopy).forEach(([key, value]) => {
         result += `${key.padEnd(longestKey + 1)}: ${value}\n`;
       });
       console.info("%cBrespi\n\n%c%s", "font-size: 24px; font-weight: 800;", "font-size: 12px; font-weight: normal", result);

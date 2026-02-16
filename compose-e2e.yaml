@@ -3,23 +3,17 @@ include:
 
 services:
   application:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: ${START_COMMAND:-bun start:dev}
-    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    image: brespi:latest
+    user: "${HOST_UID}:${HOST_GID}"
+    volumes:
+      - ./opt:/app/opt
     ports:
       - "3000:3000"
-    volumes:
-      - .:/app
-      - /app/node_modules
-    working_dir: /app
     environment:
       MY_ENCRYPTION_KEY: unicorn
       MY_POSTGRESQL_URL: postgresql://postgresql:postgresql@postgresql
       MY_MARIADB_URL: mariadb://mariadb:mariadb@mariadb:3306
       MY_S3_ACCESS_KEY: test
       MY_S3_SECRET_KEY: test
-      MY_SLACK_WEBHOOK_URL: ${MY_SLACK_WEBHOOK_URL}
     networks:
       - app-network

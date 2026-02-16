@@ -20,6 +20,7 @@ import { StepService } from "./services/StepService";
 import { Socket } from "./socket/Socket";
 import { PipelineView } from "./views/PipelineView";
 import { Temporal } from "@js-temporal/polyfill";
+import { Prettify } from "./helpers/Prettify";
 
 export class Server {
   public constructor(
@@ -262,7 +263,18 @@ export class Server {
        */
       error: (e) => this.handleError(e),
     });
-    console.info(`🚀 Server running at ${server.url}`);
+    console.info(
+      [
+        "",
+        `  🚀 \x1b[1mBrespi started on ${Prettify.timestamp(Temporal.Now.plainDateTimeISO())} (${Temporal.Now.timeZoneId()})\x1b[0m`,
+        "",
+        `  \x1b[1mStage\x1b[0m     ${this.env.O_BRESPI_STAGE}`,
+        `  \x1b[1mVersion\x1b[0m   ${this.env.O_BRESPI_VERSION}`,
+        `  \x1b[1mCommit\x1b[0m    ${this.env.O_BRESPI_COMMIT}`,
+        `  \x1b[1mServer\x1b[0m    ${server.url}`,
+        "",
+      ].join("\n"),
+    );
   }
 
   private searchParam<T extends `${string}!`>(request: Bun.BunRequest, name: T): string;

@@ -1,6 +1,7 @@
 {
   "name": "brespi",
-  "version": "0.1.0",
+  "version": "0.0.0-snapshot",
+  "commit": "0000000000000000000000000000000000000000",
   "private": true,
   "type": "module",
   "main": "src/index.ts",
@@ -13,7 +14,7 @@
     "test:regression": "bun test --test-name-pattern='^regression'",
     "start:dev": "bun --env-file=.env.dev --hot src/index.ts",
     "start:e2e": "bun --env-file=.env.e2e src/index.ts",
-    "start:prod": "bun --env-file=.env.prod --drop=console.trace --drop=console.debug --drop=console.log --drop=console.info src/index.ts",
+    "start:prod": "bun --env-file=.env.prod --drop=console.trace --drop=console.debug src/index.ts",
     "e2e": "playwright test --ui",
     "e2e:headless": "playwright test --max-failures 1 --reporter github"
   },

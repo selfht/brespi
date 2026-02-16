@@ -1,0 +1,38 @@
+services:
+  postgresql:
+    image: "postgres:17"
+    environment:
+      POSTGRES_USER: "postgresql"
+      POSTGRES_PASSWORD: "postgresql"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./seeds/postgresql:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+
+  mariadb:
+    image: "mariadb:11"
+    environment:
+      MARIADB_USER: "mariadb"
+      MARIADB_PASSWORD: "mariadb"
+      MARIADB_ROOT_PASSWORD: "root"
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./seeds/mariadb:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+
+  s3:
+    image: localstack/localstack:s3-latest
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./compose-init-s3.sh:/etc/localstack/init/ready.d/init-s3.sh
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

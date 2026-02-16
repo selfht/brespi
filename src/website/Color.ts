@@ -13,7 +13,12 @@ export class Color {
   public static canvasblockDefaultOuter = () => this.css("--color-c-canvasblock-default-outer");
   public static canvasblockUnusedInner = () => this.css("--color-c-canvasblock-unused-inner");
   public static canvasblockUnusedOuter = () => this.css("--color-c-canvasblock-unused-outer");
-  // Default colors
+  /*
+   * Default colors
+   *
+   * These must be "inlined" inside `index.css`, otherwise they aren't detected by tailwindcss,
+   * which means they'll be tree-shaken; see `index.css`
+   */
   public static gray = (shade: Shade) => this.css(`--color-gray-${shade}`);
   public static red = (shade: Shade) => this.css(`--color-red-${shade}`);
   public static green = (shade: Shade) => this.css(`--color-green-${shade}`);

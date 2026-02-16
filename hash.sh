@@ -9,6 +9,6 @@ echo "$password" | docker run --rm -i oven/bun:alpine bun -e "
     const hash = await Bun.password.hash(password, {
         algorithm: '$algorithm'
     });
-    console.log('-'.repeat(hash.length))
-    console.log(hash);
+    console.info('-'.repeat(hash.length))
+    console.info(hash);
 "

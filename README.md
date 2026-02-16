@@ -55,12 +55,12 @@ This is a work in progress with the following TODO's:
 ### Polish
 * ✅ Icons for each different step
 * ✅ Add a nice background
-* Add a footer link
 * Upgrade all dependencies
+* Add a footer link
 
 ### Distribution
-* Automatically include the application version
-* Create a shell script for building docker images with the appropriate toolset (only requirements: git + bash + docker)
+* ✅ Automatically include the application version
+* ✅ Create a shell script for building docker images with the appropriate toolset (only requirements: sh + git + docker)
 * Write a README.md, CONTRIBUTING.md and LICENSE.md
 
 ### Marketing
