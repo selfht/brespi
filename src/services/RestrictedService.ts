@@ -41,239 +41,276 @@ export class RestrictedService {
   }
 
   private async createPostgresqlBackupAndRestore() {
-    const backup = () =>
-      this.pipelineService.create({
-        name: "PostgreSQL Backup",
-        steps: [
-          {
-            id: "A",
-            previousId: undefined,
-            object: "step",
-            type: Step.Type.postgresql_backup,
-            connection: "${MY_POSTGRESQL_URL}",
-            toolkit: {
-              resolution: "automatic",
-            },
-            databaseSelection: {
-              method: "all",
-            },
+    const backup = await this.pipelineService.create({
+      name: "PostgreSQL Backup",
+      steps: [
+        {
+          id: "A",
+          object: "step",
+          type: Step.Type.postgresql_backup,
+          connection: "${MY_POSTGRESQL_URL}",
+          toolkit: {
+            resolution: "automatic",
           },
-          {
-            id: "B",
-            previousId: "A",
-            object: "step",
-            type: Step.Type.filesystem_write,
-            folderPath: "opt/backups_postgresql",
-            managedStorage: true,
-            retention: {
-              policy: "last_n_versions",
-              maxVersions: 3,
-            },
+          databaseSelection: {
+            method: "all",
           },
-        ],
-      });
-    const restore = () =>
-      this.pipelineService.create({
-        name: "PostgreSQL Restore",
-        steps: [
-          {
-            id: "A",
-            previousId: undefined,
-            object: "step",
-            type: Step.Type.filesystem_read,
-            path: "opt/backups_postgresql",
-            managedStorage: {
-              target: "latest",
-            },
-            filterCriteria: undefined,
+        },
+        {
+          id: "zbkxwmuhozdm",
+          previousId: "A",
+          object: "step",
+          type: Step.Type.compression,
+          algorithm: {
+            implementation: "targzip",
+            level: 9,
           },
-          {
-            id: "B",
-            previousId: "hbnijprgbhjg",
-            object: "step",
-            type: Step.Type.postgresql_restore,
-            connection: "${MY_POSTGRESQL_URL}",
-            toolkit: {
-              resolution: "automatic",
-            },
-            database: "bakingworld",
+        },
+        {
+          id: "sinhdzokmdpw",
+          previousId: "zbkxwmuhozdm",
+          object: "step",
+          type: Step.Type.encryption,
+          key: "${MY_ENCRYPTION_KEY}",
+          algorithm: {
+            implementation: "aes256cbc",
           },
-          {
-            id: "hbnijprgbhjg",
-            previousId: "A",
-            object: "step",
-            type: Step.Type.filter,
-            filterCriteria: {
-              method: "exact",
-              name: "bakingworld.dump",
-            },
+        },
+        {
+          id: "iehgpzmjuxax",
+          previousId: "sinhdzokmdpw",
+          object: "step",
+          type: Step.Type.s3_upload,
+          connection: {
+            bucket: "bucko",
+            endpoint: "http://s3:4566",
+            accessKey: "${MY_S3_ACCESS_KEY}",
+            secretKey: "${MY_S3_SECRET_KEY}",
           },
-          {
-            id: "ytnzxdfmegvi",
-            previousId: "A",
-            object: "step",
-            type: Step.Type.filter,
-            filterCriteria: {
-              method: "exact",
-              name: "gamingworld.dump",
-            },
+          basePrefix: "postgresql-backups",
+          retention: {
+            policy: "last_n_versions",
+            maxVersions: 3,
           },
-          {
-            id: "khtdstqezwyh",
-            previousId: "A",
-            object: "step",
-            type: Step.Type.filter,
-            filterCriteria: {
-              method: "exact",
-              name: "musicworld.dump",
-            },
+        },
+      ],
+    });
+    const restore = await this.pipelineService.create({
+      name: "PostgreSQL Restore",
+      steps: [
+        {
+          id: "B",
+          previousId: "hbnijprgbhjg",
+          object: "step",
+          type: Step.Type.postgresql_restore,
+          connection: "${MY_POSTGRESQL_URL}",
+          toolkit: {
+            resolution: "automatic",
           },
-          {
-            id: "otaifqxwlrfi",
-            previousId: "ytnzxdfmegvi",
-            object: "step",
-            type: Step.Type.postgresql_restore,
-            connection: "${MY_POSTGRESQL_URL}",
-            toolkit: {
-              resolution: "automatic",
-            },
-            database: "gamingworld",
+          database: "bakingworld",
+        },
+        {
+          id: "hbnijprgbhjg",
+          previousId: "njlaccoyvxts",
+          object: "step",
+          type: Step.Type.filter,
+          filterCriteria: {
+            method: "exact",
+            name: "bakingworld.dump",
           },
-          {
-            id: "reqyjvrxxdmz",
-            previousId: "khtdstqezwyh",
-            object: "step",
-            type: Step.Type.postgresql_restore,
-            connection: "${MY_POSTGRESQL_URL}",
-            toolkit: {
-              resolution: "automatic",
-            },
-            database: "musicworld",
+        },
+        {
+          id: "ytnzxdfmegvi",
+          previousId: "njlaccoyvxts",
+          object: "step",
+          type: Step.Type.filter,
+          filterCriteria: {
+            method: "exact",
+            name: "gamingworld.dump",
           },
-        ],
-      });
-    return {
-      restore: await restore(),
-      backup: await backup(),
-    };
+        },
+        {
+          id: "khtdstqezwyh",
+          previousId: "njlaccoyvxts",
+          object: "step",
+          type: Step.Type.filter,
+          filterCriteria: {
+            method: "exact",
+            name: "musicworld.dump",
+          },
+        },
+        {
+          id: "otaifqxwlrfi",
+          previousId: "ytnzxdfmegvi",
+          object: "step",
+          type: Step.Type.postgresql_restore,
+          connection: "${MY_POSTGRESQL_URL}",
+          toolkit: {
+            resolution: "automatic",
+          },
+          database: "gamingworld",
+        },
+        {
+          id: "reqyjvrxxdmz",
+          previousId: "khtdstqezwyh",
+          object: "step",
+          type: Step.Type.postgresql_restore,
+          connection: "${MY_POSTGRESQL_URL}",
+          toolkit: {
+            resolution: "automatic",
+          },
+          database: "musicworld",
+        },
+        {
+          id: "joopkaddqrzo",
+          object: "step",
+          type: Step.Type.s3_download,
+          connection: {
+            bucket: "bucko",
+            endpoint: "http://s3:4566",
+            accessKey: "${MY_S3_ACCESS_KEY}",
+            secretKey: "${MY_S3_SECRET_KEY}",
+          },
+          basePrefix: "postgresql-backups",
+          managedStorage: {
+            target: "latest",
+          },
+        },
+        {
+          id: "kpgvkdlzmdqk",
+          previousId: "joopkaddqrzo",
+          object: "step",
+          type: Step.Type.decryption,
+          key: "${MY_ENCRYPTION_KEY}",
+          algorithm: {
+            implementation: "aes256cbc",
+          },
+        },
+        {
+          id: "njlaccoyvxts",
+          previousId: "kpgvkdlzmdqk",
+          object: "step",
+          type: Step.Type.decompression,
+          algorithm: {
+            implementation: "targzip",
+          },
+        },
+      ],
+    });
+    return { backup, restore };
   }
 
   private async createMariadbBackupAndRestore() {
-    const backup = () =>
-      this.pipelineService.create({
-        name: "MariaDB Backup",
-        steps: [
-          {
-            id: "A",
-            previousId: undefined,
-            object: "step",
-            type: Step.Type.mariadb_backup,
-            connection: "${MY_MARIADB_URL}",
-            toolkit: {
-              resolution: "automatic",
-            },
-            databaseSelection: {
-              method: "all",
-            },
+    const backup = await this.pipelineService.create({
+      name: "MariaDB Backup",
+      steps: [
+        {
+          id: "A",
+          previousId: undefined,
+          object: "step",
+          type: Step.Type.mariadb_backup,
+          connection: "${MY_MARIADB_URL}",
+          toolkit: {
+            resolution: "automatic",
           },
-          {
-            id: "B",
-            previousId: "A",
-            object: "step",
-            type: Step.Type.filesystem_write,
-            folderPath: "opt/backups_mariadb",
-            managedStorage: true,
-            retention: {
-              policy: "last_n_versions",
-              maxVersions: 3,
-            },
+          databaseSelection: {
+            method: "all",
           },
-        ],
-      });
-    const restore = () =>
-      this.pipelineService.create({
-        name: "MariaDB Restore",
-        steps: [
-          {
-            id: "A",
-            previousId: undefined,
-            object: "step",
-            type: Step.Type.filesystem_read,
-            path: "opt/backups_mariadb",
-            managedStorage: {
-              target: "latest",
-            },
-            filterCriteria: undefined,
+        },
+        {
+          id: "B",
+          previousId: "A",
+          object: "step",
+          type: Step.Type.filesystem_write,
+          folderPath: "opt/backups_mariadb",
+          managedStorage: true,
+          retention: {
+            policy: "last_n_versions",
+            maxVersions: 3,
           },
-          {
-            id: "B",
-            previousId: "hbnijprgbhjg",
-            object: "step",
-            type: Step.Type.mariadb_restore,
-            connection: "${MY_MARIADB_URL}",
-            toolkit: {
-              resolution: "automatic",
-            },
-            database: "bakingworld",
+        },
+      ],
+    });
+    const restore = await this.pipelineService.create({
+      name: "MariaDB Restore",
+      steps: [
+        {
+          id: "A",
+          previousId: undefined,
+          object: "step",
+          type: Step.Type.filesystem_read,
+          path: "opt/backups_mariadb",
+          managedStorage: {
+            target: "latest",
           },
-          {
-            id: "hbnijprgbhjg",
-            previousId: "A",
-            object: "step",
-            type: Step.Type.filter,
-            filterCriteria: {
-              method: "exact",
-              name: "bakingworld.sql",
-            },
+          filterCriteria: undefined,
+        },
+        {
+          id: "B",
+          previousId: "hbnijprgbhjg",
+          object: "step",
+          type: Step.Type.mariadb_restore,
+          connection: "${MY_MARIADB_URL}",
+          toolkit: {
+            resolution: "automatic",
           },
-          {
-            id: "ytnzxdfmegvi",
-            previousId: "A",
-            object: "step",
-            type: Step.Type.filter,
-            filterCriteria: {
-              method: "exact",
-              name: "gamingworld.sql",
-            },
+          database: "bakingworld",
+        },
+        {
+          id: "hbnijprgbhjg",
+          previousId: "A",
+          object: "step",
+          type: Step.Type.filter,
+          filterCriteria: {
+            method: "exact",
+            name: "bakingworld.sql",
           },
-          {
-            id: "khtdstqezwyh",
-            previousId: "A",
-            object: "step",
-            type: Step.Type.filter,
-            filterCriteria: {
-              method: "exact",
-              name: "musicworld.sql",
-            },
+        },
+        {
+          id: "ytnzxdfmegvi",
+          previousId: "A",
+          object: "step",
+          type: Step.Type.filter,
+          filterCriteria: {
+            method: "exact",
+            name: "gamingworld.sql",
           },
-          {
-            id: "otaifqxwlrfi",
-            previousId: "ytnzxdfmegvi",
-            object: "step",
-            type: Step.Type.mariadb_restore,
-            connection: "${MY_MARIADB_URL}",
-            toolkit: {
-              resolution: "automatic",
-            },
-            database: "gamingworld",
+        },
+        {
+          id: "khtdstqezwyh",
+          previousId: "A",
+          object: "step",
+          type: Step.Type.filter,
+          filterCriteria: {
+            method: "exact",
+            name: "musicworld.sql",
           },
-          {
-            id: "reqyjvrxxdmz",
-            previousId: "khtdstqezwyh",
-            object: "step",
-            type: Step.Type.mariadb_restore,
-            connection: "${MY_MARIADB_URL}",
-            toolkit: {
-              resolution: "automatic",
-            },
-            database: "musicworld",
+        },
+        {
+          id: "otaifqxwlrfi",
+          previousId: "ytnzxdfmegvi",
+          object: "step",
+          type: Step.Type.mariadb_restore,
+          connection: "${MY_MARIADB_URL}",
+          toolkit: {
+            resolution: "automatic",
           },
-        ],
-      });
-    return {
-      restore: await restore(),
-      backup: await backup(),
-    };
+          database: "gamingworld",
+        },
+        {
+          id: "reqyjvrxxdmz",
+          previousId: "khtdstqezwyh",
+          object: "step",
+          type: Step.Type.mariadb_restore,
+          connection: "${MY_MARIADB_URL}",
+          toolkit: {
+            resolution: "automatic",
+          },
+          database: "musicworld",
+        },
+      ],
+    });
+    return { backup, restore };
   }
 
   private async createEverythingPipeline() {
