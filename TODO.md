@@ -51,17 +51,17 @@ This is a work in progress with the following TODO's:
 * ✅ Check if the `*Converter` classes can be made part of the Drizzle entity definition
 * ✅ Allow env var references on all text fields via the ${...} syntax (on the right side; give an overview of detected env vars in orange; this also requires updating descriptions)
 * ✅ Handle TODO comments
+* Upgrade all dependencies
 
 ### Polish
 * ✅ Icons for each different step
 * ✅ Add a nice background
-* Upgrade all dependencies
-* Add a footer link
 
 ### Distribution
 * ✅ Automatically include the application version
 * ✅ Create a shell script for building docker images with the appropriate toolset (only requirements: sh + git + docker)
 * Write a README.md, CONTRIBUTING.md and LICENSE.md
+* Add a footer link
 
 ### Marketing
 * Create an accompanying landing page, with how it works, how to use, and how to configure (no exhaustive documentation)

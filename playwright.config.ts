@@ -52,7 +52,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     gracefulShutdown: {
       signal: "SIGTERM",
-      timeout: 1500,
+      timeout: 3000,
     },
   },
 });
