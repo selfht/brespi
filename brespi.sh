@@ -86,6 +86,12 @@ cmd_image_create() {
     tmpfile="./dist/brespi.Dockerfile"
     mkdir -p ./dist
 
+    brespi_root=$(grep '^X_BRESPI_ROOT=' ".env.${stage}" | cut -d= -f2-)
+    if [ -z "$brespi_root" ]; then
+        printf "Error: X_BRESPI_ROOT not found in .env.%s\n" "$stage"
+        exit 1
+    fi
+
     commit=$(git rev-parse HEAD)
 
     # Determine version from git tags
@@ -132,6 +138,12 @@ EOF
         if [ "$flag_mariadb" = true ]; then
             printf "RUN apk add --no-cache mariadb-client\n" >> "$tmpfile"
         fi
+
+        # Since we don't have `bash`, this is the `sh` way of checking if a string starts with forward slash
+        # (i.e.: checking if it's an absolute path)
+        case "$brespi_root" in
+            /*) printf "RUN mkdir -p %s && chown bun:bun %s\n" "$brespi_root" "$brespi_root" >> "$tmpfile" ;;
+        esac
 
         cat >> "$tmpfile" <<EOF
 WORKDIR /app

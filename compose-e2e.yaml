@@ -4,7 +4,6 @@ include:
 services:
   application:
     image: brespi:latest
-    user: "${HOST_UID}:${HOST_GID}"
     volumes:
       - ./opt:/app/opt
     ports:
