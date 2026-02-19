@@ -17,7 +17,7 @@ and many others.
 
 ```sh
 # Clone the source code
-git clone git@github.com:butterhosting/brespi.git
+git clone https://github.com/butterhosting/brespi.git
 
 # Create a docker image with the desired runtime dependencies
 ./brespi.sh image create --postgresql --mariadb
