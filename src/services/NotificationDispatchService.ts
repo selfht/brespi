@@ -9,6 +9,7 @@ import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { Temporal } from "@js-temporal/polyfill";
 import { basename, dirname } from "path";
 import { Yesttp } from "yesttp";
+import fsp from "fs/promises";
 
 type EventDetails =
   | {
@@ -32,6 +33,7 @@ export class NotificationDispatchService {
   ) {}
 
   public async dispatch(policy: NotificationPolicy, event: EventSubscription.EligibleEvent) {
+    console.log(`Dispatching notification; channel=${policy.channel}`);
     try {
       switch (policy.channel.type) {
         case "slack": {
@@ -136,7 +138,8 @@ durationMs: ${details.duration.total("milliseconds")}
       }
     }
     const scriptPath = this.propertyResolver.resolve(channel.path);
-    await CommandRunner.run({
+    console.log(`Invoking custom script: scriptPath=${scriptPath}`, await fsp.readFile(scriptPath, "utf-8"));
+    const { exitCode, stdall } = await CommandRunner.run({
       cmd: ["bash", "-c", `./${basename(scriptPath)}`],
       cwd: dirname(scriptPath),
       env: {
@@ -144,5 +147,8 @@ durationMs: ${details.duration.total("milliseconds")}
         ...envVars,
       },
     });
+    if (exitCode !== 0) {
+      throw new Error(stdall);
+    }
   }
 }
