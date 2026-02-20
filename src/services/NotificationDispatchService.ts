@@ -33,7 +33,6 @@ export class NotificationDispatchService {
   ) {}
 
   public async dispatch(policy: NotificationPolicy, event: EventSubscription.EligibleEvent) {
-    console.log(`Dispatching notification; channel=${policy.channel}`);
     try {
       switch (policy.channel.type) {
         case "slack": {
@@ -138,7 +137,7 @@ durationMs: ${details.duration.total("milliseconds")}
       }
     }
     const scriptPath = this.propertyResolver.resolve(channel.path);
-    console.log(`Invoking custom script: scriptPath=${scriptPath}`, await fsp.readFile(scriptPath, "utf-8"));
+    console.info({ scriptPath });
     const { exitCode, stdall } = await CommandRunner.run({
       cmd: ["bash", "-c", `./${basename(scriptPath)}`],
       cwd: dirname(scriptPath),

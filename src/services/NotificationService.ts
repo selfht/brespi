@@ -67,16 +67,12 @@ export class NotificationService {
 
   private async triggerNotifications(event: Event) {
     const policies = await this.listPoliciesFromCache();
-    console.log(`Maybe triggering a notification for ${event.type}`);
     for (const policy of policies) {
       if (!policy.active) continue;
       const eventSubscriptions = policy.eventSubscriptions.filter(({ type }) => event.type === type);
-      console.log("Maybe found some subscriptions for this event", eventSubscriptions);
       if (eventSubscriptions.length > 0 && this.declareEligible(event)) {
         for (const eventSubscription of eventSubscriptions) {
-          console.log("Maybe checking if the subscription details match");
           if (this.matchesSubscriptionDetails(event, eventSubscription)) {
-            console.log("Dispatching!!!");
             this.dispatchService.dispatch(policy, event);
           }
         }
