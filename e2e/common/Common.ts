@@ -3,8 +3,10 @@ import fsp from "fs/promises";
 import { dirname } from "path";
 
 async function mkdirShared(path: string) {
-  await fsp.mkdir(path, { recursive: true });
-  await fsp.chmod(path, 0o777);
+  const created = await fsp.mkdir(path, { recursive: true });
+  if (created !== undefined) {
+    await fsp.chmod(path, 0o777);
+  }
 }
 
 export namespace Common {
