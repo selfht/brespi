@@ -133,6 +133,7 @@ export class ScheduleService {
   }
 
   private start(schedule: Schedule) {
+    console.log("Considering starting schedule", schedule);
     if (schedule.active) {
       const cron = new Cron(schedule.cron, async () => {
         await this.executionService.create({ pipelineId: schedule.pipelineId, trigger: "schedule" }).catch(console.error);
