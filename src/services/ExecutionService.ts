@@ -114,6 +114,7 @@ export class ExecutionService {
       },
       (e) => {
         console.error(`❌ An unknown execution error occurred`, e);
+        throw e;
       },
     );
     if (waitForCompletion) {
