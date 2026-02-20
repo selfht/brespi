@@ -8,12 +8,6 @@ import { ServerRegistry } from "./ServerRegistry";
 import { CleanupService } from "./services/CleanupService";
 
 /**
- * Ensure files and directories created by this process are accessible to any
- * user that has access to the mounted data directory
- */
-process.umask(0o000);
-
-/**
  * Initialize the env configuration
  */
 const env = Env.initialize();
