@@ -109,6 +109,11 @@ export class ScheduleService {
         this.stop(schedule.id);
       }
     });
+    // some schedules may have been deleted; so stop them
+    this.activeCronJobs
+      .keys()
+      .filter((id) => !schedules.some((s) => s.id === id))
+      .forEach((id) => this.stop(id));
   }
 
   private async ensureValidPipeline(pipelineId: string): Promise<string> {

@@ -3,7 +3,6 @@ import { Event } from "@/events/Event";
 import { EventBus } from "@/events/EventBus";
 import { Mutex } from "@/helpers/Mutex";
 import { ZodProblem } from "@/helpers/ZodIssues";
-import { Configuration } from "@/models/Configuration";
 import { EventSubscription } from "@/models/EventSubscription";
 import { NotificationChannel } from "@/models/NotificationChannel";
 import { NotificationPolicy } from "@/models/NotificationPolicy";
@@ -25,13 +24,9 @@ export class NotificationService {
     eventBus.subscribe("*", (event) => this.triggerNotifications(event));
     eventBus.subscribe(Event.Type.configuration_updated, ({ data: { configuration, trigger } }) => {
       if (trigger === "disk_synchronization") {
-        this.synchronizeWithUpdatedConfiguration(configuration);
+        this.repository.synchronizeWithUpdatedConfiguration(configuration.notificationPolicies);
       }
     });
-  }
-
-  private async synchronizeWithUpdatedConfiguration({ notificationPolicies }: Configuration) {
-    await this.repository.synchronizeWithUpdatedConfiguration(notificationPolicies);
   }
 
   public async queryPolicies(): Promise<NotificationPolicy[]> {

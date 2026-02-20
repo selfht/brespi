@@ -1,33 +1,26 @@
-import * as schema from "@/drizzle/schema";
-import { Sqlite } from "@/drizzle/sqlite";
 import { Event } from "@/events/Event";
-import { Configuration } from "@/models/Configuration";
 import { Step } from "@/models/Step";
-import { ConfigurationRepository } from "@/repositories/ConfigurationRepository";
-import { isTable } from "drizzle-orm";
 import { NotificationService } from "./NotificationService";
 import { PipelineService } from "./PipelineService";
 import { ScheduleService } from "./ScheduleService";
+import { ConfigurationService } from "./ConfigurationService";
 
 export class RestrictedService {
   public constructor(
-    private readonly sqlite: Sqlite,
-    private readonly configurationRepository: ConfigurationRepository,
     private readonly pipelineService: PipelineService,
     private readonly scheduleService: ScheduleService,
     private readonly notificationService: NotificationService,
+    private readonly configurationService: ConfigurationService,
   ) {}
 
   public async purge(): Promise<void> {
-    for (const table of Object.values(schema)) {
-      if (isTable(table)) {
-        await this.sqlite.delete(table);
-      }
-    }
-    await this.configurationRepository.write((_) => ({
-      configuration: Configuration.Core.empty(),
-    }));
-    await this.configurationRepository.saveChanges();
+    const policies = await this.notificationService.queryPolicies();
+    await Promise.all(policies.map(({ id }) => this.notificationService.deletePolicy(id)));
+    const schedules = await this.scheduleService.query();
+    await Promise.all(schedules.map(({ id }) => this.scheduleService.delete(id)));
+    const pipelines = await this.pipelineService.query();
+    await Promise.all(pipelines.map(({ id }) => this.pipelineService.delete(id)));
+    await this.configurationService.saveChanges();
   }
 
   public async seed(): Promise<void> {

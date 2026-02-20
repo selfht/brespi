@@ -22,8 +22,8 @@ export class DualRepoHelper<F, C extends { id: string }, M extends { id: string 
       ids: cores.map(({ id }) => id),
     });
     // START intermezzo: check if we're missing metadata information for schedules (this is possible)
-    const coreSchedulesWithoutMetadata = cores.filter((cs) => !metadatas.some((m) => cs.id === m.id));
-    const missingMetadatas = await this.insertMissingMetadatas(coreSchedulesWithoutMetadata);
+    const coresWithoutMetadata = cores.filter((cs) => !metadatas.some((m) => cs.id === m.id));
+    const missingMetadatas = await this.insertMissingMetadatas(coresWithoutMetadata);
     metadatas.push(...missingMetadatas);
     // END intermezzo
     const result = this.combine(cores, metadatas);
@@ -34,8 +34,8 @@ export class DualRepoHelper<F, C extends { id: string }, M extends { id: string 
     // 0. Get the available metadata
     let metadatas = await this.options.listMetasFn();
     // 1. Insert missing metadatas
-    const schedulesWithMissingMetadata = cores.filter((cs) => !metadatas.some((m) => cs.id === m.id));
-    const missingMetadatas = await this.insertMissingMetadatas(schedulesWithMissingMetadata);
+    const coresWithMissingMetadata = cores.filter((cs) => !metadatas.some((m) => cs.id === m.id));
+    const missingMetadatas = await this.insertMissingMetadatas(coresWithMissingMetadata);
     metadatas = [...metadatas, ...missingMetadatas];
     // 2. Delete superfluous metadatas
     const superfluousMetadatas = metadatas.filter((m) => !cores.some((cs) => m.id === cs.id)).map(({ id }) => id);

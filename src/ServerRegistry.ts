@@ -96,11 +96,10 @@ export class ServerRegistry {
     const { notificationDispatchService } = this.register({ NotificationDispatchService }, [propertyResolver, pipelineRepository]);
     const { notificationService } = this.register({ NotificationService }, [eventBus, notificationRepository, notificationDispatchService]);
     const { restrictedService } = this.register({ RestrictedService }, [
-      sqlite,
-      configurationRepository,
       pipelineService,
       scheduleService,
       notificationService,
+      configurationService,
     ]);
     this.register({ CleanupService }, [env]);
 

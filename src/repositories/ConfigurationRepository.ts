@@ -150,15 +150,22 @@ export class ConfigurationRepository {
     this.memoryObject = memoryObject;
     this.memoryObjectMatchesDiskFile = memoryObjectMatchesDiskFile;
 
-    if (!Bun.deepEquals(this.memoryObject, oldMemoryObject)) {
+    const configurationWasChanged = !Bun.deepEquals(this.memoryObject, oldMemoryObject);
+    if (configurationWasChanged) {
       this.changeListeners
         .filter(({ event }) => event === "configuration_change") //
         .forEach(({ callback }) => callback({ configuration: this.getCurrentValue(), trigger }));
     }
-    if (this.memoryObjectMatchesDiskFile !== oldMemoryObjectMatchesDiskFile) {
+    const synchronizationWasChanged = this.memoryObjectMatchesDiskFile !== oldMemoryObjectMatchesDiskFile;
+    if (synchronizationWasChanged) {
       this.changeListeners
         .filter(({ event }) => event === "synchronization_change") //
         .forEach(({ callback }) => callback({ configuration: this.getCurrentValue(), trigger }));
     }
+    console.trace("🫆 Broadcasted configuration change", {
+      trigger,
+      configurationWasChanged,
+      synchronizationWasChanged,
+    });
   }
 }
