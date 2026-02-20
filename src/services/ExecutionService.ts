@@ -6,8 +6,8 @@ import { PipelineError } from "@/errors/PipelineError";
 import { ServerError } from "@/errors/ServerError";
 import { Event } from "@/events/Event";
 import { EventBus } from "@/events/EventBus";
-import { TempDestination } from "@/helpers/TempDestination";
 import { Mutex } from "@/helpers/Mutex";
+import { TempDestination } from "@/helpers/TempDestination";
 import { ZodProblem } from "@/helpers/ZodIssues";
 import { Action } from "@/models/Action";
 import { Artifact } from "@/models/Artifact";
@@ -101,6 +101,10 @@ export class ExecutionService {
     const completionPromise = this.execute(execution.id, pipeline) //
       .then((completedExecution) => {
         this.eventBus.publish(Event.Type.execution_completed, { execution: completedExecution, trigger });
+        if (completedExecution.result?.outcome === Outcome.error) {
+          const errors = completedExecution.actions.filter((a) => a.result?.outcome === Outcome.error).map((a) => a.result!.errorMessage!);
+          console.warn(`⚠️ Execution failed`, errors);
+        }
         return completedExecution;
       });
     if (waitForCompletion) {
