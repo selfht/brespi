@@ -105,7 +105,7 @@ test("when configuration is reinstated, schedules and policies are activated", a
   await page.getByRole("button", { name: "Discard changes" }).click();
   // then
   await assertConfigurationState(page, "in_sync");
-  await expect.poll(() => Common.existingFile(notification), { timeout: 20_000 }).toEqual(true);
+  await expect.poll(() => Common.existingFile(notification)).toEqual(true);
   expect(await Common.readFile(notification)).toContain("Pipeline-of-Nothing");
   await ResetBoundary.reset(request); // cleanup the hanging schedule
 });
