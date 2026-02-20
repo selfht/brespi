@@ -162,7 +162,7 @@ export class ConfigurationRepository {
         .filter(({ event }) => event === "synchronization_change") //
         .forEach(({ callback }) => callback({ configuration: this.getCurrentValue(), trigger }));
     }
-    console.trace("🫆 Broadcasted configuration change", {
+    console.debug("🫆 Broadcasted configuration change", {
       trigger,
       configurationWasChanged,
       synchronizationWasChanged,
