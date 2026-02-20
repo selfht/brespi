@@ -1,4 +1,4 @@
-import { mkdir, readdir, rm } from "fs/promises";
+import { chmod, mkdir, readdir, rm } from "fs/promises";
 import path, { join } from "path";
 
 export namespace FSBoundary {
@@ -12,6 +12,7 @@ export namespace FSBoundary {
     public static async ensureEmpty() {
       await rm(this.root, { recursive: true, force: true });
       await mkdir(this.root, { recursive: true });
+      await chmod(this.root, 0o777);
     }
   };
 

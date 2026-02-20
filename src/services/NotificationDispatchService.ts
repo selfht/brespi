@@ -9,7 +9,6 @@ import { PipelineRepository } from "@/repositories/PipelineRepository";
 import { Temporal } from "@js-temporal/polyfill";
 import { basename, dirname } from "path";
 import { Yesttp } from "yesttp";
-import fsp from "fs/promises";
 
 type EventDetails =
   | {
@@ -137,7 +136,6 @@ durationMs: ${details.duration.total("milliseconds")}
       }
     }
     const scriptPath = this.propertyResolver.resolve(channel.path);
-    console.info({ scriptPath });
     const { exitCode, stdall } = await CommandRunner.run({
       cmd: ["bash", "-c", `./${basename(scriptPath)}`],
       cwd: dirname(scriptPath),
