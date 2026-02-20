@@ -98,10 +98,8 @@ export class ExecutionService {
     }
     this.eventBus.publish(Event.Type.execution_started, { execution, trigger });
 
-    console.info(`1-2-3 execute: ${id}`);
     const completionPromise = this.execute(execution.id, pipeline).then(
       (completedExecution) => {
-        console.info(`Completed: ${id}`);
         this.eventBus.publish(Event.Type.execution_completed, { execution: completedExecution, trigger });
         if (completedExecution.result?.outcome === Outcome.error) {
           const errors = completedExecution.actions.filter((a) => a.result?.outcome === Outcome.error).map((a) => a.result!.errorMessage!);
