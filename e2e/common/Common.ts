@@ -2,6 +2,11 @@ import { Page } from "@playwright/test";
 import fsp from "fs/promises";
 import { dirname } from "path";
 
+async function mkdirShared(path: string) {
+  await fsp.mkdir(path, { recursive: true });
+  await fsp.chmod(path, 0o777);
+}
+
 export namespace Common {
   export const Regex = {
     RANDOM: /\w+/.source,
@@ -19,7 +24,7 @@ export namespace Common {
 
   export async function emptyDirectory(path: string) {
     await fsp.rm(path, { recursive: true, force: true });
-    await fsp.mkdir(path, { recursive: true });
+    await mkdirShared(path);
   }
 
   export async function readFile(path: string) {
@@ -36,7 +41,7 @@ export namespace Common {
   }
 
   export async function writeFile(path: string, contents: string) {
-    await fsp.mkdir(dirname(path), { recursive: true });
+    await mkdirShared(dirname(path));
     await fsp.writeFile(path, contents);
   }
 

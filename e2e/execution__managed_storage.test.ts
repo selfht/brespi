@@ -1,5 +1,5 @@
 import test, { expect, Page } from "@playwright/test";
-import { mkdir, readdir, readFile } from "fs/promises";
+import { readdir, readFile } from "fs/promises";
 import { dirname, join } from "path";
 import { FSBoundary } from "./boundaries/FSBoundary";
 import { ResetBoundary } from "./boundaries/ResetBoundary";
@@ -61,7 +61,7 @@ const createFilesystemConfig = (): AdapterConfig => {
       }),
     },
     beforeHappyFlow: async () => {
-      await mkdir(storageFolder, { recursive: true });
+      await Common.emptyDirectory(storageFolder);
     },
   };
 };
