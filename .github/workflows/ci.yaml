@@ -40,4 +40,4 @@ jobs:
         run: bun test:regression
 
       - name: "Application :: E2E Tests"
-        run: bun e2e:headless
+        run: HOST_UID=$(id -u) HOST_GID=$(id -g) bun e2e:headless

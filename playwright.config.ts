@@ -46,7 +46,7 @@ export default defineConfig({
     command: [
       "mkdir -p ./opt",
       "./brespi.sh image create --postgresql --mariadb --stage e2e",
-      "HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose -f compose-e2e.yaml up",
+      "docker compose -f compose-e2e.yaml up",
     ].join(" && "),
     stdout: "pipe",
     url: "http://localhost:3000",
