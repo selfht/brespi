@@ -150,7 +150,7 @@ WORKDIR /app
 COPY --from=builder --chown=bun:bun /app .
 USER bun
 EXPOSE 3000
-CMD ["sh", "-c", "umask 000 && exec bun start:${stage}"]
+CMD ["bun", "start:${stage}"]
 EOF
     fi
 
