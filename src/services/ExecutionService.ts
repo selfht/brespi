@@ -70,11 +70,13 @@ export class ExecutionService {
     const { pipelineId, trigger, waitForCompletion } = ExecutionService.Create.parse(unknown);
     const pipeline = await this.pipelineRepository.findById(pipelineId);
     if (!pipeline) {
+      console.info("No pipeline!!!!");
       throw PipelineError.not_found({ id: pipelineId });
     }
 
     const [existingExecution] = await this.executionRepository.query({ pipelineId, completed: false });
     if (existingExecution) {
+      console.info("Existing execution!!!!");
       throw ExecutionError.already_executing({ id: existingExecution.id });
     }
 
@@ -93,20 +95,27 @@ export class ExecutionService {
         previousStepId: step.previousId,
       })),
     };
+    console.info(`About to save execution: ${id}`);
     if (!(await this.executionRepository.create(execution))) {
+      console.info(`Still an existing execution???? ${id}`);
       throw ExecutionError.already_exists();
     }
     this.eventBus.publish(Event.Type.execution_started, { execution, trigger });
 
-    const completionPromise = this.execute(execution.id, pipeline) //
-      .then((completedExecution) => {
+    console.info(`1-2-3 execute!: ${id}`);
+    const completionPromise = this.execute(execution.id, pipeline).then(
+      (completedExecution) => {
         this.eventBus.publish(Event.Type.execution_completed, { execution: completedExecution, trigger });
         if (completedExecution.result?.outcome === Outcome.error) {
           const errors = completedExecution.actions.filter((a) => a.result?.outcome === Outcome.error).map((a) => a.result!.errorMessage!);
           console.warn(`⚠️ Execution failed`, errors);
         }
         return completedExecution;
-      });
+      },
+      (e) => {
+        console.error(`❌ An unknown execution error occurred`, e);
+      },
+    );
     if (waitForCompletion) {
       return await completionPromise;
     }
