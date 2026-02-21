@@ -21,7 +21,7 @@ export default defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? 1 : 0,
+  retries: process.env.CI ? 0 : 0,
   /* Opt out of parallel tests on CI. */
   workers: 1,
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -43,7 +43,12 @@ export default defineConfig({
 
   /* Build and start the production image before running tests */
   webServer: {
-    command: ["./brespi.sh image create --postgresql --mariadb --stage e2e", "docker compose -f compose-e2e.yaml up"].join(" && "),
+    command: [
+      "./brespi.sh image create --postgresql --mariadb --stage e2e",
+      process.env.CI
+        ? `HOST_UID=${process.getuid!()} HOST_GID=${process.getgid!()} docker compose -f compose-e2e.yaml up`
+        : "docker compose -f compose-e2e.yaml up",
+    ].join(" && "),
     stdout: "pipe",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,

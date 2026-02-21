@@ -91,7 +91,7 @@ BACKUP_DIR="${BACKUP_ROOT}/${TIMESTAMP}"
 mkdir -p "${BACKUP_DIR}"
 
 # Always get ALL databases (excluding system databases)
-ALL_DBS=$($PSQL_CMD -h ${PGHOST} -U ${PGUSER} -t -c "SELECT datname FROM pg_database WHERE datistemplate = false AND datname != 'postgres';" 2>&1)
+ALL_DBS=$($PSQL_CMD -h ${PGHOST} -U ${PGUSER} -d postgres -t -c "SELECT datname FROM pg_database WHERE datistemplate = false AND datname != 'postgres';" 2>&1)
 
 # Check if the query failed (foundational failure)
 if [ $? -ne 0 ]; then
