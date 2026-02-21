@@ -105,8 +105,10 @@ describe(NotificationDispatchService.name, async () => {
       expect(context.yesttpMock.post).not.toHaveBeenCalled();
       expect(errorSpy).toHaveBeenCalledWith(
         expect.anything(),
+        "Notification dispatch failed",
         expect.objectContaining({
-          problem: "NotificationError::dispatch_failed",
+          channel: "slack",
+          cause: "PropertyError::variable_unresolved",
         }),
       );
     });
@@ -188,11 +190,9 @@ describe(NotificationDispatchService.name, async () => {
       // then
       expect(errorSpy).toHaveBeenCalledWith(
         expect.anything(),
+        "Notification dispatch failed",
         expect.objectContaining({
-          problem: "NotificationError::dispatch_failed",
-          details: expect.objectContaining({
-            channel: "custom_script",
-          }),
+          channel: "custom_script",
         }),
       );
     });

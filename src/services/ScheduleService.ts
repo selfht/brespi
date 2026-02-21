@@ -11,8 +11,10 @@ import { Temporal } from "@js-temporal/polyfill";
 import { Cron } from "croner";
 import z from "zod/v4";
 import { ExecutionService } from "./ExecutionService";
+import { Logger } from "@/Logger";
 
 export class ScheduleService {
+  private readonly log = new Logger(__filename);
   private readonly activeCronJobs = new Map<string, Cron>();
 
   public constructor(
@@ -22,7 +24,7 @@ export class ScheduleService {
     private readonly executionService: ExecutionService,
   ) {
     eventBus.subscribe(Event.Type.pipeline_deleted, ({ data: { pipeline } }) => {
-      this.deleteForPipeline(pipeline.id).catch(console.error);
+      this.deleteForPipeline(pipeline.id).catch(this.log.error);
     });
     eventBus.subscribe(Event.Type.configuration_updated, ({ data: { configuration, trigger } }) => {
       if (trigger === "disk_synchronization") {
@@ -135,7 +137,7 @@ export class ScheduleService {
   private start(schedule: Schedule) {
     if (schedule.active) {
       const cron = new Cron(schedule.cron, async () => {
-        await this.executionService.create({ pipelineId: schedule.pipelineId, trigger: "schedule" }).catch(console.error);
+        await this.executionService.create({ pipelineId: schedule.pipelineId, trigger: "schedule" }).catch(this.log.error);
       });
       this.activeCronJobs.set(schedule.id, cron);
     }

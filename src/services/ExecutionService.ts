@@ -9,6 +9,7 @@ import { EventBus } from "@/events/EventBus";
 import { Mutex } from "@/helpers/Mutex";
 import { TempDestination } from "@/helpers/TempDestination";
 import { ZodProblem } from "@/helpers/ZodIssues";
+import { Logger } from "@/Logger";
 import { Action } from "@/models/Action";
 import { Artifact } from "@/models/Artifact";
 import { Execution } from "@/models/Execution";
@@ -25,6 +26,7 @@ import { copyFile, rm } from "fs/promises";
 import z from "zod/v4";
 
 export class ExecutionService {
+  private readonly log = new Logger(__filename);
   private readonly sockets: Socket[] = [];
 
   public constructor(
@@ -103,12 +105,12 @@ export class ExecutionService {
         this.eventBus.publish(Event.Type.execution_completed, { execution: completedExecution, trigger });
         if (completedExecution.result?.outcome === Outcome.error) {
           const errors = completedExecution.actions.filter((a) => a.result?.outcome === Outcome.error).map((a) => a.result!.errorMessage!);
-          console.warn(`⚠️ Execution failed`, errors);
+          this.log.warn("Execution failed", errors);
         }
         return completedExecution;
       },
       (e) => {
-        console.error(`❌ An unknown execution error occurred`, e);
+        this.log.error("An unknown execution error occurred", e);
         throw e;
       },
     );

@@ -21,8 +21,11 @@ import { Socket } from "./socket/Socket";
 import { PipelineView } from "./views/PipelineView";
 import { Temporal } from "@js-temporal/polyfill";
 import { Prettify } from "./helpers/Prettify";
+import { Logger } from "./Logger";
 
 export class Server {
+  private readonly log = new Logger(__filename);
+
   public constructor(
     private readonly env: Env.Private,
     private readonly stepService: StepService,
@@ -263,8 +266,9 @@ export class Server {
        */
       error: (e) => this.handleError(e),
     });
-    console.info(
+    this.log.info(
       [
+        "",
         "",
         `  🚀 \x1b[1mBrespi started on ${Prettify.timestamp(Temporal.Now.plainDateTimeISO())} (${Temporal.Now.timeZoneId()})\x1b[0m`,
         "",
@@ -323,7 +327,7 @@ export class Server {
     if (e.message?.includes("invalid input syntax for type")) {
       return Response.json(ServerError.invalid_request_body().json(), { status: 400 });
     }
-    console.error("❌ An unknown error occurred", e);
+    this.log.error("An unknown error occurred", e);
     return Response.json(ServerError.unknown().json(), { status: 500 });
   }
 }

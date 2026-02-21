@@ -2,6 +2,7 @@ import { PropertyResolver } from "@/capabilities/propertyresolution/PropertyReso
 import { NotificationError } from "@/errors/NotificationError";
 import { Event } from "@/events/Event";
 import { CommandRunner } from "@/helpers/CommandRunner";
+import { Logger } from "@/Logger";
 import { EventSubscription } from "@/models/EventSubscription";
 import { NotificationChannel } from "@/models/NotificationChannel";
 import { NotificationPolicy } from "@/models/NotificationPolicy";
@@ -25,6 +26,8 @@ type EventDetails =
     };
 
 export class NotificationDispatchService {
+  private readonly log = new Logger(__filename);
+
   public constructor(
     private readonly propertyResolver: PropertyResolver,
     private readonly pipelineRepository: PipelineRepository,
@@ -47,12 +50,11 @@ export class NotificationDispatchService {
         }
       }
     } catch (e) {
-      const error = NotificationError.dispatch_failed({
+      this.log.error("Notification dispatch failed", {
         channel: policy.channel.type,
         eventType: event.type,
         cause: e instanceof Error ? e.message : String(e),
       });
-      console.error(`❌ Notification failed`, error.json());
     }
   }
 
