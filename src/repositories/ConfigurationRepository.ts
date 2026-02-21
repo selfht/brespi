@@ -1,5 +1,6 @@
 import { Env } from "@/Env";
 import { Mutex } from "@/helpers/Mutex";
+import { Logger } from "@/Logger";
 import { Configuration } from "@/models/Configuration";
 
 type ChangeTrigger = "application" | "disk_synchronization";
@@ -9,6 +10,7 @@ type ChangeListener = {
 };
 
 export class ConfigurationRepository {
+  private readonly log = new Logger(__filename);
   private readonly mutex = new Mutex();
   private readonly diskFilePath: string;
   private readonly changeListeners: ChangeListener[] = [];
@@ -161,6 +163,11 @@ export class ConfigurationRepository {
       this.changeListeners
         .filter(({ event }) => event === "synchronization_change") //
         .forEach(({ callback }) => callback({ configuration: this.getCurrentValue(), trigger }));
+    }
+    if (configurationWasChanged || synchronizationWasChanged) {
+      this.log.debug(
+        `Updated; trigger=${trigger}, configurationWasChanged=${configurationWasChanged}, synchronizationWasChanged=${synchronizationWasChanged}`,
+      );
     }
   }
 }

@@ -2,10 +2,10 @@ import { Temporal } from "@js-temporal/polyfill";
 import { basename } from "path";
 
 export class Logger {
-  private readonly name: string;
+  private readonly filename: string;
 
-  public constructor(filename: string) {
-    this.name = basename(filename);
+  public constructor(file: string) {
+    this.filename = basename(file);
   }
 
   public debug = (...args: unknown[]) => {
@@ -26,6 +26,6 @@ export class Logger {
 
   private prefix = (emoji: string) => {
     const timestamp = Temporal.Now.plainDateTimeISO().toString({ smallestUnit: "second" }).replace("T", " ");
-    return `${timestamp} ${emoji} ${this.name} |`;
+    return `${timestamp} ${emoji} ${this.filename} |`;
   };
 }
